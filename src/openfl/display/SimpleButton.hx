@@ -1,12 +1,15 @@
 package openfl.display;
 
 #if !flash
+import flight.Interaction as FlightInteraction;
+import flight.Node as FlightNode;
+import flight.Signals as FlightSignals;
+import flight.types.PointerEventData as FlightPointerEventData;
 import openfl.geom.Matrix;
+import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.events.MouseEvent;
 import openfl.media.SoundTransform;
-import openfl.ui.MouseCursor;
-import openfl.Vector;
 
 /**
 	The SimpleButton class lets you control all instances of button symbols in
@@ -29,6 +32,7 @@ import openfl.Vector;
 @:noDebug
 #end
 @:access(openfl.display.MovieClip)
+@:access(openfl.display.DisplayObject)
 @:access(openfl.geom.Matrix)
 @:access(openfl.geom.Rectangle)
 class SimpleButton extends InteractiveObject
@@ -118,7 +122,6 @@ class SimpleButton extends InteractiveObject
 	@:noCompletion private var __hitTestState:DisplayObject;
 	@:noCompletion private var __ignoreEvent:Bool;
 	@:noCompletion private var __overState:DisplayObject;
-	@:noCompletion private var __previousStates:Vector<DisplayObject>;
 	@:noCompletion private var __soundTransform:SoundTransform;
 	@:noCompletion private var __upState:DisplayObject;
 
@@ -164,7 +167,6 @@ class SimpleButton extends InteractiveObject
 	{
 		super();
 
-		__drawableType = SIMPLE_BUTTON;
 		enabled = true;
 		trackAsMenu = false;
 		useHandCursor = true;
@@ -178,9 +180,16 @@ class SimpleButton extends InteractiveObject
 		addEventListener(MouseEvent.MOUSE_OUT, __this_onMouseOut);
 		addEventListener(MouseEvent.MOUSE_OVER, __this_onMouseOver);
 		addEventListener(MouseEvent.MOUSE_UP, __this_onMouseUp);
+		var signals = FlightInteraction.enableInteractionSignals(__flightNode);
+		FlightSignals.connectSignal(signals.onPointerDown, __flight_onPointerDown);
+		FlightSignals.connectSignal(signals.onPointerOut, __flight_onPointerOut);
+		FlightSignals.connectSignal(signals.onPointerOver, __flight_onPointerOver);
+		FlightSignals.connectSignal(signals.onPointerUp, __flight_onPointerUp);
 
 		__tabEnabled = true;
+		FlightInteraction.setNodeFocusable(__flightNode, true);
 		__currentState = __upState;
+		__syncCursor();
 
 		if (__constructor != null)
 		{
@@ -194,107 +203,30 @@ class SimpleButton extends InteractiveObject
 	@:noCompletion private override function __getBounds(rect:Rectangle, matrix:Matrix):Void
 	{
 		super.__getBounds(rect, matrix);
+		if (__currentState == null || !__currentState.__hasBoundsContent()) return;
 
-		var childWorldTransform = Matrix.__pool.get();
-
-		DisplayObject.__calculateAbsoluteTransform(__currentState.__transform, matrix, childWorldTransform);
-
-		__currentState.__getBounds(rect, childWorldTransform);
-
-		Matrix.__pool.release(childWorldTransform);
+		var childMatrix = __currentState.__transform.clone();
+		childMatrix.concat(matrix);
+		var childRect = new Rectangle();
+		__currentState.__getBounds(childRect, childMatrix);
+		if (rect.isEmpty()) rect.copyFrom(childRect); else rect.copyFrom(rect.union(childRect));
 	}
 
-	@:noCompletion private override function __getRenderBounds(rect:Rectangle, matrix:Matrix):Void
+	@:noCompletion private override function __hasBoundsContent():Bool
 	{
-		if (__scrollRect != null)
-		{
-			super.__getRenderBounds(rect, matrix);
-			return;
-		}
-		else
-		{
-			super.__getBounds(rect, matrix);
-		}
-
-		if (__currentState == null)
-		{
-			return;
-		}
-
-		var childWorldTransform = Matrix.__pool.get();
-
-		DisplayObject.__calculateAbsoluteTransform(__currentState.__transform, matrix, childWorldTransform);
-
-		__currentState.__getRenderBounds(rect, childWorldTransform);
-
-		Matrix.__pool.release(childWorldTransform);
+		return super.__hasBoundsContent() || (__currentState != null && __currentState.__hasBoundsContent());
 	}
 
-	@:noCompletion private override function __getCursor():MouseCursor
+	@:noCompletion private override function __hasFlightBoundsContent():Bool
 	{
-		return (useHandCursor && !__ignoreEvent && enabled) ? BUTTON : null;
+		return super.__hasFlightBoundsContent() || (__currentState != null && __currentState.__hasFlightBoundsContent());
 	}
 
-	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool,
-			hitObject:DisplayObject):Bool
+	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
-		var hitTest = false;
-
-		if (hitTestState != null)
-		{
-			if (hitTestState.__hitTest(x, y, shapeFlag, stack, interactiveOnly, hitObject))
-			{
-				if (stack != null)
-				{
-					if (stack.length == 0)
-					{
-						stack[0] = hitObject;
-					}
-					else
-					{
-						stack[stack.length - 1] = hitObject;
-					}
-				}
-
-				hitTest = (!interactiveOnly || mouseEnabled);
-			}
-		}
-		else if (__currentState != null)
-		{
-			if (!hitObject.visible || __isMask || (interactiveOnly && !mouseEnabled) || (mask != null && !mask.__hitTestMask(x, y)))
-			{
-				hitTest = false;
-			}
-			else if (__currentState.__hitTest(x, y, shapeFlag, stack, interactiveOnly, hitObject))
-			{
-				hitTest = interactiveOnly;
-			}
-		}
-
-		// TODO: Better fix?
-		// (this is caused by the "hitObject" logic in hit testing)
-
-		if (stack != null)
-		{
-			while (stack.length > 1 && stack[stack.length - 1] == stack[stack.length - 2])
-			{
-				stack.pop();
-			}
-		}
-
-		return hitTest;
-	}
-
-	@:noCompletion private override function __hitTestMask(x:Float, y:Float):Bool
-	{
-		var hitTest = false;
-
-		if (__currentState.__hitTestMask(x, y))
-		{
-			hitTest = true;
-		}
-
-		return hitTest;
+		if (__hitTestState == null) return false;
+		var local = globalToLocal(new Point(x, y));
+		return __hitTestState.__hitTest(local.x, local.y, shapeFlag);
 	}
 
 	@:noCompletion private override function __setStageReference(stage:Stage):Void
@@ -327,39 +259,6 @@ class SimpleButton extends InteractiveObject
 		}
 	}
 
-	@:noCompletion private override function __update(transformOnly:Bool, updateChildren:Bool):Void
-	{
-		super.__update(transformOnly, updateChildren);
-
-		if (updateChildren)
-		{
-			if (__currentState != null)
-			{
-				__currentState.__update(transformOnly, true);
-			}
-
-			if (hitTestState != null && hitTestState != __currentState)
-			{
-				hitTestState.__update(transformOnly, true);
-			}
-		}
-	}
-
-	@:noCompletion private override function __updateTransforms(overrideTransform:Matrix = null):Void
-	{
-		super.__updateTransforms(overrideTransform);
-
-		if (__currentState != null)
-		{
-			__currentState.__updateTransforms();
-		}
-
-		if (hitTestState != null && hitTestState != __currentState)
-		{
-			hitTestState.__updateTransforms();
-		}
-	}
-
 	// Getters & Setters
 	@:noCompletion private function get_downState():DisplayObject
 	{
@@ -383,21 +282,17 @@ class SimpleButton extends InteractiveObject
 
 	@:noCompletion private function set_hitTestState(hitTestState:DisplayObject):DisplayObject
 	{
-		if (__hitTestState != null && __hitTestState != hitTestState)
+		if (__hitTestState == hitTestState) return hitTestState;
+		var previous = __hitTestState;
+		__hitTestState = hitTestState;
+		FlightInteraction.setNodeHitArea(__flightNode, hitTestState == null ? null : cast hitTestState.__flightNode);
+		if (stage != null)
 		{
-			if (__hitTestState != downState && __hitTestState != upState && __hitTestState != overState)
-			{
-				__hitTestState.__renderParent = null;
-			}
+			if (previous != null && previous != __currentState) previous.__setStageReference(null);
+			if (hitTestState != null && hitTestState != __currentState) hitTestState.__setStageReference(stage);
 		}
-
-		if (hitTestState != null)
-		{
-			hitTestState.__renderParent = this;
-			hitTestState.__setRenderDirty();
-		}
-
-		return __hitTestState = hitTestState;
+		__setRenderDirty();
+		return hitTestState;
 	}
 
 	@:noCompletion private function get_overState():DisplayObject
@@ -448,60 +343,61 @@ class SimpleButton extends InteractiveObject
 
 	@:noCompletion private function set___currentState(value:DisplayObject):DisplayObject
 	{
-		if (__currentState != null && __currentState != hitTestState)
-		{
-			__currentState.__renderParent = null;
-		}
+		if (value == __currentState) return value;
+		var previous = __currentState;
 
 		if (value != null && value.parent != null)
 		{
 			value.parent.removeChild(value);
 		}
 
-		#if (js && html5)
-		if (DisplayObject.__supportDOM && __previousStates == null)
+		if (previous != null && FlightNode.getNodeParent(previous.__flightNode) == __flightNode)
 		{
-			__previousStates = new Vector<DisplayObject>();
+			FlightNode.removeNodeChild(__flightNode, previous.__flightNode);
 		}
-		#end
-
-		if (value != __currentState)
+		if (stage != null && previous != null && previous != __hitTestState)
 		{
-			#if (js && html5)
-			if (DisplayObject.__supportDOM)
-			{
-				if (__currentState != null)
-				{
-					__currentState.__setStageReference(null);
-					__previousStates.push(__currentState);
-				}
-
-				var index = __previousStates.indexOf(value);
-
-				if (index > -1)
-				{
-					__previousStates.splice(index, 1);
-				}
-			}
-			#end
-
-			if (value != null)
-			{
-				value.__renderParent = this;
-				value.__setRenderDirty();
-			}
-
-			__setRenderDirty();
+			previous.__setStageReference(null);
 		}
 
 		__currentState = value;
+		if (value != null)
+		{
+			var flightParent = FlightNode.getNodeParent(value.__flightNode);
+			if (flightParent != null && flightParent != __flightNode)
+			{
+				FlightNode.removeNodeChild(cast flightParent, value.__flightNode);
+			}
+			FlightNode.addNodeChild(__flightNode, value.__flightNode);
+			if (stage != null) value.__setStageReference(stage);
+		}
+		__setRenderDirty();
 
 		return value;
 	}
 
+	@:noCompletion private function __syncCursor():Void
+	{
+		FlightInteraction.setNodeCursor(__flightNode, useHandCursor && !__ignoreEvent && enabled ? "pointer" : null);
+	}
+
+	@:noCompletion private function __dispatchFlightMouse(type:String, data:FlightPointerEventData):Void
+	{
+		dispatchEvent(new MouseEvent(type, true, false, data.localX, data.localY, null, data.ctrlKey, data.altKey, data.shiftKey, data.buttons != 0));
+	}
+
+	@:noCompletion private function __flight_onPointerDown(data:FlightPointerEventData):Void __dispatchFlightMouse(MouseEvent.MOUSE_DOWN, data);
+
+	@:noCompletion private function __flight_onPointerOut(data:FlightPointerEventData):Void __dispatchFlightMouse(MouseEvent.MOUSE_OUT, data);
+
+	@:noCompletion private function __flight_onPointerOver(data:FlightPointerEventData):Void __dispatchFlightMouse(MouseEvent.MOUSE_OVER, data);
+
+	@:noCompletion private function __flight_onPointerUp(data:FlightPointerEventData):Void __dispatchFlightMouse(MouseEvent.MOUSE_UP, data);
+
 	// Event Handlers
 	@:noCompletion private function __this_onMouseDown(event:MouseEvent):Void
 	{
+		__syncCursor();
 		if (enabled)
 		{
 			__currentState = downState;
@@ -511,6 +407,7 @@ class SimpleButton extends InteractiveObject
 	@:noCompletion private function __this_onMouseOut(event:MouseEvent):Void
 	{
 		__ignoreEvent = false;
+		__syncCursor();
 
 		if (upState != __currentState)
 		{
@@ -524,6 +421,7 @@ class SimpleButton extends InteractiveObject
 		{
 			__ignoreEvent = true;
 		}
+		__syncCursor();
 
 		if (overState != __currentState && overState != null && !__ignoreEvent && enabled)
 		{
@@ -534,6 +432,7 @@ class SimpleButton extends InteractiveObject
 	@:noCompletion private function __this_onMouseUp(event:MouseEvent):Void
 	{
 		__ignoreEvent = false;
+		__syncCursor();
 
 		if (enabled && overState != null)
 		{
