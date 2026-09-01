@@ -1296,7 +1296,10 @@ class Matrix3D
 		switch (orientationStyle)
 		{
 			case Orientation3D.EULER_ANGLES:
-				Geometry.setQuaternionFromEuler(quaternion, rotation.x, rotation.y, rotation.z);
+				// OpenFL's column-major Euler formula corresponds to Flight's ZYX order.
+				// Pass it explicitly because the generated facade also forwards an omitted
+				// optional order as null instead of applying Flight's default.
+				Geometry.setQuaternionFromEuler(quaternion, rotation.x, rotation.y, rotation.z, "ZYX");
 
 			case Orientation3D.AXIS_ANGLE:
 				Geometry.setQuaternionFromAxisAngle(quaternion, rotation, rotation.w);
