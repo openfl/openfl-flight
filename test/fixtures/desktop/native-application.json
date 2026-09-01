@@ -1,0 +1,44 @@
+{
+  "defaults": {
+    "runtimeVersion": null,
+    "iconIsNull": true,
+    "runtimePatchLevel": 0,
+    "systemIdleMode": "normal",
+    "autoExit": true,
+    "idleThreshold": 300,
+    "openedWindowCount": 0,
+    "activeWindowIsNull": true,
+    "openedWindowsIsCopy": true,
+    "startAtLogin": false,
+    "menuIsNull": true
+  },
+  "singletonStable": true,
+  "invalidIdleModeThrows": true,
+  "mutated": {
+    "systemIdleMode": "keepAwake",
+    "autoExit": false,
+    "idleThreshold": 120,
+    "startAtLogin": false
+  },
+  "activateThrows": false,
+  "idleBelowMinimumThrows": true,
+  "commands": {
+    "copy": false,
+    "selectAll": false,
+    "cut": false,
+    "paste": false,
+    "clear": false
+  },
+  "defaultApplication": {
+    "getIsNull": true,
+    "isSet": false
+  },
+  "supports": {
+    "systemTrayIcon": false,
+    "dockIcon": false,
+    "startAtLogin": false,
+    "menu": false,
+    "defaultApplication": false
+  },
+  "idleAboveMaximumThrows": true
+}

@@ -130,9 +130,13 @@ currently provides (or doesn't).
 
 - **Desktop application metadata and shell capabilities**: Flight exposes the
   authoritative application and window handles needed for lifecycle and window
-  operations, but it has no public application-identifier getter or definitive
-  capability queries for OpenFL's dock-icon, system-tray-icon, and native-menu
-  support flags.
+  operations, but it has no AIR runtime-version or runtime-patch metadata,
+  application-identifier getter, default-file-association API, focused editing
+  command router, or adapter from OpenFL `NativeMenu` objects to Flight menu
+  templates. It also has no definitive capability queries for OpenFL's
+  dock-icon, system-tray-icon, and native-menu support flags. Flight App login
+  items and Power keep-awake operations back `startAtLogin` and
+  `systemIdleMode`; the remaining surfaces stay deterministic stubs.
 
 ## Suspected Gaps
 

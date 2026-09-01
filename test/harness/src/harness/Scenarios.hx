@@ -34,6 +34,7 @@ import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
 import harness.scenarios.MouseScenario;
 import harness.scenarios.MovieClipScenario;
+import harness.scenarios.NativeApplicationScenario;
 import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
@@ -277,6 +278,10 @@ class Scenarios {
 			{
 				name: "desktop/native-window",
 				run: DesktopScenario.run
+			},
+			{
+				name: "desktop/native-application",
+				run: NativeApplicationScenario.run
 			},
 			{
 				name: "ui/keyboard",

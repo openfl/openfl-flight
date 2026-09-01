@@ -3,8 +3,13 @@ package openfl.desktop;
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
 import flight.App as FlightApp;
 import flight.Application as FlightApplication;
+import flight.Power as FlightPower;
+import flight.Signals as FlightSignals;
+import flight.types.App as FlightAppData;
 import flight.types.Application as FlightApplicationData;
 import openfl.display.NativeWindow;
+import openfl.errors.ArgumentError;
+import openfl.events.Event;
 import openfl.events.EventDispatcher;
 
 /**
@@ -161,7 +166,10 @@ class NativeApplication extends EventDispatcher
 	#end
 
 	@:noCompletion private var __activeWindow:NativeWindow;
+	@:noCompletion private var __flightApp:FlightAppData;
 	@:noCompletion private var __flightApplication:FlightApplicationData;
+	@:noCompletion private var __idleThreshold:Int = 300;
+	@:noCompletion private var __systemIdleMode:SystemIdleMode = SystemIdleMode.NORMAL;
 
 	/**
 		The active application window.
@@ -233,6 +241,27 @@ class NativeApplication extends EventDispatcher
 	public var icon(default, never):InteractiveIcon = null;
 
 	/**
+		The number of seconds without user input before the application is idle.
+	**/
+	public var idleThreshold(get, set):Int;
+
+	@:noCompletion private function get_idleThreshold():Int
+	{
+		return __idleThreshold;
+	}
+
+	@:noCompletion private function set_idleThreshold(value:Int):Int
+	{
+		if (value < 5 || value > 86400) throw new ArgumentError("idleThreshold must be between 5 and 86400 seconds");
+		return __idleThreshold = value;
+	}
+
+	/**
+		The application menu. Flight has no OpenFL NativeMenu adapter yet.
+	**/
+	public var menu:Dynamic = null;
+
+	/**
 		In Adobe AIR, when targeting iOS, this property indicates if the
 		application was compiled AOT or if code is using the slower interpreter
 		without JIT. On all other platforms and operating systems, this
@@ -262,6 +291,26 @@ class NativeApplication extends EventDispatcher
 	}
 
 	/**
+		The patch level of the runtime hosting this application.
+	**/
+	public var runtimePatchLevel(get, never):UInt;
+
+	@:noCompletion private function get_runtimePatchLevel():UInt
+	{
+		return 0;
+	}
+
+	/**
+		The version number of the runtime hosting this application.
+	**/
+	public var runtimeVersion(get, never):String;
+
+	@:noCompletion private function get_runtimeVersion():String
+	{
+		return null;
+	}
+
+	/**
 		Specifies whether this application is automatically launched whenever
 		the current user logs in.
 
@@ -285,14 +334,75 @@ class NativeApplication extends EventDispatcher
 
 		@see `NativeApplication.supportsStartAtLogin`
 	**/
-	public var startAtLogin(default, default):Bool;
+	public var startAtLogin(get, set):Bool;
+
+	@:noCompletion private function get_startAtLogin():Bool
+	{
+		return FlightApp.getAppLoginItem().openAtLogin;
+	}
+
+	@:noCompletion private function set_startAtLogin(value:Bool):Bool
+	{
+		return FlightApp.setAppLoginItem({openAtLogin: value}) ? value : get_startAtLogin();
+	}
+
+	/**
+		Controls whether the host system may enter its normal idle mode.
+	**/
+	public var systemIdleMode(get, set):SystemIdleMode;
+
+	@:noCompletion private function get_systemIdleMode():SystemIdleMode
+	{
+		return __systemIdleMode;
+	}
+
+	@:noCompletion private function set_systemIdleMode(value:SystemIdleMode):SystemIdleMode
+	{
+		if (value != SystemIdleMode.KEEP_AWAKE && value != SystemIdleMode.NORMAL)
+		{
+			throw new ArgumentError("Invalid systemIdleMode");
+		}
+		FlightPower.setPowerKeepAwake(value == SystemIdleMode.KEEP_AWAKE, "PreventDisplaySleep");
+		return __systemIdleMode = value;
+	}
 
 	private function new()
 	{
 		super();
+		__flightApp = FlightApp.createApp();
+		FlightSignals.connectSignal(__flightApp.onActivate, function():Void dispatchEvent(new Event(Event.ACTIVATE)));
+		FlightSignals.connectSignal(__flightApp.onAllWindowsClosed, function():Void
+		{
+			if (autoExit) exit();
+		});
+		FlightSignals.connectSignal(__flightApp.onQuitRequest, function():Void
+		{
+			if (!dispatchEvent(new Event(Event.EXITING, false, true))) FlightSignals.cancelSignal(__flightApp.onQuitRequest);
+		});
+		#if js
+		FlightApp.attachApp(__flightApp);
+		#end
 		__flightApplication = FlightApplication.createApplication();
 		FlightApplication.enableApplicationLifecycleSignals(__flightApplication);
 	}
+
+	/**
+		Activates this application and, when supplied, the requested window.
+	**/
+	public function activate(window:NativeWindow = null):Void
+	{
+		FlightApp.focusApp();
+		if (window != null) window.activate();
+	}
+
+	/** Invokes the focused object's delete command when supported. **/
+	public function clear():Bool return false;
+
+	/** Invokes the focused object's copy command when supported. **/
+	public function copy():Bool return false;
+
+	/** Invokes the focused object's cut command when supported. **/
+	public function cut():Bool return false;
 
 	/**
 		Terminates this application.
@@ -318,6 +428,14 @@ class NativeApplication extends EventDispatcher
 	}
 
 	/**
+		Returns the path of the default application for an extension.
+	**/
+	public function getDefaultApplication(extension:String):String
+	{
+		return null;
+	}
+
+	/**
 		Specifies whether this application is currently the default application
 		for opening files with the specified extension.
 
@@ -336,6 +454,9 @@ class NativeApplication extends EventDispatcher
 	{
 		return false;
 	}
+
+	/** Invokes the focused object's paste command when supported. **/
+	public function paste():Bool return false;
 
 	/**
 		Removes this application as the default for opening files with the
@@ -358,6 +479,9 @@ class NativeApplication extends EventDispatcher
 		fileTypes statement in the application descriptor.
 	**/
 	public function setAsDefaultApplication(extension:String):Void {}
+
+	/** Invokes the focused object's select-all command when supported. **/
+	public function selectAll():Bool return false;
 }
 #else
 #if air
