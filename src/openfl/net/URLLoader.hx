@@ -7,6 +7,7 @@ import flight.types.NetProgress;
 import flight.types.NetRequest;
 import flight.types.NetResponse;
 import flight.types.Signal;
+import flight.types.HasNetHttp as FlightNetHost;
 import haxe.io.Bytes;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
@@ -15,6 +16,14 @@ import openfl.events.IOErrorEvent;
 import openfl.events.ProgressEvent;
 import openfl.events.SecurityErrorEvent;
 import openfl.utils.ByteArray;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
 
 /**
 	The URLLoader class downloads data from a URL as text, binary data, or
@@ -155,6 +164,8 @@ class URLLoader extends EventDispatcher
 
 	@:noCompletion private var __loadGeneration:Int = 0;
 	@:noCompletion private var __loading:Bool = false;
+	@:noCompletion private static var __netHost:FlightNetHost;
+	@:noCompletion private static var __netHostResolved:Bool;
 
 	/**
 		Creates a URLLoader object.
@@ -303,7 +314,11 @@ class URLLoader extends EventDispatcher
 			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, value.loaded, value.total));
 		});
 
-		var promise = FlightNet.sendNetRequest(__toFlightRequest(request), {progress: progress});
+		var flightRequest = __toFlightRequest(request);
+		var host = __getNetHost();
+		if (host == null) return;
+
+		var promise = FlightNet.sendNetRequest(host, flightRequest, {progress: progress});
 		promise.then(function(response:NetResponse):NetResponse
 		{
 			__defer(function():Void __complete(generation, request, response));
@@ -403,6 +418,29 @@ class URLLoader extends EventDispatcher
 		#else
 		haxe.Timer.delay(callback, 0);
 		#end
+	}
+
+	@:noCompletion private static function __getNetHost():FlightNetHost
+	{
+		if (__netHost != null || __netHostResolved) return __netHost;
+
+		#if (js && html5)
+		__netHost = cast FlightHostWeb.webHostNet;
+		__netHostResolved = true;
+		#elseif (clay && sys)
+		__netHost = cast FlightHostClay.createClayHost();
+		__netHostResolved = true;
+		#elseif (lime && sys)
+		if (LimeApplication.current != null)
+		{
+			__netHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+			__netHostResolved = true;
+		}
+		#else
+		__netHostResolved = true;
+		#end
+
+		return __netHost;
 	}
 
 	@:noCompletion private static function __encodeData(value:Dynamic):String
