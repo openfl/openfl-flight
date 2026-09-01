@@ -35,9 +35,9 @@ currently provides (or doesn't).
 - **General-purpose byte compression**: OpenFL `ByteArray.compress`,
   `uncompress`, `deflate`, and `inflate` require zlib, raw deflate, and LZMA
   codecs over an in-memory byte buffer. Flight 0.4.0 exposes only GPU texture
-  compression entry points; it has no public byte-codec API. The adapter's
-  compression methods therefore cannot be Flight-backed, including OpenFL's
-  in-place length and position semantics.
+  compression entry points; it has no public byte-codec API. The adapter uses
+  Haxe standard-library fallbacks for zlib and raw deflate while preserving
+  OpenFL's in-place length and position semantics, but LZMA remains unavailable.
 
 - **Public UTF-8 byte codec**: OpenFL `ByteArray.readUTFBytes` and
   `writeUTFBytes` require conversion between UTF-8 and raw bytes. Flight 0.4.0

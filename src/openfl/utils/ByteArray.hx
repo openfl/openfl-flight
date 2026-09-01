@@ -1252,6 +1252,20 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 			__length = __allocated;
 			position = __length;
 		}
+		#else
+		var source = __copyBytes();
+		var bytes = switch (algorithm)
+		{
+			case CompressionAlgorithm.DEFLATE: __compressDeflate(source);
+			case CompressionAlgorithm.LZMA: null;
+			default: haxe.zip.Compress.run(source, 9);
+		}
+
+		if (bytes != null)
+		{
+			__fromBytes(bytes);
+			position = __length;
+		}
 		#end
 	}
 
@@ -1581,6 +1595,19 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 
 			__length = __allocated;
 		}
+		#else
+		var source = __copyBytes();
+		var bytes = switch (algorithm)
+		{
+			case CompressionAlgorithm.DEFLATE: __uncompressDeflate(source);
+			case CompressionAlgorithm.LZMA: null;
+			default: haxe.zip.Uncompress.run(source);
+		}
+
+		if (bytes != null)
+		{
+			__fromBytes(bytes);
+		}
 		#end
 
 		position = 0;
@@ -1755,6 +1782,38 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 	{
 		var bytes:Bytes = Bytes.ofString(value);
 		writeBytes(bytes);
+	}
+
+	@:noCompletion private function __copyBytes():Bytes
+	{
+		var bytes = Bytes.alloc(__length);
+		for (index in 0...__length)
+		{
+			bytes.set(index, get(index));
+		}
+		return bytes;
+	}
+
+	@:noCompletion private static function __compressDeflate(source:Bytes):Bytes
+	{
+		var zlib = haxe.zip.Compress.run(source, 9);
+		return zlib.sub(2, zlib.length - 6);
+	}
+
+	@:noCompletion private static function __uncompressDeflate(source:Bytes):Bytes
+	{
+		var inflate = new haxe.zip.InflateImpl(new haxe.io.BytesInput(source), false, false);
+		var output = new haxe.io.BytesBuffer();
+		var buffer = Bytes.alloc(65536);
+
+		while (true)
+		{
+			var length = inflate.readBytes(buffer, 0, buffer.length);
+			output.addBytes(buffer, 0, length);
+			if (length < buffer.length) break;
+		}
+
+		return output.getBytes();
 	}
 
 	@:noCompletion private function __fromBytes(bytes:Bytes):Void
