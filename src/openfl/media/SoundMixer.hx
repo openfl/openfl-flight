@@ -1,8 +1,18 @@
 package openfl.media;
 
 #if !flash
+import flight.Media as FlightMedia;
+import flight.types.AudioDeviceHandle as FlightAudioDevice;
 #if lime
 import flight.hostLime.LimeAudio;
+#end
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif clay
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif lime
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
 #end
 /**
 	The SoundMixer class contains static properties and methods for global
@@ -55,6 +65,9 @@ import flight.hostLime.LimeAudio;
 	@:noCompletion private static var __soundTransform:SoundTransform = #if (mute || mute_sound) new SoundTransform(0) #else new SoundTransform() #end;
 	@:noCompletion private static var __flightAudioContext:Dynamic;
 	@:noCompletion private static var __flightAudioContextInitialized:Bool = false;
+	@:noCompletion private static var __flightAudioDevice:FlightAudioDevice;
+	@:noCompletion private static var __flightAudioDeviceInitialized:Bool = false;
+	@:noCompletion private static var __flightAudioHostInitialized:Bool = false;
 
 	#if openfljs
 	@:noCompletion private static function __init__()
@@ -196,15 +209,59 @@ import flight.hostLime.LimeAudio;
 		if (!__flightAudioContextInitialized)
 		{
 			__flightAudioContextInitialized = true;
+			__initializeFlightAudioHost();
 			#if lime
 			try
 			{
 				__flightAudioContext = LimeAudio.createLimeAudioContext();
 			}
 			catch (_:Dynamic) {}
+			#elseif (js && html5)
+			try
+			{
+				__flightAudioContext = new js.html.audio.AudioContext();
+			}
+			catch (_:Dynamic) {}
 			#end
 		}
 		return __flightAudioContext;
+	}
+
+	@:noCompletion private static function __getFlightAudioDevice():FlightAudioDevice
+	{
+		__initializeFlightAudioHost();
+		if (!__flightAudioDeviceInitialized && __flightAudioHostInitialized)
+		{
+			__flightAudioDeviceInitialized = true;
+			try
+			{
+				__flightAudioDevice = FlightMedia.getAudioDeviceBackend().createDevice(44100);
+			}
+			catch (_:Dynamic) {}
+		}
+		return __flightAudioDevice;
+	}
+
+	@:noCompletion private static function __initializeFlightAudioHost():Void
+	{
+		if (__flightAudioHostInitialized) return;
+
+		#if (js && html5)
+		FlightHostWeb.enableHostWebAudio();
+		FlightHostWeb.enableHostWebAudioDevice();
+		__flightAudioHostInitialized = true;
+		#elseif clay
+		FlightHostClay.enableHostClay();
+		__flightAudioHostInitialized = true;
+		#elseif lime
+		if (LimeApplication.current != null)
+		{
+			FlightHostLime.enableHostLime(LimeApplication.current);
+			__flightAudioHostInitialized = true;
+		}
+		#else
+		__flightAudioHostInitialized = true;
+		#end
 	}
 
 	// Get & Set Methods
