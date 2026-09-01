@@ -40,13 +40,15 @@ roles:
     runtimeProfile: claude-sbx
   builder:
     runtimeProfile: codex-sbx
+  integration:
+    runtimeProfile: codex-sbx
 
 services:
   serve: quimby serve
 
 layouts:
   default:
-    expr: (review | @builder):80 / (host $serve):20
+    expr: ((review integration) | @builder):80 / (host $serve):20
 
 default: default
 
@@ -67,3 +69,9 @@ presets:
         role: builder
       builder3:
         role: builder
+      integration:
+        role: integration
+
+integrate:
+  from:
+    integration
