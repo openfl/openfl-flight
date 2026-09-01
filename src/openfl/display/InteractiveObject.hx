@@ -1,6 +1,7 @@
 package openfl.display;
 
 #if !flash
+import flight.Interaction as FlightInteraction;
 import openfl.errors.RangeError;
 import openfl.geom.Rectangle;
 
@@ -8,6 +9,7 @@ import openfl.geom.Rectangle;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.DisplayObject)
 class InteractiveObject extends DisplayObject
 {
 	/**
@@ -49,7 +51,7 @@ class InteractiveObject extends DisplayObject
 		`addEventListener()` method to create interactive
 		functionality.
 	**/
-	public var mouseEnabled:Bool;
+	public var mouseEnabled(get, set):Bool;
 	/**
 		Specifies whether a virtual keyboard (an on-screen, software keyboard)
 		should display when this InteractiveObject instance receives focus.
@@ -141,6 +143,7 @@ class InteractiveObject extends DisplayObject
 	**/
 	public var tabIndex(get, set):Int;
 
+	@:noCompletion private var __mouseEnabled:Bool;
 	@:noCompletion private var __tabEnabled:Null<Bool>;
 	@:noCompletion private var __tabIndex:Int;
 
@@ -159,10 +162,13 @@ class InteractiveObject extends DisplayObject
 	{
 		super();
 		doubleClickEnabled = false;
-		mouseEnabled = true;
+		__mouseEnabled = true;
 		needsSoftKeyboard = false;
 		__tabEnabled = null;
 		__tabIndex = -1;
+		FlightInteraction.setNodeHitTestEnabled(__flightNode, true);
+		FlightInteraction.setNodeFocusable(__flightNode, false);
+		FlightInteraction.setNodeTabIndex(__flightNode, -1);
 	}
 
 	#if !openfl_strict
@@ -195,6 +201,15 @@ class InteractiveObject extends DisplayObject
 		if (tabEnabled) stack.push(this);
 	}
 
+	@:noCompletion private function get_mouseEnabled():Bool return __mouseEnabled;
+
+	@:noCompletion private function set_mouseEnabled(value:Bool):Bool
+	{
+		__mouseEnabled = value;
+		FlightInteraction.setNodeHitTestEnabled(__flightNode, value);
+		return value;
+	}
+
 	@:noCompletion private function get_tabEnabled():Bool return __tabEnabled == true;
 
 	@:noCompletion private function set_tabEnabled(value:Bool):Bool
@@ -202,6 +217,7 @@ class InteractiveObject extends DisplayObject
 		if (__tabEnabled != value)
 		{
 			__tabEnabled = value;
+			FlightInteraction.setNodeFocusable(__flightNode, value);
 			dispatchEvent(new openfl.events.Event(openfl.events.Event.TAB_ENABLED_CHANGE, true, false));
 		}
 		return value;
@@ -215,6 +231,7 @@ class InteractiveObject extends DisplayObject
 		{
 			if (value < -1) throw new RangeError("Parameter tabIndex must be a non-negative number; got " + value);
 			__tabIndex = value;
+			FlightInteraction.setNodeTabIndex(__flightNode, value);
 			dispatchEvent(new openfl.events.Event(openfl.events.Event.TAB_INDEX_CHANGE, true, false));
 		}
 		return value;
