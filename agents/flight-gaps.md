@@ -32,6 +32,28 @@ currently provides (or doesn't).
   `ByteArray`/typed-array uploads, arbitrary mip levels, render-target textures,
   or `VideoTexture`. BitmapData uploads at the base mip are supported.
 
+- **General-purpose byte compression**: OpenFL `ByteArray.compress`,
+  `uncompress`, `deflate`, and `inflate` require zlib, raw deflate, and LZMA
+  codecs over an in-memory byte buffer. Flight 0.4.0 exposes only GPU texture
+  compression entry points; it has no public byte-codec API. The adapter's
+  compression methods therefore cannot be Flight-backed, including OpenFL's
+  in-place length and position semantics.
+
+- **Public UTF-8 byte codec**: OpenFL `ByteArray.readUTFBytes` and
+  `writeUTFBytes` require conversion between UTF-8 and raw bytes. Flight 0.4.0
+  has portable `_TextEncoder` and `_TextDecoder` helpers only in
+  `flight._internal`, with no supported public equivalent. The current
+  ByteArray implementation must use `haxe.io.Bytes` instead of Flight for this
+  behavior.
+
+- **Object wire formats**: OpenFL `ByteArray.readObject` and `writeObject`
+  support AMF0, AMF3, HXSF, and JSON encodings. Flight 0.4.0 exposes no public
+  object serialization API. HXSF and JSON currently fall back to Haxe standard
+  serializers; AMF0 and AMF3 are explicit no-ops because their OpenFL internal
+  readers and writers cannot be carried into this adapter. Flight needs an
+  encoding-selectable serializer/deserializer that consumes and returns bytes,
+  including the number of bytes read for ByteArray position updates.
+
 ## Suspected Gaps
 
 - **Event system bridging**: OpenFL's capture/target/bubble event model is kept
