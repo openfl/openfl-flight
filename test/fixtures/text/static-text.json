@@ -1,0 +1,13 @@
+{
+  "text": null,
+  "typeName": "openfl.text.StaticText",
+  "display": {
+    "root": true,
+    "alpha": 1,
+    "visible": true,
+    "parent": true,
+    "stage": true,
+    "height": 0,
+    "width": 0
+  }
+}
