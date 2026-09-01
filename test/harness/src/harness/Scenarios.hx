@@ -29,6 +29,7 @@ import harness.scenarios.LoaderScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
 import harness.scenarios.MouseScenario;
+import harness.scenarios.MovieClipScenario;
 import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
@@ -118,6 +119,10 @@ class Scenarios {
 			{
 				name: "display/stage",
 				run: StageScenario.run
+			},
+			{
+				name: "display/movie-clip",
+				run: MovieClipScenario.run
 			},
 			{
 				name: "errors/error",

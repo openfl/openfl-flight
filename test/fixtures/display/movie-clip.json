@@ -1,0 +1,27 @@
+{
+  "defaults": {
+    "scenesLength": 1,
+    "sceneIsCurrentScene": true,
+    "currentLabel": null,
+    "currentSceneLabelsLength": 0,
+    "framesLoaded": 1,
+    "isPlaying": false,
+    "currentSceneFrames": 1,
+    "currentFrame": 1,
+    "enabled": true,
+    "currentFrameLabel": null,
+    "totalFrames": 1,
+    "currentLabelsLength": 0,
+    "currentSceneName": ""
+  },
+  "mutation": {
+    "playingAfterPlay": false,
+    "disabled": false,
+    "frameAfterNoOps": 1
+  },
+  "copies": {
+    "labelsAreDistinct": true,
+    "currentSceneIsStable": true,
+    "scenesAreDistinct": true
+  }
+}
