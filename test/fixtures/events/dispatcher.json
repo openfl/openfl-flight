@@ -43,6 +43,12 @@
     "count": 2,
     "log": "first,second"
   },
+  "nestedDispatch": {
+    "callCount": 2
+  },
+  "nestedDispatchMutation": {
+    "sequence": "a(abc)c"
+  },
   "listenerDuringDispatch": {
     "firstDispatch": "first",
     "secondDispatch": "first,added-during"

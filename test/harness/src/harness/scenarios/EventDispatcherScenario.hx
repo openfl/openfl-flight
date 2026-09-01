@@ -18,6 +18,8 @@ class EventDispatcherScenario {
 			removeDuringDispatch: testRemoveDuringDispatch(),
 			aggregatedTarget: testAggregatedTarget(),
 			noListeners: testNoListeners(),
+			nestedDispatch: testNestedDispatch(),
+			nestedDispatchMutation: testNestedDispatchMutation(),
 			toString: new EventDispatcher().toString()
 		};
 	}
@@ -242,6 +244,66 @@ class EventDispatcherScenario {
 
 		return {
 			targetIsOuter: capturedTarget == outer
+		};
+	}
+
+	private static function testNestedDispatch():Dynamic {
+		var o = new EventDispatcher();
+		var callCount = 0;
+
+		var listener:Event->Void = null;
+		listener = function(e:Event):Void {
+			callCount++;
+			if (callCount == 1) {
+				o.dispatchEvent(new Event("nested"));
+			}
+		};
+
+		o.addEventListener("nested", listener);
+		o.dispatchEvent(new Event("nested"));
+
+		return {
+			callCount: callCount
+		};
+	}
+
+	private static function testNestedDispatchMutation():Dynamic {
+		var callCount = 0;
+		var sequence = "";
+		var o = new EventDispatcher();
+
+		var listenerB:Event->Void = null;
+		var listenerC:Event->Void = null;
+
+		listenerB = function(e:Event):Void {
+			sequence += "b";
+		};
+
+		listenerC = function(e:Event):Void {
+			sequence += "c";
+		};
+
+		var listenerA:Event->Void = null;
+		listenerA = function(e:Event):Void {
+			sequence += "a";
+			callCount++;
+			if (callCount == 1) {
+				sequence += "(";
+				o.dispatchEvent(new Event("mut"));
+				sequence += ")";
+				o.removeEventListener("mut", listenerB);
+				o.addEventListener("mut", listenerC, false, 4);
+				o.addEventListener("mut", listenerB, false, 5);
+			}
+		};
+
+		o.addEventListener("mut", listenerA, false, 3);
+		o.addEventListener("mut", listenerB, false, 2);
+		o.addEventListener("mut", listenerC, false, 1);
+		o.dispatchEvent(new Event("mut"));
+
+		return {
+			sequence: sequence
 		};
 	}
 
