@@ -1,7 +1,8 @@
 package openfl.text;
 
 #if !flash
-import openfl.utils.Assets;
+import flight.Font as FlightFont;
+import flight.types.Font as FlightFontData;
 import openfl.utils.ByteArray;
 import openfl.utils.Future;
 #if lime
@@ -42,6 +43,7 @@ class Font #if lime extends LimeFont #end
 	@:noCompletion private static var __fontByName:Map<String, Font> = new Map();
 	@:noCompletion private static var __registeredFonts:Array<Font> = new Array();
 
+	@:noCompletion private var __flightFont:FlightFontData;
 	@:noCompletion private var __initialized:Bool;
 
 	#if openfljs
@@ -59,6 +61,7 @@ class Font #if lime extends LimeFont #end
 		#if lime
 		super(name);
 		#end
+		__flightFont = FlightFont.createFont(name);
 	}
 
 	/**
@@ -272,6 +275,7 @@ class Font #if lime extends LimeFont #end
 	@:noCompletion private function __fromLimeFont(font:LimeFont):Void
 	{
 		__copyFrom(font);
+		__flightFont.name = font.name;
 	}
 	#end
 
@@ -286,10 +290,14 @@ class Font #if lime extends LimeFont #end
 				if (unitsPerEM == 0) __initializeSource();
 				__initialized = true;
 			}
-			else if (src == null && __fontID != null && Assets.isLocal(__fontID))
+			else if (src == null && __fontID != null)
 			{
-				__fromBytes(Assets.getBytes(__fontID));
-				__initialized = true;
+				var assets:Dynamic = Type.resolveClass("openfl.utils.Assets");
+				if (assets != null && Reflect.callMethod(assets, Reflect.field(assets, "isLocal"), [__fontID]))
+				{
+					__fromBytes(Reflect.callMethod(assets, Reflect.field(assets, "getBytes"), [__fontID]));
+					__initialized = true;
+				}
 			}
 		}
 		#end
@@ -303,12 +311,13 @@ class Font #if lime extends LimeFont #end
 		#if lime
 		return name;
 		#else
-		return null;
+		return __flightFont.name;
 		#end
 	}
 
 	@:noCompletion private inline function set_fontName(value:String):String
 	{
+		__flightFont.name = value;
 		#if lime
 		return name = value;
 		#else
