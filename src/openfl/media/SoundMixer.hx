@@ -1,6 +1,9 @@
 package openfl.media;
 
 #if !flash
+#if lime
+import flight.hostLime.LimeAudio;
+#end
 /**
 	The SoundMixer class contains static properties and methods for global
 	sound control in the application. The SoundMixer class controls embedded
@@ -50,6 +53,8 @@ package openfl.media;
 
 	@:noCompletion private static var __soundChannels:Array<SoundChannel> = new Array();
 	@:noCompletion private static var __soundTransform:SoundTransform = #if (mute || mute_sound) new SoundTransform(0) #else new SoundTransform() #end;
+	@:noCompletion private static var __flightAudioContext:Dynamic;
+	@:noCompletion private static var __flightAudioContextInitialized:Bool = false;
 
 	#if openfljs
 	@:noCompletion private static function __init__()
@@ -184,6 +189,22 @@ package openfl.media;
 	@:noCompletion private static function __unregisterSoundChannel(soundChannel:SoundChannel):Void
 	{
 		__soundChannels.remove(soundChannel);
+	}
+
+	@:noCompletion private static function __getFlightAudioContext():Dynamic
+	{
+		if (!__flightAudioContextInitialized)
+		{
+			__flightAudioContextInitialized = true;
+			#if lime
+			try
+			{
+				__flightAudioContext = LimeAudio.createLimeAudioContext();
+			}
+			catch (_:Dynamic) {}
+			#end
+		}
+		return __flightAudioContext;
 	}
 
 	// Get & Set Methods

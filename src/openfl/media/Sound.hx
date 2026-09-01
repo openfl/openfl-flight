@@ -2,13 +2,19 @@ package openfl.media;
 
 #if !flash
 import flight.Audio as FlightAudio;
+import flight.Media as FlightMedia;
 import flight.types.AudioResource as FlightAudioResource;
 import flight.types.AudioResourceReference as FlightAudioResourceReference;
+import flight._internal._Float32Array as FlightFloat32Array;
 import flight._internal._UInt8Array as FlightUInt8Array;
+import haxe.io.Bytes;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
+import openfl.events.IOErrorEvent;
+import openfl.events.ProgressEvent;
 import openfl.net.URLRequest;
 import openfl.utils.ByteArray;
+import openfl.utils.Endian;
 import openfl.utils.Future;
 #if lime
 import lime.media.AudioBuffer;
@@ -36,6 +42,8 @@ class Sound extends EventDispatcher
 	@:noCompletion private var __buffer:Dynamic;
 	@:noCompletion private var __flightResource:FlightAudioResource;
 	@:noCompletion private var __flightResourceReference:FlightAudioResourceReference;
+	@:noCompletion private var __loadGeneration:Int = 0;
+	@:noCompletion private var __pendingChannels:Array<Dynamic> = [];
 	@:noCompletion private var __urlLoading:Bool = false;
 
 	#if (js && html5)
@@ -59,11 +67,13 @@ class Sound extends EventDispatcher
 
 	public function close():Void
 	{
+		__loadGeneration++;
 		__buffer = null;
+		if (__flightResource != null) FlightAudio.disposeAudioResource(__flightResource);
 		__flightResource = null;
 		__flightResourceReference = null;
+		__pendingChannels = [];
 		__urlLoading = false;
-		// TODO: Cancel decoding and active playback through Flight audio.
 	}
 
 	#if lime
@@ -71,6 +81,11 @@ class Sound extends EventDispatcher
 	{
 		var sound = new Sound();
 		sound.__buffer = buffer;
+		if (buffer != null && buffer.data != null)
+		{
+			var bytes:Bytes = cast buffer.data.buffer;
+			sound.__flightResource = __createFlightPCMResource(bytes, buffer.bitsPerSample, buffer.channels, buffer.sampleRate);
+		}
 		return sound;
 	}
 	#end
@@ -83,6 +98,7 @@ class Sound extends EventDispatcher
 
 	public function load(stream:URLRequest, context:SoundLoaderContext = null):Void
 	{
+		var generation = ++__loadGeneration;
 		url = stream == null ? null : stream.url;
 		__flightResourceReference = stream == null ? null : FlightAudio.createExternalAudioResourceReference(stream.url);
 		__flightResource = null;
@@ -91,16 +107,50 @@ class Sound extends EventDispatcher
 		bytesTotal = 0;
 		isBuffering = false;
 		dispatchEvent(new Event(Event.OPEN));
+
+		var audioContext = SoundMixer.__getFlightAudioContext();
+		if (stream == null || audioContext == null) return;
+		FlightAudio.loadAudioResourceFromUrl(audioContext, stream.url).then(function(resource:FlightAudioResource):FlightAudioResource
+		{
+			__defer(function():Void __completeFlightLoad(generation, resource));
+			return resource;
+		}, function(error:Dynamic):FlightAudioResource
+		{
+			__defer(function():Void __failFlightLoad(generation, Std.string(error)));
+			return cast null;
+		});
 	}
 
 	public function loadCompressedDataFromByteArray(bytes:ByteArray, bytesLength:Int):Void
 	{
-		if (bytes == null) return;
-		var length = Std.int(Math.min(bytes.length, Math.max(0, bytesLength)));
-		var data = new FlightUInt8Array(length);
-		for (i in 0...length) data[i] = bytes[i];
+		if (bytes == null || bytesLength <= 0)
+		{
+			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR));
+			return;
+		}
+
+		var generation = ++__loadGeneration;
+		var data = new FlightUInt8Array(bytesLength);
+		for (i in 0...bytesLength) data[i] = bytes[bytes.position + i];
 		__flightResourceReference = FlightAudio.createEmbeddedAudioResourceReference(data, FlightAudio.detectAudioMimeType(data));
 		__flightResource = null;
+		__urlLoading = true;
+
+		var audioContext = SoundMixer.__getFlightAudioContext();
+		if (audioContext == null)
+		{
+			__failFlightLoad(generation, "Audio playback is unavailable");
+			return;
+		}
+		FlightAudio.loadAudioResourceFromBytes(audioContext, data, FlightAudio.detectAudioMimeType(data)).then(function(resource:FlightAudioResource):FlightAudioResource
+		{
+			__completeFlightLoad(generation, resource);
+			return resource;
+		}, function(error:Dynamic):FlightAudioResource
+		{
+			__failFlightLoad(generation, Std.string(error));
+			return cast null;
+		});
 	}
 
 	public static function loadFromFile(path:String):Future<Sound>
@@ -115,13 +165,120 @@ class Sound extends EventDispatcher
 
 	public function loadPCMFromByteArray(bytes:ByteArray, samples:Int, format:String = "float", stereo:Bool = true, sampleRate:Float = 44100):Void
 	{
-		// TODO: Upload PCM audio through Flight.
+		if (bytes == null)
+		{
+			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR));
+			return;
+		}
+
+		var bitsPerSample = format == "float" ? 32 : 16;
+		var channels = stereo ? 2 : 1;
+		var bytesLength = Std.int(samples * channels * (bitsPerSample / 8));
+		var source = Bytes.alloc(bytesLength);
+		var bytesPerSample = Std.int(bitsPerSample / 8);
+		for (sample in 0...Std.int(bytesLength / bytesPerSample))
+		{
+			for (byte in 0...bytesPerSample)
+			{
+				var sourceByte = bytes.endian == Endian.BIG_ENDIAN ? bytesPerSample - byte - 1 : byte;
+				source.set(sample * bytesPerSample + byte, bytes[bytes.position + sample * bytesPerSample + sourceByte]);
+			}
+		}
+
+		__loadGeneration++;
+		__flightResourceReference = null;
+		__flightResource = __createFlightPCMResource(source, bitsPerSample, channels, sampleRate);
+		__urlLoading = false;
+		dispatchEvent(new Event(Event.OPEN));
+		dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bytes.length, bytes.length));
+		dispatchEvent(new Event(Event.COMPLETE));
 	}
 
 	public function play(startTime:Float = 0.0, loops:Int = 0, sndTransform:SoundTransform = null):SoundChannel
 	{
-		// TODO: Start playback through Flight audio.
-		return new SoundChannel(this, null, sndTransform, __urlLoading ? 0 : startTime);
+		if (SoundMixer.__soundChannels.length >= SoundMixer.MAX_ACTIVE_CHANNELS) return null;
+
+		var channelPosition = __urlLoading ? 0 : startTime;
+		var flightChannel = __flightResource == null ? null : __playFlightResource(__flightResource, startTime, loops, sndTransform);
+		var channel = new SoundChannel(this, flightChannel, sndTransform, channelPosition);
+		if (__urlLoading)
+		{
+			__pendingChannels.push({channel: channel, loops: loops, startTime: startTime});
+		}
+		return channel;
+	}
+
+	@:noCompletion private function __playFlightResource(resource:FlightAudioResource, startTime:Float, loops:Int,
+			sndTransform:SoundTransform):Dynamic
+	{
+		var audioContext = SoundMixer.__getFlightAudioContext();
+		if (audioContext == null) return null;
+		var transform = sndTransform == null ? new SoundTransform() : sndTransform;
+		return FlightMedia.playAudioResource(audioContext, resource, {
+			currentTime: startTime,
+			gain: SoundMixer.__soundTransform.volume * transform.volume,
+			loops: loops > 1 ? loops - 1 : 0
+		});
+	}
+
+	@:noCompletion private function __completeFlightLoad(generation:Int, resource:FlightAudioResource):Void
+	{
+		if (generation != __loadGeneration) return;
+		__flightResource = resource;
+		__urlLoading = false;
+		bytesLoaded = bytesTotal = Std.int(FlightAudio.getAudioResourceByteSize(resource));
+		dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bytesLoaded, bytesTotal));
+		dispatchEvent(new Event(Event.COMPLETE));
+
+		var pending = __pendingChannels;
+		__pendingChannels = [];
+		for (item in pending)
+		{
+			var channel:SoundChannel = item.channel;
+			channel.__bindFlightChannel(__playFlightResource(resource, item.startTime, item.loops, channel.soundTransform));
+		}
+	}
+
+	@:noCompletion private function __failFlightLoad(generation:Int, message:String):Void
+	{
+		if (generation != __loadGeneration) return;
+		__urlLoading = false;
+		__pendingChannels = [];
+		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, message));
+	}
+
+	@:noCompletion private static function __createFlightPCMResource(bytes:Bytes, bitsPerSample:Int, channels:Int, sampleRate:Float):FlightAudioResource
+	{
+		if (bytes == null || channels <= 0 || bitsPerSample <= 0) return FlightAudio.createAudioResource();
+		var bytesPerSample = Std.int(bitsPerSample / 8);
+		var frameCount = Std.int(bytes.length / (bytesPerSample * channels));
+		var output:Array<FlightFloat32Array> = [];
+		for (channel in 0...channels) output.push(new FlightFloat32Array(frameCount));
+		for (frame in 0...frameCount)
+		{
+			for (channel in 0...channels)
+			{
+				var at = (frame * channels + channel) * bytesPerSample;
+				output[channel][frame] = switch (bitsPerSample)
+				{
+					case 8: (bytes.get(at) - 128) / 128;
+					case 32: bytes.getFloat(at);
+					default:
+						var sample = bytes.get(at) | (bytes.get(at + 1) << 8);
+						(sample >= 0x8000 ? sample - 0x10000 : sample) / 32768;
+				};
+			}
+		}
+		return FlightAudio.createAudioResourceFromSamples(output, sampleRate);
+	}
+
+	@:noCompletion private static function __defer(callback:Void->Void):Void
+	{
+		#if (clay || lime || js)
+		callback();
+		#else
+		haxe.Timer.delay(callback, 0);
+		#end
 	}
 
 	#if (js && html5)

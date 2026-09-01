@@ -1,4 +1,12 @@
 {
+  "pcm": {
+    "events": [
+      "open",
+      "progress",
+      "complete"
+    ],
+    "bytesPosition": 0
+  },
   "defaults": {
     "bytesTotal": 0,
     "id3IsFresh": true,
@@ -35,6 +43,9 @@
     "isBuffering": false,
     "bytesLoaded": 0
   },
+  "compressedGuardEvents": [
+    "ioError"
+  ],
   "relationship": {
     "position": 0,
     "inputWasCopied": true,

@@ -133,13 +133,16 @@ currently provides (or doesn't).
   audio context, which does not map to OpenFL's independently mutable
   `SoundChannel.soundTransform` without additional routing infrastructure.
 
-- **Cross-target synchronous audio loading**: Flight audio decoding and URL
-  resolution return promises and require a host `AudioContext`. OpenFL `Sound`
-  has synchronous construction/playback entry points and target-independent
-  load events, but the adapter has no application audio-context injection point
-  in interpreter/headless mode. It retains Flight embedded/external resource
-  references immediately; decoding and playable-channel creation remain
-  pending on an asynchronous host bridge.
+- **Synchronous audio file factories**: Flight audio decoding and URL resolution
+  return promises. The adapter uses Flight's public Lime audio-context factory
+  for `Sound.load()`, byte decoding, PCM resources, and playback, but cannot
+  reproduce OpenFL's synchronous `Sound.fromFile()` contract on every target.
+
+- **Dynamic PCM sample streaming**: Flight can create a complete audio resource
+  from PCM channel arrays, which backs `Sound.loadPCMFromByteArray()`, but it has
+  no callback-driven streaming channel corresponding to OpenFL's repeated
+  `sampleData` events. Empty `Sound` playback therefore cannot stream generated
+  samples until Flight exposes a public streaming PCM source.
 
 - **Cross-target NetStream video source**: Flight can wrap an HTML video
   element in a `VideoResource`, which lets the JavaScript/HTML5 adapter attach

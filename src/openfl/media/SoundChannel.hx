@@ -2,7 +2,9 @@ package openfl.media;
 
 #if !flash
 import flight.Media as FlightMedia;
+import flight.Signals as FlightSignals;
 import flight.types.AudioChannel as FlightAudioChannel;
+import openfl.events.Event;
 import openfl.events.EventDispatcher;
 
 /** Controls one sound playback instance. **/
@@ -36,7 +38,7 @@ import openfl.events.EventDispatcher;
 		rightPeak = 1;
 		__soundTransform = soundTransform == null ? new SoundTransform() : soundTransform.clone();
 		SoundMixer.__registerSoundChannel(this);
-		// TODO: Bind this channel to a Flight audio source.
+		__bindFlightChannel(__flightChannel);
 	}
 
 	public function stop():Void
@@ -50,7 +52,19 @@ import openfl.events.EventDispatcher;
 
 	@:noCompletion private function __startSampleData():Void
 	{
-		// TODO: Stream generated sample data through Flight audio.
+	}
+
+	@:noCompletion private function __bindFlightChannel(channel:FlightAudioChannel):Void
+	{
+		if (channel == null) return;
+		if (!__isValid)
+		{
+			FlightMedia.stopAudioChannel(channel);
+			return;
+		}
+		__flightChannel = channel;
+		FlightSignals.connectSignal(channel.onComplete, __flight_onComplete);
+		__updateTransform();
 	}
 
 	@:noCompletion private function __updateTransform():Void
@@ -64,7 +78,7 @@ import openfl.events.EventDispatcher;
 	@:noCompletion private function get_position():Float
 	{
 		if (!__isValid) return 0;
-		if (__flightChannel != null) return FlightMedia.getAudioChannelCurrentTime(__flightChannel) * 1000;
+		if (__flightChannel != null) return FlightMedia.getAudioChannelCurrentTime(__flightChannel);
 		return __position;
 	}
 
@@ -72,7 +86,7 @@ import openfl.events.EventDispatcher;
 	{
 		if (!__isValid) return 0;
 		__position = value;
-		if (__flightChannel != null) FlightMedia.setAudioChannelCurrentTime(__flightChannel, value / 1000);
+		if (__flightChannel != null) FlightMedia.setAudioChannelCurrentTime(__flightChannel, value);
 		return value;
 	}
 
@@ -86,6 +100,15 @@ import openfl.events.EventDispatcher;
 		if (value != null) __soundTransform = value.clone();
 		__updateTransform();
 		return value;
+	}
+
+	@:noCompletion private function __flight_onComplete():Void
+	{
+		if (!__isValid) return;
+		__isValid = false;
+		__flightChannel = null;
+		SoundMixer.__unregisterSoundChannel(this);
+		dispatchEvent(new Event(Event.SOUND_COMPLETE));
 	}
 }
 #else

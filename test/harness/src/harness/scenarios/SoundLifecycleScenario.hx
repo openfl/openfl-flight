@@ -7,6 +7,7 @@ import openfl.media.ID3Info;
 import openfl.media.Sound;
 import openfl.media.SoundTransform;
 import openfl.net.URLRequest;
+import openfl.utils.ByteArray;
 
 class SoundLifecycleScenario {
 	public static function run():Dynamic {
@@ -59,7 +60,34 @@ class SoundLifecycleScenario {
 			events: events
 		};
 
-		return {defaults: defaults, afterLoad: afterLoad, relationship: relationship, afterClose: afterClose};
+		var pcmBytes = new ByteArray();
+		for (sample in [0.0, 0.25, -0.25, 0.5]) pcmBytes.writeFloat(sample);
+		pcmBytes.position = 0;
+		var pcmSound = new Sound();
+		var pcmEvents:Array<String> = [];
+		pcmSound.addEventListener(Event.OPEN, function(_):Void pcmEvents.push("open"));
+		pcmSound.addEventListener(ProgressEvent.PROGRESS, function(_):Void pcmEvents.push("progress"));
+		pcmSound.addEventListener(Event.COMPLETE, function(_):Void pcmEvents.push("complete"));
+		pcmSound.addEventListener(IOErrorEvent.IO_ERROR, function(_):Void pcmEvents.push("ioError"));
+		pcmSound.loadPCMFromByteArray(pcmBytes, 4, "float", false, 4);
+		var pcm = {
+			bytesPosition: pcmBytes.position,
+			events: pcmEvents
+		};
+
+		var compressedSound = new Sound();
+		var compressedEvents:Array<String> = [];
+		compressedSound.addEventListener(IOErrorEvent.IO_ERROR, function(_):Void compressedEvents.push("ioError"));
+		compressedSound.loadCompressedDataFromByteArray(new ByteArray(), 0);
+
+		return {
+			defaults: defaults,
+			afterLoad: afterLoad,
+			relationship: relationship,
+			afterClose: afterClose,
+			pcm: pcm,
+			compressedGuardEvents: compressedEvents
+		};
 	}
 
 	private static function id3State(value:ID3Info):Dynamic return {
