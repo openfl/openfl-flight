@@ -15,6 +15,7 @@ import harness.scenarios.EventDispatcherCaptureScenario;
 import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
 import harness.scenarios.ExternalInterfaceScenario;
+import harness.scenarios.FilterScenario;
 import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
@@ -117,6 +118,10 @@ class Scenarios {
 			{
 				name: "display/bitmap-data",
 				run: BitmapDataScenario.run
+			},
+			{
+				name: "filters/properties",
+				run: FilterScenario.run
 			},
 			{
 				name: "text/text-field",

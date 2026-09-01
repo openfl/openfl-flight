@@ -1,0 +1,75 @@
+{
+  "glow": {
+    "strength": 3.5,
+    "quality": 2,
+    "color": 11259375,
+    "alpha": 0.6,
+    "blurY": 11,
+    "knockout": true,
+    "inner": true,
+    "blurX": 10
+  },
+  "clones": {
+    "shadow": {
+      "strength": 2.5,
+      "quality": 3,
+      "color": 1193046,
+      "alpha": 0.4,
+      "distance": 7,
+      "angle": 30,
+      "blurY": 9,
+      "hideObject": true,
+      "knockout": true,
+      "inner": true,
+      "blurX": 8
+    },
+    "glow": {
+      "strength": 3.5,
+      "quality": 2,
+      "color": 11259375,
+      "alpha": 0.6,
+      "blurY": 11,
+      "knockout": true,
+      "inner": true,
+      "blurX": 10
+    },
+    "blur": {
+      "quality": 2,
+      "blurY": 6,
+      "blurX": 5
+    },
+    "blurSameReference": false,
+    "glowSameReference": false,
+    "shadowSameReference": false
+  },
+  "displayObject": {
+    "sameReference": false,
+    "quality": 2,
+    "count": 1,
+    "blurY": 3,
+    "blurX": 2
+  },
+  "dropShadow": {
+    "strength": 2.5,
+    "quality": 3,
+    "color": 1193046,
+    "alpha": 0.4,
+    "distance": 7,
+    "angle": 30,
+    "blurY": 9,
+    "hideObject": true,
+    "knockout": true,
+    "inner": true,
+    "blurX": 8
+  },
+  "blurDefaults": {
+    "quality": 1,
+    "blurY": 4,
+    "blurX": 4
+  },
+  "blurValues": {
+    "quality": 3,
+    "blurY": 12,
+    "blurX": 8
+  }
+}
