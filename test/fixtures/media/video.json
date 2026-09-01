@@ -1,0 +1,46 @@
+{
+  "zeroSize": {
+    "height": 0,
+    "width": 0
+  },
+  "defaults": {
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "height": 240,
+      "width": 320
+    },
+    "parentIsNull": true,
+    "videoHeight": 0,
+    "videoWidth": 0,
+    "smoothing": false,
+    "deblocking": 0,
+    "height": 240,
+    "width": 320
+  },
+  "mutation": {
+    "bounds": {
+      "x": 10,
+      "y": 20,
+      "height": 120,
+      "width": 100
+    },
+    "parentIsSet": true,
+    "scaledHeight": 720,
+    "videoHeight": 0,
+    "videoWidth": 0,
+    "scaleX": 1,
+    "smoothing": true,
+    "deblocking": 4,
+    "scaledWidth": 640,
+    "height": 120,
+    "scaleY": 1,
+    "width": 100
+  },
+  "hitDefaults": {
+    "outside": false,
+    "origin": false,
+    "inside": false,
+    "bottomRight": false
+  }
+}

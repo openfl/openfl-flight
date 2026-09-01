@@ -53,6 +53,7 @@ import harness.scenarios.TransformScenario;
 import harness.scenarios.Utils3DScenario;
 import harness.scenarios.URLLoaderScenario;
 import harness.scenarios.Vector3DScenario;
+import harness.scenarios.VideoScenario;
 
 class Scenarios {
 	public static function all():Array<Scenario> {
@@ -148,6 +149,10 @@ class Scenarios {
 			{
 				name: "media/sound-lifecycle",
 				run: SoundLifecycleScenario.run
+			},
+			{
+				name: "media/video",
+				run: VideoScenario.run
 			},
 			{
 				name: "errors/error",
