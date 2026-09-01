@@ -14,6 +14,7 @@ import harness.scenarios.EventConstructionScenario;
 import harness.scenarios.EventDispatcherCaptureScenario;
 import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
+import harness.scenarios.EventPropagationScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.KeyboardScenario;
@@ -34,6 +35,10 @@ import harness.scenarios.Vector3DScenario;
 class Scenarios {
 	public static function all():Array<Scenario> {
 		return [
+			{
+				name: "events/propagation",
+				run: EventPropagationScenario.run
+			},
 			{
 				name: "geom/point",
 				run: PointScenario.run

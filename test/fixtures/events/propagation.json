@@ -1,0 +1,46 @@
+{
+  "stopImmediatePropagation": [
+    "target",
+    "child-first"
+  ],
+  "nonBubbling": [
+    "target"
+  ],
+  "stopPropagation": [
+    "target",
+    "child-first",
+    "child-second"
+  ],
+  "route": [
+    {
+      "listener": "parent-capture",
+      "currentTarget": "parent",
+      "phase": 1,
+      "target": "grandchild"
+    },
+    {
+      "listener": "child-capture",
+      "currentTarget": "child",
+      "phase": 1,
+      "target": "grandchild"
+    },
+    {
+      "listener": "grandchild-target",
+      "currentTarget": "grandchild",
+      "phase": 2,
+      "target": "grandchild"
+    },
+    {
+      "listener": "child-bubble",
+      "currentTarget": "child",
+      "phase": 3,
+      "target": "grandchild"
+    },
+    {
+      "listener": "parent-bubble",
+      "currentTarget": "parent",
+      "phase": 3,
+      "target": "grandchild"
+    }
+  ]
+}
