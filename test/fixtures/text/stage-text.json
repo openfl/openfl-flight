@@ -1,0 +1,68 @@
+{
+  "defaults": {
+    "editable": true,
+    "selectionActiveIndex": 0,
+    "fontPosture": 1,
+    "text": "",
+    "restrict": null,
+    "multiline": false,
+    "selectionAnchorIndex": 0,
+    "stageIsNull": true,
+    "color": 0,
+    "displayAsPassword": false,
+    "maxChars": 0,
+    "autoCorrect": false,
+    "fontFamily": null,
+    "visible": true,
+    "returnKeyLabel": 0,
+    "softKeyboardType": 2,
+    "autoCapitalize": 1,
+    "textAlign": 5,
+    "fontSize": 11,
+    "viewPort": {
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    },
+    "locale": "en",
+    "fontWeight": 1,
+    "clearButtonMode": "whileEditing"
+  },
+  "initOptions": {
+    "retainsOptionsReference": true,
+    "explicitMultiline": true,
+    "defaultMultiline": false
+  },
+  "mutated": {
+    "viewPortRetainsReference": true,
+    "editable": false,
+    "selectionActiveIndex": 4,
+    "fontPosture": 0,
+    "text": "ABC123",
+    "restrict": "A-Z0-9",
+    "selectionAnchorIndex": 1,
+    "nullViewPortThrows": true,
+    "color": 3368601,
+    "displayAsPassword": true,
+    "maxChars": 12,
+    "autoCorrect": true,
+    "fontFamily": "Harness Sans",
+    "visible": false,
+    "returnKeyLabel": 4,
+    "softKeyboardType": 3,
+    "autoCapitalize": 3,
+    "textAlign": 0,
+    "fontSize": 18,
+    "negativeViewPortThrows": true,
+    "viewPort": {
+      "x": 2,
+      "y": 3,
+      "height": 24,
+      "width": 120
+    },
+    "locale": "fr-CA",
+    "fontWeight": 0,
+    "clearButtonMode": "always"
+  }
+}
