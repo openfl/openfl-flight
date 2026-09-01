@@ -25,6 +25,31 @@ class GraphicsDrawScenario {
 		line.graphics.moveTo(10, 10);
 		line.graphics.lineTo(50, 30);
 
+		var thickLine = new Sprite();
+		thickLine.graphics.lineStyle(10, 0x000000);
+		thickLine.graphics.moveTo(20, 30);
+		thickLine.graphics.lineTo(80, 60);
+
+		var multiple = new Sprite();
+		multiple.graphics.beginFill(0x663399);
+		multiple.graphics.drawRect(-10, 5, 20, 10);
+		multiple.graphics.drawRect(35, 5, 30, 30);
+		multiple.graphics.endFill();
+
+		var curve = new Sprite();
+		curve.graphics.lineStyle(2, 0x000000);
+		curve.graphics.moveTo(0, 0);
+		curve.graphics.curveTo(50, 100, 100, 0);
+		curve.graphics.cubicCurveTo(125, -50, 175, -50, 200, 0);
+
+		var copySource = new Sprite();
+		copySource.graphics.beginFill(0x0099CC);
+		copySource.graphics.drawRect(12, -8, 30, 16);
+		copySource.graphics.drawCircle(60, 20, 5);
+		copySource.graphics.endFill();
+		var copied = new Sprite();
+		copied.graphics.copyFrom(copySource.graphics);
+
 		var cleared = new Sprite();
 		cleared.graphics.beginFill(0x0000FF);
 		cleared.graphics.drawRect(0, 0, 25, 15);
@@ -41,6 +66,13 @@ class GraphicsDrawScenario {
 			circle: rect(circle.getBounds(circle)),
 			ellipse: rect(ellipse.getBounds(ellipse)),
 			line: rect(line.getBounds(line)),
+			thickLine: rect(thickLine.getBounds(thickLine)),
+			multiple: rect(multiple.getBounds(multiple)),
+			curve: rect(curve.getBounds(curve)),
+			copyFrom: {
+				source: rect(copySource.getBounds(copySource)),
+				copy: rect(copied.getBounds(copied))
+			},
 			clear: {
 				before: beforeClear,
 				after: rect(cleared.getBounds(cleared)),

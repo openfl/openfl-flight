@@ -21,11 +21,37 @@
     },
     "width": 0
   },
+  "curve": {
+    "x": -1,
+    "y": -38.5,
+    "height": 89.5,
+    "width": 202
+  },
   "ellipse": {
     "x": 5,
     "y": 10,
     "height": 40,
     "width": 80
+  },
+  "thickLine": {
+    "x": 15,
+    "y": 25,
+    "height": 40,
+    "width": 75
+  },
+  "copyFrom": {
+    "copy": {
+      "x": 12,
+      "y": -8,
+      "height": 33,
+      "width": 53
+    },
+    "source": {
+      "x": 12,
+      "y": -8,
+      "height": 33,
+      "width": 53
+    }
   },
   "rectangle": {
     "bounds": {
@@ -42,5 +68,11 @@
     "y": 20,
     "height": 20,
     "width": 20
+  },
+  "multiple": {
+    "x": -10,
+    "y": 5,
+    "height": 30,
+    "width": 75
   }
 }

@@ -4,7 +4,9 @@ package openfl.display;
 import flight.Geometry as FlightGeometry;
 import flight.Interaction as FlightInteraction;
 import flight.Node as FlightNode;
+import flight.Path as FlightPath;
 import flight.Shape as FlightShape;
+import flight.types.Path as FlightPathData;
 import flight.types.Shape as FlightShapeData;
 import openfl.Vector;
 import openfl.geom.Matrix;
@@ -24,6 +26,8 @@ import openfl.geom.Rectangle;
 	@:noCompletion private var __owner:DisplayObject;
 	@:noCompletion private var __positionX:Float;
 	@:noCompletion private var __positionY:Float;
+	@:noCompletion private var __fillActive:Bool;
+	@:noCompletion private var __flightPath:FlightPathData;
 	@:noCompletion private var __flightShape:FlightShapeData;
 	@:noCompletion private var __lineBounds:Rectangle;
 	@:noCompletion private var __strokePadding:Float;
@@ -33,10 +37,12 @@ import openfl.geom.Rectangle;
 		__owner = owner;
 		__positionX = 0;
 		__positionY = 0;
+		__fillActive = false;
 		__strokePadding = 0;
 		FlightShape.registerDefaultShapeBoundsCommands();
 		FlightInteraction.registerDefaultHitTests();
 		FlightInteraction.registerShapeHitTest();
+		__flightPath = FlightPath.createPath();
 		__flightShape = FlightShape.createShape();
 		FlightNode.addNodeChildAt(owner.__flightNode, __flightShape, 0);
 	}
@@ -45,6 +51,8 @@ import openfl.geom.Rectangle;
 
 	public function beginFill(color:Int = 0, alpha:Float = 1):Void
 	{
+		if (__fillActive) FlightPath.appendPathClose(__flightPath);
+		__fillActive = true;
 		FlightShape.appendShapeBeginFill(__flightShape, color & 0xFFFFFF, alpha);
 		__invalidate();
 	}
@@ -53,6 +61,8 @@ import openfl.geom.Rectangle;
 			spreadMethod:SpreadMethod = SpreadMethod.PAD, interpolationMethod:InterpolationMethod = InterpolationMethod.RGB,
 			focalPointRatio:Float = 0):Void
 	{
+		if (__fillActive) FlightPath.appendPathClose(__flightPath);
+		__fillActive = true;
 		FlightShape.appendShapeBeginGradientFill(__flightShape, cast type, __colorsToFloat(colors), alphas, __colorsToFloat(ratios), cast matrix,
 			cast spreadMethod, cast interpolationMethod, focalPointRatio);
 		__invalidate();
@@ -67,6 +77,8 @@ import openfl.geom.Rectangle;
 	{
 		__positionX = 0;
 		__positionY = 0;
+		__fillActive = false;
+		__flightPath = FlightPath.createPath();
 		__lineBounds = null;
 		__strokePadding = 0;
 		FlightShape.clearShapeCommands(__flightShape);
@@ -76,9 +88,11 @@ import openfl.geom.Rectangle;
 	public function copyFrom(sourceGraphics:Graphics):Void
 	{
 		if (sourceGraphics == null) return;
+		FlightPath.copyPath(sourceGraphics.__flightPath, __flightPath);
 		FlightShape.copyShapeCommands(__flightShape, sourceGraphics.__flightShape);
 		__positionX = sourceGraphics.__positionX;
 		__positionY = sourceGraphics.__positionY;
+		__fillActive = sourceGraphics.__fillActive;
 		__lineBounds = sourceGraphics.__lineBounds == null ? null : sourceGraphics.__lineBounds.clone();
 		__strokePadding = sourceGraphics.__strokePadding;
 		__invalidate();
@@ -86,6 +100,7 @@ import openfl.geom.Rectangle;
 
 	public function cubicCurveTo(controlX1:Float, controlY1:Float, controlX2:Float, controlY2:Float, anchorX:Float, anchorY:Float):Void
 	{
+		FlightPath.appendPathCubicCurveTo(__flightPath, controlX1, controlY1, controlX2, controlY2, anchorX, anchorY);
 		__positionX = anchorX;
 		__positionY = anchorY;
 		FlightShape.appendShapeCubicCurveTo(__flightShape, controlX1, controlY1, controlX2, controlY2, anchorX, anchorY);
@@ -94,6 +109,7 @@ import openfl.geom.Rectangle;
 
 	public function curveTo(controlX:Float, controlY:Float, anchorX:Float, anchorY:Float):Void
 	{
+		FlightPath.appendPathCurveTo(__flightPath, controlX, controlY, anchorX, anchorY);
 		__positionX = anchorX;
 		__positionY = anchorY;
 		FlightShape.appendShapeCurveTo(__flightShape, controlX, controlY, anchorX, anchorY);
@@ -102,12 +118,14 @@ import openfl.geom.Rectangle;
 
 	public function drawCircle(x:Float, y:Float, radius:Float):Void
 	{
+		FlightPath.appendPathCircle(__flightPath, x, y, radius);
 		FlightShape.appendShapeCircle(__flightShape, x, y, radius);
 		__invalidate();
 	}
 
 	public function drawEllipse(x:Float, y:Float, width:Float, height:Float):Void
 	{
+		FlightPath.appendPathEllipse(__flightPath, x + width / 2, y + height / 2, width / 2, height / 2);
 		FlightShape.appendShapeEllipse(__flightShape, x, y, width, height);
 		__invalidate();
 	}
@@ -132,12 +150,14 @@ import openfl.geom.Rectangle;
 	public function drawRect(x:Float, y:Float, width:Float, height:Float):Void
 	{
 		if (width == 0 && height == 0) return;
+		FlightPath.appendPathRectangle(__flightPath, x, y, width, height);
 		FlightShape.appendShapeRectangle(__flightShape, x, y, width, height);
 		__invalidate();
 	}
 
 	public function drawRoundRect(x:Float, y:Float, width:Float, height:Float, ellipseWidth:Float, ellipseHeight:Null<Float> = null):Void
 	{
+		FlightPath.appendPathRoundRectangle(__flightPath, x, y, width, height, ellipseWidth / 2);
 		FlightShape.appendShapeRoundRectangle(__flightShape, x, y, width, height, ellipseWidth, ellipseHeight == null ? ellipseWidth : ellipseHeight);
 		__invalidate();
 	}
@@ -145,6 +165,8 @@ import openfl.geom.Rectangle;
 	public function drawRoundRectComplex(x:Float, y:Float, width:Float, height:Float, topLeftRadius:Float, topRightRadius:Float,
 			bottomLeftRadius:Float, bottomRightRadius:Float):Void
 	{
+		FlightPath.appendPathRoundRectangle(__flightPath, x, y, width, height,
+			cast [topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius]);
 		FlightShape.appendShapeRoundRectangleVarying(__flightShape, x, y, width, height, topLeftRadius, topRightRadius, bottomLeftRadius,
 			bottomRightRadius);
 		__invalidate();
@@ -160,6 +182,8 @@ import openfl.geom.Rectangle;
 
 	public function endFill():Void
 	{
+		if (__fillActive) FlightPath.appendPathClose(__flightPath);
+		__fillActive = false;
 		FlightShape.appendShapeEndFill(__flightShape);
 		__invalidate();
 	}
@@ -202,6 +226,7 @@ import openfl.geom.Rectangle;
 			__inflateLineBounds(x - __strokePadding, y - __strokePadding);
 			__inflateLineBounds(x + __strokePadding * 2, y + __strokePadding);
 		}
+		FlightPath.appendPathLineTo(__flightPath, x, y);
 		__positionX = x;
 		__positionY = y;
 		FlightShape.appendShapeLineTo(__flightShape, x, y);
@@ -210,6 +235,7 @@ import openfl.geom.Rectangle;
 
 	public function moveTo(x:Float, y:Float):Void
 	{
+		FlightPath.appendPathMoveTo(__flightPath, x, y);
 		__positionX = x;
 		__positionY = y;
 		FlightShape.appendShapeMoveTo(__flightShape, x, y);
@@ -231,8 +257,14 @@ import openfl.geom.Rectangle;
 	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix, includeStroke:Bool = true):Void
 	{
 		var bounds = FlightGeometry.createRectangle();
-		if (!FlightShape.getShapeBounds(bounds, __flightShape, includeStroke ? "ink" : "fill")) return;
-		if (bounds.width == 0 && bounds.height == 0 && FlightShape.isShapeEmpty(__flightShape)) return;
+		if (!FlightPath.getPathBounds(__flightPath, bounds)) return;
+		if (includeStroke && __strokePadding > 0)
+		{
+			bounds.x -= __strokePadding;
+			bounds.y -= __strokePadding;
+			bounds.width += __strokePadding * 2;
+			bounds.height += __strokePadding * 2;
+		}
 		var transformed = DisplayObject.__transformRectangle(new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height), matrix);
 		rect.copyFrom(transformed);
 		if (includeStroke && __lineBounds != null)
