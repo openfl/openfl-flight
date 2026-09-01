@@ -220,6 +220,12 @@ currently provides (or doesn't).
   therefore remain in the Haxe adapter. A future Flight CSS parser could
   replace this code while feeding TextMarkup's existing class-style registry.
 
+- **Screen safe-area geometry**: Flight Screen exposes display bounds, work
+  areas, modes, and scale information, but `ScreenInfo` has no safe-area inset
+  or rectangle for notches, cutouts, and rounded corners. The adapter therefore
+  uses OpenFL's documented fallback of returning `visibleBounds` until Flight
+  can expose host safe-area geometry.
+
 ## Suspected Gaps
 
 - **Event system bridging**: OpenFL's capture/target/bubble event model is kept
