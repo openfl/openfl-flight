@@ -6,7 +6,23 @@ currently provides (or doesn't).
 
 ## Confirmed Gaps
 
-(None confirmed yet — builders will surface these as they Flight-back classes.)
+- **SimpleButton menu tracking**: Flight has no menu-release interaction model
+  corresponding to OpenFL's `trackAsMenu` behavior.
+
+- **SimpleButton sounds**: Flight has no binding for the embedded button sounds
+  controlled by OpenFL button states and `soundTransform`.
+
+- **Detached button hit-state transforms**: A detached transformed
+  `hitTestState` node is evaluated in its own Flight world space, so it cannot
+  fully reproduce OpenFL's button-local hit-test coordinates.
+
+- **Immediate cursor-property synchronization**: Plain OpenFL cursor fields do
+  not expose a mutation hook; Flight cursor state can only be refreshed when
+  pointer activity is observed.
+
+- **Per-object interaction metadata**: Flight does not expose per-node
+  equivalents for OpenFL's `doubleClickEnabled`, context-menu metadata, or
+  soft-keyboard input area.
 
 ## Suspected Gaps
 
