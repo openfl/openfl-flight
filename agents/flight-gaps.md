@@ -117,6 +117,16 @@ currently provides (or doesn't).
   `Tile` into a Flight material. The public property is preserved while custom
   shader rendering remains unsupported.
 
+- **OpenFL shader execution model**: Flight custom 2D effects accept a registered
+  fragment shader using Flight's full-screen effect ABI and scalar/vector float
+  uniforms. OpenFL `Shader` also accepts paired arbitrary GLSL vertex/fragment
+  sources, Pixel Bender bytecode, bitmap and sampler inputs, Boolean/integer and
+  matrix parameters, and synchronous or asynchronous `ShaderJob` execution over
+  bitmap or numeric buffers. The adapter reflects GLSL declarations into the
+  OpenFL data objects and retains a Flight custom-effect descriptor, but Flight
+  cannot execute the broader OpenFL shader model or register its source without
+  an active render-state bridge.
+
 - **Per-channel audio pan and peak metering**: Flight audio channels expose
   gain, time, playback rate, and lifecycle controls, but no direct pan control
   or left/right peak levels. Flight audio buses can pan only through a mixer and
