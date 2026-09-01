@@ -4,6 +4,7 @@ package openfl.display;
 import flight.Application as FlightApplication;
 import flight.Signals as FlightSignals;
 import flight.types.ApplicationWindow as FlightApplicationWindow;
+import flight.types.Host as FlightHost;
 import openfl.desktop.NativeApplication;
 import openfl.display.Stage;
 import openfl.display.Window;
@@ -135,6 +136,7 @@ class NativeWindow extends EventDispatcher
 
 	@:noCompletion private var __initOptions:NativeWindowInitOptions;
 	@:noCompletion private var __window:Window;
+	@:noCompletion private var __flightHost:FlightHost;
 	@:noCompletion private var __flightWindow:FlightApplicationWindow;
 	@:noCompletion private var __type:NativeWindowType = NORMAL;
 	@:noCompletion private var __closed:Bool = false;
@@ -174,6 +176,7 @@ class NativeWindow extends EventDispatcher
 		__type = __initOptions.type;
 
 		var nativeApplication = NativeApplication.nativeApplication;
+		__flightHost = nativeApplication.__flightHost;
 		__flightWindow = FlightApplication.createApplicationWindow();
 		FlightApplication.registerApplicationWindow(nativeApplication.__flightApplication, __flightWindow);
 		if (nativeApplication.__openedWindows.length == 0)
@@ -183,7 +186,7 @@ class NativeWindow extends EventDispatcher
 
 		var initialWidth = __initOptions.__window == null ? 400 : __initOptions.__window.width;
 		var initialHeight = __initOptions.__window == null ? 228 : __initOptions.__window.height;
-		FlightApplication.openWindow(__flightWindow, {
+		FlightApplication.openWindow(cast __flightHost, __flightWindow, {
 			title: "",
 			width: initialWidth,
 			height: initialHeight,
@@ -198,7 +201,7 @@ class NativeWindow extends EventDispatcher
 		if (__initOptions.owner != null)
 		{
 			__initOptions.owner.__ownedWindows.push(this);
-			FlightApplication.setWindowParent(__flightWindow, __initOptions.owner.__flightWindow);
+			FlightApplication.setWindowParent(cast __flightHost, __flightWindow, __initOptions.owner.__flightWindow);
 		}
 
 		__window = __initOptions.__window == null ? __createWindowShell(initialWidth, initialHeight) : __initOptions.__window;
@@ -303,7 +306,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowPosition(__flightWindow, Std.int(value), __flightWindow.y);
+		FlightApplication.setWindowPosition(cast __flightHost, __flightWindow, Std.int(value), __flightWindow.y);
 		return __flightWindow.x;
 	}
 
@@ -346,7 +349,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowPosition(__flightWindow, __flightWindow.x, Std.int(value));
+		FlightApplication.setWindowPosition(cast __flightHost, __flightWindow, __flightWindow.x, Std.int(value));
 		return __flightWindow.y;
 	}
 
@@ -394,7 +397,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowSize(__flightWindow, Std.int(value), __flightWindow.height);
+		FlightApplication.setWindowSize(cast __flightHost, __flightWindow, Std.int(value), __flightWindow.height);
 		return __flightWindow.width;
 	}
 
@@ -444,7 +447,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowSize(__flightWindow, __flightWindow.width, Std.int(value));
+		FlightApplication.setWindowSize(cast __flightHost, __flightWindow, __flightWindow.width, Std.int(value));
 		return __flightWindow.height;
 	}
 
@@ -509,8 +512,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowPosition(__flightWindow, Std.int(value.x), Std.int(value.y));
-		FlightApplication.setWindowSize(__flightWindow, Std.int(value.width), Std.int(value.height));
+		FlightApplication.setWindowPosition(cast __flightHost, __flightWindow, Std.int(value.x), Std.int(value.y));
+		FlightApplication.setWindowSize(cast __flightHost, __flightWindow, Std.int(value.width), Std.int(value.height));
 		return new Rectangle(__flightWindow.x, __flightWindow.y, __flightWindow.width, __flightWindow.height);
 	}
 
@@ -537,7 +540,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowTitle(__flightWindow, value);
+		FlightApplication.setWindowTitle(cast __flightHost, __flightWindow, value);
 		return __flightWindow.title;
 	}
 
@@ -577,8 +580,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		if (value) FlightApplication.showWindow(__flightWindow);
-		else FlightApplication.hideWindow(__flightWindow);
+		if (value) FlightApplication.showWindow(cast __flightHost, __flightWindow);
+		else FlightApplication.hideWindow(cast __flightHost, __flightWindow);
 		return __flightWindow.visible;
 	}
 
@@ -829,7 +832,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowMinimumSize(__flightWindow, Std.int(value.x), Std.int(value.y));
+		FlightApplication.setWindowMinimumSize(cast __flightHost, __flightWindow, Std.int(value.x), Std.int(value.y));
 		return value;
 	}
 
@@ -883,7 +886,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.setWindowMaximumSize(__flightWindow, Std.int(value.x), Std.int(value.y));
+		FlightApplication.setWindowMaximumSize(cast __flightHost, __flightWindow, Std.int(value.x), Std.int(value.y));
 		return value;
 	}
 
@@ -907,7 +910,7 @@ class NativeWindow extends EventDispatcher
 			throw new Error(ERROR_CLOSED, 3200);
 		}
 		visible = true;
-		FlightApplication.focusWindow(__flightWindow);
+		FlightApplication.focusWindow(cast __flightHost, __flightWindow);
 		window_onFocusIn();
 	}
 
@@ -946,7 +949,7 @@ class NativeWindow extends EventDispatcher
 			throw new Error(ERROR_CLOSED, 3200);
 		}
 		__skipClosingEvent = true;
-		FlightApplication.closeWindow(__flightWindow);
+		FlightApplication.closeWindow(cast __flightHost, __flightWindow);
 	}
 
 	/**
@@ -981,8 +984,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		if (__flightWindow.maximized) FlightApplication.restoreWindow(__flightWindow);
-		FlightApplication.minimizeWindow(__flightWindow);
+		if (__flightWindow.maximized) FlightApplication.restoreWindow(cast __flightHost, __flightWindow);
+		FlightApplication.minimizeWindow(cast __flightHost, __flightWindow);
 	}
 
 	/**
@@ -1020,8 +1023,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		if (__flightWindow.minimized) FlightApplication.restoreWindow(__flightWindow);
-		FlightApplication.maximizeWindow(__flightWindow);
+		if (__flightWindow.minimized) FlightApplication.restoreWindow(cast __flightHost, __flightWindow);
+		FlightApplication.maximizeWindow(cast __flightHost, __flightWindow);
 	}
 
 	/**
@@ -1045,7 +1048,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		FlightApplication.restoreWindow(__flightWindow);
+		FlightApplication.restoreWindow(cast __flightHost, __flightWindow);
 	}
 
 	/**
