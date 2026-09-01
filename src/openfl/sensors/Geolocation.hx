@@ -3,8 +3,17 @@ package openfl.sensors;
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
 import flight.Geolocation as FlightGeolocation;
 import flight.types.GeoPosition;
-import flight.types.GeolocationPermissionState;
+import flight.types.GeolocationAccessOutcome;
 import flight.types.GeolocationRequestOptions;
+import flight.types.Host as FlightHost;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
 import haxe.Timer;
 import openfl.errors.IllegalOperationError;
 import openfl.events.EventDispatcher;
@@ -81,10 +90,11 @@ class Geolocation extends EventDispatcher
 
 	private static function get_isSupported():Bool
 	{
+		__getFlightHost();
 		return FlightGeolocation.isGeolocationAvailable();
 	}
 
-	@:noCompletion private var __permissionUnsubscribe:Void->Void;
+	@:noCompletion private static var __flightHost:FlightHost;
 	@:noCompletion private var __requestedUpdateInterval:Float = 0;
 	@:noCompletion private var __watchID:Float = -1;
 
@@ -142,12 +152,6 @@ class Geolocation extends EventDispatcher
 		super();
 		if (!isSupported) throw new IllegalOperationError("Not supported");
 
-		__permissionUnsubscribe = FlightGeolocation.onGeolocationPermissionChange(__updatePermission);
-		FlightGeolocation.getGeolocationPermission().then(function(state:GeolocationPermissionState):GeolocationPermissionState
-		{
-			__updatePermission(state);
-			return state;
-		});
 		__startWatch();
 	}
 
@@ -156,22 +160,16 @@ class Geolocation extends EventDispatcher
 	**/
 	public function requestPermission():Void
 	{
-		FlightGeolocation.requestGeolocationPermission().then(function(granted:Bool):Bool
+		FlightGeolocation.promptForGeolocationAccess(__getFlightHost()).then(function(outcome:GeolocationAccessOutcome):GeolocationAccessOutcome
 		{
-			if (granted)
+			switch (outcome.reason)
 			{
-				__setPermissionStatus(PermissionStatus.GRANTED);
-			}
-			else
-			{
-				FlightGeolocation.getGeolocationPermission().then(function(state:GeolocationPermissionState):GeolocationPermissionState
-				{
-					__updatePermission(state);
-					return state;
-				});
+				case "granted": __setPermissionStatus(PermissionStatus.GRANTED);
+				case "denied": __setPermissionStatus(PermissionStatus.DENIED);
+				default: __setPermissionStatus(PermissionStatus.UNKNOWN);
 			}
 			__startWatch();
-			return granted;
+			return outcome;
 		});
 	}
 
@@ -208,14 +206,23 @@ class Geolocation extends EventDispatcher
 		});
 	}
 
-	@:noCompletion private function __updatePermission(state:GeolocationPermissionState):Void
+	@:noCompletion private static function __getFlightHost():FlightHost
 	{
-		__setPermissionStatus(switch (state)
-		{
-			case "denied": PermissionStatus.DENIED;
-			case "granted": PermissionStatus.GRANTED;
-			default: PermissionStatus.UNKNOWN;
-		});
+		if (__flightHost != null) return __flightHost;
+
+		#if (js && html5)
+		FlightHostWeb.enableHostWebGeolocation();
+		__flightHost = cast FlightHostWeb.webHost;
+		#elseif (clay && sys)
+		__flightHost = FlightHostClay.createClayHost();
+		#elseif (lime && sys)
+		if (LimeApplication.current == null) return cast {system: {}};
+		__flightHost = FlightHostLime.createLimeHost(LimeApplication.current);
+		#else
+		__flightHost = cast {system: {}};
+		#end
+
+		return __flightHost;
 	}
 
 	@:noCompletion private function __setPermissionStatus(status:PermissionStatus):Void
