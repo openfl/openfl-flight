@@ -1,6 +1,8 @@
 package openfl.display;
 
 #if !flash
+import flight.Geometry as FlightGeometry;
+import flight.Interaction as FlightInteraction;
 import flight.Node as FlightNode;
 import flight.Scene2D as FlightScene2D;
 import flight.types.Node2D as FlightNode2D;
@@ -825,7 +827,16 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	**/
 	public function getRect(targetCoordinateSpace:DisplayObject):Rectangle
 	{
-		return getBounds(targetCoordinateSpace);
+		var matrix = __getWorldTransform();
+		if (targetCoordinateSpace != null)
+		{
+			var targetMatrix = targetCoordinateSpace.__getWorldTransform();
+			targetMatrix.invert();
+			matrix.concat(targetMatrix);
+		}
+		var bounds = new Rectangle();
+		__getRect(bounds, matrix);
+		return bounds;
 	}
 
 	/**
@@ -861,6 +872,12 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	public function hitTestObject(obj:DisplayObject):Bool
 	{
 		if (obj == null) return false;
+		if (__hasFlightBoundsContent() && obj.__hasFlightBoundsContent())
+		{
+			var overlap = FlightGeometry.createRectangle();
+			FlightInteraction.getNode2DOverlapRectangle(__flightNode, obj.__flightNode, overlap);
+			return overlap.width > 0 && overlap.height > 0;
+		}
 		return getBounds(null).intersects(obj.getBounds(null));
 	}
 
@@ -882,7 +899,8 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	**/
 	public function hitTestPoint(x:Float, y:Float, shapeFlag:Bool = false):Bool
 	{
-		return getBounds(null).contains(x, y);
+		if (!shapeFlag) return getBounds(null).contains(x, y);
+		return __hitTest(x, y, true);
 	}
 
 	/**
@@ -919,7 +937,9 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	**/
 	public function localToGlobal(point:Point):Point
 	{
-		return __getWorldTransform().transformPoint(point);
+		var result = new Point();
+		FlightNode.convertNodeVector2LocalToGlobal(cast result, __flightNode, cast point);
+		return result;
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -1007,6 +1027,28 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		}
 	}
 
+	@:noCompletion private function __getRect(rect:Rectangle, matrix:Matrix):Void
+	{
+		rect.setTo(0, 0, 0, 0);
+		var hasBounds = false;
+		if (__graphics != null)
+		{
+			__graphics.__getBounds(rect, matrix, false);
+			hasBounds = !rect.isEmpty();
+		}
+		if (!__localBounds.isEmpty())
+		{
+			var transformed = __transformRectangle(__localBounds, matrix);
+			if (hasBounds) rect.copyFrom(rect.union(transformed)); else rect.copyFrom(transformed);
+			hasBounds = true;
+		}
+		if (__scrollRect != null)
+		{
+			var clipped = __transformRectangle(__scrollRect, matrix);
+			if (hasBounds) rect.copyFrom(rect.intersection(clipped)); else rect.copyFrom(clipped);
+		}
+	}
+
 	@:noCompletion private function __getLocalBounds(rect:Rectangle):Void
 	{
 		__getBounds(rect, __transform);
@@ -1019,11 +1061,15 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		return __graphics != null || !__localBounds.isEmpty();
 	}
 
+	@:noCompletion private function __hasFlightBoundsContent():Bool
+	{
+		return __graphics != null;
+	}
+
 	@:noCompletion private function __getWorldTransform():Matrix
 	{
-		var result = __transform.clone();
-		if (parent != null) result.concat(parent.__getWorldTransform());
-		return result;
+		var matrix = FlightNode.getNodeWorldMatrix(__flightNode);
+		return new Matrix(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
 	}
 
 	@:noCompletion private function __getRenderTransform():Matrix
@@ -1033,10 +1079,15 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function __globalToLocal(global:Point, local:Point):Point
 	{
-		var matrix = __getWorldTransform();
-		matrix.invert();
-		matrix.transformPointToOutput(global, local);
+		FlightNode.convertNodeVector2GlobalToLocal(cast local, __flightNode, cast global);
 		return local;
+	}
+
+	@:noCompletion private function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
+	{
+		if (__graphics != null && __graphics.__hitTest(x, y, shapeFlag)) return true;
+		if (!__localBounds.isEmpty()) return getBounds(null).contains(x, y);
+		return false;
 	}
 
 	@:noCompletion private function __setLocalBounds(bounds:Rectangle):Void
@@ -1243,6 +1294,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:keep @:noCompletion private function get_transform():Transform
 	{
 		if (__objectTransform == null) __objectTransform = new Transform(this);
+		__objectTransform.__updateConcatenatedColorTransform();
 		return __objectTransform;
 	}
 

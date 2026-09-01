@@ -158,7 +158,7 @@ class DisplayObjectContainer extends InteractiveObject
 				__children.splice(oldIndex, 1);
 				if (index > __children.length) index = __children.length;
 				__children.insert(index, child);
-				FlightNode.setNodeChildIndex(__flightNode, child.__flightNode, index);
+				FlightNode.setNodeChildIndex(__flightNode, child.__flightNode, index + __flightChildOffset());
 			}
 			return child;
 		}
@@ -166,7 +166,7 @@ class DisplayObjectContainer extends InteractiveObject
 		if (child.parent != null) child.parent.removeChild(child);
 		__children.insert(index, child);
 		child.parent = this;
-		FlightNode.addNodeChildAt(__flightNode, child.__flightNode, index);
+		FlightNode.addNodeChildAt(__flightNode, child.__flightNode, index + __flightChildOffset());
 
 		var addedToStage = stage != null && child.stage == null;
 		if (addedToStage) child.__setStageReference(stage);
@@ -428,7 +428,7 @@ class DisplayObjectContainer extends InteractiveObject
 		if (child == null || child.parent != this || index < 0 || index >= __children.length) return;
 		__children.remove(child);
 		__children.insert(index, child);
-		FlightNode.setNodeChildIndex(__flightNode, child.__flightNode, index);
+		FlightNode.setNodeChildIndex(__flightNode, child.__flightNode, index + __flightChildOffset());
 	}
 
 	/**
@@ -477,7 +477,8 @@ class DisplayObjectContainer extends InteractiveObject
 		var child = __children[index1];
 		__children[index1] = __children[index2];
 		__children[index2] = child;
-		FlightNode.swapNodeChildrenAt(__flightNode, index1, index2);
+		var offset = __flightChildOffset();
+		FlightNode.swapNodeChildrenAt(__flightNode, index1 + offset, index2 + offset);
 	}
 
 	@:noCompletion private function __collectObjectsUnderPoint(point:Point, result:Array<DisplayObject>):Void
@@ -489,6 +490,11 @@ class DisplayObjectContainer extends InteractiveObject
 			if ((child is DisplayObjectContainer)) cast(child, DisplayObjectContainer).__collectObjectsUnderPoint(point, result);
 			if (child.hitTestPoint(point.x, point.y)) result.push(child);
 		}
+	}
+
+	@:noCompletion private inline function __flightChildOffset():Int
+	{
+		return __graphics == null ? 0 : 1;
 	}
 
 	@:noCompletion private override function __dispatchChildren(event:Event):Void
@@ -519,10 +525,43 @@ class DisplayObjectContainer extends InteractiveObject
 		}
 	}
 
+	@:noCompletion private override function __getRect(rect:Rectangle, matrix:Matrix):Void
+	{
+		super.__getRect(rect, matrix);
+		var hasBounds = !rect.isEmpty();
+		for (child in __children)
+		{
+			var childMatrix = child.__transform.clone();
+			childMatrix.concat(matrix);
+			var childRect = new Rectangle();
+			child.__getRect(childRect, childMatrix);
+			if (child.__hasBoundsContent())
+			{
+				if (hasBounds) rect.copyFrom(rect.union(childRect)); else rect.copyFrom(childRect);
+				hasBounds = true;
+			}
+		}
+	}
+
 	@:noCompletion private override function __hasBoundsContent():Bool
 	{
 		if (super.__hasBoundsContent()) return true;
 		for (child in __children) if (child.__hasBoundsContent()) return true;
+		return false;
+	}
+
+	@:noCompletion private override function __hasFlightBoundsContent():Bool
+	{
+		if (super.__hasFlightBoundsContent()) return true;
+		for (child in __children) if (child.__hasFlightBoundsContent()) return true;
+		return false;
+	}
+
+	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
+	{
+		if (super.__hitTest(x, y, shapeFlag)) return true;
+		var i = __children.length;
+		while (--i >= 0) if (__children[i].__hitTest(x, y, shapeFlag)) return true;
 		return false;
 	}
 

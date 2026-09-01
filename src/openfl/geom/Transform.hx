@@ -340,6 +340,20 @@ class Transform
 			__displayObject.__setTransformDirty();
 		}
 	}
+
+	@:noCompletion private function __updateConcatenatedColorTransform():Void
+	{
+		concatenatedColorTransform.__copyFrom(__colorTransform);
+		var current = __displayObject == null ? null : __displayObject.parent;
+		while (current != null)
+		{
+			if (current.__objectTransform != null)
+			{
+				concatenatedColorTransform.__combine(current.__objectTransform.__colorTransform);
+			}
+			current = current.parent;
+		}
+	}
 }
 #else
 typedef Transform = flash.geom.Transform;

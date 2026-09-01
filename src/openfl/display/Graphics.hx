@@ -1,8 +1,14 @@
 package openfl.display;
 
 #if !flash
+import flight.Geometry as FlightGeometry;
+import flight.Interaction as FlightInteraction;
+import flight.Node as FlightNode;
+import flight.Shape as FlightShape;
+import flight.types.Shape as FlightShapeData;
 import openfl.Vector;
 import openfl.geom.Matrix;
+import openfl.geom.Rectangle;
 
 /**
 	Records the OpenFL vector drawing API. Command tessellation and rendering
@@ -18,24 +24,35 @@ import openfl.geom.Matrix;
 	@:noCompletion private var __owner:DisplayObject;
 	@:noCompletion private var __positionX:Float;
 	@:noCompletion private var __positionY:Float;
+	@:noCompletion private var __flightShape:FlightShapeData;
 
 	@:noCompletion private function new(owner:DisplayObject)
 	{
 		__owner = owner;
 		__positionX = 0;
 		__positionY = 0;
-		// TODO: Create a Flight vector command buffer.
+		FlightShape.registerDefaultShapeBoundsCommands();
+		FlightInteraction.registerDefaultHitTests();
+		FlightInteraction.registerShapeHitTest();
+		__flightShape = FlightShape.createShape();
+		FlightNode.addNodeChildAt(owner.__flightNode, __flightShape, 0);
 	}
 
 	public function beginBitmapFill(bitmap:BitmapData, matrix:Matrix = null, repeat:Bool = true, smooth:Bool = false):Void {}
 
-	public function beginFill(color:Int = 0, alpha:Float = 1):Void {}
+	public function beginFill(color:Int = 0, alpha:Float = 1):Void
+	{
+		FlightShape.appendShapeBeginFill(__flightShape, color & 0xFFFFFF, alpha);
+		__invalidate();
+	}
 
 	public function beginGradientFill(type:GradientType, colors:Array<Int>, alphas:Array<Float>, ratios:Array<Int>, matrix:Matrix = null,
 			spreadMethod:SpreadMethod = SpreadMethod.PAD, interpolationMethod:InterpolationMethod = InterpolationMethod.RGB,
 			focalPointRatio:Float = 0):Void
 	{
-		// TODO: Record Flight gradient fill state.
+		FlightShape.appendShapeBeginGradientFill(__flightShape, cast type, __colorsToFloat(colors), alphas, __colorsToFloat(ratios), cast matrix,
+			cast spreadMethod, cast interpolationMethod, focalPointRatio);
+		__invalidate();
 	}
 
 	public function beginShaderFill(shader:Shader, matrix:Matrix = null):Void
@@ -47,36 +64,45 @@ import openfl.geom.Matrix;
 	{
 		__positionX = 0;
 		__positionY = 0;
-		// TODO: Clear the Flight vector command buffer.
+		FlightShape.clearShapeCommands(__flightShape);
+		__invalidate();
 	}
 
 	public function copyFrom(sourceGraphics:Graphics):Void
 	{
-		// TODO: Copy Flight vector commands.
+		if (sourceGraphics == null) return;
+		FlightShape.copyShapeCommands(__flightShape, sourceGraphics.__flightShape);
+		__positionX = sourceGraphics.__positionX;
+		__positionY = sourceGraphics.__positionY;
+		__invalidate();
 	}
 
 	public function cubicCurveTo(controlX1:Float, controlY1:Float, controlX2:Float, controlY2:Float, anchorX:Float, anchorY:Float):Void
 	{
 		__positionX = anchorX;
 		__positionY = anchorY;
-		// TODO: Record a Flight cubic curve command.
+		FlightShape.appendShapeCubicCurveTo(__flightShape, controlX1, controlY1, controlX2, controlY2, anchorX, anchorY);
+		__invalidate();
 	}
 
 	public function curveTo(controlX:Float, controlY:Float, anchorX:Float, anchorY:Float):Void
 	{
 		__positionX = anchorX;
 		__positionY = anchorY;
-		// TODO: Record a Flight quadratic curve command.
+		FlightShape.appendShapeCurveTo(__flightShape, controlX, controlY, anchorX, anchorY);
+		__invalidate();
 	}
 
 	public function drawCircle(x:Float, y:Float, radius:Float):Void
 	{
-		// TODO: Record a Flight circle command.
+		FlightShape.appendShapeCircle(__flightShape, x, y, radius);
+		__invalidate();
 	}
 
 	public function drawEllipse(x:Float, y:Float, width:Float, height:Float):Void
 	{
-		// TODO: Record a Flight ellipse command.
+		FlightShape.appendShapeEllipse(__flightShape, x, y, width, height);
+		__invalidate();
 	}
 
 	public function drawGraphicsData(graphicsData:Vector<IGraphicsData>):Void
@@ -86,7 +112,9 @@ import openfl.geom.Matrix;
 
 	public function drawPath(commands:Vector<Int>, data:Vector<Float>, winding:GraphicsPathWinding = GraphicsPathWinding.EVEN_ODD):Void
 	{
-		// TODO: Record a Flight path command sequence.
+		if (commands == null || data == null) return;
+		FlightShape.appendShapePath(__flightShape, __colorsToFloat(commands), __vectorToArray(data), cast winding);
+		__invalidate();
 	}
 
 	public function drawQuads(rects:Vector<Float>, indices:Vector<Int> = null, transforms:Vector<Float> = null):Void
@@ -96,27 +124,38 @@ import openfl.geom.Matrix;
 
 	public function drawRect(x:Float, y:Float, width:Float, height:Float):Void
 	{
-		// TODO: Record a Flight rectangle command.
+		if (width == 0 && height == 0) return;
+		FlightShape.appendShapeRectangle(__flightShape, x, y, width, height);
+		__invalidate();
 	}
 
 	public function drawRoundRect(x:Float, y:Float, width:Float, height:Float, ellipseWidth:Float, ellipseHeight:Null<Float> = null):Void
 	{
-		// TODO: Record a Flight rounded rectangle command.
+		FlightShape.appendShapeRoundRectangle(__flightShape, x, y, width, height, ellipseWidth, ellipseHeight == null ? ellipseWidth : ellipseHeight);
+		__invalidate();
 	}
 
 	public function drawRoundRectComplex(x:Float, y:Float, width:Float, height:Float, topLeftRadius:Float, topRightRadius:Float,
 			bottomLeftRadius:Float, bottomRightRadius:Float):Void
 	{
-		// TODO: Record a Flight complex rounded rectangle command.
+		FlightShape.appendShapeRoundRectangleVarying(__flightShape, x, y, width, height, topLeftRadius, topRightRadius, bottomLeftRadius,
+			bottomRightRadius);
+		__invalidate();
 	}
 
 	public function drawTriangles(vertices:Vector<Float>, indices:Vector<Int> = null, uvtData:Vector<Float> = null,
 			culling:TriangleCulling = TriangleCulling.NONE):Void
 	{
-		// TODO: Record Flight triangle geometry.
+		if (vertices == null) return;
+		FlightShape.appendShapeDrawTriangles(__flightShape, __vectorToArray(vertices), __colorsToFloat(indices), __vectorToArray(uvtData), cast culling);
+		__invalidate();
 	}
 
-	public function endFill():Void {}
+	public function endFill():Void
+	{
+		FlightShape.appendShapeEndFill(__flightShape);
+		__invalidate();
+	}
 
 	public function lineBitmapStyle(bitmap:BitmapData, matrix:Matrix = null, repeat:Bool = true, smooth:Bool = false):Void
 	{
@@ -127,27 +166,35 @@ import openfl.geom.Matrix;
 			spreadMethod:SpreadMethod = SpreadMethod.PAD, interpolationMethod:InterpolationMethod = InterpolationMethod.RGB,
 			focalPointRatio:Float = 0):Void
 	{
-		// TODO: Record Flight gradient stroke state.
+		FlightShape.appendShapeLineGradientStyle(__flightShape, cast type, __colorsToFloat(colors), alphas, __colorsToFloat(ratios), cast matrix,
+			cast spreadMethod, cast interpolationMethod, focalPointRatio);
+		__invalidate();
 	}
 
 	public function lineStyle(thickness:Null<Float> = null, color:Int = 0, alpha:Float = 1, pixelHinting:Bool = false,
 			scaleMode:LineScaleMode = LineScaleMode.NORMAL, caps:CapsStyle = null, joints:JointStyle = null, miterLimit:Float = 3):Void
 	{
-		// TODO: Record Flight line style state.
+		if (caps == null) caps = CapsStyle.ROUND;
+		if (joints == null) joints = JointStyle.ROUND;
+		FlightShape.appendShapeLineStyle(__flightShape, thickness, color & 0xFFFFFF, alpha, pixelHinting, cast scaleMode, cast caps, cast joints,
+			miterLimit);
+		__invalidate();
 	}
 
 	public function lineTo(x:Float, y:Float):Void
 	{
 		__positionX = x;
 		__positionY = y;
-		// TODO: Record a Flight line command.
+		FlightShape.appendShapeLineTo(__flightShape, x, y);
+		__invalidate();
 	}
 
 	public function moveTo(x:Float, y:Float):Void
 	{
 		__positionX = x;
 		__positionY = y;
-		// TODO: Record a Flight move command.
+		FlightShape.appendShapeMoveTo(__flightShape, x, y);
+		__invalidate();
 	}
 
 	@SuppressWarnings("checkstyle:FieldDocComment")
@@ -162,9 +209,37 @@ import openfl.geom.Matrix;
 		return new Vector<IGraphicsData>();
 	}
 
-	@:noCompletion private function __getBounds(rect:openfl.geom.Rectangle, matrix:Matrix):Void
+	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix, includeStroke:Bool = true):Void
 	{
-		// TODO: Compute bounds from the Flight command buffer.
+		var bounds = FlightGeometry.createRectangle();
+		if (!FlightShape.getShapeBounds(bounds, __flightShape, includeStroke ? "ink" : "fill")) return;
+		if (bounds.width == 0 && bounds.height == 0 && FlightShape.isShapeEmpty(__flightShape)) return;
+		var transformed = DisplayObject.__transformRectangle(new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height), matrix);
+		rect.copyFrom(transformed);
+	}
+
+	@:noCompletion private function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
+	{
+		return FlightInteraction.hitTestNodeRegion(__flightShape, x, y, shapeFlag);
+	}
+
+	@:noCompletion private function __invalidate():Void
+	{
+		__owner.__setRenderDirty();
+	}
+
+	@:noCompletion private static function __colorsToFloat(values:Dynamic):Array<Float>
+	{
+		if (values == null) return null;
+		var result:Array<Float> = [];
+		for (i in 0...values.length) result.push(values[i]);
+		return result;
+	}
+
+	@:noCompletion private static function __vectorToArray(values:Vector<Float>):Array<Float>
+	{
+		if (values == null) return null;
+		return [for (i in 0...values.length) values[i]];
 	}
 }
 #else
