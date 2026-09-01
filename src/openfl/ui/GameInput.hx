@@ -6,13 +6,21 @@ import flight.Signals as FlightSignals;
 import flight.types.InputGamepadAxisData as FlightGamepadAxisData;
 import flight.types.InputGamepadButtonData as FlightGamepadButtonData;
 import flight.types.InputGamepadConnectData as FlightGamepadConnectData;
+import flight.types.InputIngressSource as FlightInputSource;
 import flight.types.InputManager as FlightInputManager;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
 import openfl.events.EventType;
 import openfl.events.GameInputEvent;
 #if (js && html5)
+import flight.HostWeb as FlightHostWeb;
 import js.Browser;
+#elseif clay
+import clay.Clay;
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif lime
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
 #end
 
 /**
@@ -85,6 +93,8 @@ import js.Browser;
 	@:noCompletion private static var __instances:Array<GameInput> = [];
 	@:noCompletion private static var __devices:Map<Int, GameInputDevice> = new Map();
 	@:noCompletion private static var __flightInputManager:FlightInputManager;
+	@:noCompletion private static var __flightInputSource:FlightInputSource;
+	@:noCompletion private static var __flightInputSourceResolved:Bool;
 
 	private static function __init__():Void
 	{
@@ -167,9 +177,36 @@ import js.Browser;
 		FlightSignals.connectSignal(__flightInputManager.onGamepadConnect, __onGamepadConnect);
 		FlightSignals.connectSignal(__flightInputManager.onGamepadDisconnect, __onGamepadDisconnect);
 
+		var source = __getFlightInputSource();
+		if (source != null) FlightInput.attachGamepadInput(__flightInputManager, source);
+	}
+
+	@:noCompletion private static function __getFlightInputSource():FlightInputSource
+	{
+		if (__flightInputSource != null || __flightInputSourceResolved) return __flightInputSource;
+
 		#if (js && html5)
-		if (Browser.supported) FlightInput.attachGamepadInput(__flightInputManager, cast Browser.window);
+		if (Browser.supported && FlightHostWeb.webHost != null)
+		{
+			__flightInputSource = cast Browser.window;
+		}
+		__flightInputSourceResolved = true;
+		#elseif clay
+		FlightHostClay.createClayHost();
+		__flightInputSource = cast Clay.app;
+		__flightInputSourceResolved = true;
+		#elseif lime
+		if (LimeApplication.current != null && LimeApplication.current.window != null)
+		{
+			FlightHostLime.createLimeHost(LimeApplication.current);
+			__flightInputSource = cast LimeApplication.current.window;
+			__flightInputSourceResolved = true;
+		}
+		#else
+		__flightInputSourceResolved = true;
 		#end
+
+		return __flightInputSource;
 	}
 
 	@:noCompletion private static function __onGamepadAxisMove(data:FlightGamepadAxisData):Void
