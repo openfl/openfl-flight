@@ -6,6 +6,7 @@ import harness.scenarios.CertificateStatusScenario;
 import harness.scenarios.ClipboardScenario;
 import harness.scenarios.ColorTransformScenario;
 import harness.scenarios.DateTimeFormatterScenario;
+import harness.scenarios.DatagramSocketScenario;
 import harness.scenarios.DictionaryScenario;
 import harness.scenarios.DesktopScenario;
 import harness.scenarios.Display3DScenario;
@@ -258,6 +259,10 @@ class Scenarios {
 			{
 				name: "net/socket-basics",
 				run: SocketScenario.run
+			},
+			{
+				name: "net/datagram-socket",
+				run: DatagramSocketScenario.run
 			},
 			{
 				name: "net/xml-socket",
