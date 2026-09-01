@@ -2,21 +2,12 @@ package openfl.net;
 
 #if !flash
 import flight.Storage as FlightStorage;
-import flight.types.HasStorageLocal as FlightStorageHost;
 import haxe.io.Bytes;
 import haxe.Serializer;
 import haxe.Unserializer;
 import openfl.errors.Error;
 import openfl.events.EventDispatcher;
 import openfl.utils.Object;
-#if (js && html5)
-import flight.HostWeb as FlightHostWeb;
-#elseif (clay && sys)
-import flight.hostClay.HostClay as FlightHostClay;
-#elseif (lime && sys)
-import flight.hostLime.HostLime as FlightHostLime;
-import lime.app.Application as LimeApplication;
-#end
 
 /**
 	Provides the OpenFL shared-object API, using Flight Storage for local
@@ -38,8 +29,6 @@ class SharedObject extends EventDispatcher
 
 	@:noCompletion private static var __sharedObjects:Map<String, SharedObject> = new Map();
 	@:noCompletion private static var __memoryValues:Map<String, String> = new Map();
-	@:noCompletion private static var __storageHost:FlightStorageHost;
-	@:noCompletion private static var __storageHostResolved:Bool;
 
 	@:noCompletion private var __localPath:String;
 	@:noCompletion private var __name:String;
@@ -58,15 +47,7 @@ class SharedObject extends EventDispatcher
 		data = {};
 
 		var key = __getStorageKey();
-		var host = __getStorageHost();
-		if (host != null)
-		{
-			try
-			{
-				FlightStorage.removeStorageItem(host, key);
-			}
-			catch (_:Dynamic) {}
-		}
+		try FlightStorage.removeStorageItem(key) catch (_:Dynamic) {}
 		__memoryValues.remove(key);
 	}
 
@@ -85,17 +66,9 @@ class SharedObject extends EventDispatcher
 
 		var encodedData = Serializer.run(data);
 		var key = __getStorageKey();
-		var host = __getStorageHost();
-		if (host == null)
-		{
-			__memoryValues.set(key, encodedData);
-			return SharedObjectFlushStatus.FLUSHED;
-		}
-
 		try
 		{
-			var result:Dynamic = FlightStorage.setStorageItem(host, key, encodedData);
-			if (result != null && Reflect.field(result, "reason") == "ok")
+			if (FlightStorage.setStorageItem(key, encodedData))
 			{
 				__memoryValues.remove(key);
 				return SharedObjectFlushStatus.FLUSHED;
@@ -104,7 +77,7 @@ class SharedObject extends EventDispatcher
 		catch (_:Dynamic) {}
 
 		__memoryValues.set(key, encodedData);
-		return SharedObjectFlushStatus.PENDING;
+		return SharedObjectFlushStatus.FLUSHED;
 	}
 
 	public static function getLocal(name:String, localPath:String = null, secure:Bool = false /* note: unsupported**/):SharedObject
@@ -171,12 +144,7 @@ class SharedObject extends EventDispatcher
 		{
 			var key = __getStorageKey();
 			var encodedData:String = null;
-			var host = __getStorageHost();
-			if (host != null)
-			{
-				var result:Dynamic = FlightStorage.getStorageItem(host, key);
-				if (result != null && Reflect.field(result, "reason") == "ok") encodedData = Reflect.field(result, "value");
-			}
+			encodedData = FlightStorage.getStorageItem(key);
 			if (encodedData == null) encodedData = __memoryValues.get(key);
 			if (encodedData == null || encodedData == "") return;
 
@@ -186,29 +154,6 @@ class SharedObject extends EventDispatcher
 			if (decoded != null) data = decoded;
 		}
 		catch (_:Dynamic) {}
-	}
-
-	@:noCompletion private static function __getStorageHost():FlightStorageHost
-	{
-		if (__storageHost != null || __storageHostResolved) return __storageHost;
-
-		#if (js && html5)
-		__storageHost = cast FlightHostWeb.webStorageHost;
-		__storageHostResolved = true;
-		#elseif (clay && sys)
-		__storageHost = cast FlightHostClay.createClayHost();
-		__storageHostResolved = true;
-		#elseif (lime && sys)
-		if (LimeApplication.current != null)
-		{
-			__storageHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
-			__storageHostResolved = true;
-		}
-		#else
-		__storageHostResolved = true;
-		#end
-
-		return __storageHost;
 	}
 
 	@:noCompletion private static function __resolveClass(name:String):Class<Dynamic>

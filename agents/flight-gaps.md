@@ -101,10 +101,10 @@ currently provides (or doesn't).
   native requests instead of reporting a transport failure.
 
 - **SharedObject quota prompts and remote synchronization**: Flight Storage's
-  host-explicit local string backend now backs OpenFL local shared objects via
-  the Web host and active sys Lime/Clay hosts; headless targets fall back to
-  adapter-local process memory. A rejected host write returns OpenFL's
-  `PENDING` status while retaining a process-local copy. Flight has no
+  local string backend now backs OpenFL local shared objects where the active
+  host provides persistence; unavailable backends fall back to adapter-local
+  process memory. The hostless Flight 0.4.0 facade cannot distinguish a quota
+  rejection from an unavailable backend. Flight has no
   equivalent of Flash Player's quota-increase dialog, `minDiskSpace`
   reservation, or `NetStatusEvent` result after a pending flush. Flight also
   has no remote shared-object protocol for `connect`, `send`, `setDirty`, or
