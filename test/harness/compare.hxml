@@ -1,4 +1,5 @@
 test/harness/common.hxml
 -cp src
 -lib flight
+-D openfl
 -D harness_compare
