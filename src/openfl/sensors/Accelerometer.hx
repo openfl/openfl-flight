@@ -1,6 +1,10 @@
 package openfl.sensors;
 
 #if !flash
+import flight.Sensors as FlightSensors;
+import flight.Signals as FlightSignals;
+import flight.types.MotionReading;
+import flight.types.Sensors as FlightSensorSet;
 import haxe.Timer;
 import openfl.errors.ArgumentError;
 import openfl.events.AccelerometerEvent;
@@ -79,6 +83,7 @@ class Accelerometer extends EventDispatcher
 	@:noCompletion private static var defaultInterval:Int = 34;
 	@:noCompletion private static var initialized:Bool = false;
 	@:noCompletion private static var supported:Bool = false;
+	@:noCompletion private static var __flightSensors:FlightSensorSet;
 
 	/**
 		Specifies whether the user has denied access to the accelerometer
@@ -133,7 +138,13 @@ class Accelerometer extends EventDispatcher
 	{
 		if (!initialized)
 		{
-			// TODO: Subscribe to accelerometer updates through Flight's input API.
+			supported = FlightSensors.hasAccelerometer();
+			if (supported)
+			{
+				__flightSensors = FlightSensors.createSensors();
+				FlightSignals.connectSignal(__flightSensors.onAccelerometer, accelerometer_onFlightUpdate);
+				FlightSensors.attachSensors(__flightSensors);
+			}
 			initialized = true;
 		}
 	}
@@ -198,6 +209,11 @@ class Accelerometer extends EventDispatcher
 		currentX = x;
 		currentY = y;
 		currentZ = z;
+	}
+
+	@:noCompletion private static function accelerometer_onFlightUpdate(reading:MotionReading):Void
+	{
+		accelerometer_onUpdate(reading.x, reading.y, reading.z);
 	}
 
 	// Getters & Setters

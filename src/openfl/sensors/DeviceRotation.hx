@@ -1,7 +1,15 @@
 package openfl.sensors;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
+import flight.Sensors as FlightSensors;
+import flight.Signals as FlightSignals;
+import flight.types.OrientationReading;
+import flight.types.QuaternionReading;
+import flight.types.Sensors as FlightSensorSet;
+import haxe.Timer;
 import openfl.errors.IllegalOperationError;
+import openfl.events.DeviceRotationEvent;
+import openfl.events.EventDispatcher;
 
 /**
 	The DeviceRotation class dispatches events based on activity detected by the
@@ -28,7 +36,7 @@ import openfl.errors.IllegalOperationError;
 	[AIR Profile Support](https://help.adobe.com/en_US/air/build/WS144092a96ffef7cc16ddeea2126bb46b82f-8000.html)
 	for more information regarding API support across multiple profiles.
 **/
-class DeviceRotation
+class DeviceRotation extends EventDispatcher
 {
 	/**
 		The isSupported property is set to `true` if the accelerometer and
@@ -39,8 +47,10 @@ class DeviceRotation
 
 	private static function get_isSupported():Bool
 	{
-		return false;
+		return FlightSensors.hasOrientationSensor();
 	}
+
+	@:noCompletion private var __flightSensors:FlightSensorSet;
 
 	/**
 		Specifies whether the user has denied access to the Device Rotation data
@@ -54,7 +64,12 @@ class DeviceRotation
 	**/
 	public function new()
 	{
-		throw new IllegalOperationError("Not supported");
+		super();
+		if (!isSupported) throw new IllegalOperationError("Not supported");
+
+		__flightSensors = FlightSensors.createSensors();
+		FlightSignals.connectSignal(__flightSensors.onOrientation, deviceRotation_onFlightUpdate);
+		FlightSensors.attachSensors(__flightSensors);
 	}
 
 	/**
@@ -68,6 +83,24 @@ class DeviceRotation
 		application receives updates based on the device's default interval.
 	**/
 	public function setRequestedUpdateInterval(interval:Float):Void {}
+
+	@:noCompletion private function deviceRotation_onFlightUpdate(reading:OrientationReading):Void
+	{
+		var quaternion:QuaternionReading = {
+			accuracy: reading.accuracy,
+			interval: reading.interval,
+			timestamp: reading.timestamp,
+			w: 1,
+			x: 0,
+			y: 0,
+			z: 0
+		};
+		FlightSensors.computeQuaternionFromOrientationReading(quaternion, reading);
+		dispatchEvent(new DeviceRotationEvent(DeviceRotationEvent.UPDATE, false, false,
+			reading.timestamp >= 0 ? reading.timestamp : Timer.stamp() * 1000,
+			reading.gamma, reading.beta, reading.alpha,
+			[quaternion.w, quaternion.x, quaternion.y, quaternion.z]));
+	}
 }
 #else
 #if air

@@ -157,6 +157,14 @@ currently provides (or doesn't).
   spawn, standard-stream, or exit-status primitive that can back
   `NativeProcess.start()` and its asynchronous IO events.
 
+- **Sensor cadence and mobile location policy**: Flight Sensors exposes sensor
+  readings and capability queries, but its public `attachSensors` entry point
+  cannot receive the update-frequency options supported by its backends, so
+  OpenFL `DeviceRotation.setRequestedUpdateInterval()` remains a compatibility
+  hint. Flight Geolocation can forward accuracy and cached-position age, but it
+  has no requested update cadence, always-versus-when-in-use permission choice,
+  or background pause policy corresponding to OpenFL's geolocation fields.
+
 - **Desktop application metadata and shell capabilities**: Flight exposes the
   authoritative application and window handles needed for lifecycle and window
   operations, but it has no AIR runtime-version or runtime-patch metadata,

@@ -43,6 +43,7 @@ import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
+import harness.scenarios.SensorScenario;
 import harness.scenarios.SimpleButtonScenario;
 import harness.scenarios.SystemScenario;
 import harness.scenarios.ShapeBitmapScenario;
@@ -210,6 +211,10 @@ class Scenarios {
 			{
 				name: "permissions/permission-status",
 				run: PermissionStatusScenario.run
+			},
+			{
+				name: "sensors/core",
+				run: SensorScenario.run
 			},
 			{
 				name: "profiler/telemetry",

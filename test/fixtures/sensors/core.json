@@ -1,0 +1,32 @@
+{
+  "accelerometer": {
+    "mutedAfterSet": true,
+    "initialMuted": false,
+    "updates": [
+      {
+        "accelerationZ": 0,
+        "accelerationY": 1,
+        "accelerationX": 0,
+        "timestampIsNonNegative": true
+      }
+    ],
+    "negativeIntervalError": "openfl.errors.ArgumentError",
+    "isSupported": false
+  },
+  "geolocation": {
+    "constructorError": "openfl.errors.IllegalOperationError",
+    "accuracyConstants": [
+      "locationAccuracyBest",
+      "locationAccuracyBestForNavigation",
+      "locationAccuracyHundredMeters",
+      "locationAccuracyKilometer",
+      "locationAccuracyNearestTenMeters",
+      "locationAccuracyThreeKilometers"
+    ],
+    "isSupported": false
+  },
+  "deviceRotation": {
+    "constructorError": "openfl.errors.IllegalOperationError",
+    "isSupported": false
+  }
+}

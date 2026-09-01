@@ -1,7 +1,15 @@
 package openfl.sensors;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
+import flight.Geolocation as FlightGeolocation;
+import flight.types.GeoPosition;
+import flight.types.GeolocationPermissionState;
+import flight.types.GeolocationRequestOptions;
+import haxe.Timer;
 import openfl.errors.IllegalOperationError;
+import openfl.events.EventDispatcher;
+import openfl.events.GeolocationEvent;
+import openfl.events.PermissionEvent;
 import openfl.permissions.PermissionStatus;
 
 /**
@@ -32,7 +40,7 @@ import openfl.permissions.PermissionStatus;
 	[iOS Settings](http://help.adobe.com/en_US/air/build/WSfffb011ac560372f7e64a7f12cd2dd1867-8000.html)
 	for more information on the `infoAdditions` element.
 **/
-class Geolocation
+class Geolocation extends EventDispatcher
 {
 	/**
 		The best level of accuracy available.
@@ -73,8 +81,12 @@ class Geolocation
 
 	private static function get_isSupported():Bool
 	{
-		return false;
+		return FlightGeolocation.isGeolocationAvailable();
 	}
+
+	@:noCompletion private var __permissionUnsubscribe:Void->Void;
+	@:noCompletion private var __requestedUpdateInterval:Float = 0;
+	@:noCompletion private var __watchID:Float = -1;
 
 	/**
 		This property determines the accuracy of the geolocation data on iOS.
@@ -127,13 +139,41 @@ class Geolocation
 	**/
 	public function new()
 	{
-		throw new IllegalOperationError("Not supported");
+		super();
+		if (!isSupported) throw new IllegalOperationError("Not supported");
+
+		__permissionUnsubscribe = FlightGeolocation.onGeolocationPermissionChange(__updatePermission);
+		FlightGeolocation.getGeolocationPermission().then(function(state:GeolocationPermissionState):GeolocationPermissionState
+		{
+			__updatePermission(state);
+			return state;
+		});
+		__startWatch();
 	}
 
 	/**
 		Requests permission to access Geolocation.
 	**/
-	public function requestPermission():Void {}
+	public function requestPermission():Void
+	{
+		FlightGeolocation.requestGeolocationPermission().then(function(granted:Bool):Bool
+		{
+			if (granted)
+			{
+				__setPermissionStatus(PermissionStatus.GRANTED);
+			}
+			else
+			{
+				FlightGeolocation.getGeolocationPermission().then(function(state:GeolocationPermissionState):GeolocationPermissionState
+				{
+					__updatePermission(state);
+					return state;
+				});
+			}
+			__startWatch();
+			return granted;
+		});
+	}
 
 	/**
 		Used to set the time interval for updates, in milliseconds. The update
@@ -149,7 +189,50 @@ class Geolocation
 		Geolocation object initially dispatches one or two `update` events. It
 		then dispatches `update` events when information changes noticeably.
 	**/
-	public function setRequestedUpdateInterval(interval:Float):Void {}
+	public function setRequestedUpdateInterval(interval:Float):Void
+	{
+		__requestedUpdateInterval = interval;
+		__startWatch();
+	}
+
+	@:noCompletion private function __startWatch():Void
+	{
+		if (__watchID >= 0) FlightGeolocation.clearGeolocationWatch(__watchID);
+		var options:GeolocationRequestOptions = {
+			enableHighAccuracy: desiredAccuracy == LOCATION_ACCURACY_BEST || desiredAccuracy == LOCATION_ACCURACY_BEST_FOR_NAVIGATION
+		};
+		if (__requestedUpdateInterval > 0) options.maximumAgeMs = __requestedUpdateInterval;
+		__watchID = FlightGeolocation.watchGeolocationPosition(__updatePosition, options, function(reason:String):Void
+		{
+			if (reason == "denied") __setPermissionStatus(PermissionStatus.DENIED);
+		});
+	}
+
+	@:noCompletion private function __updatePermission(state:GeolocationPermissionState):Void
+	{
+		__setPermissionStatus(switch (state)
+		{
+			case "denied": PermissionStatus.DENIED;
+			case "granted": PermissionStatus.GRANTED;
+			default: PermissionStatus.UNKNOWN;
+		});
+	}
+
+	@:noCompletion private function __setPermissionStatus(status:PermissionStatus):Void
+	{
+		untyped this.muted = status == PermissionStatus.DENIED;
+		if (permissionStatus == status) return;
+		untyped this.permissionStatus = status;
+		dispatchEvent(new PermissionEvent(PermissionEvent.PERMISSION_STATUS, false, false, status));
+	}
+
+	@:noCompletion private function __updatePosition(position:GeoPosition):Void
+	{
+		dispatchEvent(new GeolocationEvent(GeolocationEvent.UPDATE, false, false,
+			position.latitude, position.longitude, position.altitude,
+			position.accuracy, position.altitudeAccuracy, position.speed,
+			position.heading, Timer.stamp() * 1000));
+	}
 }
 #else
 #if air
