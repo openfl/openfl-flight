@@ -67,6 +67,7 @@ import harness.scenarios.URLLoaderScenario;
 import harness.scenarios.URLTypesScenario;
 import harness.scenarios.Vector3DScenario;
 import harness.scenarios.VideoScenario;
+import harness.scenarios.XMLSocketScenario;
 
 class Scenarios {
 	public static function all():Array<Scenario> {
@@ -250,6 +251,10 @@ class Scenarios {
 			{
 				name: "net/socket-basics",
 				run: SocketScenario.run
+			},
+			{
+				name: "net/xml-socket",
+				run: XMLSocketScenario.run
 			},
 			{
 				name: "display/display-object",

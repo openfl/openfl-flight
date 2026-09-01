@@ -1,0 +1,17 @@
+{
+  "defaults": {
+    "connected": null,
+    "timeout": null
+  },
+  "mutation": {
+    "timeout": 1250
+  },
+  "invalidPorts": {
+    "negative": "openfl.errors.SecurityError",
+    "tooHigh": "openfl.errors.SecurityError"
+  },
+  "disconnectedErrors": {
+    "close": "String",
+    "send": "String"
+  }
+}
