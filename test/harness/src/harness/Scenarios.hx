@@ -30,12 +30,17 @@ import harness.scenarios.SystemScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFormatScenario;
+import harness.scenarios.TimerScenario;
 import harness.scenarios.Utils3DScenario;
 import harness.scenarios.Vector3DScenario;
 
 class Scenarios {
 	public static function all():Array<Scenario> {
 		return [
+			{
+				name: "utils/timer",
+				run: TimerScenario.run
+			},
 			{
 				name: "events/redispatch",
 				run: EventRedispatchScenario.run

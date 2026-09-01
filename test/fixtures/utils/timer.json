@@ -1,0 +1,20 @@
+{
+  "initial": {
+    "currentCount": 0,
+    "delay": 25,
+    "repeatCount": 3,
+    "running": false
+  },
+  "unlimited": {
+    "currentCount": 0,
+    "delay": 0,
+    "repeatCount": 0,
+    "running": false
+  },
+  "updated": {
+    "currentCount": 0,
+    "delay": 40,
+    "repeatCount": 5,
+    "running": false
+  }
+}
