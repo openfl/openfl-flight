@@ -575,6 +575,18 @@ class Matrix3D
 
 		var quaternion = Geometry.createQuaternion();
 		Geometry.decomposeMatrix4(position, quaternion, scale, matrix);
+		var scaleX = scale.x;
+		var scaleY = scale.y;
+		var scaleZ = scale.z;
+		var m0 = Geometry.getMatrix4Element(matrix, 0, 0) / scaleX;
+		var m1 = Geometry.getMatrix4Element(matrix, 1, 0) / scaleX;
+		var m2 = Geometry.getMatrix4Element(matrix, 2, 0) / scaleX;
+		var m4 = Geometry.getMatrix4Element(matrix, 0, 1) / scaleY;
+		var m5 = Geometry.getMatrix4Element(matrix, 1, 1) / scaleY;
+		var m6 = Geometry.getMatrix4Element(matrix, 2, 1) / scaleY;
+		var m8 = Geometry.getMatrix4Element(matrix, 0, 2) / scaleZ;
+		var m9 = Geometry.getMatrix4Element(matrix, 1, 2) / scaleZ;
+		var m10 = Geometry.getMatrix4Element(matrix, 2, 2) / scaleZ;
 
 		if (reflected)
 		{
@@ -585,8 +597,15 @@ class Matrix3D
 		switch (orientationStyle)
 		{
 			case Orientation3D.AXIS_ANGLE:
-				rotation.w = Geometry.getQuaternionAxisAngle(rotation, quaternion);
-				if (rotation.w == 0)
+				rotation.w = Math.acos((m0 + m5 + m10 - 1) / 2);
+				var length = Math.sqrt((m6 - m9) * (m6 - m9) + (m8 - m2) * (m8 - m2) + (m1 - m4) * (m1 - m4));
+				if (length != 0)
+				{
+					rotation.x = (m6 - m9) / length;
+					rotation.y = (m8 - m2) / length;
+					rotation.z = (m1 - m4) / length;
+				}
+				else
 				{
 					rotation.x = rotation.y = rotation.z = 0;
 				}
@@ -596,7 +615,17 @@ class Matrix3D
 				rotation.w = quaternion.w;
 
 			case Orientation3D.EULER_ANGLES:
-				Geometry.getQuaternionEuler(rotation, quaternion);
+				rotation.y = Math.asin(-m2);
+				if (m2 != 1 && m2 != -1)
+				{
+					rotation.x = Math.atan2(m6, m10);
+					rotation.z = Math.atan2(m1, m0);
+				}
+				else
+				{
+					rotation.z = 0;
+					rotation.x = Math.atan2(m4, m5);
+				}
 		}
 
 		output[0] = position;
