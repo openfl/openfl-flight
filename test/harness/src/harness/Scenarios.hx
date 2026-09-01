@@ -41,6 +41,7 @@ import harness.scenarios.RectangleScenario;
 import harness.scenarios.SimpleButtonScenario;
 import harness.scenarios.SystemScenario;
 import harness.scenarios.ShapeBitmapScenario;
+import harness.scenarios.SharedObjectScenario;
 import harness.scenarios.SoundStateScenario;
 import harness.scenarios.SoundLifecycleScenario;
 import harness.scenarios.StageScenario;
@@ -211,6 +212,10 @@ class Scenarios {
 			{
 				name: "net/url-types",
 				run: URLTypesScenario.run
+			},
+			{
+				name: "net/shared-object",
+				run: SharedObjectScenario.run
 			},
 			{
 				name: "display/display-object",

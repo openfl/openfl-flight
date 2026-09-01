@@ -1,0 +1,37 @@
+{
+  "cleared": {
+    "emptyFlush": true,
+    "size": 2,
+    "dataFields": 0
+  },
+  "defaults": {
+    "defaultObjectEncoding": 10,
+    "size": 2,
+    "objectEncoding": 10,
+    "dataFields": 0,
+    "clientSelf": true
+  },
+  "emptyFlush": true,
+  "identity": {
+    "sameReference": true,
+    "differentPath": true
+  },
+  "nullProperty": {
+    "exists": true,
+    "value": null
+  },
+  "inheritedEncoding": 10,
+  "invalidNamesRejected": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "populated": {
+    "sizePositive": true,
+    "fieldCount": 2,
+    "score": 42,
+    "flushSucceeded": true,
+    "label": "flight"
+  }
+}
