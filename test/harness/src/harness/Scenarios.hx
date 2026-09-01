@@ -23,6 +23,7 @@ import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
+import harness.scenarios.TextFormatScenario;
 import harness.scenarios.Utils3DScenario;
 import harness.scenarios.Vector3DScenario;
 
@@ -120,6 +121,10 @@ class Scenarios {
 			{
 				name: "text/text-field",
 				run: TextFieldScenario.run
+			},
+			{
+				name: "text/text-format",
+				run: TextFormatScenario.run
 			},
 			{
 				name: "utils/byte-array",

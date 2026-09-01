@@ -1,0 +1,41 @@
+{
+  "defaults": {
+    "leftMargin": null,
+    "color": null,
+    "indent": null,
+    "size": null,
+    "rightMargin": null,
+    "align": null,
+    "font": null,
+    "underline": null,
+    "leading": null,
+    "italic": null,
+    "bold": null
+  },
+  "values": {
+    "leftMargin": 12,
+    "color": 3368601,
+    "indent": 3,
+    "size": 18,
+    "rightMargin": 14,
+    "align": 0,
+    "font": "Verdana",
+    "underline": true,
+    "leading": 5,
+    "italic": true,
+    "bold": true
+  },
+  "defaultTextFormat": {
+    "leftMargin": 12,
+    "color": 3368601,
+    "indent": 3,
+    "size": 18,
+    "rightMargin": 14,
+    "align": 0,
+    "font": "Verdana",
+    "underline": true,
+    "leading": 5,
+    "italic": true,
+    "bold": true
+  }
+}
