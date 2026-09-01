@@ -4,6 +4,17 @@ package openfl.system;
 import flight.App as FlightApp;
 import flight.Application as FlightApplication;
 import flight.Clipboard as FlightClipboard;
+import flight.types.HasAppQuit as FlightAppQuitHost;
+import flight.types.HasClipboardText as FlightClipboardTextHost;
+import flight.types.Host as FlightHost;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
 #if sys
 import openfl.desktop.NativeApplication;
 #end
@@ -34,6 +45,9 @@ import hl.Gc;
 @:access(openfl.desktop.NativeApplication)
 @:final class System
 {
+	@:noCompletion private static var __host:FlightHost;
+	@:noCompletion private static var __hostResolved:Bool;
+
 	#if false
 	/**
 		The amount of memory (in bytes) that is allocated to
@@ -194,7 +208,8 @@ import hl.Gc;
 	**/
 	public static function exit(code:Int):Void
 	{
-		FlightApp.quitApp();
+		var host:FlightAppQuitHost = cast __getHost();
+		if (host != null) FlightApp.quitApp(host);
 	}
 
 	/**
@@ -273,7 +288,31 @@ import hl.Gc;
 	**/
 	public static function setClipboard(string:String):Void
 	{
-		FlightClipboard.writeClipboardText(string);
+		var host:FlightClipboardTextHost = cast __getHost();
+		if (host != null) FlightClipboard.writeClipboardText(host, string);
+	}
+
+	@:noCompletion private static function __getHost():FlightHost
+	{
+		if (__host != null || __hostResolved) return __host;
+
+		#if (js && html5)
+		__host = cast FlightHostWeb.webHost;
+		__hostResolved = true;
+		#elseif (clay && sys)
+		__host = cast FlightHostClay.createClayHost();
+		__hostResolved = true;
+		#elseif (lime && sys)
+		if (LimeApplication.current != null)
+		{
+			__host = cast FlightHostLime.createLimeHost(LimeApplication.current);
+			__hostResolved = true;
+		}
+		#else
+		__hostResolved = true;
+		#end
+
+		return __host;
 	}
 
 	// Getters & Setters
