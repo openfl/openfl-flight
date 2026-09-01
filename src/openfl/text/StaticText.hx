@@ -2,7 +2,6 @@ package openfl.text;
 
 #if !flash
 import openfl.display.DisplayObject;
-import openfl.display.Graphics;
 
 /**
 	This class represents StaticText objects on the display list. You cannot
@@ -32,7 +31,6 @@ import openfl.display.Graphics;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
-@:access(openfl.display.Graphics)
 class StaticText extends DisplayObject
 {
 	/**
@@ -46,9 +44,8 @@ class StaticText extends DisplayObject
 	@:noCompletion private function new()
 	{
 		super();
-
-		__drawableType = SHAPE;
-		__graphics = new Graphics(this);
+		// TODO(Flight): Bind authoring-tool static text to Flight's public text
+		// node API once the display bridge exposes one.
 	}
 }
 #else

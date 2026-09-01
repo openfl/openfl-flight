@@ -65,6 +65,7 @@ class TextField extends InteractiveObject
 	@:noCompletion private var __caretIndex:Int;
 	@:noCompletion private var __displayAsPassword:Bool;
 	@:noCompletion private var __embedFonts:Bool;
+	@:noCompletion private var __explicitTabEnabled:Null<Bool>;
 	@:noCompletion private var __fieldHeight:Float;
 	@:noCompletion private var __fieldWidth:Float;
 	@:noCompletion private var __formatByCharacter:Array<TextFormat>;
@@ -100,6 +101,7 @@ class TextField extends InteractiveObject
 		__caretIndex = 0;
 		__displayAsPassword = false;
 		__embedFonts = false;
+		__explicitTabEnabled = null;
 		__fieldHeight = 100;
 		__fieldWidth = 100;
 		__formatByCharacter = [];
@@ -544,7 +546,8 @@ class TextField extends InteractiveObject
 		if (value != null) __type = TextFieldType.DYNAMIC;
 		return value;
 	}
-	@:noCompletion private override function get_tabEnabled():Bool return __tabEnabled == null ? __type == TextFieldType.INPUT : __tabEnabled;
+	@:noCompletion private override function get_tabEnabled():Bool return __explicitTabEnabled == null ? __type == TextFieldType.INPUT : __explicitTabEnabled;
+	@:noCompletion private override function set_tabEnabled(value:Bool):Bool return __explicitTabEnabled = value;
 	@:noCompletion private function get_text():String return __text;
 	@:noCompletion private function set_text(value:String):String
 	{
