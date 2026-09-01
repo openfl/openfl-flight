@@ -16,6 +16,7 @@ import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FilterScenario;
+import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
@@ -135,6 +136,10 @@ class Scenarios {
 			{
 				name: "system/capabilities",
 				run: SystemScenario.run
+			},
+			{
+				name: "ui/keyboard",
+				run: KeyboardScenario.run
 			},
 			{
 				name: "utils/byte-array",

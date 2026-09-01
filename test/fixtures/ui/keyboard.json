@@ -1,0 +1,18 @@
+{
+  "keyCodes": {
+    "left": 37,
+    "up": 38,
+    "space": 32,
+    "a": 65,
+    "down": 40,
+    "right": 39,
+    "enter": 13,
+    "escape": 27
+  },
+  "locks": {
+    "capsLockIsBool": false,
+    "capsLock": null,
+    "numLockIsBool": false,
+    "numLock": null
+  }
+}
