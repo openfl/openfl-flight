@@ -127,10 +127,9 @@ class StyleSheet extends EventDispatcher /*implements Dynamic*/
 	{
 		if (CSSText == null) return;
 
-		// TODO(Flight): Delegate CSS parsing to Flight's text service when its
-		// public style-sheet bridge is available. This deliberately implements
-		// the small CSS subset supported by TextField without depending on
-		// OpenFL's private CSSParser.
+		// Flight TextMarkup parses HTML-like text and consumes already-normalized
+		// class styles, but it does not parse CSS. Keep this small native parser
+		// for the CSS subset exposed by OpenFL's public StyleSheet contract.
 		var css = ~/\/\*[\s\S]*?\*\//g.replace(CSSText, "");
 		var rule = ~/([^{}]+)\{([^{}]*)\}/;
 		while (rule.match(css))

@@ -198,6 +198,13 @@ currently provides (or doesn't).
   StageText; Flight-driven edits also need a change signal from TextInput so
   OpenFL `Event.CHANGE` can be dispatched without polling the RichText value.
 
+- **StyleSheet CSS parsing**: Flight TextMarkup parses and formats markup and
+  can register normalized class-to-text-format records, but it has no CSS text
+  parser or mutable stylesheet abstraction. OpenFL's limited CSS1 parsing,
+  case-insensitive style registry, merge behavior, and `TextFormat` transform
+  therefore remain in the Haxe adapter. A future Flight CSS parser could
+  replace this code while feeding TextMarkup's existing class-style registry.
+
 ## Suspected Gaps
 
 - **Event system bridging**: OpenFL's capture/target/bubble event model is kept
