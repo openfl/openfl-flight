@@ -75,6 +75,14 @@ currently provides (or doesn't).
   shared-object protocol for `connect`, `send`, `setDirty`, or synchronization;
   those methods remain compatibility stubs.
 
+- **Raw TCP sockets on native hosts**: Flight Socket models framed WebSocket
+  connections, and Flight's Web host provides that backend. Its maintained
+  Lime and Clay hosts expose HTTP but no `net.socket` provider, while OpenFL
+  `Socket` requires a raw TCP byte stream on native targets. HTML5 sockets now
+  route through Flight Socket; native sockets retain the Haxe system transport
+  with timer-driven polling until Flight exposes a raw-stream socket capability
+  or native socket host.
+
 - **Arbitrary batched tile hierarchies**: Flight's native `Tilemap` is a regular
   row/column grid. OpenFL tilemaps accept freely positioned, rotated, scaled,
   nested `Tile`/`TileContainer` nodes with per-tile source rectangles. The

@@ -1,6 +1,9 @@
 package openfl.net;
 
 #if !flash
+import flight.HostWeb as FlightHostWeb;
+import flight.Signals as FlightSignals;
+import flight.Socket as FlightSocket;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 import haxe.io.Eof;
@@ -19,12 +22,6 @@ import openfl.utils.Endian;
 import openfl.utils.IDataInput;
 import openfl.utils.IDataOutput;
 #if (js && html5)
-#if haxe4
-import js.lib.ArrayBuffer;
-#else
-import js.html.ArrayBuffer;
-#end
-import js.html.WebSocket;
 import js.Browser;
 #end
 #if sys
@@ -213,9 +210,12 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 	@:noCompletion private var __buffer:Bytes;
 	@:noCompletion private var __connected:Bool = false;
 	@:noCompletion private var __endian:Endian;
+	@:noCompletion private var __flightSocket:Dynamic;
+	@:noCompletion private static var __flightSocketHost:Dynamic;
 	@:noCompletion private var __host:String;
 	@:noCompletion private var __input:ByteArray;
 	@:noCompletion private var __output:ByteArray;
+	@:noCompletion private var __pollTimer:Timer;
 	@:noCompletion private var __port:Int;
 	@:noCompletion private var __socket:#if sys SysSocket #else Dynamic #end;
 	@:noCompletion private var __timestamp:Float;
@@ -370,7 +370,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 	**/
 	public function connect(host:String, port:Int):Void
 	{
-		if (__socket != null)
+		if (__socket != null || __flightSocket != null)
 		{
 			close();
 		}
@@ -380,22 +380,22 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 			throw new SecurityError("Invalid socket port number specified.");
 		}
 
-		#if (js && html5)
-		__timestamp = Timer.stamp();
-		#else
+		#if !(js && html5)
 		var h:Host = null;
-
-		try
+		if (__flightSocketHost == null)
 		{
-			h = new Host(host);
-		}
-		catch (e:Dynamic)
-		{
-			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Invalid host"));
-			return;
-		}
+			try
+			{
+				h = new Host(host);
+			}
+			catch (e:Dynamic)
+			{
+				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Invalid host"));
+				return;
+			}
 
-		__timestamp = Sys.time();
+			__timestamp = Sys.time();
+		}
 		#end
 
 		__host = host;
@@ -412,20 +412,14 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		{
 			secure = true;
 		}
-
-		var schema = secure ? "wss" : "ws";
-		var urlReg = ~/^(.*:\/\/)?([A-Za-z0-9\-\.]+)\/?(.*)/g;
-		urlReg.match(host);
-		var __webHost = urlReg.matched(2);
-		var __webPath = urlReg.matched(3);
-
-		__socket = new WebSocket(schema + "://" + __webHost + ":" + port + "/" + __webPath);
-		__socket.binaryType = "arraybuffer";
-		__socket.onopen = socket_onOpen;
-		__socket.onmessage = socket_onMessage;
-		__socket.onclose = socket_onClose;
-		__socket.onerror = socket_onError;
+		__connectFlight(host, port);
 		#else
+		if (__flightSocketHost != null)
+		{
+			__connectFlight(host, port);
+			return;
+		}
+
 		try
 		{
 			__socket = new SysSocket();
@@ -443,9 +437,76 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 			__socket.setFastSend(true);
 		}
 		catch (e:Dynamic) {}
-		#end
 
-		// TODO: Schedule socket polling through Flight instead of the OpenFL display loop.
+		__pollTimer = new Timer(10);
+		__pollTimer.run = function():Void this_onEnterFrame(null);
+		#end
+	}
+
+	@:noCompletion private function __connectFlight(host:String, port:Int):Void
+	{
+		var schema = secure == true ? "wss" : "ws";
+		var urlReg = ~/^(.*:\/\/)?([A-Za-z0-9\-\.]+)\/?(.*)/g;
+		if (!urlReg.match(host))
+		{
+			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Invalid host"));
+			return;
+		}
+
+		var webHost = urlReg.matched(2);
+		var webPath = urlReg.matched(3);
+		var options:Dynamic = {url: schema + "://" + webHost + ":" + port + "/" + webPath, binaryType: "arraybuffer"};
+		__flightSocket = __createFlightSocket(options);
+		if (__flightSocket == null)
+		{
+			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
+			return;
+		}
+
+		__socket = cast __flightSocket;
+		var signals:Dynamic = FlightSocket.enableSocketSignals(__flightSocket);
+		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketOpen"), function():Void socket_onOpen(null));
+		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketMessage"), function(message:Dynamic):Void socket_onMessage(message));
+		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketClose"), function(info:Dynamic):Void socket_onClose(info));
+		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketError"), function():Void socket_onError(null));
+		FlightSocket.attachSocket(__flightSocket);
+
+		if (FlightSocket.getSocketReadyState(__flightSocket) == "open")
+		{
+			socket_onOpen(null);
+		}
+		else
+		{
+			var failure:Dynamic = FlightSocket.explainSocketSendFailure(__flightSocket);
+			if (failure != null && Reflect.field(failure, "reason") == "no-connection")
+			{
+				__cleanSocket();
+				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
+			}
+		}
+	}
+
+	@:noCompletion private static function __createFlightSocket(options:Dynamic):Dynamic
+	{
+		var owner:Dynamic = FlightSocket;
+		var method = Reflect.field(owner, "createSocket");
+		var host = __flightSocketHost != null ? __flightSocketHost : Reflect.field(FlightHostWeb, "webHostNet");
+
+		#if js
+		var arity:Dynamic = Reflect.field(method, "length");
+		return arity != null && Std.int(arity) >= 2
+			? Reflect.callMethod(owner, method, [host, options])
+			: Reflect.callMethod(owner, method, [options]);
+		#else
+		try
+		{
+			return Reflect.callMethod(owner, method, [host, options]);
+		}
+		catch (_:Dynamic)
+		{
+			return Reflect.callMethod(owner, method, [options]);
+		}
+		#end
 	}
 
 	/**
@@ -471,13 +532,23 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		{
 			try
 			{
-				#if (js && html5)
-				var buffer:ArrayBuffer = __output;
-				if (buffer.byteLength > __output.length) buffer = buffer.slice(0, __output.length);
-				__socket.send(buffer);
-				#else
+				if (__flightSocket != null)
+				{
+					var buffer:Bytes = __output;
+					if (buffer.length > __output.length) buffer = buffer.sub(0, __output.length);
+					if (!FlightSocket.sendSocketMessage(__flightSocket, cast buffer))
+					{
+						throw Error.Custom("Flight socket is not open");
+					}
+				}
+				else
+				{
+					#if sys
 				__socket.output.writeBytes(__output, 0, __output.length);
-				#end
+					#else
+					throw Error.Custom("Socket transport is unavailable");
+					#end
+				}
 				__output = new ByteArray();
 				__output.endian = __endian;
 			}
@@ -1028,53 +1099,70 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 
 	@:noCompletion private function __cleanSocket():Void
 	{
-		try
-		{
-			__socket.close();
-		}
-		catch (e:Dynamic) {}
-
+		var flightSocket = __flightSocket;
+		__flightSocket = null;
+		var nativeSocket = __socket;
 		__socket = null;
 		__connected = false;
+		if (__pollTimer != null)
+		{
+			__pollTimer.stop();
+			__pollTimer = null;
+		}
+
+		try
+		{
+			if (flightSocket != null)
+			{
+				FlightSocket.detachSocket(flightSocket);
+				FlightSocket.disposeSocket(flightSocket);
+			}
+			else
+			{
+				nativeSocket.close();
+			}
+		}
+		catch (e:Dynamic) {}
 	}
 
 	// Event Handlers
 	@:noCompletion private function socket_onClose(_):Void
 	{
+		if (__flightSocket != null) __cleanSocket();
 		dispatchEvent(new Event(Event.CLOSE));
 	}
 
 	@:noCompletion private function socket_onError(e):Void
 	{
+		if (__flightSocket != null) __cleanSocket();
 		dispatchEvent(new Event(IOErrorEvent.IO_ERROR));
 	}
 
 	@:noCompletion private function socket_onMessage(msg:Dynamic):Void
 	{
-		#if (js && html5)
 		if (__input.position == __input.length)
 		{
 			__input.clear();
 		}
 
-		if ((msg.data is String))
+		var cachePosition = __input.position;
+		__input.position = __input.length;
+		var data:Dynamic = Reflect.field(msg, "data");
+		if (Std.isOfType(data, String))
 		{
-			__input.position = __input.length;
-			var cachePosition = __input.position;
-			__input.writeUTFBytes(msg.data);
-			__input.position = cachePosition;
+			__input.writeUTFBytes(cast data);
 		}
 		else
 		{
-			var newData:ByteArray = (msg.data : ArrayBuffer);
-			newData.readBytes(__input, __input.length);
+			var newData:Bytes = cast data;
+			__input.writeBytes(ByteArray.fromBytes(newData), 0, newData.length);
 		}
+		__input.position = cachePosition;
 
 		if (__input.bytesAvailable > 0)
 		{
 			dispatchEvent(new ProgressEvent(ProgressEvent.SOCKET_DATA, false, false, __input.bytesAvailable, 0));
 		}
-		#end
 	}
 
 	@:noCompletion private function socket_onOpen(_):Void
