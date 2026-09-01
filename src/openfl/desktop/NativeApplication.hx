@@ -1,6 +1,9 @@
 package openfl.desktop;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
+import flight.App as FlightApp;
+import flight.Application as FlightApplication;
+import flight.types.Application as FlightApplicationData;
 import openfl.display.NativeWindow;
 import openfl.events.EventDispatcher;
 
@@ -158,6 +161,7 @@ class NativeApplication extends EventDispatcher
 	#end
 
 	@:noCompletion private var __activeWindow:NativeWindow;
+	@:noCompletion private var __flightApplication:FlightApplicationData;
 
 	/**
 		The active application window.
@@ -286,6 +290,8 @@ class NativeApplication extends EventDispatcher
 	private function new()
 	{
 		super();
+		__flightApplication = FlightApplication.createApplication();
+		FlightApplication.enableApplicationLifecycleSignals(__flightApplication);
 	}
 
 	/**
@@ -308,7 +314,7 @@ class NativeApplication extends EventDispatcher
 	**/
 	public function exit(code:Int = 0):Void
 	{
-		// TODO: Exit through Flight's application API.
+		FlightApp.quitApp();
 	}
 
 	/**

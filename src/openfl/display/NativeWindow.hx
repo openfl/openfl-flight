@@ -1,20 +1,19 @@
 package openfl.display;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
-import openfl.Lib;
+import flight.Application as FlightApplication;
+import flight.Signals as FlightSignals;
+import flight.types.ApplicationWindow as FlightApplicationWindow;
 import openfl.desktop.NativeApplication;
 import openfl.display.Stage;
 import openfl.display.Window;
 import openfl.errors.Error;
-import openfl.errors.IllegalOperationError;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
 import openfl.events.NativeWindowBoundsEvent;
 import openfl.events.NativeWindowDisplayStateEvent;
-import openfl.geom.Rectangle;
-#if (lime >= "8.1.0")
 import openfl.geom.Point;
-#end
+import openfl.geom.Rectangle;
 
 /**
 	The NativeWindow class provides an interface for creating and controlling
@@ -72,7 +71,6 @@ import openfl.geom.Point;
 @:access(openfl.desktop.NativeApplication)
 @:access(openfl.display.NativeWindowInitOptions)
 @:access(openfl.display.Stage)
-@:access(lime.ui.Window)
 class NativeWindow extends EventDispatcher
 {
 	@:noCompletion private static var ERROR_CLOSED = "Cannot perform operation on closed window.";
@@ -84,11 +82,7 @@ class NativeWindow extends EventDispatcher
 
 	@:noCompletion private static function get_isSupported():Bool
 	{
-		#if (!sys || !desktop)
-		return false;
-		#else
 		return true;
-		#end
 	}
 
 	/**
@@ -141,11 +135,7 @@ class NativeWindow extends EventDispatcher
 
 	@:noCompletion private var __initOptions:NativeWindowInitOptions;
 	@:noCompletion private var __window:Window;
-	#if (lime < "8.1.0")
-	@:noCompletion private var __opened:Bool = false;
-	@:noCompletion private var __pendingWidth:Int = 400;
-	@:noCompletion private var __pendingHeight:Int = 228;
-	#end
+	@:noCompletion private var __flightWindow:FlightApplicationWindow;
 	@:noCompletion private var __type:NativeWindowType = NORMAL;
 	@:noCompletion private var __closed:Bool = false;
 	@:noCompletion private var __previousX:Int;
@@ -180,65 +170,57 @@ class NativeWindow extends EventDispatcher
 	public function new(initOptions:NativeWindowInitOptions)
 	{
 		super();
-		__initOptions = initOptions;
-		if (__initOptions.__window != null)
+		__initOptions = initOptions == null ? new NativeWindowInitOptions() : initOptions;
+		__type = __initOptions.type;
+
+		var nativeApplication = NativeApplication.nativeApplication;
+		__flightWindow = FlightApplication.createApplicationWindow();
+		FlightApplication.registerApplicationWindow(nativeApplication.__flightApplication, __flightWindow);
+		if (nativeApplication.__openedWindows.length == 0)
 		{
-			__window = __initOptions.__window;
-			#if (lime < "8.1.0")
-			__opened = true;
-			__pendingWidth = __window.width;
-			__pendingHeight = __window.height;
-			#end
-			NativeApplication.nativeApplication.__activeWindow = this;
+			FlightApplication.setApplicationMainWindow(nativeApplication.__flightApplication, __flightWindow);
 		}
-		else
+
+		var initialWidth = __initOptions.__window == null ? 400 : __initOptions.__window.width;
+		var initialHeight = __initOptions.__window == null ? 228 : __initOptions.__window.height;
+		FlightApplication.openWindow(__flightWindow, {
+			title: "",
+			width: initialWidth,
+			height: initialHeight,
+			resizable: __initOptions.resizable,
+			visible: false,
+			frame: __initOptions.systemChrome != NONE,
+			transparent: __initOptions.transparent,
+			minimized: false,
+			maximized: false
+		});
+
+		if (__initOptions.owner != null)
 		{
-			var app = Lib.application;
-			__window = app.createWindow({
-				allowHighDPI: app.window.__attributes.allowHighDPI,
-				alwaysOnTop: false,
-				title: "",
-				resizable: __initOptions.resizable,
-				hidden: #if (lime < "8.1.0") false #else true #end,
-				minimized: false,
-				maximized: false,
-				fullscreen: false,
-				frameRate: app.window.stage.frameRate,
-				borderless: __initOptions.systemChrome == NONE,
-				context:
-				{
-					hardware:false
-				},
-				width: #if (lime < "8.1.0") 0 #else 400 #end,
-				height: #if (lime < "8.1.0") 0 #else 228 #end
-			});
-			if (__initOptions.owner != null)
-			{
-				__initOptions.owner.__ownedWindows.push(this);
-			}
+			__initOptions.owner.__ownedWindows.push(this);
+			FlightApplication.setWindowParent(__flightWindow, __initOptions.owner.__flightWindow);
 		}
-		__previousX = __window.x;
-		__previousY = __window.y;
-		#if (lime < "8.1.0")
-		__previousWidth = __pendingWidth;
-		__previousHeight = __pendingHeight;
-		#else
-		__previousWidth = __window.width;
-		__previousHeight = __window.height;
-		#end
+
+		__window = __initOptions.__window == null ? __createWindowShell(initialWidth, initialHeight) : __initOptions.__window;
+		__previousX = Std.int(__flightWindow.x);
+		__previousY = Std.int(__flightWindow.y);
+		__previousWidth = Std.int(__flightWindow.width);
+		__previousHeight = Std.int(__flightWindow.height);
 		__previousDisplayState = NORMAL;
 		__window.stage.nativeWindow = this;
-		NativeApplication.nativeApplication.__openedWindows.push(this);
-		__window.onActivate.add(window_onActivate);
-		__window.onDeactivate.add(window_onDeactivate);
-		__window.onFocusIn.add(window_onFocusIn);
-		__window.onFocusOut.add(window_onFocusOut);
-		__window.onMove.add(window_onMove);
-		__window.onResize.add(window_onResize);
-		__window.onMinimize.add(window_onMinimize);
-		__window.onMaximize.add(window_onMaximize);
-		__window.onRestore.add(window_onRestore);
-		__window.onClose.add(window_onClose);
+		nativeApplication.__openedWindows.push(this);
+
+		FlightSignals.connectSignal(__flightWindow.onActivate, window_onActivate);
+		FlightSignals.connectSignal(__flightWindow.onDeactivate, window_onDeactivate);
+		FlightSignals.connectSignal(__flightWindow.onFocusIn, window_onFocusIn);
+		FlightSignals.connectSignal(__flightWindow.onFocusOut, window_onFocusOut);
+		FlightSignals.connectSignal(__flightWindow.onMove, __flight_onMove);
+		FlightSignals.connectSignal(__flightWindow.onResize, __flight_onResize);
+		FlightSignals.connectSignal(__flightWindow.onMinimize, window_onMinimize);
+		FlightSignals.connectSignal(__flightWindow.onMaximize, window_onMaximize);
+		FlightSignals.connectSignal(__flightWindow.onRestore, window_onRestore);
+		FlightSignals.connectSignal(__flightWindow.onCloseRequest, __flight_onCloseRequest);
+		FlightSignals.connectSignal(__flightWindow.onClose, window_onClose);
 	}
 
 	/**
@@ -312,7 +294,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return __window.x;
+		return __flightWindow.x;
 	}
 
 	@:noCompletion private function set_x(value:Float):Float
@@ -321,7 +303,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return __window.x = Std.int(value);
+		FlightApplication.setWindowPosition(__flightWindow, Std.int(value), __flightWindow.y);
+		return __flightWindow.x;
 	}
 
 	/**
@@ -354,7 +337,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return __window.y;
+		return __flightWindow.y;
 	}
 
 	@:noCompletion private function set_y(value:Float):Float
@@ -363,7 +346,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return __window.y = Std.int(value);
+		FlightApplication.setWindowPosition(__flightWindow, __flightWindow.x, Std.int(value));
+		return __flightWindow.y;
 	}
 
 	/**
@@ -401,13 +385,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		#if (lime < "8.1.0")
-		if (!__opened)
-		{
-			return __pendingWidth;
-		}
-		#end
-		return __window.width;
+		return __flightWindow.width;
 	}
 
 	@:noCompletion private function set_width(value:Float):Float
@@ -416,13 +394,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		#if (lime < "8.1.0")
-		if (!__opened)
-		{
-			return __pendingWidth = Std.int(value);
-		}
-		#end
-		return __window.width = Std.int(value);
+		FlightApplication.setWindowSize(__flightWindow, Std.int(value), __flightWindow.height);
+		return __flightWindow.width;
 	}
 
 	/**
@@ -462,13 +435,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		#if (lime < "8.1.0")
-		if (!__opened)
-		{
-			return __pendingHeight;
-		}
-		#end
-		return __window.height;
+		return __flightWindow.height;
 	}
 
 	@:noCompletion private function set_height(value:Float):Float
@@ -477,13 +444,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		#if (lime < "8.1.0")
-		if (!__opened)
-		{
-			return __pendingHeight = Std.int(value);
-		}
-		#end
-		return __window.height = Std.int(value);
+		FlightApplication.setWindowSize(__flightWindow, __flightWindow.width, Std.int(value));
+		return __flightWindow.height;
 	}
 
 	/**
@@ -538,7 +500,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return new Rectangle(__window.x, __window.y, __window.width, __window.height);
+		return new Rectangle(__flightWindow.x, __flightWindow.y, __flightWindow.width, __flightWindow.height);
 	}
 
 	@:noCompletion private function set_bounds(value:Rectangle):Rectangle
@@ -547,9 +509,9 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		__window.move(Std.int(value.x), Std.int(value.y));
-		__window.resize(Std.int(value.width), Std.int(value.height));
-		return new Rectangle(__window.x, __window.y, __window.width, __window.height);
+		FlightApplication.setWindowPosition(__flightWindow, Std.int(value.x), Std.int(value.y));
+		FlightApplication.setWindowSize(__flightWindow, Std.int(value.width), Std.int(value.height));
+		return new Rectangle(__flightWindow.x, __flightWindow.y, __flightWindow.width, __flightWindow.height);
 	}
 
 	/**
@@ -566,7 +528,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return __window.title;
+		return __flightWindow.title;
 	}
 
 	@:noCompletion private function set_title(value:String):String
@@ -575,7 +537,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return __window.title = value;
+		FlightApplication.setWindowTitle(__flightWindow, value);
+		return __flightWindow.title;
 	}
 
 	/**
@@ -605,12 +568,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		#if (lime < "8.1.0")
-		return __opened;
-		#else
-		// visible may be null instead of false in some versions of Lime
-		return __window.visible == true;
-		#end
+		return __flightWindow.visible;
 	}
 
 	@:noCompletion private function set_visible(value:Bool):Bool
@@ -619,23 +577,9 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		#if (lime < "8.1.0")
-		if (!__opened)
-		{
-			__opened = true;
-			__previousWidth = __pendingWidth;
-			__previousHeight = __pendingHeight;
-			__window.width = __pendingWidth;
-			__window.height = __pendingHeight;
-		}
-		if (!value)
-		{
-			throw new IllegalOperationError("Setting NativeWindow visible to false is not supported at this time");
-		}
-		return __opened;
-		#else
-		return __window.visible = value;
-		#end
+		if (value) FlightApplication.showWindow(__flightWindow);
+		else FlightApplication.hideWindow(__flightWindow);
+		return __flightWindow.visible;
 	}
 
 	/**
@@ -668,11 +612,11 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		if (__window.minimized)
+		if (__flightWindow.minimized)
 		{
 			return MINIMIZED;
 		}
-		else if (__window.maximized)
+		else if (__flightWindow.maximized)
 		{
 			return MAXIMIZED;
 		}
@@ -692,7 +636,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return __active;
+		return __active || __flightWindow.focused;
 	}
 
 	/**
@@ -848,7 +792,6 @@ class NativeWindow extends EventDispatcher
 		return false;
 	}
 
-	#if (lime >= "8.1.0")
 	/**
 		The minimum size for this window.
 
@@ -877,7 +820,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return new Point(__window.minWidth, __window.minHeight);
+		return new Point(__flightWindow.minWidth, __flightWindow.minHeight);
 	}
 
 	@:noCompletion private function set_minSize(value:Point):Point
@@ -886,12 +829,10 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		__window.setMinSize(Std.int(value.x), Std.int(value.y));
+		FlightApplication.setWindowMinimumSize(__flightWindow, Std.int(value.x), Std.int(value.y));
 		return value;
 	}
-	#end
 
-	#if (lime >= "8.1.0")
 	/**
 		The maximum size for this window.
 
@@ -933,7 +874,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		return new Point(__window.maxWidth, __window.maxHeight);
+		return new Point(__flightWindow.maxWidth, __flightWindow.maxHeight);
 	}
 
 	@:noCompletion private function set_maxSize(value:Point):Point
@@ -942,10 +883,9 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		__window.setMaxSize(Std.int(value.x), Std.int(value.y));
+		FlightApplication.setWindowMaximumSize(__flightWindow, Std.int(value.x), Std.int(value.y));
 		return value;
 	}
-	#end
 
 	/**
 		Activates this window.
@@ -967,7 +907,8 @@ class NativeWindow extends EventDispatcher
 			throw new Error(ERROR_CLOSED, 3200);
 		}
 		visible = true;
-		__window.focus();
+		FlightApplication.focusWindow(__flightWindow);
+		window_onFocusIn();
 	}
 
 	/**
@@ -1005,7 +946,7 @@ class NativeWindow extends EventDispatcher
 			throw new Error(ERROR_CLOSED, 3200);
 		}
 		__skipClosingEvent = true;
-		__window.close();
+		FlightApplication.closeWindow(__flightWindow);
 	}
 
 	/**
@@ -1040,7 +981,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		__window.minimized = true;
+		if (__flightWindow.maximized) FlightApplication.restoreWindow(__flightWindow);
+		FlightApplication.minimizeWindow(__flightWindow);
 	}
 
 	/**
@@ -1078,7 +1020,8 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		__window.maximized = true;
+		if (__flightWindow.minimized) FlightApplication.restoreWindow(__flightWindow);
+		FlightApplication.maximizeWindow(__flightWindow);
 	}
 
 	/**
@@ -1102,14 +1045,7 @@ class NativeWindow extends EventDispatcher
 		{
 			throw new Error(ERROR_CLOSED, 3200);
 		}
-		if (__window.maximized)
-		{
-			__window.maximized = false;
-		}
-		if (__window.minimized)
-		{
-			__window.minimized = false;
-		}
+		FlightApplication.restoreWindow(__flightWindow);
 	}
 
 	/**
@@ -1128,6 +1064,42 @@ class NativeWindow extends EventDispatcher
 		}
 		// don't allow the original value to be edited externally
 		return __ownedWindows.copy();
+	}
+
+	@:noCompletion private static function __createWindowShell(width:Int, height:Int):Window
+	{
+		var shell:Dynamic = Type.createEmptyInstance(Window);
+		shell.application = null;
+		shell.context = null;
+		shell.frameRate = 60;
+		shell.fullscreen = false;
+		shell.height = height;
+		shell.scale = 1;
+		shell.title = "";
+		shell.visible = false;
+		shell.width = width;
+		shell.x = 0;
+		shell.y = 0;
+		shell.stage = new Stage(cast shell, 0xFFFFFF);
+		return cast shell;
+	}
+
+	@:noCompletion private function __flight_onCloseRequest():Void
+	{
+		if (!__skipClosingEvent && !dispatchEvent(new Event(Event.CLOSING, false, true)))
+		{
+			FlightSignals.cancelSignal(__flightWindow.onCloseRequest);
+		}
+	}
+
+	@:noCompletion private function __flight_onMove():Void
+	{
+		window_onMove(__flightWindow.x, __flightWindow.y);
+	}
+
+	@:noCompletion private function __flight_onResize():Void
+	{
+		window_onResize(__flightWindow.width, __flightWindow.height);
 	}
 
 	@:noCompletion private function window_onActivate():Void
@@ -1181,19 +1153,22 @@ class NativeWindow extends EventDispatcher
 
 	@:noCompletion private function window_onMove(x:Float, y:Float):Void
 	{
-		var beforeBounds = new Rectangle(__previousX, __previousY, __window.width, __window.height);
-		var afterBounds = new Rectangle(__window.x, __window.y, __window.width, __window.height);
-		__previousX = __window.x;
-		__previousY = __window.y;
+		var beforeBounds = new Rectangle(__previousX, __previousY, __flightWindow.width, __flightWindow.height);
+		var afterBounds = new Rectangle(__flightWindow.x, __flightWindow.y, __flightWindow.width, __flightWindow.height);
+		__previousX = Std.int(__flightWindow.x);
+		__previousY = Std.int(__flightWindow.y);
 		dispatchEvent(new NativeWindowBoundsEvent(NativeWindowBoundsEvent.MOVE, false, false, beforeBounds, afterBounds));
 	}
 
 	@:noCompletion private function window_onResize(width:Float, height:Float):Void
 	{
-		var beforeBounds = new Rectangle(__window.x, __window.y, __previousWidth, __previousHeight);
-		var afterBounds = new Rectangle(__window.x, __window.y, __window.width, __window.height);
-		__previousWidth = __window.width;
-		__previousHeight = __window.height;
+		var beforeBounds = new Rectangle(__flightWindow.x, __flightWindow.y, __previousWidth, __previousHeight);
+		var afterBounds = new Rectangle(__flightWindow.x, __flightWindow.y, __flightWindow.width, __flightWindow.height);
+		__previousWidth = Std.int(__flightWindow.width);
+		__previousHeight = Std.int(__flightWindow.height);
+		__window.width = __previousWidth;
+		__window.height = __previousHeight;
+		__window.stage.__setLogicalSize(__previousWidth, __previousHeight);
 		dispatchEvent(new NativeWindowBoundsEvent(NativeWindowBoundsEvent.RESIZE, false, false, beforeBounds, afterBounds));
 	}
 
@@ -1226,16 +1201,6 @@ class NativeWindow extends EventDispatcher
 
 	@:noCompletion private function window_onClose():Void
 	{
-		if (!__skipClosingEvent)
-		{
-			var result = dispatchEvent(new Event(Event.CLOSING, false, true));
-			if (!result)
-			{
-				__window.onClose.cancel();
-				return;
-			}
-		}
-
 		// all child windows are closed when their owner is closed
 		// the child windows do not dispatch Event.CLOSING
 		while (__ownedWindows.length > 0)
@@ -1244,9 +1209,6 @@ class NativeWindow extends EventDispatcher
 			childWindow.close();
 		}
 		__closed = true;
-		__window.onFocusIn.remove(window_onFocusIn);
-		__window.onFocusOut.remove(window_onFocusOut);
-		__window.onResize.remove(window_onResize);
 		if (__initOptions.owner != null)
 		{
 			var index = __initOptions.owner.__ownedWindows.indexOf(this);
@@ -1255,12 +1217,17 @@ class NativeWindow extends EventDispatcher
 				__initOptions.owner.__ownedWindows.removeAt(index);
 			}
 		}
-		var index = NativeApplication.nativeApplication.__openedWindows.indexOf(this);
+		var nativeApplication = NativeApplication.nativeApplication;
+		var index = nativeApplication.__openedWindows.indexOf(this);
 		if (index != -1)
 		{
-			NativeApplication.nativeApplication.__openedWindows.splice(index, 1);
+			nativeApplication.__openedWindows.splice(index, 1);
 		}
+		if (nativeApplication.__activeWindow == this) nativeApplication.__activeWindow = null;
+		FlightApplication.unregisterApplicationWindow(nativeApplication.__flightApplication, __flightWindow);
+		FlightApplication.disposeApplicationWindow(__flightWindow);
 		dispatchEvent(new Event(Event.CLOSE));
+		if (nativeApplication.autoExit && nativeApplication.__openedWindows.length == 0) nativeApplication.exit();
 	}
 }
 #else

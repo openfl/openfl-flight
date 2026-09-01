@@ -1,10 +1,8 @@
 package openfl.desktop;
 
 #if !flash
+import flight.Clipboard as FlightClipboard;
 import openfl.utils.Object;
-#if lime
-import lime.system.Clipboard as LimeClipboard;
-#end
 
 /**
 	The Clipboard class provides a container for transferring data and objects
@@ -152,13 +150,10 @@ class Clipboard
 	**/
 	public function clear():Void
 	{
-		#if lime
 		if (__systemClipboard)
 		{
-			LimeClipboard.text = null;
-			return;
+			FlightClipboard.clearClipboard();
 		}
-		#end
 
 		__htmlText = null;
 		__richText = null;
@@ -179,20 +174,16 @@ class Clipboard
 	**/
 	public function clearData(format:ClipboardFormats):Void
 	{
-		#if lime
 		if (__systemClipboard)
 		{
 			switch (format)
 			{
 				case HTML_FORMAT, RICH_TEXT_FORMAT, TEXT_FORMAT:
-					LimeClipboard.text = null;
+					FlightClipboard.clearClipboard();
 
 				default:
 			}
-
-			return;
 		}
-		#end
 
 		switch (format)
 		{
@@ -259,17 +250,6 @@ class Clipboard
 			transferMode = ORIGINAL_PREFERRED;
 		}
 
-		#if lime
-		if (__systemClipboard)
-		{
-			return switch (format)
-			{
-				case HTML_FORMAT, RICH_TEXT_FORMAT, TEXT_FORMAT: LimeClipboard.text;
-				default: null;
-			}
-		}
-		#end
-
 		return switch (format)
 		{
 			case HTML_FORMAT: __htmlText;
@@ -294,17 +274,6 @@ class Clipboard
 	**/
 	public function hasFormat(format:ClipboardFormats):Bool
 	{
-		#if lime
-		if (__systemClipboard)
-		{
-			return switch (format)
-			{
-				case HTML_FORMAT, RICH_TEXT_FORMAT, TEXT_FORMAT: LimeClipboard.text != null;
-				default: false;
-			}
-		}
-		#end
-
 		return switch (format)
 		{
 			case HTML_FORMAT: __htmlText != null;
@@ -401,20 +370,23 @@ class Clipboard
 	**/
 	public function setData(format:ClipboardFormats, data:Object, serializable:Bool = true):Bool
 	{
-		#if lime
 		if (__systemClipboard)
 		{
 			switch (format)
 			{
-				case HTML_FORMAT, RICH_TEXT_FORMAT, TEXT_FORMAT:
-					LimeClipboard.text = data;
-					return true;
+				case HTML_FORMAT:
+					FlightClipboard.writeClipboardHtml(Std.string(data));
+
+				case RICH_TEXT_FORMAT:
+					FlightClipboard.writeClipboardRTF(Std.string(data));
+
+				case TEXT_FORMAT:
+					FlightClipboard.writeClipboardText(Std.string(data));
 
 				default:
 					return false;
 			}
 		}
-		#end
 
 		switch (format)
 		{

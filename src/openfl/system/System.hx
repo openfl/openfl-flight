@@ -2,7 +2,11 @@ package openfl.system;
 
 #if !flash
 import flight.App as FlightApp;
+import flight.Application as FlightApplication;
 import flight.Clipboard as FlightClipboard;
+#if sys
+import openfl.desktop.NativeApplication;
+#end
 #if neko
 import neko.vm.Gc;
 #elseif cpp
@@ -27,6 +31,7 @@ import hl.Gc;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.desktop.NativeApplication)
 @:final class System
 {
 	#if false
@@ -227,7 +232,9 @@ import hl.Gc;
 	**/
 	public static function pause():Void
 	{
-		// TODO: Pause the application through Flight's application API.
+		#if sys
+		FlightApplication.pauseApplicationLoop(NativeApplication.nativeApplication.__flightApplication);
+		#end
 	}
 	#end
 
@@ -243,7 +250,9 @@ import hl.Gc;
 	**/
 	public static function resume():Void
 	{
-		// TODO: Resume the application through Flight's application API.
+		#if sys
+		FlightApplication.resumeApplicationLoop(NativeApplication.nativeApplication.__flightApplication);
+		#end
 	}
 	#end
 
