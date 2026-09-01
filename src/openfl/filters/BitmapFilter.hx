@@ -5,6 +5,8 @@ import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.display.DisplayObjectRenderer;
 import openfl.display.Shader;
+import flight.types.RenderEffect;
+import flight.types.Adjustment;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 
@@ -24,6 +26,7 @@ import openfl.geom.Rectangle;
 #end
 class BitmapFilter
 {
+	@:noCompletion private var __flightEffect:RenderEffect;
 	@:noCompletion private var __bottomExtension:Int;
 	@:noCompletion private var __leftExtension:Int;
 	@:noCompletion private var __needSecondBitmapData:Bool;
@@ -57,6 +60,14 @@ class BitmapFilter
 	public function clone():BitmapFilter
 	{
 		return new BitmapFilter();
+	}
+
+	@:noCompletion private function __syncFlightEffect():Void {}
+	@:noCompletion private function __getFlightColorAdjustment():Adjustment return null;
+
+	@:noCompletion public static inline function __flightColor(color:Int):Float
+	{
+		return cast (((color & 0xFFFFFF) << 8) | 0xFF);
 	}
 
 	@:noCompletion private function __applyFilter(bitmapData:BitmapData, sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point):BitmapData

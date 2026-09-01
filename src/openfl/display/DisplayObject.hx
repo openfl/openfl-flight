@@ -28,6 +28,7 @@ import openfl.geom.Transform;
 @:access(openfl.display.Stage)
 @:access(openfl.events.Event)
 @:access(openfl.events.EventDispatcher)
+@:access(openfl.filters.BitmapFilter)
 @:access(openfl.geom.Transform)
 class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (openfl_dynamic && haxe_ver < "4.0.0") implements Dynamic<DisplayObject> #end
 {
@@ -1148,12 +1149,25 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private function get_filters():Array<BitmapFilter>
 	{
 		if (__filters == null) return [];
-		return [for (filter in __filters) filter == null ? null : filter.clone()];
+		return __filters.copy();
 	}
 
 	@:noCompletion private function set_filters(value:Array<BitmapFilter>):Array<BitmapFilter>
 	{
 		__filters = value == null || value.length == 0 ? null : [for (filter in value) filter == null ? null : filter.clone()];
+		var adjustments:Array<flight.types.Adjustment> = [];
+		if (__filters != null)
+		{
+			for (filter in __filters)
+			{
+				if (filter == null) continue;
+				filter.__syncFlightEffect();
+				var adjustment = filter.__getFlightColorAdjustment();
+				if (adjustment != null) adjustments.push(adjustment);
+			}
+		}
+		FlightNode.setNodeColorAdjustments(__flightNode, adjustments.length == 0 ? null : adjustments);
+		FlightNode.invalidateNodeAppearance(__flightNode);
 		return value;
 	}
 
