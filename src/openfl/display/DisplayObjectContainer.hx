@@ -525,24 +525,6 @@ class DisplayObjectContainer extends InteractiveObject
 		}
 	}
 
-	@:noCompletion private override function __getRect(rect:Rectangle, matrix:Matrix):Void
-	{
-		super.__getRect(rect, matrix);
-		var hasBounds = !rect.isEmpty();
-		for (child in __children)
-		{
-			var childMatrix = child.__transform.clone();
-			childMatrix.concat(matrix);
-			var childRect = new Rectangle();
-			child.__getRect(childRect, childMatrix);
-			if (child.__hasBoundsContent())
-			{
-				if (hasBounds) rect.copyFrom(rect.union(childRect)); else rect.copyFrom(childRect);
-				hasBounds = true;
-			}
-		}
-	}
-
 	@:noCompletion private override function __hasBoundsContent():Bool
 	{
 		if (super.__hasBoundsContent()) return true;

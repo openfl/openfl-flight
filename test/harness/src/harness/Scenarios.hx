@@ -6,6 +6,7 @@ import harness.scenarios.CertificateStatusScenario;
 import harness.scenarios.ColorTransformScenario;
 import harness.scenarios.DateTimeFormatterScenario;
 import harness.scenarios.DictionaryScenario;
+import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
 import harness.scenarios.DisplayObjectScenario;
 import harness.scenarios.DisplayTransformScenario;
@@ -58,6 +59,10 @@ class Scenarios {
 			{
 				name: "geom/point",
 				run: PointScenario.run
+			},
+			{
+				name: "display/bounds",
+				run: DisplayBoundsScenario.run
 			},
 			{
 				name: "display/transform",

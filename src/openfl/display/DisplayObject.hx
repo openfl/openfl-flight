@@ -827,16 +827,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	**/
 	public function getRect(targetCoordinateSpace:DisplayObject):Rectangle
 	{
-		var matrix = __getWorldTransform();
-		if (targetCoordinateSpace != null)
-		{
-			var targetMatrix = targetCoordinateSpace.__getWorldTransform();
-			targetMatrix.invert();
-			matrix.concat(targetMatrix);
-		}
-		var bounds = new Rectangle();
-		__getRect(bounds, matrix);
-		return bounds;
+		return getBounds(targetCoordinateSpace);
 	}
 
 	/**
@@ -1012,28 +1003,6 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		if (__graphics != null)
 		{
 			__graphics.__getBounds(rect, matrix);
-			hasBounds = !rect.isEmpty();
-		}
-		if (!__localBounds.isEmpty())
-		{
-			var transformed = __transformRectangle(__localBounds, matrix);
-			if (hasBounds) rect.copyFrom(rect.union(transformed)); else rect.copyFrom(transformed);
-			hasBounds = true;
-		}
-		if (__scrollRect != null)
-		{
-			var clipped = __transformRectangle(__scrollRect, matrix);
-			if (hasBounds) rect.copyFrom(rect.intersection(clipped)); else rect.copyFrom(clipped);
-		}
-	}
-
-	@:noCompletion private function __getRect(rect:Rectangle, matrix:Matrix):Void
-	{
-		rect.setTo(0, 0, 0, 0);
-		var hasBounds = false;
-		if (__graphics != null)
-		{
-			__graphics.__getBounds(rect, matrix, false);
 			hasBounds = !rect.isEmpty();
 		}
 		if (!__localBounds.isEmpty())
