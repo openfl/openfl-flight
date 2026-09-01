@@ -39,7 +39,9 @@ class Application #if lime extends LimeApplication #end
 	@SuppressWarnings("checkstyle:Dynamic")
 	public function createWindow(attributes:Dynamic):Window
 	{
-		return null;
+		var created = new Window(this, attributes);
+		if (window == null) window = created;
+		return created;
 	}
 	#end
 
@@ -47,6 +49,8 @@ class Application #if lime extends LimeApplication #end
 	{
 		#if lime
 		super();
+		#else
+		if (current == null) current = this;
 		#end
 
 		// TODO (Flight): connect the application to Flight's display root.

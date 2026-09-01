@@ -1,8 +1,9 @@
 package openfl.display;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
+import flight.Screen as FlightScreen;
+import flight.types.ScreenInfo as FlightScreenInfo;
 import openfl.events.EventDispatcher;
-import lime.system.System;
 import openfl.geom.Rectangle;
 
 /**
@@ -85,12 +86,14 @@ class Screen extends EventDispatcher
 	**/
 	public var safeArea(get, null):Rectangle;
 
-	@:noCompletion private var __displayIndex:Int;
+	@:noCompletion private var __flightScreen:FlightScreenInfo;
+	@:noCompletion private var __screenAvailable:Bool;
 
-	private function new(index:Int)
+	private function new(screen:FlightScreenInfo, available:Bool)
 	{
 		super();
-		__displayIndex = index;
+		__flightScreen = screen;
+		__screenAvailable = available;
 	}
 
 	/**
@@ -100,10 +103,8 @@ class Screen extends EventDispatcher
 	public static function getScreensForRectangle(rect:Rectangle):Array<Screen>
 	{
 		var result:Array<Screen> = [];
-
-		for (i in 0...System.numDisplays)
+		for (screen in screens)
 		{
-			var screen = new Screen(i);
 			if (screen.bounds.intersects(rect))
 			{
 				result.push(screen);
@@ -115,13 +116,12 @@ class Screen extends EventDispatcher
 
 	@:noCompletion private function get_modes():Array<ScreenMode>
 	{
-		var display = System.getDisplay(__displayIndex);
+		__requireAvailable();
 		var screenModes:Array<ScreenMode> = [];
-		var displayModes = display.supportedModes;
-
-		for (displayMode in displayModes)
+		var flightModes = FlightScreen.getScreenModes(__flightScreen, []);
+		for (flightMode in flightModes)
 		{
-			screenModes.push(new ScreenMode(displayMode));
+			screenModes.push(new ScreenMode(flightMode));
 		}
 
 		return screenModes;
@@ -129,56 +129,78 @@ class Screen extends EventDispatcher
 
 	@:noCompletion private function get_visibleBounds():Rectangle
 	{
-		var display = System.getDisplay(__displayIndex);
-		var currentMode = display.currentMode;
-		var rect:Rectangle = new Rectangle(0, 0, currentMode.width, currentMode.height);
-
-		return rect;
+		var currentMode = mode;
+		return new Rectangle(0, 0, currentMode.width, currentMode.height);
 	}
 
 	@:noCompletion private function get_safeArea():Rectangle
 	{
-		var display = System.getDisplay(__displayIndex);
-		#if (lime >= "8.3.0")
-		var safeArea = display.safeArea;
-		if (safeArea != null)
-		{
-			return new Rectangle(safeArea.x, safeArea.y, safeArea.width, safeArea.height);
-		}
-		#end
-		return this.visibleBounds;
+		return visibleBounds;
 	}
 
 	@:noCompletion private function get_mode():ScreenMode
 	{
-		var display = System.getDisplay(__displayIndex);
-		return new ScreenMode(display.currentMode);
+		__requireAvailable();
+		return new ScreenMode(FlightScreen.getScreenCurrentMode(__flightScreen, FlightScreen.createScreenMode()));
 	}
 
 	@:noCompletion private function get_bounds():Rectangle
 	{
-		var display = System.getDisplay(__displayIndex);
-		var displayBounds = display.bounds;
-
-		return new Rectangle(displayBounds.x, displayBounds.y, displayBounds.width, displayBounds.height);
+		__requireAvailable();
+		var bounds = FlightScreen.getScreenBounds(__flightScreen, {x: 0.0, y: 0.0, width: 0.0, height: 0.0});
+		return new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height);
 	}
 
 	@:noCompletion private static function get_screens():Array<Screen>
 	{
-		var result:Array<Screen> = [];
-
-		for (i in 0...System.numDisplays)
+		var flightScreens = FlightScreen.getScreens([]);
+		if (flightScreens.length == 0)
 		{
-			var screen = new Screen(i);
-			result.push(screen);
+			return [new Screen(FlightScreen.getPrimaryScreen(__emptyScreenInfo()), false)];
 		}
-
-		return result;
+		return [for (screen in flightScreens) new Screen(screen, true)];
 	}
 
 	@:noCompletion private static function get_mainScreen():Screen
 	{
-		return new Screen(0);
+		var flightScreens = FlightScreen.getScreens([]);
+		return new Screen(FlightScreen.getPrimaryScreen(__emptyScreenInfo()), flightScreens.length > 0);
+	}
+
+	@:noCompletion private function __requireAvailable():Void
+	{
+		if (!__screenAvailable) throw "Screen details are unavailable";
+	}
+
+	@:noCompletion private static function __emptyScreenInfo():FlightScreenInfo
+	{
+		return {
+			id: 0,
+			x: 0,
+			y: 0,
+			width: 0,
+			height: 0,
+			workWidth: 0,
+			workHeight: 0,
+			scaleFactor: 1,
+			isPrimary: false,
+			rotation: -1,
+			orientation: cast "Landscape",
+			refreshRate: -1,
+			colorDepth: -1,
+			pixelDepth: -1,
+			physicalWidth: -1,
+			physicalHeight: -1,
+			isHdr: false,
+			colorSpace: cast "srgb",
+			maxLuminance: -1,
+			depthPerComponent: -1,
+			dpi: -1,
+			label: "",
+			internal: false,
+			touchSupport: "unknown",
+			monochrome: false
+		};
 	}
 }
 #else

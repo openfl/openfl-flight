@@ -1,7 +1,7 @@
 package openfl.display;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
-import lime.system.DisplayMode;
+import flight.types.ScreenMode as FlightScreenMode;
 
 /**
 	The ScreenMode object provides information about the width, height and refresh rate of a Screen.
@@ -25,24 +25,24 @@ class ScreenMode
 
 	private function get_height():Int
 	{
-		return _displayMode.height;
+		return Std.int(__flightMode.height);
 	}
 
 	private function get_refreshRate():Int
 	{
-		return _displayMode.refreshRate;
+		return Std.int(__flightMode.refreshRate);
 	}
 
 	private function get_width():Int
 	{
-		return _displayMode.width;
+		return Std.int(__flightMode.width);
 	}
 
-	private var _displayMode:DisplayMode;
+	@:noCompletion private var __flightMode:FlightScreenMode;
 
-	private function new(displayMode:DisplayMode)
+	private function new(displayMode:FlightScreenMode)
 	{
-		_displayMode = displayMode;
+		__flightMode = displayMode;
 	}
 }
 #else
