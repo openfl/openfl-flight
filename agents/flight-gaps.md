@@ -89,6 +89,13 @@ currently provides (or doesn't).
   references immediately; decoding and playable-channel creation remain
   pending on an asynchronous host bridge.
 
+- **Cross-target NetStream video source**: Flight can wrap an HTML video
+  element in a `VideoResource`, which lets the JavaScript/HTML5 adapter attach
+  OpenFL's existing `NetStream` element to a Flight video texture. Other
+  targets expose no decoded-frame or media-source handle from `NetStream`, so
+  the Flight-backed `Video` surface remains empty there until a portable stream
+  bridge exists.
+
 - **Synchronous desktop clipboard reads**: Flight clipboard reads are
   asynchronous, while OpenFL's `Clipboard.getData()` and `hasFormat()` return
   synchronously. Flight also clears the whole clipboard rather than one format

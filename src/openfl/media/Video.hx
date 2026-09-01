@@ -53,12 +53,24 @@ class Video extends DisplayObject
 	public function attachNetStream(netStream:NetStream):Void
 	{
 		__stream = netStream;
-		// TODO: Attach decoded Flight video frames to this display surface.
+		#if (js && html5)
+		var resource = netStream == null || netStream.__video == null
+			? FlightVideo.createVideoResource()
+			: FlightVideo.createVideoResource(cast netStream.__video);
+		FlightVideo.disposeVideoResource(__flightResource);
+		__flightResource = resource;
+		FlightTexture.setVideoTextureSource(__flightTexture, resource);
+		#end
 	}
 
 	public function clear():Void
 	{
-		// TODO: Clear the Flight-backed video surface.
+		FlightTexture.resetVideoTextureFrame(__flightTexture);
+	}
+
+	public override function hitTestPoint(x:Float, y:Float, shapeFlag:Bool = false):Bool
+	{
+		return stage != null && __hitTest(x, y, shapeFlag);
 	}
 
 	@:noCompletion private function get_videoHeight():Int
@@ -76,6 +88,11 @@ class Video extends DisplayObject
 		var bounds = new Rectangle(0, 0, __width, __height);
 		bounds.__transform(bounds, matrix);
 		rect.__expand(bounds.x, bounds.y, bounds.width, bounds.height);
+	}
+
+	@:noCompletion private override function __hasBoundsContent():Bool
+	{
+		return __width > 0 && __height > 0;
 	}
 
 	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool

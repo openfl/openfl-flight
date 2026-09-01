@@ -25,6 +25,8 @@
       "height": 120,
       "width": 100
     },
+    "containerHeight": 120,
+    "stageIsSet": true,
     "parentIsSet": true,
     "scaledHeight": 720,
     "videoHeight": 0,
@@ -34,8 +36,21 @@
     "deblocking": 4,
     "scaledWidth": 640,
     "height": 120,
+    "containerWidth": 100,
+    "containerBounds": {
+      "x": 10,
+      "y": 20,
+      "height": 120,
+      "width": 100
+    },
     "scaleY": 1,
     "width": 100
+  },
+  "stagedHits": {
+    "outside": false,
+    "origin": false,
+    "inside": true,
+    "bottomRight": true
   },
   "hitDefaults": {
     "outside": false,
