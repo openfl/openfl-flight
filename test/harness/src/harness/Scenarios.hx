@@ -20,6 +20,7 @@ import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
+import harness.scenarios.MouseScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
@@ -140,6 +141,10 @@ class Scenarios {
 			{
 				name: "ui/keyboard",
 				run: KeyboardScenario.run
+			},
+			{
+				name: "ui/mouse",
+				run: MouseScenario.run
 			},
 			{
 				name: "utils/byte-array",
