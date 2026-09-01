@@ -113,6 +113,14 @@ currently provides (or doesn't).
   with timer-driven polling until Flight exposes a raw-stream socket capability
   or native socket host.
 
+- **UDP datagram sockets**: Flight Socket accepts a WebSocket URL and exposes a
+  connection-oriented message channel. It has no UDP endpoint, local bind,
+  `sendTo`/`readFrom`, peer-address metadata, or datagram delivery semantics.
+  `DatagramSocket` therefore retains OpenFL's `sys.net.UdpSocket` transport on
+  native targets and remains unavailable on HTML5. A Flight implementation
+  requires a distinct host UDP capability rather than adaptation through the
+  existing WebSocket API.
+
 - **XMLSocket servers on HTML5**: `XMLSocket` composes the Flight-backed OpenFL
   `Socket`, and its adapter consistently appends and reassembles null-delimited
   XML messages. Browsers can expose only Flight's framed WebSocket transport,

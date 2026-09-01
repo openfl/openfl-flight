@@ -3,6 +3,7 @@ package openfl.net;
 #if (!flash && !html5)
 import haxe.io.Bytes;
 import haxe.io.Error;
+import haxe.Timer;
 import openfl.errors.ArgumentError;
 import openfl.errors.IOError;
 import openfl.errors.IllegalOperationError;
@@ -102,6 +103,7 @@ class DatagramSocket extends EventDispatcher
 	@:noCompletion private var __iBytes:Bytes = Bytes.alloc(4096);
 	@:noCompletion private var __buffer:ByteArray;
 	@:noCompletion private var __localAddress:String;
+	@:noCompletion private var __pollTimer:Timer;
 
 	/**
 		Creates a DatagramSocket object
@@ -109,6 +111,8 @@ class DatagramSocket extends EventDispatcher
 	public function new()
 	{
 		super();
+		// Flight Socket is a WebSocket abstraction and cannot supply UDP bind,
+		// sendTo, or readFrom semantics. Keep OpenFL's native datagram transport.
 		__udpSocket = new UdpSocket();
 		__isReceiving = false;
 		__udpSocket.setBlocking(false);
@@ -192,7 +196,7 @@ class DatagramSocket extends EventDispatcher
 		}
 		__isReceiving = false;
 		bound = false;
-		Lib.current.removeEventListener(Event.ENTER_FRAME, __onFrameUpdate);
+		__stopPolling();
 
 		dispatchEvent(new Event(Event.CLOSE));
 	}
@@ -342,7 +346,7 @@ class DatagramSocket extends EventDispatcher
 
 		if (needsEnterFrame)
 		{
-			Lib.current.addEventListener(Event.ENTER_FRAME, __onFrameUpdate);
+			__startPolling();
 		}
 	}
 
@@ -355,8 +359,22 @@ class DatagramSocket extends EventDispatcher
 		// Did we just remove the *last* DATA listener?
 		if (type == dataEvent && !this.hasEventListener(dataEvent))
 		{
-			Lib.current.removeEventListener(Event.ENTER_FRAME, __onFrameUpdate);
+			__stopPolling();
 		}
+	}
+
+	@:noCompletion private function __startPolling():Void
+	{
+		if (__pollTimer != null) return;
+		__pollTimer = new Timer(10);
+		__pollTimer.run = function():Void __onFrameUpdate(null);
+	}
+
+	@:noCompletion private function __stopPolling():Void
+	{
+		if (__pollTimer == null) return;
+		__pollTimer.stop();
+		__pollTimer = null;
 	}
 
 	inline function representativeHost():String
