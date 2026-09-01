@@ -1,10 +1,8 @@
 package openfl.system;
 
 #if !flash
-#if lime
-import lime.system.Clipboard;
-import lime.system.System as LimeSystem;
-#end
+import flight.App as FlightApp;
+import flight.Clipboard as FlightClipboard;
 #if neko
 import neko.vm.Gc;
 #elseif cpp
@@ -191,9 +189,7 @@ import hl.Gc;
 	**/
 	public static function exit(code:Int):Void
 	{
-		#if lime
-		LimeSystem.exit(code);
-		#end
+		FlightApp.quitApp();
 	}
 
 	/**
@@ -268,9 +264,7 @@ import hl.Gc;
 	**/
 	public static function setClipboard(string:String):Void
 	{
-		#if lime
-		Clipboard.text = string;
-		#end
+		FlightClipboard.writeClipboardText(string);
 	}
 
 	// Getters & Setters

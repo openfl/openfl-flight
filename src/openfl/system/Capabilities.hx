@@ -2,13 +2,8 @@ package openfl.system;
 
 #if !flash
 import haxe.macro.Compiler;
-#if lime
-import lime.system.Locale;
-import lime.system.System;
-#end
-#if linux
-import sys.io.Process;
-#end
+import flight.App as FlightApp;
+import flight.Device as FlightDevice;
 
 /**
 	The Capabilities class provides properties that describe the system and
@@ -442,7 +437,7 @@ import sys.io.Process;
 		Specifies whether the system supports running 64-bit processes. The server
 		string is `PR64`.
 	**/
-	public static var supports64BitProcesses(default, null) = #if desktop true #else false #end; // TODO
+	public static var supports64BitProcesses(default, null) = #if (desktop || sys) true #else false #end; // TODO
 
 	/**
 		Specifies the type of touchscreen supported, if any. Values are defined in
@@ -586,7 +581,13 @@ import sys.io.Process;
 	// Getters & Setters
 	@:noCompletion private static inline function get_cpuArchitecture():String
 	{
-		// TODO: Check architecture
+		var architecture = Std.string(__getFlightDeviceInfo().arch).toLowerCase();
+
+		if (architecture.indexOf("arm") != -1 || architecture.indexOf("aarch") != -1) return "ARM";
+		if (architecture.indexOf("powerpc") != -1 || architecture.indexOf("ppc") != -1) return "PowerPC";
+		if (architecture.indexOf("sparc") != -1) return "SPARC";
+		if (architecture.indexOf("x86") != -1 || architecture.indexOf("amd64") != -1 || architecture.indexOf("x64") != -1) return "x86";
+
 		#if (mobile && !simulator && !emulator)
 		return "ARM";
 		#else
@@ -596,12 +597,13 @@ import sys.io.Process;
 
 	@:noCompletion private static function get_language():String
 	{
-		#if lime
-		var language = Locale.currentLocale.language;
+		var locale = FlightApp.getAppLocale();
+		if (locale == null || locale == "") locale = FlightApp.getAppSystemLocale();
 
-		if (language != null)
+		if (locale != null && locale != "")
 		{
-			language = language.toLowerCase();
+			var components = StringTools.replace(locale, "_", "-").split("-");
+			var language = components[0].toLowerCase();
 
 			switch (language)
 			{
@@ -609,11 +611,9 @@ import sys.io.Process;
 					return language;
 
 				case "zh":
-					var region = Locale.currentLocale.region;
-
-					if (region != null)
+					for (component in components)
 					{
-						switch (region.toUpperCase())
+						switch (component.toUpperCase())
 						{
 							case "TW", "HANT":
 								return "zh-TW";
@@ -628,51 +628,30 @@ import sys.io.Process;
 					return "xu";
 			}
 		}
-		#end
 
 		return "en";
 	}
 
-	@:noCompletion private static inline function get_manufacturer():String
+	@:noCompletion private static function get_manufacturer():String
 	{
-		#if mac
-		return "OpenFL Macintosh";
-		#elseif linux
-		return "OpenFL Linux";
-		#elseif lime
-		var name = System.platformName;
-		return "OpenFL" + (name != null ? " " + name : "");
-		#else
-		return null;
-		#end
+		var osName = Std.string(__getFlightDeviceInfo().osName);
+		if (osName == "") return "OpenFL";
+
+		var normalized = osName.toLowerCase();
+		if (normalized.indexOf("mac") != -1) return "OpenFL Macintosh";
+		return "OpenFL " + osName;
 	}
 
-	@:noCompletion private static inline function get_os():String
+	@:noCompletion private static function get_os():String
 	{
-		#if lime
-		#if (ios || tvos)
-		return System.deviceModel;
-		#elseif mac
-		return "Mac OS " + System.platformVersion;
-		#elseif linux
-		var kernelVersion = "";
-		try
-		{
-			var process = new Process("uname", ["-r"]);
-			kernelVersion = StringTools.trim(process.stdout.readLine().toString());
-			process.close();
-		}
-		catch (e:Dynamic) {}
-		if (kernelVersion != "") return "Linux " + kernelVersion;
-		else
-			return "Linux";
-		#else
-		var label = System.platformLabel;
-		return label != null ? label : "";
-		#end
-		#else
-		return "";
-		#end
+		var info = __getFlightDeviceInfo();
+		var osName = Std.string(info.osName);
+		if (osName == "") return "";
+
+		var osVersion = Std.string(info.osVersion);
+		var normalized = osName.toLowerCase();
+		if (normalized.indexOf("mac") != -1) osName = "Mac OS";
+		return osVersion == "" ? osName : osName + " " + osVersion;
 	}
 
 	@:noCompletion private static function get_pixelAspectRatio():Float
@@ -682,20 +661,35 @@ import sys.io.Process;
 
 	@:noCompletion private static function get_screenDPI():Float
 	{
-		// TODO: Read the display DPI through Flight's application/host API.
-		return 72;
+		var metrics = __getFlightDisplayMetrics();
+		if (metrics.densityDpi > 0) return metrics.densityDpi;
+		return 72 * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1);
 	}
 
 	@:noCompletion private static function get_screenResolutionX():Float
 	{
-		// TODO: Read the display width through Flight's application/host API.
+		var metrics = __getFlightDisplayMetrics();
+		if (metrics.physicalWidth > 0) return Math.ceil(metrics.physicalWidth);
+		if (metrics.logicalWidth > 0) return Math.ceil(metrics.logicalWidth * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1));
 		return 0;
 	}
 
 	@:noCompletion private static function get_screenResolutionY():Float
 	{
-		// TODO: Read the display height through Flight's application/host API.
+		var metrics = __getFlightDisplayMetrics();
+		if (metrics.physicalHeight > 0) return Math.ceil(metrics.physicalHeight);
+		if (metrics.logicalHeight > 0) return Math.ceil(metrics.logicalHeight * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1));
 		return 0;
+	}
+
+	@:noCompletion private static inline function __getFlightDeviceInfo():Dynamic
+	{
+		return FlightDevice.getDeviceInfo(cast {});
+	}
+
+	@:noCompletion private static inline function __getFlightDisplayMetrics():Dynamic
+	{
+		return FlightDevice.getDeviceDisplayMetrics(cast {});
 	}
 
 	@:noCompletion private static function get_version():String
