@@ -1,0 +1,35 @@
+{
+  "defaults": {
+    "autoSize": 2,
+    "wordWrap": false,
+    "text": "",
+    "multiline": false,
+    "selectable": true,
+    "type": 0,
+    "height": 100,
+    "width": 100
+  },
+  "text": {
+    "text": "plain text",
+    "length": 10
+  },
+  "dimensions": {
+    "height": 80,
+    "width": 240
+  },
+  "htmlText": {
+    "text": "Hello world",
+    "htmlText": "<b>Hello</b> <i>world</i>"
+  },
+  "type": {
+    "dynamicValue": 0,
+    "input": 1
+  },
+  "colors": {
+    "background": true,
+    "backgroundColor": 11259375,
+    "textColor": 1193046,
+    "borderColor": 6636321,
+    "border": true
+  }
+}
