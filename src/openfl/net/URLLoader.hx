@@ -1,10 +1,8 @@
 package openfl.net;
 
 #if !flash
-import flight.HostWeb as FlightHostWeb;
 import flight.Net as FlightNet;
 import flight.Signals as FlightSignals;
-import flight.types.HasNetHttp;
 import flight.types.NetProgress;
 import flight.types.NetRequest;
 import flight.types.NetResponse;
@@ -18,12 +16,6 @@ import openfl.events.IOErrorEvent;
 import openfl.events.ProgressEvent;
 import openfl.events.SecurityErrorEvent;
 import openfl.utils.ByteArray;
-#if clay
-import flight.hostClay.HostClay;
-#elseif lime
-import flight.hostLime.HostLime;
-import lime.app.Application;
-#end
 
 /**
 	The URLLoader class downloads data from a URL as text, binary data, or
@@ -316,7 +308,7 @@ class URLLoader extends EventDispatcher
 			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, value.loaded, value.total));
 		});
 
-		var promise = FlightNet.sendNetRequest(__resolveHost(), __toFlightRequest(request), {progress: progress});
+		var promise = FlightNet.sendNetRequest(__toFlightRequest(request), {progress: progress});
 		promise.then(function(response:NetResponse):NetResponse
 		{
 			__defer(function():Void __complete(generation, request, response));
@@ -439,16 +431,6 @@ class URLLoader extends EventDispatcher
 			values.push(StringTools.urlEncode(name) + "=" + StringTools.urlEncode(Std.string(Reflect.field(value, name))));
 		}
 		return values.length == 0 ? Std.string(value) : values.join("&");
-	}
-
-	@:noCompletion private static function __resolveHost():HasNetHttp
-	{
-		#if clay
-		return cast HostClay.createClayHost();
-		#elseif lime
-		if (Application.current != null) return cast HostLime.createLimeHost(Application.current);
-		#end
-		return cast FlightHostWeb.webHostNet;
 	}
 
 	@:noCompletion private function __toFlightRequest(request:URLRequest):NetRequest
