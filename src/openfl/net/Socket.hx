@@ -1,7 +1,6 @@
 package openfl.net;
 
 #if !flash
-import flight.HostWeb as FlightHostWeb;
 import flight.Signals as FlightSignals;
 import flight.Socket as FlightSocket;
 import haxe.io.Bytes;
@@ -211,7 +210,6 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 	@:noCompletion private var __connected:Bool = false;
 	@:noCompletion private var __endian:Endian;
 	@:noCompletion private var __flightSocket:Dynamic;
-	@:noCompletion private static var __flightSocketHost:Dynamic;
 	@:noCompletion private var __host:String;
 	@:noCompletion private var __input:ByteArray;
 	@:noCompletion private var __output:ByteArray;
@@ -382,20 +380,17 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 
 		#if !(js && html5)
 		var h:Host = null;
-		if (__flightSocketHost == null)
+		try
 		{
-			try
-			{
-				h = new Host(host);
-			}
-			catch (e:Dynamic)
-			{
-				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Invalid host"));
-				return;
-			}
-
-			__timestamp = Sys.time();
+			h = new Host(host);
 		}
+		catch (e:Dynamic)
+		{
+			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Invalid host"));
+			return;
+		}
+
+		__timestamp = Sys.time();
 		#end
 
 		__host = host;
@@ -414,12 +409,6 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		}
 		__connectFlight(host, port);
 		#else
-		if (__flightSocketHost != null)
-		{
-			__connectFlight(host, port);
-			return;
-		}
-
 		try
 		{
 			__socket = new SysSocket();
@@ -456,7 +445,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		var webHost = urlReg.matched(2);
 		var webPath = urlReg.matched(3);
 		var options:Dynamic = {url: schema + "://" + webHost + ":" + port + "/" + webPath, binaryType: "arraybuffer"};
-		__flightSocket = __createFlightSocket(options);
+		__flightSocket = FlightSocket.createSocket(options);
 		if (__flightSocket == null)
 		{
 			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
@@ -484,29 +473,6 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
 			}
 		}
-	}
-
-	@:noCompletion private static function __createFlightSocket(options:Dynamic):Dynamic
-	{
-		var owner:Dynamic = FlightSocket;
-		var method = Reflect.field(owner, "createSocket");
-		var host = __flightSocketHost != null ? __flightSocketHost : Reflect.field(FlightHostWeb, "webHostNet");
-
-		#if js
-		var arity:Dynamic = Reflect.field(method, "length");
-		return arity != null && Std.int(arity) >= 2
-			? Reflect.callMethod(owner, method, [host, options])
-			: Reflect.callMethod(owner, method, [options]);
-		#else
-		try
-		{
-			return Reflect.callMethod(owner, method, [host, options]);
-		}
-		catch (_:Dynamic)
-		{
-			return Reflect.callMethod(owner, method, [options]);
-		}
-		#end
 	}
 
 	/**
