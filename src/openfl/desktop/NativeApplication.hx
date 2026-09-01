@@ -7,6 +7,8 @@ import flight.Power as FlightPower;
 import flight.Signals as FlightSignals;
 import flight.types.App as FlightAppData;
 import flight.types.Application as FlightApplicationData;
+import flight.types.Host as FlightHost;
+import openfl.display.Application;
 import openfl.display.NativeWindow;
 import openfl.errors.ArgumentError;
 import openfl.events.Event;
@@ -22,6 +24,7 @@ import openfl.events.EventDispatcher;
 	at startup. Get the NativeApplication instance of an application with the
 	static property `NativeApplication.nativeApplication`.
 **/
+@:access(openfl.display.Application)
 class NativeApplication extends EventDispatcher
 {
 	@:noCompletion private static var __nativeApplication:NativeApplication;
@@ -168,6 +171,7 @@ class NativeApplication extends EventDispatcher
 	@:noCompletion private var __activeWindow:NativeWindow;
 	@:noCompletion private var __flightApp:FlightAppData;
 	@:noCompletion private var __flightApplication:FlightApplicationData;
+	@:noCompletion private var __flightHost:FlightHost;
 	@:noCompletion private var __idleThreshold:Int = 300;
 	@:noCompletion private var __systemIdleMode:SystemIdleMode = SystemIdleMode.NORMAL;
 
@@ -338,12 +342,15 @@ class NativeApplication extends EventDispatcher
 
 	@:noCompletion private function get_startAtLogin():Bool
 	{
-		return FlightApp.getAppLoginItem().openAtLogin;
+		if (!supportsStartAtLogin) return false;
+		return FlightApp.getAppLoginItem(cast __flightHost).openAtLogin;
 	}
 
 	@:noCompletion private function set_startAtLogin(value:Bool):Bool
 	{
-		return FlightApp.setAppLoginItem({openAtLogin: value}) ? value : get_startAtLogin();
+		if (!supportsStartAtLogin) return false;
+		FlightApp.setAppLoginItem(cast __flightHost, {openAtLogin: value});
+		return get_startAtLogin();
 	}
 
 	/**
@@ -362,13 +369,18 @@ class NativeApplication extends EventDispatcher
 		{
 			throw new ArgumentError("Invalid systemIdleMode");
 		}
-		FlightPower.setPowerKeepAwake(value == SystemIdleMode.KEEP_AWAKE, "PreventDisplaySleep");
+		if (__hasFlightPowerHost())
+		{
+			if (value == SystemIdleMode.KEEP_AWAKE) FlightPower.acquirePowerKeepAwake(cast __flightHost, "PreventDisplaySleep");
+			else FlightPower.releasePowerKeepAwake(cast __flightHost);
+		}
 		return __systemIdleMode = value;
 	}
 
 	private function new()
 	{
 		super();
+		__flightHost = Application.__getFlightHost(cast Application.current);
 		__flightApp = FlightApp.createApp();
 		FlightSignals.connectSignal(__flightApp.onActivate, function():Void dispatchEvent(new Event(Event.ACTIVATE)));
 		FlightSignals.connectSignal(__flightApp.onAllWindowsClosed, function():Void
@@ -379,9 +391,6 @@ class NativeApplication extends EventDispatcher
 		{
 			if (!dispatchEvent(new Event(Event.EXITING, false, true))) FlightSignals.cancelSignal(__flightApp.onQuitRequest);
 		});
-		#if js
-		FlightApp.attachApp(__flightApp);
-		#end
 		__flightApplication = FlightApplication.createApplication();
 		FlightApplication.enableApplicationLifecycleSignals(__flightApplication);
 	}
@@ -391,7 +400,7 @@ class NativeApplication extends EventDispatcher
 	**/
 	public function activate(window:NativeWindow = null):Void
 	{
-		FlightApp.focusApp();
+		if (__hasFlightAppFocusHost()) FlightApp.focusApp(cast __flightHost);
 		if (window != null) window.activate();
 	}
 
@@ -424,7 +433,34 @@ class NativeApplication extends EventDispatcher
 	**/
 	public function exit(code:Int = 0):Void
 	{
-		FlightApp.quitApp();
+		if (__hasFlightAppQuitHost()) FlightApp.quitApp(cast __flightHost);
+	}
+
+	@:noCompletion private static inline function __hasFlightAppFocusHost():Bool
+	{
+		#if ((js && html5) || (lime && sys && !clay))
+		return true;
+		#else
+		return false;
+		#end
+	}
+
+	@:noCompletion private static inline function __hasFlightAppQuitHost():Bool
+	{
+		#if ((js && html5) || (clay && sys) || (lime && sys))
+		return true;
+		#else
+		return false;
+		#end
+	}
+
+	@:noCompletion private static inline function __hasFlightPowerHost():Bool
+	{
+		#if (js && html5)
+		return true;
+		#else
+		return false;
+		#end
 	}
 
 	/**
