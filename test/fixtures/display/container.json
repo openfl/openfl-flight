@@ -1,0 +1,53 @@
+{
+  "contains": {
+    "containsSelf": true,
+    "containsUnrelated": false,
+    "containsGrandchild": true,
+    "containsChild": true
+  },
+  "getChildByName": {
+    "found": true,
+    "notFound": true
+  },
+  "addChild": {
+    "childParent": true,
+    "numChildren": 1
+  },
+  "addChildAt": {
+    "child0": "a",
+    "child1": "b",
+    "numChildren": 3,
+    "child2": "c"
+  },
+  "getChildIndex": {
+    "indexB": 1,
+    "indexA": 0
+  },
+  "reparent": {
+    "parent1Before": 1,
+    "parent2After": 1,
+    "childParent": true,
+    "parent1After": 0
+  },
+  "getChildAt": {
+    "second": "second",
+    "first": "first"
+  },
+  "addedEvents": {
+    "firstEvent": "added",
+    "eventsLength": 1
+  },
+  "setChildIndex": {
+    "child0": "b",
+    "child1": "c",
+    "child2": "a"
+  },
+  "removeChild": {
+    "childParent": true,
+    "numChildren": 0
+  },
+  "removedEvents": {
+    "firstEvent": "removed",
+    "eventsLength": 1
+  }
+}

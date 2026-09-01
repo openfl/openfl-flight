@@ -1,0 +1,34 @@
+{
+  "clone": {
+    "cloneHeight": 10,
+    "cloneWidth": 10,
+    "originalPixel": -65536,
+    "sameRef": false,
+    "clonePixel": -65536
+  },
+  "dimensions": {
+    "height": 100,
+    "width": 200
+  },
+  "getSetPixel": {
+    "pixel": 16746496
+  },
+  "construct": {
+    "transparent": true,
+    "height": 50,
+    "width": 100
+  },
+  "getSetPixel32": {
+    "pixel32": -2130771968
+  },
+  "rect": {
+    "x": 0,
+    "y": 0,
+    "height": 50,
+    "width": 100
+  },
+  "fillRect": {
+    "outside": 0,
+    "inside": 16777215
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "positionProperties": {
+    "x": 100,
+    "y": 200
+  },
+  "visibleProperty": {
+    "afterHide": false,
+    "afterShow": true,
+    "defaultVisible": true
+  },
+  "construct": {
+    "parentNull": true,
+    "notNull": true,
+    "stageNull": true
+  },
+  "nameAssignment": {
+    "name": "testSprite"
+  },
+  "alphaProperty": {
+    "zero": 0,
+    "half": 0.5,
+    "full": 1
+  },
+  "rotationProperty": {
+    "rotation": 45
+  },
+  "defaultProperties": {
+    "alpha": 1,
+    "mouseEnabled": true,
+    "visible": true,
+    "scaleX": 1,
+    "x": 0,
+    "y": 0,
+    "rotation": 0,
+    "scaleY": 1
+  },
+  "scaleProperties": {
+    "scaleX": 2,
+    "scaleY": 0.5
+  }
+}

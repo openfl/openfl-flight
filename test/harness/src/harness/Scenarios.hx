@@ -1,10 +1,13 @@
 package harness;
 
+import harness.scenarios.BitmapDataScenario;
 import harness.scenarios.ByteArrayScenario;
 import harness.scenarios.CertificateStatusScenario;
 import harness.scenarios.ColorTransformScenario;
 import harness.scenarios.DateTimeFormatterScenario;
 import harness.scenarios.DictionaryScenario;
+import harness.scenarios.DisplayContainerScenario;
+import harness.scenarios.DisplayObjectScenario;
 import harness.scenarios.ErrorScenario;
 import harness.scenarios.ErrorSubclassesScenario;
 import harness.scenarios.EventConstructionScenario;
@@ -100,6 +103,18 @@ class Scenarios {
 			{
 				name: "security/certificate-status",
 				run: CertificateStatusScenario.run
+			},
+			{
+				name: "display/display-object",
+				run: DisplayObjectScenario.run
+			},
+			{
+				name: "display/container",
+				run: DisplayContainerScenario.run
+			},
+			{
+				name: "display/bitmap-data",
+				run: BitmapDataScenario.run
 			},
 			{
 				name: "utils/byte-array",
