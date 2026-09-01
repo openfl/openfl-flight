@@ -27,12 +27,12 @@ import openfl.events.EventDispatcher;
 	@:noCompletion private var __sound:Sound;
 	@:noCompletion private var __soundTransform:SoundTransform;
 
-	@:noCompletion private function new(sound:Sound, audioSource:Dynamic = null, soundTransform:SoundTransform = null, position:Float = 0):Void
+	@:noCompletion private function new(sound:Sound, audioSource:FlightAudioChannel = null, soundTransform:SoundTransform = null, position:Float = 0):Void
 	{
 		super(this);
 		__sound = sound;
 		__position = position;
-		__flightChannel = cast audioSource;
+		__flightChannel = audioSource;
 		__isValid = true;
 		leftPeak = 1;
 		rightPeak = 1;
