@@ -35,6 +35,7 @@ import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
 import harness.scenarios.SystemScenario;
 import harness.scenarios.ShapeBitmapScenario;
+import harness.scenarios.StageScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFormatScenario;
@@ -113,6 +114,10 @@ class Scenarios {
 			{
 				name: "display/loader",
 				run: LoaderScenario.run
+			},
+			{
+				name: "display/stage",
+				run: StageScenario.run
 			},
 			{
 				name: "errors/error",

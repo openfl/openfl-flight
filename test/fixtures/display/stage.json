@@ -1,0 +1,70 @@
+{
+  "immutable": {
+    "scaleYError": false,
+    "tabIndexError": true,
+    "rotationError": false,
+    "yError": false,
+    "tabEnabledError": true,
+    "scaleX": 1,
+    "x": 0,
+    "scaleXError": false,
+    "y": 0,
+    "heightError": false,
+    "rotation": 0,
+    "widthError": false,
+    "xError": false,
+    "scaleY": 1,
+    "transformError": false
+  },
+  "defaults": {
+    "stageFocusRect": true,
+    "localToGlobalX": 12,
+    "tabEnabled": false,
+    "quality": "high",
+    "supportedOrientationCount": 0,
+    "softKeyboardEmpty": true,
+    "color": -15584170,
+    "parentIsNull": true,
+    "autoOrients": false,
+    "stageHeight": 240,
+    "stageWidth": 320,
+    "scaleMode": "noScale",
+    "align": "TL",
+    "nameIsNull": true,
+    "supportsOrientationChange": false,
+    "stageIsSelf": true,
+    "contentsScaleFactor": 1.5,
+    "localToGlobalY": 34,
+    "height": 0,
+    "tabIndex": -1,
+    "stage3DCount": 4,
+    "fullScreenSourceRectIsNull": true,
+    "width": 0,
+    "showDefaultContextMenu": true
+  },
+  "mutation": {
+    "storedRectWidth": 30,
+    "orientationEvents": 0,
+    "storedRectHeight": 40,
+    "quality": "low",
+    "autoOrients": false,
+    "storedRectY": 2,
+    "colorAfterNull": -16777216,
+    "scaleMode": "showAll",
+    "align": "BR",
+    "colorAfterRgb": -5517841,
+    "storedRectX": 1
+  },
+  "focus": {
+    "endsNull": true,
+    "acceptsOutsideFocus": true,
+    "events": [
+      "firstIn",
+      "firstOut",
+      "secondIn",
+      "secondOut",
+      "outsideIn",
+      "outsideOut"
+    ]
+  }
+}

@@ -657,7 +657,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		this.stage = this;
 		this.name = null;
 		__autoOrients = false;
-		__color = color;
+		__color = 0xFFFFFFFF;
 		__contentsScaleFactor = 1;
 		__displayState = StageDisplayState.NORMAL;
 		__frameRate = 60;
@@ -673,6 +673,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		softKeyboardRect = new Rectangle();
 		stageFocusRect = true;
 		stage3Ds = new Vector<Stage3D>();
+		for (i in 0...4) stage3Ds.push(new Stage3D(this));
 
 		#if commonjs
 		stageWidth = Std.int(width);
@@ -696,7 +697,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__scene = FlightScene2D.createScene2D();
 		__flightNode = __scene.root;
 		FlightScene2D.setScene2DSize(__scene, stageWidth, stageHeight);
-		__setLocalBounds(new Rectangle(0, 0, stageWidth, stageHeight));
+		this.color = color;
 	}
 
 	/**
@@ -773,10 +774,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	**/
 	public function setOrientation(newOrientation:StageOrientation):Void
 	{
-		if (newOrientation == null || newOrientation == StageOrientation.UNKNOWN || newOrientation == __orientation) return;
-		var before = __orientation;
-		__orientation = newOrientation;
-		dispatchEvent(new StageOrientationEvent(StageOrientationEvent.ORIENTATION_CHANGE, false, false, before, newOrientation));
+		// OpenFL ignores orientation requests on non-mobile targets.
 	}
 
 	@:noCompletion private function __broadcastEvent(event:Event):Void
@@ -813,13 +811,14 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 	@:noCompletion private static function get_supportsOrientationChange():Bool return false;
 	@:noCompletion private function get_autoOrients():Bool return __autoOrients;
-	@:noCompletion private function set_autoOrients(value:Bool):Bool return __autoOrients = value;
+	@:noCompletion private function set_autoOrients(value:Bool):Bool return false;
 	@:noCompletion private function get_color():Null<Int> return __color;
 
 	@:noCompletion private function set_color(value:Null<Int>):Null<Int>
 	{
-		__color = value;
-		if (__scene != null) __scene.color = value;
+		var normalized = value == null ? 0xFF000000 : ((0xFF << 24) | (value & 0xFFFFFF));
+		__color = normalized;
+		if (__scene != null) __scene.color = normalized;
 		return value;
 	}
 
@@ -840,7 +839,6 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 	@:noCompletion private function set_focus(value:InteractiveObject):InteractiveObject
 	{
-		if (value != null && value.stage != this) return __focus;
 		if (__focus == value) return value;
 		var oldFocus = __focus;
 		__focus = value;
@@ -861,13 +859,13 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	}
 
 	@:noCompletion private function get_fullScreenWidth():UInt return stageWidth;
-	@:noCompletion private override function set_height(value:Float):Float return __throwStageProperty("height");
+	@:noCompletion private override function set_height(value:Float):Float return height;
 	@:noCompletion private override function get_mouseX():Float return __mouseX;
 	@:noCompletion private override function get_mouseY():Float return __mouseY;
 	@:noCompletion private function get_orientation():StageOrientation return __orientation;
 	@:noCompletion private function get_quality():StageQuality return __quality;
 	@:noCompletion private function set_quality(value:StageQuality):StageQuality return __quality = value;
-	@:noCompletion private override function set_rotation(value:Float):Float return __throwStageProperty("rotation");
+	@:noCompletion private override function set_rotation(value:Float):Float return 0;
 	@:noCompletion private function get_scaleMode():StageScaleMode return __scaleMode;
 
 	@:noCompletion private function set_scaleMode(value:StageScaleMode):StageScaleMode
@@ -876,27 +874,22 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		return value;
 	}
 
-	@:noCompletion private override function set_scaleX(value:Float):Float return __throwStageProperty("scaleX");
-	@:noCompletion private override function set_scaleY(value:Float):Float return __throwStageProperty("scaleY");
+	@:noCompletion private override function set_scaleX(value:Float):Float return 0;
+	@:noCompletion private override function set_scaleY(value:Float):Float return 0;
 
 	@:noCompletion private function get_supportedOrientations():Vector<StageOrientation>
 	{
-		var result = new Vector<StageOrientation>();
-		result.push(StageOrientation.DEFAULT);
-		result.push(StageOrientation.ROTATED_LEFT);
-		result.push(StageOrientation.ROTATED_RIGHT);
-		result.push(StageOrientation.UPSIDE_DOWN);
-		return result;
+		return new Vector<StageOrientation>();
 	}
 
 	@:noCompletion private override function get_tabEnabled():Bool return false;
 	@:noCompletion private override function set_tabEnabled(value:Bool):Bool return __throwStageProperty("tabEnabled");
 	@:noCompletion private override function get_tabIndex():Int return -1;
 	@:noCompletion private override function set_tabIndex(value:Int):Int return __throwStageProperty("tabIndex");
-	@:noCompletion private override function set_transform(value:Transform):Transform return __throwStageProperty("transform");
-	@:noCompletion private override function set_width(value:Float):Float return __throwStageProperty("width");
-	@:noCompletion private override function set_x(value:Float):Float return __throwStageProperty("x");
-	@:noCompletion private override function set_y(value:Float):Float return __throwStageProperty("y");
+	@:noCompletion private override function set_transform(value:Transform):Transform return transform;
+	@:noCompletion private override function set_width(value:Float):Float return width;
+	@:noCompletion private override function set_x(value:Float):Float return 0;
+	@:noCompletion private override function set_y(value:Float):Float return 0;
 
 	@:noCompletion private function __throwStageProperty<T>(property:String):T
 	{
