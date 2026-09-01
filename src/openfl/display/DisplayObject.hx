@@ -890,6 +890,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	**/
 	public function hitTestPoint(x:Float, y:Float, shapeFlag:Bool = false):Bool
 	{
+		if (stage == null) return false;
 		if (!shapeFlag) return getBounds(null).contains(x, y);
 		return __hitTest(x, y, true);
 	}

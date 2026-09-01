@@ -1,0 +1,18 @@
+{
+  "transformed": {
+    "outside": false,
+    "inside": true
+  },
+  "point": {
+    "outsideShape": false,
+    "cornerShape": false,
+    "outsideBounds": false,
+    "centerBounds": false,
+    "centerShape": false,
+    "cornerBounds": false
+  },
+  "objects": {
+    "separated": false,
+    "overlapping": true
+  }
+}

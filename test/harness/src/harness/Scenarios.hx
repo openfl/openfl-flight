@@ -8,6 +8,7 @@ import harness.scenarios.DateTimeFormatterScenario;
 import harness.scenarios.DictionaryScenario;
 import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
+import harness.scenarios.DisplayHitTestScenario;
 import harness.scenarios.DisplayObjectScenario;
 import harness.scenarios.DisplayTransformScenario;
 import harness.scenarios.ErrorScenario;
@@ -63,6 +64,10 @@ class Scenarios {
 			{
 				name: "display/bounds",
 				run: DisplayBoundsScenario.run
+			},
+			{
+				name: "display/hit-test",
+				run: DisplayHitTestScenario.run
 			},
 			{
 				name: "display/transform",
