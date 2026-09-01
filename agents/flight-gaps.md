@@ -66,6 +66,10 @@ currently provides (or doesn't).
   `Tile` into a Flight material. The public property is preserved while custom
   shader rendering remains unsupported.
 
+- **System pause and resume**: Flight application pause/resume operations need
+  the authoritative Application handle, but the OpenFL application adapter does
+  not currently expose that handle to the static `System` API.
+
 ## Suspected Gaps
 
 - **Event system bridging**: OpenFL's capture/target/bubble event model is kept
