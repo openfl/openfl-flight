@@ -2,6 +2,15 @@ package openfl.display;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
 import flight.Screen as FlightScreen;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
+import flight.types.HasScreenQuery as FlightScreenHost;
 import flight.types.ScreenInfo as FlightScreenInfo;
 import openfl.events.EventDispatcher;
 import openfl.geom.Rectangle;
@@ -31,6 +40,8 @@ import openfl.geom.Rectangle;
 @:access(openfl.display.ScreenMode)
 class Screen extends EventDispatcher
 {
+	@:noCompletion private static var __flightHost:FlightScreenHost;
+
 	/**
 		The bounds of this screen.
 
@@ -117,14 +128,7 @@ class Screen extends EventDispatcher
 	@:noCompletion private function get_modes():Array<ScreenMode>
 	{
 		__requireAvailable();
-		var screenModes:Array<ScreenMode> = [];
-		var flightModes = FlightScreen.getScreenModes(__flightScreen, []);
-		for (flightMode in flightModes)
-		{
-			screenModes.push(new ScreenMode(flightMode));
-		}
-
-		return screenModes;
+		return [mode];
 	}
 
 	@:noCompletion private function get_visibleBounds():Rectangle
@@ -153,18 +157,20 @@ class Screen extends EventDispatcher
 
 	@:noCompletion private static function get_screens():Array<Screen>
 	{
-		var flightScreens = FlightScreen.getScreens([]);
+		var host = __getFlightHost();
+		var flightScreens = FlightScreen.getScreens(host, []);
 		if (flightScreens.length == 0)
 		{
-			return [new Screen(FlightScreen.getPrimaryScreen(__emptyScreenInfo()), false)];
+			return [new Screen(FlightScreen.getPrimaryScreen(host, __emptyScreenInfo()), false)];
 		}
 		return [for (screen in flightScreens) new Screen(screen, true)];
 	}
 
 	@:noCompletion private static function get_mainScreen():Screen
 	{
-		var flightScreens = FlightScreen.getScreens([]);
-		return new Screen(FlightScreen.getPrimaryScreen(__emptyScreenInfo()), flightScreens.length > 0);
+		var host = __getFlightHost();
+		var flightScreens = FlightScreen.getScreens(host, []);
+		return new Screen(FlightScreen.getPrimaryScreen(host, __emptyScreenInfo()), flightScreens.length > 0);
 	}
 
 	@:noCompletion private function __requireAvailable():Void
@@ -174,33 +180,35 @@ class Screen extends EventDispatcher
 
 	@:noCompletion private static function __emptyScreenInfo():FlightScreenInfo
 	{
-		return {
-			id: 0,
-			x: 0,
-			y: 0,
-			width: 0,
-			height: 0,
-			workWidth: 0,
-			workHeight: 0,
-			scaleFactor: 1,
-			isPrimary: false,
-			rotation: -1,
-			orientation: cast "Landscape",
-			refreshRate: -1,
-			colorDepth: -1,
-			pixelDepth: -1,
-			physicalWidth: -1,
-			physicalHeight: -1,
-			isHdr: false,
-			colorSpace: cast "srgb",
-			maxLuminance: -1,
-			depthPerComponent: -1,
-			dpi: -1,
-			label: "",
-			internal: false,
-			touchSupport: "unknown",
-			monochrome: false
-		};
+		return FlightScreen.createScreenInfo();
+	}
+
+	@:noCompletion private static function __getFlightHost():FlightScreenHost
+	{
+		if (__flightHost != null) return __flightHost;
+
+		#if (js && html5)
+		__flightHost = cast FlightHostWeb.webScreenHost;
+		#elseif (clay && sys)
+		__flightHost = cast FlightHostClay.createClayHost();
+		#elseif (lime && sys)
+		if (LimeApplication.current != null) __flightHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+		#end
+
+		if (__flightHost == null)
+		{
+			__flightHost = cast {
+				screen: {
+					query: {
+						getScreens: function(out:Array<FlightScreenInfo>):Array<FlightScreenInfo> return out,
+						getPrimaryScreen: function(out:FlightScreenInfo):FlightScreenInfo return out,
+						getCursorPosition: function(out:{x:Float, y:Float}):{x:Float, y:Float} return out
+					}
+				}
+			};
+		}
+
+		return __flightHost;
 	}
 }
 #else
