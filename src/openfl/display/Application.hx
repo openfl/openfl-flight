@@ -35,6 +35,12 @@ class Application #if lime extends LimeApplication #end
 	public static var current:Application;
 
 	public var window:Window;
+
+	@SuppressWarnings("checkstyle:Dynamic")
+	public function createWindow(attributes:Dynamic):Window
+	{
+		return null;
+	}
 	#end
 
 	public function new()

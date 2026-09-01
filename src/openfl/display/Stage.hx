@@ -902,6 +902,12 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	{
 		throw new IllegalOperationError("The " + property + " property cannot be set on the Stage.");
 	}
+
+	@:noCompletion private var __uncaughtErrorEvents:openfl.events.UncaughtErrorEvents;
+
+	@:noCompletion private function __handleError(e:Dynamic):Void {}
+
+	@:noCompletion private function __setLogicalSize(width:Int, height:Int):Void {}
 }
 #else
 typedef Stage = flash.display.Stage;

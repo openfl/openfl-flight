@@ -161,6 +161,11 @@ import openfl.geom.Matrix;
 		// TODO: Reconstruct graphics data from the Flight command buffer.
 		return new Vector<IGraphicsData>();
 	}
+
+	@:noCompletion private function __getBounds(rect:openfl.geom.Rectangle, matrix:Matrix):Void
+	{
+		// TODO: Compute bounds from the Flight command buffer.
+	}
 }
 #else
 typedef Graphics = flash.display.Graphics;

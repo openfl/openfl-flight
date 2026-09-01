@@ -44,6 +44,7 @@ import openfl.utils.ByteArray;
 	public var totalGPUMemory(get, never):Int;
 
 	@:noCompletion private var __enableErrorChecking:Bool;
+	@SuppressWarnings("checkstyle:Dynamic") @:noCompletion private var gl:Dynamic;
 
 	@:noCompletion private function new(stage:Dynamic, contextState:Dynamic = null, stage3D:Dynamic = null)
 	{
