@@ -1,0 +1,125 @@
+{
+  "stage3D": {
+    "defaults": {
+      "visible": true,
+      "x": 0,
+      "y": 0,
+      "contextIsNull": true
+    },
+    "count": 4,
+    "values": {
+      "visible": false,
+      "x": 12.5,
+      "y": -3.25,
+      "contextIsNull": true
+    },
+    "distinct": true
+  },
+  "constants": {
+    "programFormat": [
+      "agal",
+      "glsl"
+    ],
+    "wrapMode": [
+      "clamp",
+      "clamp_u_repeat_v",
+      "repeat",
+      "repeat_u_clamp_v"
+    ],
+    "blendFactor": [
+      "destinationAlpha",
+      "destinationColor",
+      "one",
+      "oneMinusDestinationAlpha",
+      "oneMinusDestinationColor",
+      "oneMinusSourceAlpha",
+      "oneMinusSourceColor",
+      "sourceAlpha",
+      "sourceColor",
+      "zero"
+    ],
+    "programType": [
+      "fragment",
+      "vertex"
+    ],
+    "bufferUsage": [
+      "dynamicDraw",
+      "staticDraw"
+    ],
+    "stencilAction": [
+      "decrementSaturate",
+      "decrementWrap",
+      "incrementSaturate",
+      "incrementWrap",
+      "invert",
+      "keep",
+      "set",
+      "zero"
+    ],
+    "profile": [
+      "baseline",
+      "baselineConstrained",
+      "baselineExtended",
+      "standard",
+      "standardConstrained",
+      "standardExtended"
+    ],
+    "mipFilter": [
+      "miplinear",
+      "mipnearest",
+      "mipnone"
+    ],
+    "vertexBufferFormat": [
+      "bytes4",
+      "float1",
+      "float2",
+      "float3",
+      "float4"
+    ],
+    "textureFormat": [
+      "bgrPacked565",
+      "bgra",
+      "bgraPacked4444",
+      "compressed",
+      "compressedAlpha",
+      "rgbaHalfFloat"
+    ],
+    "textureFilter": [
+      "anisotropic16x",
+      "anisotropic2x",
+      "anisotropic4x",
+      "anisotropic8x",
+      "linear",
+      "nearest"
+    ],
+    "renderMode": [
+      "auto",
+      "software"
+    ],
+    "compareMode": [
+      "always",
+      "equal",
+      "greater",
+      "greaterEqual",
+      "less",
+      "lessEqual",
+      "never",
+      "notEqual"
+    ],
+    "triangleFace": [
+      "back",
+      "front",
+      "frontAndBack",
+      "none"
+    ]
+  },
+  "clearMask": {
+    "all": 7,
+    "color": 1,
+    "depth": 2,
+    "stencil": 4
+  },
+  "context": {
+    "supportsVideoTexture": false
+  }
+}

@@ -6,6 +6,7 @@ import harness.scenarios.CertificateStatusScenario;
 import harness.scenarios.ColorTransformScenario;
 import harness.scenarios.DateTimeFormatterScenario;
 import harness.scenarios.DictionaryScenario;
+import harness.scenarios.Display3DScenario;
 import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
 import harness.scenarios.DisplayHitTestScenario;
@@ -123,6 +124,10 @@ class Scenarios {
 			{
 				name: "display/stage",
 				run: StageScenario.run
+			},
+			{
+				name: "display3d/core",
+				run: Display3DScenario.run
 			},
 			{
 				name: "display/movie-clip",
