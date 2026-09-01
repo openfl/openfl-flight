@@ -64,13 +64,13 @@ currently provides (or doesn't).
   status/event ordering through `flight.Net`.
 
 - **SharedObject quota prompts and remote synchronization**: Flight Storage
-  provides synchronous local string persistence, which now backs OpenFL local
-  shared objects through the Clay, Lime, and Web hosts. It has no equivalent of
+  provides synchronous local string persistence, which backs OpenFL local
+  shared objects where a storage backend is configured; headless targets fall
+  back to adapter-local process memory. Flight has no equivalent of
   Flash Player's quota-increase dialog, `minDiskSpace` reservation, or
-  `NetStatusEvent` result after a pending flush. Mutation failure is therefore
-  reported as `SharedObjectFlushStatus.PENDING`. Flight also has no remote
+  `NetStatusEvent` result after a pending flush. Flight also has no remote
   shared-object protocol for `connect`, `send`, `setDirty`, or synchronization;
-  hostless interpreter targets use a process-local Flight Storage backend.
+  those methods remain compatibility stubs.
 
 - **Arbitrary batched tile hierarchies**: Flight's native `Tilemap` is a regular
   row/column grid. OpenFL tilemaps accept freely positioned, rotated, scaled,

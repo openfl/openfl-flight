@@ -1,7 +1,6 @@
 package openfl.net;
 
 #if !flash
-import flight.HostWeb as FlightHostWeb;
 import flight.Net as FlightNet;
 import flight.Signals as FlightSignals;
 import flight.types.NetProgress;
@@ -17,12 +16,6 @@ import openfl.events.IOErrorEvent;
 import openfl.events.ProgressEvent;
 import openfl.events.SecurityErrorEvent;
 import openfl.utils.ByteArray;
-#if clay
-import flight.hostClay.HostClay;
-#elseif lime
-import flight.hostLime.HostLime;
-import lime.app.Application;
-#end
 
 /**
 	The URLLoader class downloads data from a URL as text, binary data, or
@@ -315,7 +308,7 @@ class URLLoader extends EventDispatcher
 			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, value.loaded, value.total));
 		});
 
-		var promise:Dynamic = __sendFlightRequest(__toFlightRequest(request), {progress: progress});
+		var promise = FlightNet.sendNetRequest(__toFlightRequest(request), {progress: progress});
 		promise.then(function(response:NetResponse):NetResponse
 		{
 			__defer(function():Void __complete(generation, request, response));
@@ -351,41 +344,6 @@ class URLLoader extends EventDispatcher
 		if (bytesTotal <= 0) bytesTotal = length;
 		if (bytesLoaded <= 0) bytesLoaded = length;
 		dispatchEvent(new Event(Event.COMPLETE));
-	}
-
-	@:noCompletion private static function __sendFlightRequest(request:NetRequest, options:Dynamic):Dynamic
-	{
-		var owner:Dynamic = FlightNet;
-		var method = Reflect.field(owner, "sendNetRequest");
-		var legacyHost = __resolveLegacyFlightHost();
-
-		#if js
-		var arity:Dynamic = Reflect.field(method, "length");
-		if (arity != null && Std.int(arity) >= 3)
-		{
-			return Reflect.callMethod(owner, method, [legacyHost, request, options]);
-		}
-		return Reflect.callMethod(owner, method, [request, options]);
-		#else
-		try
-		{
-			return Reflect.callMethod(owner, method, [legacyHost, request, options]);
-		}
-		catch (_:Dynamic)
-		{
-			return Reflect.callMethod(owner, method, [request, options]);
-		}
-		#end
-	}
-
-	@:noCompletion private static function __resolveLegacyFlightHost():Dynamic
-	{
-		#if clay
-		return HostClay.createClayHost();
-		#elseif lime
-		if (Application.current != null) return HostLime.createLimeHost(Application.current);
-		#end
-		return Reflect.field(FlightHostWeb, "webHostNet");
 	}
 
 	@:noCompletion private function __decodeResponse(body:Dynamic):Dynamic

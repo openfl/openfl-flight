@@ -8,14 +8,6 @@ import haxe.Unserializer;
 import openfl.errors.Error;
 import openfl.events.EventDispatcher;
 import openfl.utils.Object;
-#if clay
-import flight.hostClay.HostClay;
-#elseif lime
-import flight.hostLime.HostLime;
-import lime.app.Application;
-#elseif js
-import flight.HostWeb as FlightHostWeb;
-#end
 
 /**
 	Provides the OpenFL shared-object API, using Flight Storage for local
@@ -37,35 +29,6 @@ class SharedObject extends EventDispatcher
 
 	@:noCompletion private static var __sharedObjects:Map<String, SharedObject> = new Map();
 	@:noCompletion private static var __memoryValues:Map<String, String> = new Map();
-	@:noCompletion private static var __memoryStorageHost:Dynamic = {
-		storage: {
-			local: {
-				clear: function():Dynamic
-				{
-					__memoryValues.clear();
-					return {reason: "ok"};
-				},
-				getItem: function(key:String):Dynamic
-				{
-					return {reason: "ok", value: __memoryValues.get(key)};
-				},
-				keys: function():Dynamic
-				{
-					return {reason: "ok", value: [for (key in __memoryValues.keys()) key]};
-				},
-				removeItem: function(key:String):Dynamic
-				{
-					__memoryValues.remove(key);
-					return {reason: "ok"};
-				},
-				setItem: function(key:String, value:String):Dynamic
-				{
-					__memoryValues.set(key, value);
-					return {reason: "ok"};
-				}
-			}
-		}
-	};
 
 	@:noCompletion private var __localPath:String;
 	@:noCompletion private var __name:String;
@@ -83,11 +46,8 @@ class SharedObject extends EventDispatcher
 	{
 		data = {};
 
-		try
-		{
-			__callStorage("removeStorageItem", [__getStorageHost(), __getStorageKey(), null], [__getStorageKey(), null]);
-		}
-		catch (_:Dynamic) {}
+		FlightStorage.removeStorageItem(__getStorageKey());
+		__memoryValues.remove(__getStorageKey());
 	}
 
 	public function close():Void {}
@@ -106,9 +66,11 @@ class SharedObject extends EventDispatcher
 		var encodedData = Serializer.run(data);
 		try
 		{
-			var result:Dynamic = __callStorage("setStorageItem", [__getStorageHost(), __getStorageKey(), encodedData, null],
-				[__getStorageKey(), encodedData, null]);
-			if (__storageSucceeded(result)) return SharedObjectFlushStatus.FLUSHED;
+			if (!FlightStorage.setStorageItem(__getStorageKey(), encodedData))
+			{
+				__memoryValues.set(__getStorageKey(), encodedData);
+			}
+			return SharedObjectFlushStatus.FLUSHED;
 		}
 		catch (_:Dynamic) {}
 
@@ -168,40 +130,6 @@ class SharedObject extends EventDispatcher
 		if (data != null) Reflect.setField(data, propertyName, value);
 	}
 
-	@:noCompletion private static function __callStorage(methodName:String, hostArguments:Array<Dynamic>, hostlessArguments:Array<Dynamic>):Dynamic
-	{
-		var owner:Dynamic = FlightStorage;
-		var method = Reflect.field(owner, methodName);
-
-		#if js
-		var arity:Dynamic = Reflect.field(method, "length");
-		return arity != null && Std.int(arity) >= hostArguments.length
-			? Reflect.callMethod(owner, method, hostArguments)
-			: Reflect.callMethod(owner, method, hostlessArguments);
-		#else
-		try
-		{
-			return Reflect.callMethod(owner, method, hostArguments);
-		}
-		catch (_:Dynamic)
-		{
-			return Reflect.callMethod(owner, method, hostlessArguments);
-		}
-		#end
-	}
-
-	@:noCompletion private static function __getStorageHost():Dynamic
-	{
-		#if clay
-		return cast HostClay.createClayHost();
-		#elseif lime
-		if (Application.current != null) return cast HostLime.createLimeHost(Application.current);
-		#elseif js
-		return cast FlightHostWeb.webStorageHost;
-		#end
-		return __memoryStorageHost;
-	}
-
 	@:noCompletion private function __getStorageKey():String
 	{
 		return "openfl.shared-object:" + (__localPath == null ? "" : __localPath) + "/" + __name;
@@ -211,10 +139,8 @@ class SharedObject extends EventDispatcher
 	{
 		try
 		{
-			var result:Dynamic = __callStorage("getStorageItem", [__getStorageHost(), __getStorageKey()], [__getStorageKey()]);
-			if (!__storageSucceeded(result)) return;
-
-			var encodedData:Dynamic = Reflect.field(result, "value");
+			var encodedData = FlightStorage.getStorageItem(__getStorageKey());
+			if (encodedData == null) encodedData = __memoryValues.get(__getStorageKey());
 			if (encodedData == null || encodedData == "") return;
 
 			var unserializer = new Unserializer(Std.string(encodedData));
@@ -234,11 +160,6 @@ class SharedObject extends EventDispatcher
 		if (StringTools.startsWith(name, "openfl._v2.")) name = StringTools.replace(name, "openfl._v2.", "openfl.");
 		if (StringTools.startsWith(name, "openfl._legacy.")) name = StringTools.replace(name, "openfl._legacy.", "openfl.");
 		return Type.resolveClass(name);
-	}
-
-	@:noCompletion private static inline function __storageSucceeded(result:Dynamic):Bool
-	{
-		return result != null && Reflect.field(result, "reason") == "ok";
 	}
 
 	@:noCompletion private function get_size():Int
