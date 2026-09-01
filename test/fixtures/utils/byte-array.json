@@ -1,4 +1,10 @@
 {
+  "signedShort": {
+    "negativeShort": -32768
+  },
+  "emptyArray": {
+    "throwsOnEmptyRead": true
+  },
   "writeAndRead": {
     "secondUnsigned": 255,
     "lengthAfterWrite": 3,
@@ -6,10 +12,22 @@
     "positionAfterWrite": 3,
     "firstUnsigned": 42
   },
+  "writeReadFloat": {
+    "zero": 0,
+    "approxPi": true,
+    "negative": -1,
+    "length": 12
+  },
   "bytesAvailable": {
     "atStart": 3,
     "afterOneRead": 2,
     "atEnd": 0
+  },
+  "writeReadShort": {
+    "negative": -1000,
+    "length": 6,
+    "positive": 1000,
+    "max": 32767
   },
   "position": {
     "posAfterRead": 1,
@@ -20,6 +38,10 @@
     "initialLength": 0,
     "initialPosition": 0
   },
+  "zeroMemory": {
+    "length": 10,
+    "allZero": false
+  },
   "clear": {
     "positionAfterClear": 0,
     "lengthAfterClear": 0
@@ -28,11 +50,35 @@
     "lengthAfterWrite": 7,
     "readBack": "hello"
   },
+  "signedByte": {
+    "zero": 0,
+    "allBits": -1,
+    "max": 127,
+    "overMax": -128
+  },
   "writeReadBytes": {
     "dstLength": 3,
     "third": 30,
     "second": 20,
     "first": 10
+  },
+  "writeReadBoolean": {
+    "third": true,
+    "second": false,
+    "first": true,
+    "length": 3
+  },
+  "writeReadDouble": {
+    "zero": 0,
+    "negative": -10000000000,
+    "length": 24,
+    "pi": 3.14159265358979312
+  },
+  "writeReadInt": {
+    "zero": 0,
+    "negative": -123456789,
+    "length": 12,
+    "positive": 123456789
   },
   "endianness": {
     "bigEndianFirstByte": 1,
