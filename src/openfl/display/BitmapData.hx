@@ -2,7 +2,7 @@ package openfl.display;
 
 #if !flash
 import flight.Bitmap as FlightBitmap;
-import flight.types.Bitmap as FlightBitmapData;
+import flight.types.Bitmap as FlightBitmapHandle;
 import openfl.Vector;
 import openfl.display3D.Context3D;
 import openfl.display3D.IndexBuffer3D;
@@ -47,12 +47,12 @@ class BitmapData implements IBitmapDrawable
 	public var width(default, null):Int;
 
 	@:noCompletion private var __blendMode:BlendMode;
+	@:noCompletion private var __bitmap:FlightBitmapHandle;
 	@:noCompletion private var __drawableType:Dynamic;
-	@:noCompletion private var __flightBitmap:FlightBitmapData;
+	@:noCompletion private var __flightBitmap(get, never):FlightBitmapHandle;
 	@:noCompletion private var __isMask:Bool;
 	@:noCompletion private var __isValid:Bool;
 	@:noCompletion private var __mask:DisplayObject;
-	@:noCompletion private var __pixels:Array<UInt>;
 	@:noCompletion private var __renderable:Bool;
 	@:noCompletion private var __renderTransform:Matrix;
 	@:noCompletion private var __scrollRect:Rectangle;
@@ -70,10 +70,9 @@ class BitmapData implements IBitmapDrawable
 		__isValid = true;
 		__renderable = true;
 		rect = new Rectangle(0, 0, this.width, this.height);
-		__pixels = [];
-		var color = transparent ? fillColor : (0xFF000000 | (fillColor & 0xFFFFFF));
-		for (i in 0...(this.width * this.height)) __pixels[i] = color;
-		__flightBitmap = FlightBitmap.createBitmap(this.width, this.height, __toFlightColor(color));
+		var color:Int = cast fillColor;
+		if (!transparent) color = 0xFF000000 | (color & 0xFFFFFF);
+		__bitmap = FlightBitmap.createBitmap(this.width, this.height, __argbToFlight(color, true));
 	}
 
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, filter:BitmapFilter):Void
@@ -83,46 +82,162 @@ class BitmapData implements IBitmapDrawable
 
 	public function clone():BitmapData
 	{
-		var result = new BitmapData(width, height, transparent, 0);
-		result.__pixels = __pixels.copy();
-		result.__flightBitmap = FlightBitmap.cloneBitmap(__flightBitmap);
+		if (!readable || __bitmap == null) return null;
+		var result = __fromFlightBitmap(FlightBitmap.cloneBitmap(__bitmap), transparent);
 		result.image = image;
 		return result;
 	}
 
 	public function colorTransform(rect:Rectangle, colorTransform:ColorTransform):Void
 	{
-		// TODO: Apply color transforms through Flight bitmap services.
+		if (!readable || __bitmap == null || rect == null || colorTransform == null) return;
+		var clipped = __clipRectangle(rect);
+		if (clipped == null) return;
+
+		var regionWidth = Std.int(clipped.width);
+		var regionHeight = Std.int(clipped.height);
+		var source = FlightBitmap.createBitmap(regionWidth, regionHeight, 0);
+		var destination = FlightBitmap.createBitmap(regionWidth, regionHeight, 0);
+		for (y in 0...regionHeight)
+		{
+			for (x in 0...regionWidth)
+			{
+				FlightBitmap.setBitmapPixel(source, x, y, __argbToFlight(getPixel32(Std.int(clipped.x) + x, Std.int(clipped.y) + y), false));
+			}
+		}
+
+		FlightBitmap.applyBitmapColorScaleBias(FlightBitmap.createBitmapRegion(destination), FlightBitmap.createBitmapRegion(source), {
+			redScale: colorTransform.redMultiplier,
+			greenScale: colorTransform.greenMultiplier,
+			blueScale: colorTransform.blueMultiplier,
+			alphaScale: colorTransform.alphaMultiplier,
+			redBias: colorTransform.redOffset / 255,
+			greenBias: colorTransform.greenOffset / 255,
+			blueBias: colorTransform.blueOffset / 255,
+			alphaBias: colorTransform.alphaOffset / 255
+		});
+
+		for (y in 0...regionHeight)
+		{
+			for (x in 0...regionWidth)
+			{
+				setPixel32(Std.int(clipped.x) + x, Std.int(clipped.y) + y,
+					__flightToArgb(Std.int(FlightBitmap.getBitmapPixel(destination, x, y)), false));
+			}
+		}
 	}
 
 	public function compare(otherBitmapData:BitmapData):Dynamic
 	{
+		if (otherBitmapData == this) return 0;
 		if (otherBitmapData == null) return -1;
+		if (!readable || !otherBitmapData.readable || __bitmap == null || otherBitmapData.__bitmap == null) return -2;
 		if (width != otherBitmapData.width) return -3;
 		if (height != otherBitmapData.height) return -4;
-		for (i in 0...__pixels.length) if (__pixels[i] != otherBitmapData.__pixels[i]) return -1;
-		return 0;
+
+		var source = __toStraightBitmap(this);
+		var other = __toStraightBitmap(otherBitmapData);
+		if (FlightBitmap.compareBitmap(source, other) == null) return 0;
+
+		var result = new BitmapData(width, height, transparent || otherBitmapData.transparent, 0);
+		for (y in 0...height)
+		{
+			for (x in 0...width)
+			{
+				var sourcePixel = getPixel32(x, y);
+				var otherPixel = otherBitmapData.getPixel32(x, y);
+				if (sourcePixel == otherPixel) continue;
+
+				var red = Std.int(Math.abs(((sourcePixel >>> 16) & 0xFF) - ((otherPixel >>> 16) & 0xFF)));
+				var green = Std.int(Math.abs(((sourcePixel >>> 8) & 0xFF) - ((otherPixel >>> 8) & 0xFF)));
+				var blue = Std.int(Math.abs((sourcePixel & 0xFF) - (otherPixel & 0xFF)));
+				if (red == 0 && green == 0 && blue == 0)
+				{
+					var alpha = Std.int(Math.abs(((sourcePixel >>> 24) & 0xFF) - ((otherPixel >>> 24) & 0xFF)));
+					result.setPixel32(x, y, (alpha << 24) | 0xFFFFFF);
+				}
+				else
+				{
+					result.setPixel32(x, y, 0xFF000000 | (red << 16) | (green << 8) | blue);
+				}
+			}
+		}
+		return result;
 	}
 
 	public function copyChannel(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, sourceChannel:BitmapDataChannel,
 			destChannel:BitmapDataChannel):Void
 	{
-		// TODO: Copy bitmap channels through Flight.
+		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
+			|| sourceRect == null || destPoint == null) return;
+		var regionWidth = Std.int(Math.max(0, sourceRect.width));
+		var regionHeight = Std.int(Math.max(0, sourceRect.height));
+		if (regionWidth == 0 || regionHeight == 0) return;
+		var source = FlightBitmap.createBitmapRegion(__toStraightBitmap(sourceBitmapData), Std.int(sourceRect.x), Std.int(sourceRect.y), regionWidth,
+			regionHeight);
+		var destinationBitmap = __toStraightBitmap(this);
+		var destination = FlightBitmap.createBitmapRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
+		FlightBitmap.copyBitmapChannel(destination, __flightChannel(destChannel), source, __flightChannel(sourceChannel));
+		__writeStraightRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
 	}
 
 	public function copyPixels(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, alphaBitmapData:BitmapData = null,
 			alphaPoint:Point = null, mergeAlpha:Bool = false):Void
 	{
-		// TODO: Copy bitmap regions through Flight.
+		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
+			|| sourceRect == null || destPoint == null) return;
+		var regionWidth = Std.int(Math.max(0, sourceRect.width));
+		var regionHeight = Std.int(Math.max(0, sourceRect.height));
+		if (regionWidth == 0 || regionHeight == 0) return;
+		var sourceX = Std.int(sourceRect.x);
+		var sourceY = Std.int(sourceRect.y);
+		var destinationX = Std.int(destPoint.x);
+		var destinationY = Std.int(destPoint.y);
+		if (!mergeAlpha && alphaBitmapData == null)
+		{
+			var source = FlightBitmap.createBitmapRegion(sourceBitmapData.__bitmap, sourceX, sourceY, regionWidth, regionHeight);
+			var destination = FlightBitmap.createBitmapRegion(__bitmap, destinationX, destinationY, regionWidth, regionHeight);
+			FlightBitmap.copyBitmapPixels(destination, source, false);
+			return;
+		}
+
+		var sourceBitmap = __toStraightBitmap(sourceBitmapData);
+		if (alphaBitmapData != null && alphaBitmapData.readable && alphaBitmapData.__bitmap != null)
+		{
+			var alphaX = alphaPoint == null ? 0 : Std.int(alphaPoint.x);
+			var alphaY = alphaPoint == null ? 0 : Std.int(alphaPoint.y);
+			for (y in 0...regionHeight)
+			{
+				for (x in 0...regionWidth)
+				{
+					var bitmapX = sourceX + x;
+					var bitmapY = sourceY + y;
+					if (bitmapX < 0 || bitmapY < 0 || bitmapX >= sourceBitmapData.width || bitmapY >= sourceBitmapData.height) continue;
+					var sourcePixel = sourceBitmapData.getPixel32(bitmapX, bitmapY);
+					var maskAlpha = (alphaBitmapData.getPixel32(alphaX + x, alphaY + y) >>> 24) & 0xFF;
+					var sourceAlpha = (sourcePixel >>> 24) & 0xFF;
+					var combinedAlpha = Std.int(Math.round(sourceAlpha * maskAlpha / 255));
+					FlightBitmap.setBitmapPixel(sourceBitmap, bitmapX, bitmapY, __argbToFlight((combinedAlpha << 24) | (sourcePixel & 0xFFFFFF), false));
+				}
+			}
+		}
+
+		var destinationBitmap = __toStraightBitmap(this);
+		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceX, sourceY, regionWidth, regionHeight);
+		var destination = FlightBitmap.createBitmapRegion(destinationBitmap, destinationX, destinationY, regionWidth, regionHeight);
+		FlightBitmap.copyBitmapPixels(destination, source, mergeAlpha);
+		__writeStraightRegion(destinationBitmap, destinationX, destinationY, regionWidth, regionHeight);
 	}
 
 	public function dispose():Void
 	{
 		image = null;
-		__pixels = [];
-		__flightBitmap = null;
+		__bitmap = cast null;
+		width = 0;
+		height = 0;
+		rect = null;
+		__isValid = false;
 		readable = false;
-		// TODO: Release Flight bitmap resources.
 	}
 
 	@:beta public function disposeImage():Void
@@ -151,17 +266,12 @@ class BitmapData implements IBitmapDrawable
 
 	public function fillRect(rect:Rectangle, color:Int):Void
 	{
-		if (rect == null) return;
-		var left = Std.int(Math.max(0, rect.x));
-		var top = Std.int(Math.max(0, rect.y));
-		var right = Std.int(Math.min(width, rect.x + rect.width));
-		var bottom = Std.int(Math.min(height, rect.y + rect.height));
-		for (y in top...bottom) for (x in left...right) __pixels[y * width + x] = color;
-		if (__flightBitmap != null && right > left && bottom > top)
-		{
-			var region = FlightBitmap.createBitmapRegion(__flightBitmap, left, top, right - left, bottom - top);
-			FlightBitmap.fillBitmapRectangle(region, __toFlightColor(color));
-		}
+		if (!readable || __bitmap == null || rect == null) return;
+		var clipped = __clipRectangle(rect);
+		if (clipped == null) return;
+		if (!transparent) color = 0xFF000000 | (color & 0xFFFFFF);
+		FlightBitmap.fillBitmapRectangle(FlightBitmap.createBitmapRegion(__bitmap, clipped.x, clipped.y, clipped.width, clipped.height),
+			__argbToFlight(color, true));
 	}
 
 	public function floodFill(x:Int, y:Int, color:Int):Void
@@ -243,13 +353,16 @@ class BitmapData implements IBitmapDrawable
 
 	public function getPixel(x:Int, y:Int):Int
 	{
-		return getPixel32(x, y) & 0xFFFFFF;
+		if (!readable || __bitmap == null || x < 0 || y < 0 || x >= width || y >= height) return 0;
+		var rgb = Std.int(FlightBitmap.getBitmapPixelRgb(__bitmap, x, y));
+		var alpha = Std.int(FlightBitmap.getBitmapPixel(__bitmap, x, y)) & 0xFF;
+		return __unpremultiplyRgb(rgb, alpha);
 	}
 
 	public function getPixel32(x:Int, y:Int):Int
 	{
-		if (!readable || x < 0 || y < 0 || x >= width || y >= height) return 0;
-		return __pixels[y * width + x];
+		if (!readable || __bitmap == null || x < 0 || y < 0 || x >= width || y >= height) return 0;
+		return __flightToArgb(Std.int(FlightBitmap.getBitmapPixel(__bitmap, x, y)), true);
 	}
 
 	public function getPixels(rect:Rectangle):ByteArray
@@ -266,7 +379,7 @@ class BitmapData implements IBitmapDrawable
 		var top = Std.int(Math.max(0, rect.y));
 		var right = Std.int(Math.min(width, rect.x + rect.width));
 		var bottom = Std.int(Math.min(height, rect.y + rect.height));
-		for (y in top...bottom) for (x in left...right) result.push(__pixels[y * width + x]);
+		for (y in top...bottom) for (x in left...right) result.push(getPixel32(x, y));
 		return result;
 	}
 
@@ -331,18 +444,16 @@ class BitmapData implements IBitmapDrawable
 
 	public function setPixel(x:Int, y:Int, color:Int):Void
 	{
-		if (!readable || x < 0 || y < 0 || x >= width || y >= height) return;
-		var alpha = __pixels[y * width + x] & 0xFF000000;
-		__pixels[y * width + x] = alpha | (color & 0xFFFFFF);
-		if (__flightBitmap != null) FlightBitmap.setBitmapPixelRgb(__flightBitmap, x, y, color & 0xFFFFFF);
+		if (!readable || __bitmap == null || x < 0 || y < 0 || x >= width || y >= height) return;
+		var alpha = Std.int(FlightBitmap.getBitmapPixel(__bitmap, x, y)) & 0xFF;
+		FlightBitmap.setBitmapPixelRgb(__bitmap, x, y, __premultiplyRgb(color, alpha));
 	}
 
 	public function setPixel32(x:Int, y:Int, color:Int):Void
 	{
-		if (!readable || x < 0 || y < 0 || x >= width || y >= height) return;
-		var value = transparent ? color : (0xFF000000 | (color & 0xFFFFFF));
-		__pixels[y * width + x] = value;
-		if (__flightBitmap != null) FlightBitmap.setBitmapPixel(__flightBitmap, x, y, __toFlightColor(value));
+		if (!readable || __bitmap == null || x < 0 || y < 0 || x >= width || y >= height) return;
+		if (!transparent) color = 0xFF000000 | (color & 0xFFFFFF);
+		FlightBitmap.setBitmapPixel(__bitmap, x, y, __argbToFlight(color, true));
 	}
 
 	public function setPixels(rect:Rectangle, byteArray:ByteArray):Void
@@ -373,6 +484,125 @@ class BitmapData implements IBitmapDrawable
 	}
 
 	public function unlock(changeRect:Rectangle = null):Void {}
+
+	@:noCompletion private static function __argbToFlight(color:Int, premultiply:Bool):Int
+	{
+		var alpha = (color >>> 24) & 0xFF;
+		var red = (color >>> 16) & 0xFF;
+		var green = (color >>> 8) & 0xFF;
+		var blue = color & 0xFF;
+		if (premultiply && alpha != 0xFF)
+		{
+			red = __premultiplyComponent(red, alpha);
+			green = __premultiplyComponent(green, alpha);
+			blue = __premultiplyComponent(blue, alpha);
+		}
+		return (red << 24) | (green << 16) | (blue << 8) | alpha;
+	}
+
+	@:noCompletion private function __clipRectangle(value:Rectangle):Rectangle
+	{
+		var left = Std.int(Math.max(0, value.x));
+		var top = Std.int(Math.max(0, value.y));
+		var right = Std.int(Math.min(width, value.x + value.width));
+		var bottom = Std.int(Math.min(height, value.y + value.height));
+		return right <= left || bottom <= top ? null : new Rectangle(left, top, right - left, bottom - top);
+	}
+
+	@:noCompletion private static function __flightChannel(channel:BitmapDataChannel):Float
+	{
+		return switch (channel)
+		{
+			case BitmapDataChannel.RED: FlightBitmap.ImageChannel.Red;
+			case BitmapDataChannel.GREEN: FlightBitmap.ImageChannel.Green;
+			case BitmapDataChannel.BLUE: FlightBitmap.ImageChannel.Blue;
+			case BitmapDataChannel.ALPHA: FlightBitmap.ImageChannel.Alpha;
+			default: FlightBitmap.ImageChannel.Red;
+		};
+	}
+
+	@:noCompletion private static function __flightToArgb(color:Int, unpremultiply:Bool):Int
+	{
+		var red = (color >>> 24) & 0xFF;
+		var green = (color >>> 16) & 0xFF;
+		var blue = (color >>> 8) & 0xFF;
+		var alpha = color & 0xFF;
+		if (unpremultiply && alpha != 0 && alpha != 0xFF)
+		{
+			red = __unpremultiplyComponent(red, alpha);
+			green = __unpremultiplyComponent(green, alpha);
+			blue = __unpremultiplyComponent(blue, alpha);
+		}
+		return (alpha << 24) | (red << 16) | (green << 8) | blue;
+	}
+
+	@:noCompletion private inline function get___flightBitmap():FlightBitmapHandle
+	{
+		return __bitmap;
+	}
+
+	@:noCompletion private static function __toStraightBitmap(value:BitmapData):FlightBitmapHandle
+	{
+		var result = FlightBitmap.createBitmap(value.width, value.height, 0);
+		for (y in 0...value.height)
+		{
+			for (x in 0...value.width)
+			{
+				FlightBitmap.setBitmapPixel(result, x, y, __argbToFlight(value.getPixel32(x, y), false));
+			}
+		}
+		return result;
+	}
+
+	@:noCompletion private function __writeStraightRegion(bitmap:FlightBitmapHandle, x:Int, y:Int, width:Int, height:Int):Void
+	{
+		for (offsetY in 0...height)
+		{
+			for (offsetX in 0...width)
+			{
+				var bitmapX = x + offsetX;
+				var bitmapY = y + offsetY;
+				if (bitmapX < 0 || bitmapY < 0 || bitmapX >= this.width || bitmapY >= this.height) continue;
+				setPixel32(bitmapX, bitmapY, __flightToArgb(Std.int(FlightBitmap.getBitmapPixel(bitmap, bitmapX, bitmapY)), false));
+			}
+		}
+	}
+
+	@:noCompletion private static function __fromFlightBitmap(bitmap:FlightBitmapHandle, transparent:Bool):BitmapData
+	{
+		var result = new BitmapData(Std.int(bitmap.width), Std.int(bitmap.height), transparent, 0);
+		result.__bitmap = bitmap;
+		return result;
+	}
+
+	@:noCompletion private static function __premultiplyComponent(component:Int, alpha:Int):Int
+	{
+		if (alpha == 0) return 0;
+		if (alpha == 0xFF) return component;
+		var alpha16 = Std.int(Math.ceil(alpha * (65536 / 255)));
+		return (component * alpha16) >> 16;
+	}
+
+	@:noCompletion private static function __premultiplyRgb(color:Int, alpha:Int):Int
+	{
+		return (__premultiplyComponent((color >>> 16) & 0xFF, alpha) << 16)
+			| (__premultiplyComponent((color >>> 8) & 0xFF, alpha) << 8)
+			| __premultiplyComponent(color & 0xFF, alpha);
+	}
+
+	@:noCompletion private static function __unpremultiplyComponent(component:Int, alpha:Int):Int
+	{
+		return Std.int(Math.min(255, Math.round(component * 255 / alpha)));
+	}
+
+	@:noCompletion private static function __unpremultiplyRgb(color:Int, alpha:Int):Int
+	{
+		if (alpha == 0) return 0;
+		if (alpha == 0xFF) return color & 0xFFFFFF;
+		return (__unpremultiplyComponent((color >>> 16) & 0xFF, alpha) << 16)
+			| (__unpremultiplyComponent((color >>> 8) & 0xFF, alpha) << 8)
+			| __unpremultiplyComponent(color & 0xFF, alpha);
+	}
 
 	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix):Void {}
 	@:noCompletion private function __update(transformOnly:Bool, updateChildren:Bool):Void {}
