@@ -1,0 +1,50 @@
+{
+  "screens": {
+    "main": {
+      "available": false
+    },
+    "arrayMutationIsolated": true,
+    "available": true,
+    "count": 1,
+    "objectsAreDistinct": true,
+    "arraysAreDistinct": true
+  },
+  "window": {
+    "stageClearedOnClose": true,
+    "available": true,
+    "stageLoaderParameters": "42",
+    "mutated": {
+      "fullscreen": true,
+      "maximized": true,
+      "scale": 1,
+      "title": "Mutated title",
+      "signalsPresent": true,
+      "stagePresent": true,
+      "visible": false,
+      "textInputEnabled": false,
+      "x": -17,
+      "y": 29,
+      "minimized": false,
+      "height": 233,
+      "frameRate": null,
+      "width": 401
+    },
+    "initial": {
+      "fullscreen": false,
+      "maximized": false,
+      "scale": 1,
+      "title": "Initial title",
+      "signalsPresent": true,
+      "stagePresent": true,
+      "visible": true,
+      "textInputEnabled": false,
+      "x": 0,
+      "y": 0,
+      "minimized": false,
+      "height": 0,
+      "frameRate": null,
+      "width": 0
+    },
+    "applicationWindowSameReference": true
+  }
+}

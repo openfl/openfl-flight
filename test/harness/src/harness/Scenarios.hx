@@ -43,6 +43,7 @@ import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
+import harness.scenarios.ScreenWindowScenario;
 import harness.scenarios.SensorScenario;
 import harness.scenarios.ShaderTypesScenario;
 import harness.scenarios.SimpleButtonScenario;
@@ -136,6 +137,10 @@ class Scenarios {
 			{
 				name: "geom/utils3d",
 				run: Utils3DScenario.run
+			},
+			{
+				name: "display/screen-window",
+				run: ScreenWindowScenario.run
 			},
 			{
 				name: "display/shader-types",
