@@ -4,11 +4,20 @@ package openfl.ui;
 import flight.Input as FlightInput;
 import flight.Platform as FlightPlatform;
 import flight.Signals as FlightSignals;
+import flight.types.HasSystemPlatform as FlightPlatformHost;
+import flight.types.InputIngressSource as FlightInputSource;
 import flight.types.InputManager as FlightInputManager;
 import flight.types.InputPointerData as FlightPointerData;
 import openfl.Vector;
 #if (js && html5)
+import flight.HostWeb as FlightHostWeb;
 import js.Browser;
+#elseif clay
+import clay.Clay;
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif lime
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
 #end
 
 /**
@@ -118,6 +127,10 @@ import js.Browser;
 
 	@:noCompletion private static var __activeTouchPoints:Map<Int, Bool>;
 	@:noCompletion private static var __flightInputManager:FlightInputManager;
+	@:noCompletion private static var __flightInputSource:FlightInputSource;
+	@:noCompletion private static var __flightInputSourceResolved:Bool;
+	@:noCompletion private static var __platformHost:FlightPlatformHost;
+	@:noCompletion private static var __platformHostResolved:Bool;
 	@:noCompletion private static var __supportsTouchEvents:Bool;
 
 	private static function __init__():Void
@@ -127,7 +140,8 @@ import js.Browser;
 		supportsGestureEvents = false;
 		inputMode = MultitouchInputMode.TOUCH_POINT;
 		__activeTouchPoints = new Map();
-		__supportsTouchEvents = FlightPlatform.isPlatformTouch();
+		var platformHost = __getFlightPlatformHost();
+		__supportsTouchEvents = platformHost != null && FlightPlatform.isPlatformTouch(platformHost);
 
 		#if (!js || !html5)
 		#if !mac
@@ -143,12 +157,8 @@ import js.Browser;
 		FlightSignals.connectSignal(__flightInputManager.onPointerUp, __onFlightPointerUp);
 		FlightSignals.connectSignal(__flightInputManager.onPointerCancel, __onFlightPointerUp);
 
-		#if (js && html5)
-		if (Browser.supported && Browser.document.documentElement != null)
-		{
-			FlightInput.attachPointerInput(__flightInputManager, cast Browser.document.documentElement, {preventDefault: false});
-		}
-		#end
+		var inputSource = __getFlightInputSource();
+		if (inputSource != null) FlightInput.attachPointerInput(__flightInputManager, inputSource, {preventDefault: false});
 
 		#if openfljs
 		untyped Object.defineProperties(Multitouch, {
@@ -160,6 +170,57 @@ import js.Browser;
 			}
 		});
 		#end
+	}
+
+	@:noCompletion private static function __getFlightPlatformHost():FlightPlatformHost
+	{
+		if (__platformHost != null || __platformHostResolved) return __platformHost;
+
+		#if (js && html5)
+		__platformHost = cast FlightHostWeb.webHost;
+		__platformHostResolved = true;
+		#elseif clay
+		__platformHost = cast FlightHostClay.createClayHost();
+		__platformHostResolved = true;
+		#elseif lime
+		if (LimeApplication.current != null)
+		{
+			__platformHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+			__platformHostResolved = true;
+		}
+		#else
+		__platformHostResolved = true;
+		#end
+
+		return __platformHost;
+	}
+
+	@:noCompletion private static function __getFlightInputSource():FlightInputSource
+	{
+		if (__flightInputSource != null || __flightInputSourceResolved) return __flightInputSource;
+
+		#if (js && html5)
+		if (Browser.supported && Browser.document.documentElement != null)
+		{
+			__flightInputSource = cast Browser.document.documentElement;
+		}
+		__flightInputSourceResolved = true;
+		#elseif clay
+		__getFlightPlatformHost();
+		__flightInputSource = cast Clay.app;
+		__flightInputSourceResolved = true;
+		#elseif lime
+		if (LimeApplication.current != null && LimeApplication.current.window != null)
+		{
+			__getFlightPlatformHost();
+			__flightInputSource = cast LimeApplication.current.window;
+			__flightInputSourceResolved = true;
+		}
+		#else
+		__flightInputSourceResolved = true;
+		#end
+
+		return __flightInputSource;
 	}
 
 	// Getters & Setters
