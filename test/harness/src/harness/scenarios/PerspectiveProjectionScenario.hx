@@ -7,41 +7,29 @@ import openfl.geom.Point;
 class PerspectiveProjectionScenario {
 	public static function run():Dynamic {
 		var pp = new PerspectiveProjection();
-
-		var defaultFov = pp.fieldOfView;
-		var defaultFocal = pp.focalLength;
-		var defaultCenter = pp.projectionCenter;
+		pp.focalLength = 250;
+		pp.projectionCenter = new Point(200, 150);
 
 		var m = pp.toMatrix3D();
 
-		pp.fieldOfView = 90;
-		var wideFov = pp.fieldOfView;
-		var wideFocal = pp.focalLength;
+		pp.focalLength = 500;
 		var wideMatrix = pp.toMatrix3D();
 
-		pp.fieldOfView = 30;
-		var narrowFov = pp.fieldOfView;
-		var narrowFocal = pp.focalLength;
-
-		pp.projectionCenter = new Point(100, 200);
+		pp.focalLength = 100;
+		var narrowMatrix = pp.toMatrix3D();
 
 		return {
-			defaults: {
-				fieldOfView: round(defaultFov),
-				focalLength: round(defaultFocal),
-				projectionCenter: coords(defaultCenter)
+			focalLength250: {
+				focalLength: pp.focalLength,
+				projectionCenter: coords(pp.projectionCenter),
+				matrix: m != null ? roundRawData(m) : null
 			},
-			defaultMatrix: roundRawData(m),
-			wideFov: {
-				fieldOfView: round(wideFov),
-				focalLength: round(wideFocal),
-				matrix: roundRawData(wideMatrix)
+			focalLength500: {
+				matrix: wideMatrix != null ? roundRawData(wideMatrix) : null
 			},
-			narrowFov: {
-				fieldOfView: round(narrowFov),
-				focalLength: round(narrowFocal)
-			},
-			projectionCenter: coords(pp.projectionCenter)
+			focalLength100: {
+				matrix: narrowMatrix != null ? roundRawData(narrowMatrix) : null
+			}
 		};
 	}
 

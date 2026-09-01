@@ -1,0 +1,26 @@
+{
+  "objectKeys": {
+    "getKey1": "replaced",
+    "getKey2": "second",
+    "overwritten": true
+  },
+  "basicUsage": {
+    "getC": 3,
+    "getA": 1,
+    "getB": 2,
+    "getMissing": null
+  },
+  "exists": {
+    "present": true,
+    "absent": false
+  },
+  "iteration": {
+    "sortedValues": "1,2,3",
+    "keyCount": 3,
+    "sortedKeys": "a,b,c"
+  },
+  "removeKey": {
+    "beforeRemove": true,
+    "afterRemove": false
+  }
+}

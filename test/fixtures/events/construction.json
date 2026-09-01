@@ -1,0 +1,60 @@
+{
+  "cancelable": {
+    "cancelable": true,
+    "targetIsNull": true,
+    "currentTargetIsNull": true,
+    "bubbles": false,
+    "type": "test"
+  },
+  "defaults": {
+    "cancelable": false,
+    "targetIsNull": true,
+    "currentTargetIsNull": true,
+    "bubbles": false,
+    "type": "test"
+  },
+  "toString": {
+    "base": "[Event type=\"myEvent\" bubbles=false cancelable=false]",
+    "withBubbles": "[Event type=\"myEvent\" bubbles=true cancelable=false]"
+  },
+  "cloned": {
+    "cancelable": true,
+    "targetIsNull": true,
+    "currentTargetIsNull": true,
+    "bubbles": true,
+    "type": "custom"
+  },
+  "bubbling": {
+    "cancelable": false,
+    "targetIsNull": true,
+    "currentTargetIsNull": true,
+    "bubbles": true,
+    "type": "test"
+  },
+  "cloneIsNewInstance": true,
+  "clonePreservesType": true,
+  "stopPropagation": {
+    "targetIsNull": true,
+    "currentTargetIsNull": true,
+    "initialPhase": "2"
+  },
+  "clonePreservesCancelable": true,
+  "preventDefault": {
+    "cancelable": {
+      "beforePrevent": null,
+      "afterPrevent": true
+    },
+    "notCancelable": {
+      "beforePrevent": null,
+      "afterPrevent": null
+    }
+  },
+  "clonePreservesBubbles": true,
+  "full": {
+    "cancelable": true,
+    "targetIsNull": true,
+    "currentTargetIsNull": true,
+    "bubbles": true,
+    "type": "custom"
+  }
+}

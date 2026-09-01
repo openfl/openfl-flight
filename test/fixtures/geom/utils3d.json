@@ -1,0 +1,25 @@
+{
+  "identityProjection": {
+    "x": 10,
+    "y": 20,
+    "z": 30,
+    "w": 0
+  },
+  "projectVector": {
+    "x": 10,
+    "y": 20,
+    "z": 130,
+    "w": 0
+  },
+  "projectVectors": {
+    "length": 6,
+    "values": [
+      10,
+      20,
+      -5,
+      15,
+      0,
+      0
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "hasEventListener": {
+    "after": false,
+    "during": true,
+    "wrongType": false,
+    "before": false
+  },
+  "removeDuringDispatch": {
+    "log": "first"
+  },
+  "dispatchReturnValue": {
+    "noListener": true,
+    "canceledEvent": false,
+    "nonCanceledEvent": true,
+    "withListener": true
+  },
+  "toString": "[object EventDispatcher]",
+  "removeListener": {
+    "callCount": 1,
+    "hasAfterRemove": false
+  },
+  "basicDispatch": {
+    "callCount": 2
+  },
+  "duplicateListener": {
+    "callCount": 1
+  },
+  "targetAndCurrentTarget": {
+    "targetEquals": true,
+    "targetIsDispatcher": true
+  },
+  "priority": {
+    "order": "high,medium,normal,low"
+  },
+  "aggregatedTarget": {
+    "targetIsOuter": true
+  },
+  "noListeners": {
+    "has": false,
+    "result": true
+  },
+  "multipleListeners": {
+    "count": 2,
+    "log": "first,second"
+  },
+  "listenerDuringDispatch": {
+    "firstDispatch": "first",
+    "secondDispatch": "first,added-during"
+  }
+}

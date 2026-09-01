@@ -1,0 +1,206 @@
+{
+  "contains": {
+    "onEdge": true,
+    "outside": false,
+    "inside": true,
+    "negSizeInside": false
+  },
+  "clone": {
+    "notSame": true,
+    "values": {
+      "x": 10,
+      "y": 20,
+      "height": 50,
+      "width": 100
+    }
+  },
+  "isEmpty": {
+    "normal": false,
+    "negative": true,
+    "zeroWidth": true,
+    "empty": true,
+    "zeroHeight": true
+  },
+  "constructDefault": {
+    "x": 0,
+    "y": 0,
+    "height": 0,
+    "width": 0
+  },
+  "offset": {
+    "x": 25,
+    "y": 15,
+    "height": 50,
+    "width": 100
+  },
+  "setEmpty": {
+    "x": 0,
+    "y": 0,
+    "height": 0,
+    "width": 0
+  },
+  "constructNegative": {
+    "x": 5,
+    "y": 5,
+    "height": -20,
+    "width": -10
+  },
+  "inflate": {
+    "x": 5,
+    "y": 10,
+    "height": 70,
+    "width": 110
+  },
+  "union": {
+    "withEmpty": {
+      "x": 10,
+      "y": 20,
+      "height": 50,
+      "width": 100
+    },
+    "overlapping": {
+      "x": 10,
+      "y": 20,
+      "height": 50,
+      "width": 120
+    },
+    "noOverlap": {
+      "x": 10,
+      "y": 20,
+      "height": 190,
+      "width": 200
+    }
+  },
+  "construct": {
+    "x": 10,
+    "y": 20,
+    "height": 50,
+    "width": 100
+  },
+  "intersection": {
+    "overlapping": {
+      "x": 50,
+      "y": 30,
+      "height": 40,
+      "width": 60
+    },
+    "self": {
+      "x": 10,
+      "y": 20,
+      "height": 50,
+      "width": 100
+    },
+    "noOverlap": {
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    }
+  },
+  "intersects": {
+    "adjacent": false,
+    "overlapping": true,
+    "noOverlap": false
+  },
+  "containsRect": {
+    "overlapping": false,
+    "empty": true,
+    "inside": true,
+    "self": true
+  },
+  "setters": {
+    "left": {
+      "x": 50,
+      "y": 20,
+      "height": 50,
+      "width": 60
+    },
+    "top": {
+      "x": 10,
+      "y": 5,
+      "height": 65,
+      "width": 100
+    },
+    "size": {
+      "x": 10,
+      "y": 20,
+      "height": 100,
+      "width": 200
+    },
+    "topLeft": {
+      "x": 5,
+      "y": 10,
+      "height": 50,
+      "width": 100
+    },
+    "right": {
+      "x": 10,
+      "y": 20,
+      "height": 50,
+      "width": 190
+    },
+    "bottomRight": {
+      "x": 10,
+      "y": 20,
+      "height": 80,
+      "width": 190
+    },
+    "bottom": {
+      "x": 10,
+      "y": 20,
+      "height": 80,
+      "width": 100
+    }
+  },
+  "containsPoint": {
+    "outside": false,
+    "inside": true
+  },
+  "copyFrom": {
+    "x": 10,
+    "y": 20,
+    "height": 50,
+    "width": 100
+  },
+  "equals": {
+    "empty": true,
+    "same": true,
+    "different": false
+  },
+  "derivedProps": {
+    "left": 10,
+    "top": 20,
+    "size": {
+      "x": 100,
+      "y": 50
+    },
+    "topLeft": {
+      "x": 10,
+      "y": 20
+    },
+    "right": 110,
+    "bottomRight": {
+      "x": 110,
+      "y": 70
+    },
+    "bottom": 70
+  },
+  "offsetPoint": {
+    "x": 0,
+    "y": 40,
+    "height": 50,
+    "width": 100
+  },
+  "deflatePastZero": {
+    "x": 15,
+    "y": 30,
+    "height": 30,
+    "width": 90
+  },
+  "setTo": {
+    "x": 1,
+    "y": 2,
+    "height": 4,
+    "width": 3
+  }
+}

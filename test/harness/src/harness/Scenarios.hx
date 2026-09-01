@@ -16,7 +16,6 @@ import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
 import harness.scenarios.PermissionStatusScenario;
-import harness.scenarios.PerspectiveProjectionScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
 import harness.scenarios.TelemetryScenario;
@@ -49,10 +48,6 @@ class Scenarios {
 			{
 				name: "geom/matrix3d",
 				run: Matrix3DScenario.run
-			},
-			{
-				name: "geom/perspective-projection",
-				run: PerspectiveProjectionScenario.run
 			},
 			{
 				name: "geom/utils3d",

@@ -1,0 +1,139 @@
+{
+  "clone": {
+    "notSame": true,
+    "values": {
+      "x": 3,
+      "y": 4,
+      "z": 5,
+      "w": 1
+    }
+  },
+  "constructDefault": {
+    "x": 0,
+    "y": 0,
+    "z": 0,
+    "w": 0
+  },
+  "decrementBy": {
+    "x": 4,
+    "y": 2,
+    "z": 2,
+    "w": 1
+  },
+  "distance": {
+    "normal": 4.89898,
+    "fromOrigin": 5,
+    "same": 0
+  },
+  "normalize": {
+    "returnedLength": 7.07107,
+    "newLength": 1,
+    "result": {
+      "x": 0.42426,
+      "y": 0.56569,
+      "z": 0.70711,
+      "w": 1
+    }
+  },
+  "construct": {
+    "x": 3,
+    "y": 4,
+    "z": 5,
+    "w": 1
+  },
+  "incrementBy": {
+    "x": 2,
+    "y": 6,
+    "z": 8,
+    "w": 1
+  },
+  "scaleBy": {
+    "x": 7.5,
+    "y": 10,
+    "z": 12.5,
+    "w": 1
+  },
+  "length": 7.07107,
+  "crossProduct": {
+    "x": 2,
+    "y": -14,
+    "z": 10,
+    "w": 1
+  },
+  "copyFrom": {
+    "x": 3,
+    "y": 4,
+    "z": 5,
+    "w": 0
+  },
+  "axes": {
+    "zAxis": {
+      "x": 0,
+      "y": 0,
+      "z": 1,
+      "w": 0
+    },
+    "yAxis": {
+      "x": 0,
+      "y": 1,
+      "z": 0,
+      "w": 0
+    },
+    "xAxis": {
+      "x": 1,
+      "y": 0,
+      "z": 0,
+      "w": 0
+    }
+  },
+  "zeroLength": 0,
+  "project": {
+    "x": 5,
+    "y": 10,
+    "z": 15,
+    "w": 2
+  },
+  "angleBetween": {
+    "parallel": 0,
+    "fortyFive": 0.7854,
+    "perpendicular": 1.5708
+  },
+  "dotProduct": 20,
+  "subtract": {
+    "x": 4,
+    "y": 2,
+    "z": 2,
+    "w": 0
+  },
+  "equals": {
+    "diffW": false,
+    "sameXYZW": true,
+    "different": false,
+    "sameXYZ": true
+  },
+  "lengthSquared": 50,
+  "negate": {
+    "x": -3,
+    "y": -4,
+    "z": -5,
+    "w": 1
+  },
+  "nearEquals": {
+    "outside": false,
+    "wOutside": false,
+    "within": true,
+    "withW": true
+  },
+  "add": {
+    "x": 2,
+    "y": 6,
+    "z": 8,
+    "w": 0
+  },
+  "setTo": {
+    "x": 1,
+    "y": 2,
+    "z": 3,
+    "w": 0
+  }
+}

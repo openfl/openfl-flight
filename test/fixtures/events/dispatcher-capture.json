@@ -1,0 +1,27 @@
+{
+  "hasEventListenerCapture": {
+    "hasTest": true
+  },
+  "captureVsNormal": {
+    "count": 1,
+    "log": "normal"
+  },
+  "nullListener": {
+    "hasListener": false
+  },
+  "stopImmediatePropagation": {
+    "log": "first"
+  },
+  "willTrigger": {
+    "after": true,
+    "before": false
+  },
+  "captureSameListener": {
+    "callCount": 1,
+    "hasNormal": true
+  },
+  "removeCaptureOnly": {
+    "stillHasListener": true,
+    "callCount": 1
+  }
+}

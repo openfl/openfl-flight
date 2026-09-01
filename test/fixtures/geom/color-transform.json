@@ -1,0 +1,85 @@
+{
+  "defaults": {
+    "blueMultiplier": 1,
+    "redOffset": 0,
+    "greenMultiplier": 1,
+    "alphaMultiplier": 1,
+    "alphaOffset": 0,
+    "redMultiplier": 1,
+    "blueOffset": 0,
+    "greenOffset": 0
+  },
+  "edgeCases": {
+    "maxOffsets": {
+      "blueMultiplier": 1,
+      "redOffset": 255,
+      "greenMultiplier": 1,
+      "alphaMultiplier": 1,
+      "alphaOffset": 255,
+      "redMultiplier": 1,
+      "blueOffset": 255,
+      "greenOffset": 255
+    },
+    "zeroMultipliers": {
+      "blueMultiplier": 0,
+      "redOffset": 128,
+      "greenMultiplier": 0,
+      "alphaMultiplier": 0,
+      "alphaOffset": 128,
+      "redMultiplier": 0,
+      "blueOffset": 128,
+      "greenOffset": 128
+    },
+    "negativeOffsets": {
+      "blueMultiplier": 1,
+      "redOffset": -128,
+      "greenMultiplier": 1,
+      "alphaMultiplier": 1,
+      "alphaOffset": -128,
+      "redMultiplier": 1,
+      "blueOffset": -128,
+      "greenOffset": -128
+    }
+  },
+  "identity": {
+    "blueMultiplier": 1,
+    "redOffset": 0,
+    "greenMultiplier": 1,
+    "alphaMultiplier": 1,
+    "alphaOffset": 0,
+    "redMultiplier": 1,
+    "blueOffset": 0,
+    "greenOffset": 0
+  },
+  "colorSet": {
+    "blueMultiplier": 0,
+    "redOffset": 255,
+    "greenMultiplier": 0,
+    "alphaMultiplier": 1,
+    "alphaOffset": 0,
+    "redMultiplier": 0,
+    "blueOffset": 64,
+    "greenOffset": 128
+  },
+  "concat": {
+    "blueMultiplier": 0.35,
+    "redOffset": 12.5,
+    "greenMultiplier": 0.3,
+    "alphaMultiplier": 0.4,
+    "alphaOffset": 56,
+    "redMultiplier": 0.25,
+    "blueOffset": 40.5,
+    "greenOffset": 26
+  },
+  "colorGet": 16744512,
+  "custom": {
+    "blueMultiplier": 0.7,
+    "redOffset": 10,
+    "greenMultiplier": 0.6,
+    "alphaMultiplier": 0.8,
+    "alphaOffset": 40,
+    "redMultiplier": 0.5,
+    "blueOffset": 30,
+    "greenOffset": 20
+  }
+}
