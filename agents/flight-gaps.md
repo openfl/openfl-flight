@@ -32,6 +32,20 @@ currently provides (or doesn't).
   `ByteArray`/typed-array uploads, arbitrary mip levels, render-target textures,
   or `VideoTexture`. BitmapData uploads at the base mip are supported.
 
+- **Per-node render-effect attachment**: Flight Effects creates typed bevel,
+  blur, convolution, shadow, and glow descriptors, but Flight Node exposes only
+  color-adjustment attachment and has no public way to associate a
+  `RenderEffect` list with an arbitrary Scene2D node. `ColorMatrixFilter` maps
+  through Flight color adjustments; the remaining OpenFL display-object filters
+  retain synchronized Flight descriptors until a node-level effect hook exists.
+
+- **Bitmap-map displacement as a render effect**: Flight Bitmap can displace a
+  pixel region from a bitmap map with selected channels, scales, and edge modes,
+  but Flight's render-pipeline `DisplacementEffect` is procedural and accepts no
+  bitmap map or channel selection. The adapter retains a Flight bitmap-region
+  handle for `DisplacementMapFilter`, but cannot attach that map-driven effect to
+  display objects without a corresponding render-effect descriptor.
+
 - **General-purpose byte compression**: OpenFL `ByteArray.compress`,
   `uncompress`, `deflate`, and `inflate` require zlib, raw deflate, and LZMA
   codecs over an in-memory byte buffer. Flight 0.4.0 exposes only GPU texture
