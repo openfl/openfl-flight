@@ -4,6 +4,16 @@ package openfl.system;
 import haxe.macro.Compiler;
 import flight.App as FlightApp;
 import flight.Device as FlightDevice;
+import flight.types.HasAppLocale as FlightAppLocaleHost;
+import flight.types.HasSystemDevice as FlightSystemDeviceHost;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
 
 /**
 	The Capabilities class provides properties that describe the system and
@@ -88,6 +98,9 @@ import flight.Device as FlightDevice;
 #end
 @:final class Capabilities
 {
+	@:noCompletion private static var __flightLocaleHost:FlightAppLocaleHost;
+	@:noCompletion private static var __flightSystemDeviceHost:FlightSystemDeviceHost;
+
 	/**
 		Specifies whether access to the user's camera and microphone has been
 		administratively prohibited (`true`) or allowed
@@ -597,8 +610,9 @@ import flight.Device as FlightDevice;
 
 	@:noCompletion private static function get_language():String
 	{
-		var locale = FlightApp.getAppLocale();
-		if (locale == null || locale == "") locale = FlightApp.getAppSystemLocale();
+		var host = __getFlightLocaleHost();
+		var locale = FlightApp.getAppLocale(host);
+		if (locale == null || locale == "") locale = FlightApp.getAppSystemLocale(host);
 
 		if (locale != null && locale != "")
 		{
@@ -684,12 +698,82 @@ import flight.Device as FlightDevice;
 
 	@:noCompletion private static inline function __getFlightDeviceInfo():Dynamic
 	{
-		return FlightDevice.getDeviceInfo(cast {});
+		return FlightDevice.getDeviceInfo(__getFlightSystemDeviceHost(), FlightDevice.createDeviceInfo());
 	}
 
 	@:noCompletion private static inline function __getFlightDisplayMetrics():Dynamic
 	{
-		return FlightDevice.getDeviceDisplayMetrics(cast {});
+		return FlightDevice.getDeviceDisplayMetrics(__getFlightSystemDeviceHost(), FlightDevice.createDeviceDisplayMetrics());
+	}
+
+	@:noCompletion private static function __getFlightLocaleHost():FlightAppLocaleHost
+	{
+		if (__flightLocaleHost != null) return __flightLocaleHost;
+
+		#if (js && html5)
+		__flightLocaleHost = cast FlightHostWeb.webAppHost;
+		#elseif (clay && sys)
+		var host:Dynamic = FlightHostClay.createClayHost();
+		host.app.locale = __createFallbackLocaleHost().app.locale;
+		__flightLocaleHost = cast host;
+		#elseif (lime && sys && !clay)
+		if (LimeApplication.current == null) return __createFallbackLocaleHost();
+		__flightLocaleHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+		#else
+		__flightLocaleHost = __createFallbackLocaleHost();
+		#end
+
+		return __flightLocaleHost;
+	}
+
+	@:noCompletion private static function __getFlightSystemDeviceHost():FlightSystemDeviceHost
+	{
+		if (__flightSystemDeviceHost != null) return __flightSystemDeviceHost;
+
+		#if (js && html5)
+		__flightSystemDeviceHost = cast FlightHostWeb.webSystemHost;
+		#elseif (clay && sys)
+		var host:Dynamic = FlightHostClay.createClayHost();
+		host.system.device = __createFallbackSystemDeviceHost().system.device;
+		__flightSystemDeviceHost = cast host;
+		#elseif (lime && sys)
+		if (LimeApplication.current == null) return __createFallbackSystemDeviceHost();
+		var host:Dynamic = FlightHostLime.createLimeHost(LimeApplication.current);
+		host.system.device = __createFallbackSystemDeviceHost().system.device;
+		__flightSystemDeviceHost = cast host;
+		#else
+		__flightSystemDeviceHost = __createFallbackSystemDeviceHost();
+		#end
+
+		return __flightSystemDeviceHost;
+	}
+
+	@:noCompletion private static function __createFallbackSystemDeviceHost():FlightSystemDeviceHost
+	{
+		return cast {
+			system: {
+				device: {
+					getCapabilities: function(out) return out,
+					getDisplayMetrics: function(out) return out,
+					getId: function():String return "",
+					getInfo: function(out) return out,
+					getSafeAreaInsets: function(out) return out
+				}
+			}
+		};
+	}
+
+	@:noCompletion private static function __createFallbackLocaleHost():FlightAppLocaleHost
+	{
+		return cast {
+			app: {
+				locale: {
+					getLocale: function():String return "",
+					getPreferredSystemLanguages: function():Array<String> return [],
+					getSystemLocale: function():String return ""
+				}
+			}
+		};
 	}
 
 	@:noCompletion private static function get_version():String
