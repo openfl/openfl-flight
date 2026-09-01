@@ -1,6 +1,8 @@
 package openfl.display;
 
 #if !flash
+import flight.Bitmap as FlightBitmap;
+import flight.types.Bitmap as FlightBitmapData;
 import openfl.Vector;
 import openfl.display3D.Context3D;
 import openfl.display3D.IndexBuffer3D;
@@ -46,6 +48,7 @@ class BitmapData implements IBitmapDrawable
 
 	@:noCompletion private var __blendMode:BlendMode;
 	@:noCompletion private var __drawableType:Dynamic;
+	@:noCompletion private var __flightBitmap:FlightBitmapData;
 	@:noCompletion private var __isMask:Bool;
 	@:noCompletion private var __isValid:Bool;
 	@:noCompletion private var __mask:DisplayObject;
@@ -70,7 +73,7 @@ class BitmapData implements IBitmapDrawable
 		__pixels = [];
 		var color = transparent ? fillColor : (0xFF000000 | (fillColor & 0xFFFFFF));
 		for (i in 0...(this.width * this.height)) __pixels[i] = color;
-		// TODO: Allocate and synchronize Flight bitmap storage.
+		__flightBitmap = FlightBitmap.createBitmap(this.width, this.height, __toFlightColor(color));
 	}
 
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, filter:BitmapFilter):Void
@@ -82,6 +85,7 @@ class BitmapData implements IBitmapDrawable
 	{
 		var result = new BitmapData(width, height, transparent, 0);
 		result.__pixels = __pixels.copy();
+		result.__flightBitmap = FlightBitmap.cloneBitmap(__flightBitmap);
 		result.image = image;
 		return result;
 	}
@@ -116,6 +120,7 @@ class BitmapData implements IBitmapDrawable
 	{
 		image = null;
 		__pixels = [];
+		__flightBitmap = null;
 		readable = false;
 		// TODO: Release Flight bitmap resources.
 	}
@@ -152,6 +157,11 @@ class BitmapData implements IBitmapDrawable
 		var right = Std.int(Math.min(width, rect.x + rect.width));
 		var bottom = Std.int(Math.min(height, rect.y + rect.height));
 		for (y in top...bottom) for (x in left...right) __pixels[y * width + x] = color;
+		if (__flightBitmap != null && right > left && bottom > top)
+		{
+			var region = FlightBitmap.createBitmapRegion(__flightBitmap, left, top, right - left, bottom - top);
+			FlightBitmap.fillBitmapRectangle(region, __toFlightColor(color));
+		}
 	}
 
 	public function floodFill(x:Int, y:Int, color:Int):Void
@@ -324,12 +334,15 @@ class BitmapData implements IBitmapDrawable
 		if (!readable || x < 0 || y < 0 || x >= width || y >= height) return;
 		var alpha = __pixels[y * width + x] & 0xFF000000;
 		__pixels[y * width + x] = alpha | (color & 0xFFFFFF);
+		if (__flightBitmap != null) FlightBitmap.setBitmapPixelRgb(__flightBitmap, x, y, color & 0xFFFFFF);
 	}
 
 	public function setPixel32(x:Int, y:Int, color:Int):Void
 	{
 		if (!readable || x < 0 || y < 0 || x >= width || y >= height) return;
-		__pixels[y * width + x] = transparent ? color : (0xFF000000 | (color & 0xFFFFFF));
+		var value = transparent ? color : (0xFF000000 | (color & 0xFFFFFF));
+		__pixels[y * width + x] = value;
+		if (__flightBitmap != null) FlightBitmap.setBitmapPixel(__flightBitmap, x, y, __toFlightColor(value));
 	}
 
 	public function setPixels(rect:Rectangle, byteArray:ByteArray):Void
@@ -364,6 +377,11 @@ class BitmapData implements IBitmapDrawable
 	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix):Void {}
 	@:noCompletion private function __update(transformOnly:Bool, updateChildren:Bool):Void {}
 	@:noCompletion private function __updateTransforms(overrideTransform:Matrix = null):Void {}
+
+	@:noCompletion private static function __toFlightColor(color:UInt):UInt
+	{
+		return ((color & 0xFFFFFF) << 8) | (color >>> 24);
+	}
 }
 #else
 typedef BitmapData = flash.display.BitmapData;

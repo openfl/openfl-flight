@@ -1,0 +1,53 @@
+{
+  "shape": {
+    "graphicsStable": true,
+    "bounds": {
+      "x": -4,
+      "y": 6,
+      "height": 9,
+      "width": 18
+    },
+    "height": 9,
+    "width": 18
+  },
+  "bitmap": {
+    "cleared": {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "height": 0,
+        "width": 0
+      },
+      "bitmapDataIsNull": true,
+      "height": 0,
+      "width": 0
+    },
+    "defaultSmoothing": false,
+    "initial": {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "height": 7,
+        "width": 13
+      },
+      "pixelSnappingAlways": true,
+      "smoothing": true,
+      "height": 7,
+      "bitmapDataMatches": true,
+      "width": 13
+    },
+    "defaultPixelSnappingAuto": true,
+    "replacement": {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "height": 11,
+        "width": 4
+      },
+      "smoothing": false,
+      "height": 11,
+      "bitmapDataMatches": true,
+      "width": 4
+    }
+  }
+}

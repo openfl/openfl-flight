@@ -1,7 +1,12 @@
 package openfl.display;
 
 #if !flash
+import flight.Node as FlightNode;
+import flight.Texture as FlightTexture;
+import flight.types.Sprite as FlightSpriteData;
+import flight.types.Texture2D as FlightTextureData;
 import openfl.geom.Matrix;
+import openfl.geom.Point;
 import openfl.geom.Rectangle;
 #if (js && html5)
 import js.html.ImageElement;
@@ -97,6 +102,7 @@ class Bitmap extends DisplayObject
 	@:noCompletion private var __image:ImageElement;
 	#end
 	@:noCompletion private var __bitmapData:BitmapData;
+	@:noCompletion private var __flightTexture:FlightTextureData;
 	@:noCompletion private var __imageVersion:Int;
 
 	#if openfljs
@@ -123,7 +129,6 @@ class Bitmap extends DisplayObject
 	{
 		super();
 
-		__drawableType = BITMAP;
 		__bitmapData = bitmapData;
 		this.pixelSnapping = pixelSnapping;
 		this.smoothing = smoothing;
@@ -132,6 +137,8 @@ class Bitmap extends DisplayObject
 		{
 			this.pixelSnapping = PixelSnapping.AUTO;
 		}
+
+		__syncBitmapData();
 	}
 
 	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
@@ -144,65 +151,14 @@ class Bitmap extends DisplayObject
 
 	@:noCompletion private override function __getBounds(rect:Rectangle, matrix:Matrix):Void
 	{
-		var bounds = Rectangle.__pool.get();
-		if (__bitmapData != null)
-		{
-			bounds.setTo(0, 0, __bitmapData.width, __bitmapData.height);
-		}
-		else
-		{
-			bounds.setTo(0, 0, 0, 0);
-		}
-
-		bounds.__transform(bounds, matrix);
-		rect.__expand(bounds.x, bounds.y, bounds.width, bounds.height);
-		Rectangle.__pool.release(bounds);
+		super.__getBounds(rect, matrix);
 	}
 
-	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool,
-			hitObject:DisplayObject):Bool
+	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
-		if (!hitObject.visible || __isMask || __bitmapData == null) return false;
-		if (mask != null && !mask.__hitTestMask(x, y)) return false;
-
-		__getRenderTransform();
-
-		var px = __renderTransform.__transformInverseX(x, y);
-		var py = __renderTransform.__transformInverseY(x, y);
-
-		if (px > 0 && py > 0 && px <= __bitmapData.width && py <= __bitmapData.height)
-		{
-			if (__scrollRect != null && !__scrollRect.contains(px, py))
-			{
-				return false;
-			}
-
-			if (stack != null && !interactiveOnly)
-			{
-				stack.push(hitObject);
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@:noCompletion private override function __hitTestMask(x:Float, y:Float):Bool
-	{
-		if (__bitmapData == null) return false;
-
-		__getRenderTransform();
-
-		var px = __renderTransform.__transformInverseX(x, y);
-		var py = __renderTransform.__transformInverseY(x, y);
-
-		if (px > 0 && py > 0 && px <= __bitmapData.width && py <= __bitmapData.height)
-		{
-			return true;
-		}
-
-		return false;
+		if (!visible || __bitmapData == null) return false;
+		var local = globalToLocal(new Point(x, y));
+		return local.x >= 0 && local.y >= 0 && local.x <= __bitmapData.width && local.y <= __bitmapData.height;
 	}
 
 	// Get & Set Methods
@@ -215,14 +171,7 @@ class Bitmap extends DisplayObject
 	{
 		__bitmapData = value;
 		smoothing = false;
-
-		__setRenderDirty();
-
-		if (__filters != null)
-		{
-			// __updateFilters = true;
-		}
-
+		__syncBitmapData();
 		__imageVersion = -1;
 
 		return __bitmapData;
@@ -252,6 +201,25 @@ class Bitmap extends DisplayObject
 			scaleX = 0;
 		}
 		return value;
+	}
+
+	@:noCompletion private function __syncBitmapData():Void
+	{
+		var sprite:FlightSpriteData = cast __flightNode;
+		if (__bitmapData == null || __bitmapData.__flightBitmap == null)
+		{
+			__flightTexture = null;
+			__setLocalBounds(null);
+		}
+		else
+		{
+			var sampler = smoothing ? FlightTexture.createClampLinearSampler() : FlightTexture.createPixelArtSampler();
+			__flightTexture = FlightTexture.createTexture2D({source: __bitmapData.__flightBitmap, sampler: sampler});
+			__setLocalBounds(new Rectangle(0, 0, __bitmapData.width, __bitmapData.height));
+		}
+		sprite.data.texture = __flightTexture;
+		FlightNode.invalidateNodeAppearance(__flightNode);
+		__setRenderDirty();
 	}
 }
 #else

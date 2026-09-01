@@ -33,6 +33,7 @@ import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
 import harness.scenarios.SystemScenario;
+import harness.scenarios.ShapeBitmapScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFormatScenario;
@@ -105,6 +106,9 @@ class Scenarios {
 				run: Utils3DScenario.run
 			},
 			{
+				name: "display/shape-bitmap",
+				run: ShapeBitmapScenario.run
+			},
 				name: "errors/error",
 				run: ErrorScenario.run
 			},
