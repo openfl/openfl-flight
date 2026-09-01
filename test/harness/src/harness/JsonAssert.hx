@@ -29,6 +29,22 @@ class JsonAssert {
 			return;
 		}
 
+		if (isString(expected)) {
+			if (!isString(actual) || (expected : String) != (actual : String)) {
+				fail(path, expected, actual);
+			}
+
+			return;
+		}
+
+		if (isBool(expected)) {
+			if (!isBool(actual) || (expected : Bool) != (actual : Bool)) {
+				fail(path, expected, actual);
+			}
+
+			return;
+		}
+
 		if (isNumber(expected)) {
 			if (!isNumber(actual) || expected != actual) {
 				fail(path, expected, actual);
@@ -63,11 +79,19 @@ class JsonAssert {
 		}
 	}
 
+	private static function isString(value:Dynamic):Bool {
+		return Std.isOfType(value, String);
+	}
+
 	private static function isNumber(value:Dynamic):Bool {
 		return switch (Type.typeof(value)) {
 			case TInt, TFloat: true;
 			default: false;
 		};
+	}
+
+	private static function isBool(value:Dynamic):Bool {
+		return Std.isOfType(value, Bool);
 	}
 
 	private static function fail(path:String, expected:Dynamic, actual:Dynamic):Void {
