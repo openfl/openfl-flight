@@ -44,6 +44,7 @@ import harness.scenarios.ShapeBitmapScenario;
 import harness.scenarios.SharedObjectScenario;
 import harness.scenarios.SoundStateScenario;
 import harness.scenarios.SoundLifecycleScenario;
+import harness.scenarios.SocketScenario;
 import harness.scenarios.StageScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
@@ -216,6 +217,10 @@ class Scenarios {
 			{
 				name: "net/shared-object",
 				run: SharedObjectScenario.run
+			},
+			{
+				name: "net/socket-basics",
+				run: SocketScenario.run
 			},
 			{
 				name: "display/display-object",

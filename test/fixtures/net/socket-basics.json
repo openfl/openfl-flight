@@ -1,0 +1,29 @@
+{
+  "defaults": {
+    "connected": false,
+    "endian": 0,
+    "bytesAvailableThrows": true,
+    "objectEncoding": null,
+    "secure": null,
+    "bytesPendingThrows": false,
+    "timeout": 20000
+  },
+  "mutation": {
+    "endian": 1,
+    "timeout": 1250
+  },
+  "constructorGuards": {
+    "portZeroConnected": false,
+    "port65535Connected": false
+  },
+  "invalidPorts": {
+    "negative": "openfl.errors.SecurityError",
+    "tooHigh": "openfl.errors.SecurityError"
+  },
+  "disconnectedErrors": {
+    "writeByte": "openfl.errors.IOError",
+    "flush": "openfl.errors.IOError",
+    "close": "openfl.errors.IOError",
+    "readByte": "openfl.errors.IOError"
+  }
+}
