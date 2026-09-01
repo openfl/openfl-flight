@@ -1,7 +1,29 @@
 package openfl.net;
 
 #if !flash
+import flight.HostWeb as FlightHostWeb;
+import flight.Net as FlightNet;
+import flight.Signals as FlightSignals;
+import flight.types.HasNetHttp;
+import flight.types.NetProgress;
+import flight.types.NetRequest;
+import flight.types.NetResponse;
+import flight.types.Signal;
+import haxe.io.Bytes;
+import openfl.errors.TypeError;
+import openfl.events.Event;
 import openfl.events.EventDispatcher;
+import openfl.events.HTTPStatusEvent;
+import openfl.events.IOErrorEvent;
+import openfl.events.ProgressEvent;
+import openfl.events.SecurityErrorEvent;
+import openfl.utils.ByteArray;
+#if clay
+import flight.hostClay.HostClay;
+#elseif lime
+import flight.hostLime.HostLime;
+import lime.app.Application;
+#end
 
 /**
 	The URLLoader class downloads data from a URL as text, binary data, or
@@ -140,6 +162,9 @@ class URLLoader extends EventDispatcher
 	**/
 	public var dataFormat:URLLoaderDataFormat;
 
+	@:noCompletion private var __loadGeneration:Int = 0;
+	@:noCompletion private var __loading:Bool = false;
+
 	/**
 		Creates a URLLoader object.
 
@@ -170,7 +195,9 @@ class URLLoader extends EventDispatcher
 	**/
 	public function close():Void
 	{
-		// TODO: Cancel the active request through Flight networking.
+		if (!__loading) return;
+		__loadGeneration++;
+		__loading = false;
 	}
 
 	/**
@@ -274,10 +301,199 @@ class URLLoader extends EventDispatcher
 	**/
 	public function load(request:URLRequest):Void
 	{
-		bytesLoaded = 0;
-		bytesTotal = 0;
-		data = null;
-		// TODO: Implement URL loading and event delivery through Flight networking.
+		if (request == null || request.url == null) throw new TypeError("URLRequest and URLRequest.url must be non-null");
+
+		var generation = ++__loadGeneration;
+		__loading = true;
+		dispatchEvent(new Event(Event.OPEN));
+
+		var progress:Signal<NetProgress->Void> = FlightSignals.createSignal();
+		FlightSignals.connectSignal(progress, function(value:NetProgress):Void
+		{
+			if (!__loading || generation != __loadGeneration || value.phase != "download") return;
+			bytesLoaded = Std.int(value.loaded);
+			bytesTotal = Std.int(value.total);
+			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, value.loaded, value.total));
+		});
+
+		var promise = FlightNet.sendNetRequest(__resolveHost(), __toFlightRequest(request), {progress: progress});
+		promise.then(function(response:NetResponse):NetResponse
+		{
+			__defer(function():Void __complete(generation, request, response));
+			return response;
+		}, function(error:Dynamic):NetResponse
+		{
+			__defer(function():Void __fail(generation, Std.string(error)));
+			return cast null;
+		});
+	}
+
+	@:noCompletion private function __complete(generation:Int, request:URLRequest, response:NetResponse):Void
+	{
+		if (!__loading || generation != __loadGeneration) return;
+		__loading = false;
+		__dispatchStatus(response, request.url);
+
+		data = __decodeResponse(response.body);
+		if (!response.ok)
+		{
+			if (Std.int(response.status) == 403)
+			{
+				dispatchEvent(new SecurityErrorEvent(SecurityErrorEvent.SECURITY_ERROR, false, false, response.statusText));
+			}
+			else
+			{
+				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, response.statusText));
+			}
+			return;
+		}
+
+		var length = __dataLength(data);
+		if (bytesTotal <= 0) bytesTotal = length;
+		if (bytesLoaded <= 0) bytesLoaded = length;
+		dispatchEvent(new Event(Event.COMPLETE));
+	}
+
+	@:noCompletion private function __decodeResponse(body:Dynamic):Dynamic
+	{
+		return switch (dataFormat)
+		{
+			case URLLoaderDataFormat.BINARY:
+				if (body == null)
+				{
+					new ByteArray();
+				}
+				else if (Std.isOfType(body, Bytes))
+				{
+					ByteArray.fromBytes(cast body);
+				}
+				#if js
+				else if (Std.isOfType(body, js.lib.ArrayBuffer))
+				{
+					ByteArray.fromBytes(Bytes.ofData(cast body));
+				}
+				#end
+				else
+				{
+					ByteArray.fromBytes(Bytes.ofString(Std.string(body)));
+				}
+
+			case URLLoaderDataFormat.VARIABLES:
+				new URLVariables(body == null ? "" : Std.string(body));
+
+			default:
+				body == null ? null : Std.string(body);
+		}
+	}
+
+	@:noCompletion private function __dispatchStatus(response:NetResponse, requestURL:String):Void
+	{
+		var status = Std.int(response.status);
+		var redirected = response.url != null && response.url != requestURL;
+		var responseEvent = new HTTPStatusEvent(HTTPStatusEvent.HTTP_RESPONSE_STATUS, false, false, status, redirected);
+		responseEvent.responseURL = response.url;
+		responseEvent.responseHeaders = [];
+		if (response.headers != null)
+		{
+			for (name in Reflect.fields(response.headers))
+			{
+				responseEvent.responseHeaders.push(new URLRequestHeader(name, Std.string(Reflect.field(response.headers, name))));
+			}
+		}
+		dispatchEvent(responseEvent);
+		dispatchEvent(new HTTPStatusEvent(HTTPStatusEvent.HTTP_STATUS, false, false, status, redirected));
+	}
+
+	@:noCompletion private function __fail(generation:Int, message:String):Void
+	{
+		if (!__loading || generation != __loadGeneration) return;
+		__loading = false;
+		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, message));
+	}
+
+	@:noCompletion private static function __dataLength(value:Dynamic):Int
+	{
+		if (value == null) return 0;
+		if (Std.isOfType(value, Bytes)) return (cast value : Bytes).length;
+		return Bytes.ofString(Std.string(value)).length;
+	}
+
+	@:noCompletion private static function __defer(callback:Void->Void):Void
+	{
+		#if (clay || lime || js)
+		callback();
+		#else
+		haxe.Timer.delay(callback, 0);
+		#end
+	}
+
+	@:noCompletion private static function __encodeData(value:Dynamic):String
+	{
+		if (value == null) return "";
+		if (Std.isOfType(value, String)) return cast value;
+		if (Std.isOfType(value, Bytes)) return Std.string(value);
+
+		var values = [];
+		for (name in Reflect.fields(value))
+		{
+			values.push(StringTools.urlEncode(name) + "=" + StringTools.urlEncode(Std.string(Reflect.field(value, name))));
+		}
+		return values.length == 0 ? Std.string(value) : values.join("&");
+	}
+
+	@:noCompletion private static function __resolveHost():HasNetHttp
+	{
+		#if clay
+		return cast HostClay.createClayHost();
+		#elseif lime
+		if (Application.current != null) return cast HostLime.createLimeHost(Application.current);
+		#end
+		return cast FlightHostWeb.webHostNet;
+	}
+
+	@:noCompletion private function __toFlightRequest(request:URLRequest):NetRequest
+	{
+		var method = request.method == null ? URLRequestMethod.GET : request.method;
+		var url = request.url;
+		var body:Dynamic = null;
+		if (request.data != null)
+		{
+			if (method == URLRequestMethod.GET)
+			{
+				var query = __encodeData(request.data);
+				if (query != "") url += (url.indexOf("?") == -1 ? "?" : "&") + query;
+			}
+			else if (Std.isOfType(request.data, Bytes))
+			{
+				body = cast request.data;
+			}
+			else
+			{
+				body = __encodeData(request.data);
+			}
+		}
+
+		var headers:Dynamic = {};
+		if (request.requestHeaders != null)
+		{
+			for (header in request.requestHeaders)
+			{
+				if (header != null && header.name != null) Reflect.setField(headers, header.name, header.value);
+			}
+		}
+		if (request.contentType != null) Reflect.setField(headers, "Content-Type", request.contentType);
+		if (request.userAgent != null) Reflect.setField(headers, "User-Agent", request.userAgent);
+
+		return cast {
+			url: url,
+			method: method,
+			headers: headers,
+			body: body,
+			responseType: dataFormat == URLLoaderDataFormat.BINARY ? "arraybuffer" : "text",
+			timeoutMs: request.idleTimeout,
+			credentials: request.manageCookies || request.withCredentials ? "include" : "omit",
+			redirect: request.followRedirects ? "follow" : "manual"
+		};
 	}
 }
 #else

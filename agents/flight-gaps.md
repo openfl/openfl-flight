@@ -54,6 +54,16 @@ currently provides (or doesn't).
   encoding-selectable serializer/deserializer that consumes and returns bytes,
   including the number of bytes read for ByteArray position updates.
 
+- **URLLoader cancellation and early response metadata**: Flight Net requests
+  require an explicit `HasNetHttp` host and accept an abort signal, but Flight
+  has no public abort-controller factory that an OpenFL `URLLoader` can own.
+  `URLLoader.close()` can suppress stale progress/completion callbacks but
+  cannot cancel the active transport. Flight's `NetResponse` also exposes
+  status and headers only with the completed body, so OpenFL's earlier
+  `httpResponseStatus` timing cannot be reproduced. The adapter selects the
+  public Lime, Clay, or web host for the current target and otherwise preserves
+  final status/event ordering through `flight.Net`.
+
 - **Arbitrary batched tile hierarchies**: Flight's native `Tilemap` is a regular
   row/column grid. OpenFL tilemaps accept freely positioned, rotated, scaled,
   nested `Tile`/`TileContainer` nodes with per-tile source rectangles. The
