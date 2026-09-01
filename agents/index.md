@@ -21,5 +21,5 @@ As implementation proceeds, each package gets an architecture record documenting
 its Flight mapping, open questions, and parity status.
 
 - (planned) `packages/geom.md` — geometry adapter: OpenFL ↔ Flight mapping
-- (planned) `packages/events.md` — event model bridge design
+- [Event model bridge](packages/events.md) — OpenFL event flow over Flight signals and interaction input
 - (planned) `packages/display.md` — display list adapter, scene node wrapping
