@@ -1272,7 +1272,7 @@ class Matrix3D
 			case Orientation3D.AXIS_ANGLE:
 				Geometry.setQuaternionFromAxisAngle(quaternion, rotation, rotation.w);
 
-			case Orientation3D.QUATERNION:
+			default:
 				Geometry.setQuaternion(quaternion, rotation.x, rotation.y, rotation.z, rotation.w);
 		}
 
