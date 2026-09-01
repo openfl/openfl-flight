@@ -10,6 +10,7 @@ import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
 import harness.scenarios.DisplayHitTestScenario;
 import harness.scenarios.DisplayObjectScenario;
+import harness.scenarios.DisplayObjectPropertyEdgesScenario;
 import harness.scenarios.DisplayTransformScenario;
 import harness.scenarios.ErrorScenario;
 import harness.scenarios.ErrorSubclassesScenario;
@@ -36,6 +37,7 @@ import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFormatScenario;
 import harness.scenarios.TimerScenario;
+import harness.scenarios.TransformScenario;
 import harness.scenarios.Utils3DScenario;
 import harness.scenarios.Vector3DScenario;
 
@@ -155,6 +157,10 @@ class Scenarios {
 				run: DisplayObjectScenario.run
 			},
 			{
+				name: "display/property-edges",
+				run: DisplayObjectPropertyEdgesScenario.run
+			},
+			{
 				name: "display/container",
 				run: DisplayContainerScenario.run
 			},
@@ -173,6 +179,10 @@ class Scenarios {
 			{
 				name: "text/text-format",
 				run: TextFormatScenario.run
+			},
+			{
+				name: "geom/transform",
+				run: TransformScenario.run
 			},
 			{
 				name: "system/capabilities",

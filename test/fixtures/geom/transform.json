@@ -1,0 +1,36 @@
+{
+  "concatenatedMatrix": {
+    "tx": 150,
+    "ty": 0
+  },
+  "rotationMatrixSync": {
+    "matrixB": 0.707106781186547462,
+    "spriteRotation": 29.9999999999999858,
+    "matrixA": 0.707106781186547573,
+    "matrixC": -0.707106781186547462,
+    "matrixD": 0.707106781186547573
+  },
+  "matrixSync": {
+    "matrixTY": 50,
+    "spriteX": 200,
+    "spriteY": 75,
+    "matrixTX": 100
+  },
+  "colorTransformAccess": {
+    "sameReference": false,
+    "blueMultiplier": 0.7,
+    "redOffset": 10,
+    "greenMultiplier": 0.6,
+    "alphaMultiplier": 0.8,
+    "displayAlpha": 0.8,
+    "alphaOffset": 40,
+    "redMultiplier": 0.5,
+    "blueOffset": 30,
+    "greenOffset": 20
+  },
+  "scaleMatrixSync": {
+    "matrixA": 2,
+    "scaleX": 3,
+    "scaleY": 4
+  }
+}
