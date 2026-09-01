@@ -15,6 +15,7 @@ import harness.scenarios.EventDispatcherCaptureScenario;
 import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
 import harness.scenarios.EventPropagationScenario;
+import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.KeyboardScenario;
@@ -35,6 +36,10 @@ import harness.scenarios.Vector3DScenario;
 class Scenarios {
 	public static function all():Array<Scenario> {
 		return [
+			{
+				name: "events/redispatch",
+				run: EventRedispatchScenario.run
+			},
 			{
 				name: "events/propagation",
 				run: EventPropagationScenario.run

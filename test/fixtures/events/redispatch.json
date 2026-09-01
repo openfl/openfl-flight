@@ -1,0 +1,32 @@
+{
+  "after": {
+    "currentTarget": "redispatcher",
+    "sameInstance": true,
+    "phase": 2,
+    "target": "redispatcher"
+  },
+  "bubbled": {
+    "currentTarget": "parent",
+    "sameInstance": true,
+    "phase": 3,
+    "target": "redispatcher"
+  },
+  "originalAfterDispatch": {
+    "currentTarget": "parent",
+    "sameInstance": true,
+    "phase": 3,
+    "target": "redispatcher"
+  },
+  "nested": {
+    "currentTarget": "redispatcher",
+    "sameInstance": true,
+    "phase": 2,
+    "target": "redispatcher"
+  },
+  "before": {
+    "currentTarget": "source",
+    "sameInstance": true,
+    "phase": 2,
+    "target": "source"
+  }
+}
