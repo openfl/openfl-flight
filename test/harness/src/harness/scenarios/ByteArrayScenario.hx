@@ -28,7 +28,10 @@ class ByteArrayScenario {
 			utfBytes: testUTFBytes(),
 			objectEncodingWrite: testObjectEncodingWrite(),
 			zlibCompression: testCompression(CompressionAlgorithm.ZLIB),
-			deflateCompression: testCompression(CompressionAlgorithm.DEFLATE)
+			deflateCompression: testCompression(CompressionAlgorithm.DEFLATE),
+			compressionMethods: testCompressionMethods(),
+			lzmaCompression: testUnsupportedCompression(CompressionAlgorithm.LZMA),
+			malformedCompression: testMalformedCompression()
 		};
 	}
 
@@ -374,6 +377,63 @@ class ByteArrayScenario {
 			positionAfterUncompress: positionAfterUncompress,
 			roundTripMatches: roundTripMatches
 		};
+	}
+
+	private static function testCompressionMethods():Dynamic {
+		var bytes = new ByteArray();
+		for (index in 0...16) bytes.writeByte((index % 3) + 7);
+		bytes.deflate();
+		var compressedPosition = bytes.position;
+		var compressedLength = bytes.length;
+		bytes.inflate();
+		var positionAfterInflate = bytes.position;
+		var roundTripMatches = bytes.length == 16;
+		for (index in 0...16) {
+			if (bytes.readUnsignedByte() != (index % 3) + 7) roundTripMatches = false;
+		}
+		return {
+			compressedPositionAtEnd: compressedPosition == compressedLength,
+			positionAfterInflate: positionAfterInflate,
+			roundTripMatches: roundTripMatches
+		};
+	}
+
+	private static function testUnsupportedCompression(algorithm:CompressionAlgorithm):Dynamic {
+		var bytes = new ByteArray();
+		bytes.writeUTFBytes("flight");
+		var beforeLength = bytes.length;
+		var compressError = errorClass(function():Void bytes.compress(algorithm));
+		var afterCompressLength = bytes.length;
+		var afterCompressPosition = bytes.position;
+		var uncompressError = errorClass(function():Void bytes.uncompress(algorithm));
+		return {
+			compressError: compressError,
+			lengthChanged: afterCompressLength != beforeLength,
+			positionAfterCompress: afterCompressPosition,
+			positionAfterUncompress: bytes.position,
+			uncompressError: uncompressError
+		};
+	}
+
+	private static function testMalformedCompression():Dynamic {
+		var bytes = new ByteArray();
+		for (value in [1, 2, 3, 4]) bytes.writeByte(value);
+		var error = errorClass(function():Void bytes.uncompress(CompressionAlgorithm.ZLIB));
+		return {
+			error: error,
+			length: bytes.length,
+			position: bytes.position
+		};
+	}
+
+	private static function errorClass(operation:Void->Void):Null<String> {
+		try {
+			operation();
+			return null;
+		} catch (error:Dynamic) {
+			var errorClass = Type.getClass(error);
+			return errorClass == null ? Std.string(error) : Type.getClassName(errorClass);
+		}
 	}
 
 }

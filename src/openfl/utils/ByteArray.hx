@@ -1,5 +1,9 @@
 package openfl.utils;
 
+import flight.Compression as FlightCompression;
+import flight.Types as FlightTypes;
+import flight._internal._UInt8Array as FlightUInt8Array;
+import flight.types.CompressionFraming as FlightCompressionFraming;
 import haxe.Int64;
 import haxe.io.Bytes;
 import haxe.io.BytesData;
@@ -1223,36 +1227,6 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 
 	public function compress(algorithm:CompressionAlgorithm = ZLIB):Void
 	{
-		#if lime
-		#if js
-		if (__allocated > __length)
-		{
-			var cacheLength:Int = __length;
-			__length = __allocated;
-			var data:Bytes = Bytes.alloc(cacheLength);
-			data.blit(0, this, 0, cacheLength);
-			__setData(data);
-			__length = cacheLength;
-		}
-		#end
-
-		var limeBytes:LimeBytes = this;
-
-		var bytes = switch (algorithm)
-		{
-			case CompressionAlgorithm.DEFLATE: limeBytes.compress(DEFLATE);
-			case CompressionAlgorithm.LZMA: limeBytes.compress(LZMA);
-			default: limeBytes.compress(ZLIB);
-		}
-
-		if (bytes != null)
-		{
-			__setData(bytes);
-
-			__length = __allocated;
-			position = __length;
-		}
-		#else
 		var source = __copyBytes();
 		var bytes = switch (algorithm)
 		{
@@ -1266,7 +1240,6 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 			__fromBytes(bytes);
 			position = __length;
 		}
-		#end
 	}
 
 	public function deflate():Void
@@ -1567,48 +1540,18 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 
 	public function uncompress(algorithm:CompressionAlgorithm = ZLIB):Void
 	{
-		#if lime
-		#if js
-		if (__allocated > __length)
-		{
-			var cacheLength:Int = __length;
-			__length = __allocated;
-			var data:Bytes = Bytes.alloc(cacheLength);
-			data.blit(0, this, 0, cacheLength);
-			__setData(data);
-			__length = cacheLength;
-		}
-		#end
-
-		var limeBytes:LimeBytes = this;
-
-		var bytes = switch (algorithm)
-		{
-			case CompressionAlgorithm.DEFLATE: limeBytes.decompress(DEFLATE);
-			case CompressionAlgorithm.LZMA: limeBytes.decompress(LZMA);
-			default: limeBytes.decompress(ZLIB);
-		};
-
-		if (bytes != null)
-		{
-			__setData(bytes);
-
-			__length = __allocated;
-		}
-		#else
 		var source = __copyBytes();
 		var bytes = switch (algorithm)
 		{
-			case CompressionAlgorithm.DEFLATE: __uncompressDeflate(source);
+			case CompressionAlgorithm.DEFLATE: __inflateWithFlight(source, cast FlightTypes.CompressionFraming.Raw);
 			case CompressionAlgorithm.LZMA: null;
-			default: haxe.zip.Uncompress.run(source);
+			default: __inflateWithFlight(source, cast FlightTypes.CompressionFraming.Rfc1950);
 		}
 
 		if (bytes != null)
 		{
 			__fromBytes(bytes);
 		}
-		#end
 
 		position = 0;
 	}
@@ -1800,20 +1743,23 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 		return zlib.sub(2, zlib.length - 6);
 	}
 
-	@:noCompletion private static function __uncompressDeflate(source:Bytes):Bytes
+	@:noCompletion private static function __inflateWithFlight(source:Bytes, framing:FlightCompressionFraming):Bytes
 	{
-		var inflate = new haxe.zip.InflateImpl(new haxe.io.BytesInput(source), false, false);
-		var output = new haxe.io.BytesBuffer();
-		var buffer = Bytes.alloc(65536);
-
-		while (true)
+		var input = new FlightUInt8Array(source.length);
+		for (index in 0...source.length)
 		{
-			var length = inflate.readBytes(buffer, 0, buffer.length);
-			output.addBytes(buffer, 0, length);
-			if (length < buffer.length) break;
+			input[index] = source.get(index);
 		}
 
-		return output.getBytes();
+		var inflated = FlightCompression.inflateDeflate(input, 0, framing);
+		if (inflated == null) return null;
+
+		var output = Bytes.alloc(inflated.length);
+		for (index in 0...inflated.length)
+		{
+			output.set(index, inflated[index]);
+		}
+		return output;
 	}
 
 	@:noCompletion private function __fromBytes(bytes:Bytes):Void

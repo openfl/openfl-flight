@@ -5,6 +5,13 @@
   "emptyArray": {
     "throwsOnEmptyRead": true
   },
+  "lzmaCompression": {
+    "positionAfterUncompress": 0,
+    "lengthChanged": false,
+    "uncompressError": null,
+    "compressError": null,
+    "positionAfterCompress": 6
+  },
   "writeAndRead": {
     "secondUnsigned": 255,
     "lengthAfterWrite": 3,
@@ -72,11 +79,21 @@
     "roundTripMatches": true,
     "positionAtCompressedEnd": true
   },
+  "malformedCompression": {
+    "position": 0,
+    "length": 4,
+    "error": null
+  },
   "signedByte": {
     "zero": 0,
     "allBits": -1,
     "max": 127,
     "overMax": -128
+  },
+  "compressionMethods": {
+    "compressedPositionAtEnd": true,
+    "roundTripMatches": true,
+    "positionAfterInflate": 0
   },
   "writeReadBytes": {
     "dstLength": 3,

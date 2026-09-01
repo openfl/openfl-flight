@@ -46,12 +46,13 @@ currently provides (or doesn't).
   handle for `DisplacementMapFilter`, but cannot attach that map-driven effect to
   display objects without a corresponding render-effect descriptor.
 
-- **General-purpose byte compression**: OpenFL `ByteArray.compress`,
-  `uncompress`, `deflate`, and `inflate` require zlib, raw deflate, and LZMA
-  codecs over an in-memory byte buffer. Flight 0.4.0 exposes only GPU texture
-  compression entry points; it has no public byte-codec API. The adapter uses
-  Haxe standard-library fallbacks for zlib and raw deflate while preserving
-  OpenFL's in-place length and position semantics, but LZMA remains unavailable.
+- **Byte compression encoders and LZMA**: OpenFL `ByteArray.compress`,
+  `uncompress`, `deflate`, and `inflate` require encoders and decoders for zlib,
+  raw deflate, and LZMA. Flight 0.4.0 publicly exposes a framing-aware deflate
+  inflater, which now backs zlib and raw-deflate decoding, but has no matching
+  encoder or LZMA codec. The adapter retains Haxe standard-library encoders for
+  zlib and raw deflate while preserving OpenFL's in-place length and position
+  semantics; LZMA remains a deterministic no-op.
 
 - **Public UTF-8 byte codec**: OpenFL `ByteArray.readUTFBytes` and
   `writeUTFBytes` require conversion between UTF-8 and raw bytes. Flight 0.4.0
