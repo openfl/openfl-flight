@@ -1,6 +1,11 @@
 package openfl.media;
 
 #if !flash
+import flight.Audio as FlightAudio;
+import flight.types.AudioResource as FlightAudioResource;
+import flight.types.AudioResourceReference as FlightAudioResourceReference;
+import flight._internal._UInt8Array as FlightUInt8Array;
+import openfl.events.Event;
 import openfl.events.EventDispatcher;
 import openfl.net.URLRequest;
 import openfl.utils.ByteArray;
@@ -29,6 +34,8 @@ class Sound extends EventDispatcher
 	public var url(default, null):String;
 
 	@:noCompletion private var __buffer:Dynamic;
+	@:noCompletion private var __flightResource:FlightAudioResource;
+	@:noCompletion private var __flightResourceReference:FlightAudioResourceReference;
 	@:noCompletion private var __urlLoading:Bool = false;
 
 	#if (js && html5)
@@ -53,6 +60,8 @@ class Sound extends EventDispatcher
 	public function close():Void
 	{
 		__buffer = null;
+		__flightResource = null;
+		__flightResourceReference = null;
 		__urlLoading = false;
 		// TODO: Cancel decoding and active playback through Flight audio.
 	}
@@ -75,16 +84,23 @@ class Sound extends EventDispatcher
 	public function load(stream:URLRequest, context:SoundLoaderContext = null):Void
 	{
 		url = stream == null ? null : stream.url;
+		__flightResourceReference = stream == null ? null : FlightAudio.createExternalAudioResourceReference(stream.url);
+		__flightResource = null;
 		__urlLoading = true;
 		bytesLoaded = 0;
 		bytesTotal = 0;
 		isBuffering = false;
-		// TODO: Load and decode URL audio through Flight networking and audio.
+		dispatchEvent(new Event(Event.OPEN));
 	}
 
 	public function loadCompressedDataFromByteArray(bytes:ByteArray, bytesLength:Int):Void
 	{
-		// TODO: Decode compressed audio through Flight.
+		if (bytes == null) return;
+		var length = Std.int(Math.min(bytes.length, Math.max(0, bytesLength)));
+		var data = new FlightUInt8Array(length);
+		for (i in 0...length) data[i] = bytes[i];
+		__flightResourceReference = FlightAudio.createEmbeddedAudioResourceReference(data, FlightAudio.detectAudioMimeType(data));
+		__flightResource = null;
 	}
 
 	public static function loadFromFile(path:String):Future<Sound>
@@ -105,7 +121,7 @@ class Sound extends EventDispatcher
 	public function play(startTime:Float = 0.0, loops:Int = 0, sndTransform:SoundTransform = null):SoundChannel
 	{
 		// TODO: Start playback through Flight audio.
-		return new SoundChannel(this, null, sndTransform, startTime);
+		return new SoundChannel(this, null, sndTransform, __urlLoading ? 0 : startTime);
 	}
 
 	#if (js && html5)
@@ -129,7 +145,7 @@ class Sound extends EventDispatcher
 
 	@:noCompletion private function get_length():Float
 	{
-		return 0;
+		return __flightResource == null ? 0 : FlightAudio.getAudioResourceDuration(__flightResource) * 1000;
 	}
 }
 #else

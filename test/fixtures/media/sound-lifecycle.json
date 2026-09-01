@@ -1,0 +1,45 @@
+{
+  "defaults": {
+    "bytesTotal": 0,
+    "id3IsFresh": true,
+    "id3": {
+      "year": null,
+      "album": null,
+      "comment": null,
+      "genre": null,
+      "track": null,
+      "artist": null,
+      "songName": null
+    },
+    "length": 0,
+    "isBuffering": false,
+    "urlIsNull": true,
+    "bytesLoaded": 0
+  },
+  "afterClose": {
+    "bytesTotal": 0,
+    "url": "fixture-audio.mp3",
+    "events": [
+      "open"
+    ],
+    "length": 0,
+    "isBuffering": false,
+    "bytesLoaded": 0
+  },
+  "afterLoad": {
+    "bytesTotal": 0,
+    "url": "fixture-audio.mp3",
+    "events": [
+      "open"
+    ],
+    "isBuffering": false,
+    "bytesLoaded": 0
+  },
+  "relationship": {
+    "position": 0,
+    "inputWasCopied": true,
+    "channelIsNull": false,
+    "volume": 0.45,
+    "pan": -0.3
+  }
+}

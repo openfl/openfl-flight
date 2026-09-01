@@ -41,6 +41,7 @@ import harness.scenarios.SimpleButtonScenario;
 import harness.scenarios.SystemScenario;
 import harness.scenarios.ShapeBitmapScenario;
 import harness.scenarios.SoundStateScenario;
+import harness.scenarios.SoundLifecycleScenario;
 import harness.scenarios.StageScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
@@ -143,6 +144,10 @@ class Scenarios {
 			{
 				name: "media/sound-state",
 				run: SoundStateScenario.run
+			},
+			{
+				name: "media/sound-lifecycle",
+				run: SoundLifecycleScenario.run
 			},
 			{
 				name: "errors/error",

@@ -81,6 +81,14 @@ currently provides (or doesn't).
   audio context, which does not map to OpenFL's independently mutable
   `SoundChannel.soundTransform` without additional routing infrastructure.
 
+- **Cross-target synchronous audio loading**: Flight audio decoding and URL
+  resolution return promises and require a host `AudioContext`. OpenFL `Sound`
+  has synchronous construction/playback entry points and target-independent
+  load events, but the adapter has no application audio-context injection point
+  in interpreter/headless mode. It retains Flight embedded/external resource
+  references immediately; decoding and playable-channel creation remain
+  pending on an asynchronous host bridge.
+
 - **System pause and resume**: Flight application pause/resume operations need
   the authoritative Application handle, but the OpenFL application adapter does
   not currently expose that handle to the static `System` API.
