@@ -1294,7 +1294,6 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:keep @:noCompletion private function get_transform():Transform
 	{
 		if (__objectTransform == null) __objectTransform = new Transform(this);
-		__objectTransform.__updateConcatenatedColorTransform();
 		return __objectTransform;
 	}
 
