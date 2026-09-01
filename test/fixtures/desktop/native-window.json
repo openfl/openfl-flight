@@ -1,0 +1,141 @@
+{
+  "constants": {
+    "invokeReasons": [
+      "login",
+      "notification",
+      "openURL",
+      "standard"
+    ],
+    "windowChrome": [
+      "alternate",
+      "none",
+      "standard"
+    ],
+    "windowDisplayStates": [
+      "normal",
+      "maximized",
+      "minimized"
+    ],
+    "notificationTypes": [
+      "critical",
+      "informational"
+    ],
+    "systemIdleModes": [
+      "keepAwake",
+      "normal"
+    ],
+    "windowTypes": [
+      "lightweight",
+      "normal",
+      "utility"
+    ]
+  },
+  "icons": {
+    "trayTooltipIsNull": true,
+    "interactiveWidth": 0,
+    "dockBounceThrows": true,
+    "iconBitmapCount": 0,
+    "interactiveHeight": 0,
+    "trayMaxTipLength": 63
+  },
+  "updaterSupported": false,
+  "clipboard": {
+    "formats": [
+      "air:html",
+      "air:rtf",
+      "air:text"
+    ],
+    "generalSingletonStable": true,
+    "transferModes": [
+      "cloneOnly",
+      "clonePreferred",
+      "originalOnly",
+      "originalPreferred"
+    ]
+  },
+  "windowStatic": {
+    "supportsMenu": false,
+    "supportsTransparency": false,
+    "isSupported": true
+  },
+  "window": {
+    "mutated": {
+      "minSize": [
+        120,
+        80
+      ],
+      "bounds": [
+        10,
+        -3,
+        321,
+        199
+      ],
+      "title": "Flight window",
+      "maxSize": [
+        900,
+        700
+      ],
+      "visible": true
+    },
+    "closedPropertyThrows": true,
+    "listOwnedWindowsIsCopy": true,
+    "activeAfterActivate": true,
+    "initial": {
+      "transparent": false,
+      "minimizable": true,
+      "stagePresent": true,
+      "resizable": true,
+      "maximizable": true,
+      "visible": false,
+      "x": 0,
+      "systemChrome": "standard",
+      "y": 0,
+      "type": "normal",
+      "height": 228,
+      "width": 400
+    },
+    "childClosedWithOwner": true,
+    "openedWindowCountAfterClose": 0,
+    "childOwnerMatches": true,
+    "displayStates": [
+      "minimized",
+      "maximized",
+      "normal"
+    ],
+    "closed": true
+  },
+  "windowOptions": {
+    "transparent": false,
+    "minimizable": true,
+    "ownerIsNull": true,
+    "resizable": true,
+    "maximizable": true,
+    "renderModeIsNull": true,
+    "systemChrome": "standard",
+    "type": "normal"
+  },
+  "application": {
+    "supportsStartAtLogin": false,
+    "applicationID": null,
+    "supportsMenu": false,
+    "singletonStable": true,
+    "openedWindows": 0,
+    "supportsDockIcon": false,
+    "iconIsNull": true,
+    "autoExit": true,
+    "supportsSystemTrayIcon": false,
+    "activeWindowIsNull": true,
+    "isCompiledAOT": false,
+    "supportsDefaultApplication": false
+  },
+  "process": {
+    "standardErrorPresent": true,
+    "workingDirectoryIsNull": true,
+    "standardInputPresent": true,
+    "argumentsAreNull": true,
+    "standardOutputPresent": true,
+    "executableIsNull": true,
+    "isSupported": true,
+    "running": false
+  }
+}

@@ -6,6 +6,7 @@ import harness.scenarios.CertificateStatusScenario;
 import harness.scenarios.ColorTransformScenario;
 import harness.scenarios.DateTimeFormatterScenario;
 import harness.scenarios.DictionaryScenario;
+import harness.scenarios.DesktopScenario;
 import harness.scenarios.Display3DScenario;
 import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
@@ -257,6 +258,10 @@ class Scenarios {
 			{
 				name: "system/capabilities",
 				run: SystemScenario.run
+			},
+			{
+				name: "desktop/native-window",
+				run: DesktopScenario.run
 			},
 			{
 				name: "ui/keyboard",
