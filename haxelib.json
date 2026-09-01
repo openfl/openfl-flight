@@ -1,0 +1,20 @@
+{
+  "name": "openfl-flight",
+  "url": "https://github.com/flighthq/openfl-flight",
+  "license": "MIT",
+  "tags": [
+    "openfl",
+    "flight",
+    "cross"
+  ],
+  "description": "The OpenFL 9.5.2 public API implemented on top of Flight.",
+  "version": "0.0.1",
+  "classPath": "src",
+  "releasenote": "Initial project scaffolding.",
+  "contributors": [
+    "flighthq"
+  ],
+  "dependencies": {
+    "flight": ""
+  }
+}
