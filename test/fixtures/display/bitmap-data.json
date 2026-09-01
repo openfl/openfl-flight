@@ -6,6 +6,16 @@
     "sameRef": false,
     "clonePixel": -65536
   },
+  "transparencyHandling": {
+    "pixel": 3430008,
+    "pixel32": -13347208
+  },
+  "pixelRoundtrip": [
+    0,
+    2131631662,
+    -2136355859,
+    -1
+  ],
   "dimensions": {
     "height": 100,
     "width": 200
@@ -18,8 +28,32 @@
     "height": 50,
     "width": 100
   },
+  "compare": {
+    "widthMismatch": -3,
+    "disposed": -2,
+    "alphaDifferencePixels": [
+      1090519039
+    ],
+    "differenceIsBitmapData": true,
+    "differencePixels": [
+      0,
+      -16381942
+    ],
+    "heightMismatch": -4,
+    "equal": 0
+  },
+  "colorTransformPixels": [
+    1350769158,
+    -15720400
+  ],
   "getSetPixel32": {
     "pixel32": -2130771968
+  },
+  "dispose": {
+    "rectIsNull": true,
+    "readable": false,
+    "height": 0,
+    "width": 0
   },
   "rect": {
     "x": 0,
@@ -30,5 +64,27 @@
   "fillRect": {
     "outside": 0,
     "inside": 16777215
+  },
+  "copyChannel": {
+    "translucent": 1611669671,
+    "opaque": -15720278
+  },
+  "copyPixels": {
+    "merged": -1066783936,
+    "basic": [
+      16777216,
+      16777216,
+      16777216,
+      16777216,
+      16777216,
+      -16768512,
+      -16777165,
+      16777216,
+      16777216,
+      1430410342,
+      1719043993,
+      16777216
+    ],
+    "opaque": -2139086784
   }
 }
