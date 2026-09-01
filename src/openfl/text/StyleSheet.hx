@@ -166,7 +166,6 @@ class StyleSheet extends EventDispatcher /*implements Dynamic*/
 									case "font-weight": object.fontWeight = value;
 									case "letter-spacing": object.letterSpacing = value;
 									case "margin-left": object.marginLeft = value;
-									case "margin-right": object.marginRight = value;
 									case "text-align": object.textAlign = value;
 									case "text-decoration": object.textDecoration = value;
 									case "text-indent": object.textIndent = value;
