@@ -68,6 +68,14 @@ currently provides (or doesn't).
   encoding-selectable serializer/deserializer that consumes and returns bytes,
   including the number of bytes read for ByteArray position updates.
 
+- **SWF-specific loader metadata and sandboxes**: Flight image resource
+  references preserve embedded bytes or external URIs and MIME resolution
+  state, but they expose no ActionScript or SWF version, nominal SWF frame
+  rate, application-domain ownership, security-domain relationship, sandbox
+  bridge, or definition-to-loader metadata. `LoaderInfo` retains the Flight
+  image reference while using OpenFL-compatible defaults and an adapter-local
+  definition registry for those SWF-only surfaces.
+
 - **URLLoader cancellation and early response metadata**: Flight Net requests
   use Flight's configured network backend and accept an abort signal, but Flight
   has no public abort-controller factory that an OpenFL `URLLoader` can own.
