@@ -1,0 +1,41 @@
+{
+  "defaults": {
+    "uncaughtEventsMatch": true,
+    "bytesTotal": 0,
+    "contentType": null,
+    "contentLoaderInfoStable": true,
+    "url": null,
+    "loaderMatches": true,
+    "applicationDomainExists": true,
+    "contentIsNull": true,
+    "numChildren": 0,
+    "sharedEventsExists": false,
+    "height": -1,
+    "loaderURL": null,
+    "bytesLoaded": 0,
+    "width": -1
+  },
+  "afterUnload": {
+    "events": [
+      "complete"
+    ],
+    "contentIsNull": false,
+    "numChildren": 1,
+    "closeError": null
+  },
+  "afterLoad": {
+    "bytesTotal": 0,
+    "contentType": null,
+    "events": [
+      "complete"
+    ],
+    "contentParentMatches": true,
+    "loadError": null,
+    "numChildren": 1,
+    "infoContentMatches": true,
+    "height": 0,
+    "bytesLoaded": 0,
+    "contentIsBitmap": true,
+    "width": 0
+  }
+}

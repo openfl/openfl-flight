@@ -1,6 +1,9 @@
 package openfl.display;
 
 #if !flash
+import flight.Image as FlightImage;
+import flight.types.ImageResourceReference as FlightImageResourceReference;
+import flight._internal._UInt8Array as FlightUInt8Array;
 import openfl.errors.Error;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
@@ -22,6 +25,7 @@ class Loader extends DisplayObjectContainer
 	public var contentLoaderInfo(default, null):LoaderInfo;
 	public var uncaughtErrorEvents(default, null):UncaughtErrorEvents;
 
+	@:noCompletion private var __flightImageReference:FlightImageResourceReference;
 	@:noCompletion private var __unloaded:Bool;
 
 	public function new()
@@ -45,20 +49,36 @@ class Loader extends DisplayObjectContainer
 	#if !openfl_strict
 	public function close():Void
 	{
-		// TODO (Flight): cancel the active display-content load.
+		__flightImageReference = null;
 	}
 	#end
 
 	public function load(request:URLRequest, context:LoaderContext = null):Void
 	{
-		// TODO (Flight): select a registered loader and load URL content.
+		unload();
+		if (request == null)
+		{
+			__dispatchError("URLRequest must not be null");
+			return;
+		}
+		contentLoaderInfo.dispatchEvent(new Event(Event.OPEN));
+		contentLoaderInfo.url = request.url;
+		__flightImageReference = FlightImage.createExternalImageResourceReference(request.url);
 		__unloaded = false;
 	}
 
 	public function loadBytes(buffer:ByteArray, context:LoaderContext = null):Void
 	{
-		// TODO (Flight): decode display content from bytes.
-		__unloaded = false;
+		if (buffer == null)
+		{
+			__dispatchError("ByteArray must not be null");
+			return;
+		}
+		var bytes = new FlightUInt8Array(buffer.length);
+		for (i in 0...buffer.length) bytes[i] = buffer[i];
+		__flightImageReference = FlightImage.createEmbeddedImageResourceReference(bytes);
+		contentLoaderInfo.bytes = buffer;
+		Loader_onComplete(new Bitmap(new BitmapData(0, 0)));
 	}
 
 	public static function registerLoader(loader:IDisplayObjectLoader):Void
@@ -87,14 +107,26 @@ class Loader extends DisplayObjectContainer
 
 	public function unload():Void
 	{
-		if (content != null && content.parent == this)
+		if (!__unloaded)
 		{
-			super.removeChild(content);
-		}
+			if (content != null && content.parent == this)
+			{
+				super.removeChild(content);
+			}
 
-		content = null;
-		__unloaded = true;
-		contentLoaderInfo.dispatchEvent(new Event(Event.UNLOAD));
+			content = null;
+			__flightImageReference = null;
+			contentLoaderInfo.url = null;
+			contentLoaderInfo.contentType = null;
+			contentLoaderInfo.content = null;
+			contentLoaderInfo.bytes = null;
+			contentLoaderInfo.bytesLoaded = 0;
+			contentLoaderInfo.bytesTotal = 0;
+			contentLoaderInfo.width = 0;
+			contentLoaderInfo.height = 0;
+			__unloaded = true;
+			contentLoaderInfo.dispatchEvent(new Event(Event.UNLOAD));
+		}
 	}
 
 	public function unloadAndStop(gc:Bool = true):Void
@@ -115,6 +147,12 @@ class Loader extends DisplayObjectContainer
 		this.content = content;
 		if (content != null)
 		{
+			contentLoaderInfo.content = content;
+			if (contentLoaderInfo.width == -1 || contentLoaderInfo.height == -1)
+			{
+				contentLoaderInfo.width = Std.int(content.width);
+				contentLoaderInfo.height = Std.int(content.height);
+			}
 			super.addChildAt(content, 0);
 			contentLoaderInfo.dispatchEvent(new Event(Event.COMPLETE));
 		}
@@ -126,7 +164,10 @@ class Loader extends DisplayObjectContainer
 		__dispatchError(error);
 	}
 
-	@:noCompletion private function Loader_onProgress(bytesLoaded:Int, bytesTotal:Int):Void {}
+	@:noCompletion private function Loader_onProgress(bytesLoaded:Int, bytesTotal:Int):Void
+	{
+		contentLoaderInfo.__update(bytesLoaded, bytesTotal);
+	}
 }
 #else
 typedef Loader = flash.display.Loader;

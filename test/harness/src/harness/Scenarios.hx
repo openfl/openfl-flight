@@ -25,6 +25,7 @@ import harness.scenarios.FilterScenario;
 import harness.scenarios.GraphicsDrawScenario;
 import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
+import harness.scenarios.LoaderScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
 import harness.scenarios.MouseScenario;
@@ -109,6 +110,11 @@ class Scenarios {
 				name: "display/shape-bitmap",
 				run: ShapeBitmapScenario.run
 			},
+			{
+				name: "display/loader",
+				run: LoaderScenario.run
+			},
+			{
 				name: "errors/error",
 				run: ErrorScenario.run
 			},
