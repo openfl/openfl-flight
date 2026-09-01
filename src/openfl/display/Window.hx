@@ -4,6 +4,7 @@ package openfl.display;
 import flight.Application as FlightApplication;
 import flight.Signals as FlightSignals;
 import flight.types.ApplicationWindow as FlightApplicationWindow;
+import flight.types.Host as FlightHost;
 #end
 #if lime
 import lime.app.Application;
@@ -20,6 +21,7 @@ import lime.ui.WindowAttributes;
 @:noDebug
 #end
 @:access(openfl.display.LoaderInfo)
+@:access(openfl.display.Application)
 @:access(openfl.display.DisplayObject)
 @:access(openfl.display.Stage)
 @SuppressWarnings("checkstyle:FieldDocComment")
@@ -88,6 +90,7 @@ class Window #if lime extends LimeWindow #end
 	#end
 
 	#if !flash
+	@:noCompletion private var __flightHost:FlightHost;
 	@:noCompletion private var __flightWindow:FlightApplicationWindow;
 	#end
 
@@ -119,6 +122,7 @@ class Window #if lime extends LimeWindow #end
 		#end
 
 		#if !flash
+		__flightHost = openfl.display.Application.__getFlightHost(cast application);
 		__flightWindow = FlightApplication.createApplicationWindow();
 		#if lime
 		__flightWindow.title = title;
@@ -166,10 +170,9 @@ class Window #if lime extends LimeWindow #end
 		onTextEdit = FlightSignals.createSignal();
 		onTextInput = FlightSignals.createSignal();
 
-		var backend = FlightApplication.explainWindowBackend();
-		if (backend.layer != "host-not-enabled")
+		if (openfl.display.Application.__hasFlightWindowHost())
 		{
-			FlightApplication.openWindow(__flightWindow, {
+			FlightApplication.openWindow(cast __flightHost, __flightWindow, {
 				title: __flightWindow.title,
 				width: Reflect.hasField(normalizedAttributes, "width") ? Reflect.field(normalizedAttributes, "width") : 0,
 				height: Reflect.hasField(normalizedAttributes, "height") ? Reflect.field(normalizedAttributes, "height") : 0,
@@ -230,7 +233,7 @@ class Window #if lime extends LimeWindow #end
 		super.focus();
 		#end
 		#if !flash
-		if (__flightWindow != null) FlightApplication.focusWindow(__flightWindow);
+		if (__flightWindow != null) FlightApplication.focusWindow(cast __flightHost, __flightWindow);
 		#end
 	}
 
@@ -241,7 +244,7 @@ class Window #if lime extends LimeWindow #end
 		super.move(x, y);
 		#end
 		#if !flash
-		if (__flightWindow != null) FlightApplication.setWindowPosition(__flightWindow, x, y);
+		if (__flightWindow != null) FlightApplication.setWindowPosition(cast __flightHost, __flightWindow, x, y);
 		#end
 		#if !lime
 		__x = x;
@@ -256,7 +259,7 @@ class Window #if lime extends LimeWindow #end
 		super.resize(width, height);
 		#end
 		#if !flash
-		if (__flightWindow != null) FlightApplication.setWindowSize(__flightWindow, width, height);
+		if (__flightWindow != null) FlightApplication.setWindowSize(cast __flightHost, __flightWindow, width, height);
 		#end
 		#if !lime
 		__width = width;
@@ -281,7 +284,7 @@ class Window #if lime extends LimeWindow #end
 		#if !flash
 		if (__flightWindow != null)
 		{
-			FlightApplication.closeWindow(__flightWindow);
+			FlightApplication.closeWindow(cast __flightHost, __flightWindow);
 			FlightApplication.disposeApplicationWindow(__flightWindow);
 		}
 		#end
@@ -303,7 +306,7 @@ class Window #if lime extends LimeWindow #end
 	{
 		fullscreen = value;
 		__fullscreen = value;
-		if (__flightWindow != null) FlightApplication.setWindowFullscreen(__flightWindow, value);
+		if (__flightWindow != null) FlightApplication.setWindowFullscreen(cast __flightHost, __flightWindow, value);
 		return get_fullscreen();
 	}
 	@:noCompletion private function get_height():Int return __flightWindow == null ? height : Std.int(__flightWindow.height);
@@ -311,7 +314,7 @@ class Window #if lime extends LimeWindow #end
 	{
 		height = value;
 		__height = value;
-		if (__flightWindow != null) FlightApplication.setWindowSize(__flightWindow, get_width(), value);
+		if (__flightWindow != null) FlightApplication.setWindowSize(cast __flightHost, __flightWindow, get_width(), value);
 		return get_height();
 	}
 	@:noCompletion private function get_scale():Float return __flightWindow == null ? scale : __flightWindow.devicePixelRatio;
@@ -333,7 +336,7 @@ class Window #if lime extends LimeWindow #end
 	{
 		width = value;
 		__width = value;
-		if (__flightWindow != null) FlightApplication.setWindowSize(__flightWindow, value, get_height());
+		if (__flightWindow != null) FlightApplication.setWindowSize(cast __flightHost, __flightWindow, value, get_height());
 		return get_width();
 	}
 	@:noCompletion private function get_x():Int return __flightWindow == null ? x : Std.int(__flightWindow.x);
@@ -355,7 +358,7 @@ class Window #if lime extends LimeWindow #end
 	{
 		title = value;
 		__title = value;
-		if (__flightWindow != null) FlightApplication.setWindowTitle(__flightWindow, value);
+		if (__flightWindow != null) FlightApplication.setWindowTitle(cast __flightHost, __flightWindow, value);
 		return get_title();
 	}
 	@:noCompletion private function get_visible():Bool return __flightWindow == null ? visible : __flightWindow.visible;
@@ -365,7 +368,7 @@ class Window #if lime extends LimeWindow #end
 		__visible = value;
 		if (__flightWindow != null)
 		{
-			if (value) FlightApplication.showWindow(__flightWindow); else FlightApplication.hideWindow(__flightWindow);
+			if (value) FlightApplication.showWindow(cast __flightHost, __flightWindow); else FlightApplication.hideWindow(cast __flightHost, __flightWindow);
 		}
 		return get_visible();
 	}
@@ -379,11 +382,11 @@ class Window #if lime extends LimeWindow #end
 		if (value)
 		{
 			__flightWindow.maximized = false;
-			FlightApplication.minimizeWindow(__flightWindow);
+			FlightApplication.minimizeWindow(cast __flightHost, __flightWindow);
 		}
 		else if (__flightWindow.minimized)
 		{
-			FlightApplication.restoreWindow(__flightWindow);
+			FlightApplication.restoreWindow(cast __flightHost, __flightWindow);
 		}
 		return __flightWindow.minimized;
 	}
@@ -397,11 +400,11 @@ class Window #if lime extends LimeWindow #end
 		if (value)
 		{
 			__flightWindow.minimized = false;
-			FlightApplication.maximizeWindow(__flightWindow);
+			FlightApplication.maximizeWindow(cast __flightHost, __flightWindow);
 		}
 		else if (__flightWindow.maximized)
 		{
-			FlightApplication.restoreWindow(__flightWindow);
+			FlightApplication.restoreWindow(cast __flightHost, __flightWindow);
 		}
 		return __flightWindow.maximized;
 	}
