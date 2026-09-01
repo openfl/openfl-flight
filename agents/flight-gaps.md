@@ -100,14 +100,16 @@ currently provides (or doesn't).
   hosts need a public backend installation hook before URLLoader can perform
   native requests instead of reporting a transport failure.
 
-- **SharedObject quota prompts and remote synchronization**: Flight Storage
-  provides synchronous local string persistence, which backs OpenFL local
-  shared objects where a storage backend is configured; headless targets fall
-  back to adapter-local process memory. Flight has no equivalent of
-  Flash Player's quota-increase dialog, `minDiskSpace` reservation, or
-  `NetStatusEvent` result after a pending flush. Flight also has no remote
-  shared-object protocol for `connect`, `send`, `setDirty`, or synchronization;
-  those methods remain compatibility stubs.
+- **SharedObject quota prompts and remote synchronization**: Flight Storage's
+  host-explicit local string backend now backs OpenFL local shared objects via
+  the Web host and active sys Lime/Clay hosts; headless targets fall back to
+  adapter-local process memory. A rejected host write returns OpenFL's
+  `PENDING` status while retaining a process-local copy. Flight has no
+  equivalent of Flash Player's quota-increase dialog, `minDiskSpace`
+  reservation, or `NetStatusEvent` result after a pending flush. Flight also
+  has no remote shared-object protocol for `connect`, `send`, `setDirty`, or
+  synchronization; those methods remain compatibility stubs and `getRemote`
+  returns `null` like OpenFL 9.5.2's unsupported implementation.
 
 - **Raw TCP sockets on native hosts**: Flight Socket models framed WebSocket
   connections, and Flight's Web host provides that backend. Its maintained
