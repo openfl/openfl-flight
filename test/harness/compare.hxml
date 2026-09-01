@@ -1,0 +1,4 @@
+test/harness/common.hxml
+-cp src
+-lib flight
+-D harness_compare

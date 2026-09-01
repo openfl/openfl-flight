@@ -1,0 +1,23 @@
+{
+  "point": {
+    "x": 3,
+    "y": 4
+  },
+  "distanceFromOrigin": 5,
+  "normalizeToTen": {
+    "x": 6,
+    "y": 8
+  },
+  "subtract": {
+    "x": 2,
+    "y": 3
+  },
+  "equals": {
+    "same": true,
+    "different": false
+  },
+  "add": {
+    "x": 2,
+    "y": 6
+  }
+}

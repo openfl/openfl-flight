@@ -1,0 +1,3 @@
+test/harness/common.hxml
+-lib openfl:9.5.2
+-D harness_capture
