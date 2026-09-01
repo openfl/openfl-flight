@@ -217,7 +217,7 @@ class Sound extends EventDispatcher
 		return FlightMedia.playAudioResource(audioContext, resource, {
 			currentTime: startTime,
 			gain: SoundMixer.__soundTransform.volume * transform.volume,
-			loops: loops > 1 ? loops - 1 : 0
+			loops: loops
 		});
 	}
 
