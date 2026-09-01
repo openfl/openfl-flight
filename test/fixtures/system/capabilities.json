@@ -1,14 +1,92 @@
 {
+  "constants": {
+    "imageDecodingPolicy": [
+      "onDemand",
+      "onLoad"
+    ],
+    "security": [
+      "localTrusted",
+      "localWithFile",
+      "localWithNetwork",
+      "remote"
+    ],
+    "touchscreenType": [
+      "finger",
+      "none",
+      "stylus"
+    ]
+  },
+  "security": {
+    "exactSettings": null,
+    "sandboxTypeIsNull": true,
+    "currentDomainStable": true
+  },
+  "applicationDomain": {
+    "knownDefinitionMatches": true,
+    "missingDefinitionIsNull": true,
+    "hasKnownDefinition": true,
+    "hasMissingDefinition": false,
+    "childParentIsCurrent": true,
+    "currentParentIsNull": true
+  },
   "capabilities": {
+    "hasAudioEncoder": false,
+    "cpuArchitecture": "x86",
     "playerType": "Desktop",
+    "hasTLS": true,
+    "localFileReadDisable": false,
+    "supports32BitProcesses": true,
+    "avHardwareDisable": true,
+    "screenDPI": 72,
+    "hasScreenBroadcast": false,
     "os": "",
+    "hasAudio": true,
+    "hasScreenPlayback": false,
     "screenResolutionY": 0,
+    "hasVideoEncoder": false,
     "language": "en",
+    "maxLevelIDC": 0,
+    "isEmbeddedInAcrobat": false,
+    "hasEmbeddedVideo": false,
+    "supports64BitProcesses": true,
+    "hasIME": false,
+    "hasPrinting": false,
+    "hasStreamingVideo": false,
     "version": "OFL 9,5,2,0",
-    "screenResolutionX": 0
+    "manufacturer": "OpenFL",
+    "hasMP3": false,
+    "screenColor": "color",
+    "hasStreamingAudio": false,
+    "isDebugger": false,
+    "hasMultiChannelAudio": false,
+    "touchscreenType": "finger",
+    "pixelAspectRatio": 1,
+    "screenResolutionX": 0,
+    "serverString": "",
+    "hasAccessibility": false
+  },
+  "loaderContext": {
+    "defaults": {
+      "allowCodeImport": true,
+      "applicationDomainIsNull": true,
+      "checkPolicyFile": false,
+      "allowLoadBytesCodeExecution": true,
+      "securityDomainIsNull": true
+    },
+    "custom": {
+      "allowCodeImport": true,
+      "applicationDomainMatches": true,
+      "securityDomainMatches": true,
+      "checkPolicyFile": true,
+      "allowLoadBytesCodeExecution": true
+    }
   },
   "system": {
     "totalMemoryNonNegative": true,
-    "totalMemoryIsInt": true
+    "useCodePageMutable": true,
+    "totalMemoryNumberIsFloat": false,
+    "totalMemoryIsInt": true,
+    "totalMemoryNumberNonNegative": true,
+    "useCodePageDefault": false
   }
 }
