@@ -3,6 +3,7 @@ package openfl.net;
 #if !flash
 import flight.Signals as FlightSignals;
 import flight.Socket as FlightSocket;
+import flight.types.HasNetSocket as FlightSocketHost;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 import haxe.io.Eof;
@@ -20,6 +21,14 @@ import openfl.utils.ByteArray;
 import openfl.utils.Endian;
 import openfl.utils.IDataInput;
 import openfl.utils.IDataOutput;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
 #if (js && html5)
 import js.Browser;
 import js.lib.ArrayBuffer;
@@ -207,6 +216,9 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		connection fails. The default value is 20,000 (twenty seconds).
 	**/
 	public var timeout:Int;
+
+	@:noCompletion private static var __socketHost:FlightSocketHost;
+	@:noCompletion private static var __socketHostResolved:Bool;
 
 	@:noCompletion private var __buffer:Bytes;
 	@:noCompletion private var __connected:Bool = false;
@@ -447,7 +459,14 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		var webHost = urlReg.matched(2);
 		var webPath = urlReg.matched(3);
 		var options:Dynamic = {url: schema + "://" + webHost + ":" + port + "/" + webPath, binaryType: "arraybuffer"};
-		__flightSocket = FlightSocket.createSocket(options);
+		var socketHost = __getSocketHost();
+		if (socketHost == null)
+		{
+			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
+			return;
+		}
+
+		__flightSocket = FlightSocket.createSocket(socketHost, options);
 		if (__flightSocket == null)
 		{
 			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
@@ -475,6 +494,29 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
 			}
 		}
+	}
+
+	@:noCompletion private static function __getSocketHost():FlightSocketHost
+	{
+		if (__socketHost != null || __socketHostResolved) return __socketHost;
+
+		#if (js && html5)
+		__socketHost = cast FlightHostWeb.webHostNet;
+		__socketHostResolved = true;
+		#elseif (clay && sys)
+		__socketHost = cast FlightHostClay.createClayHost();
+		__socketHostResolved = true;
+		#elseif (lime && sys)
+		if (LimeApplication.current != null)
+		{
+			__socketHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+			__socketHostResolved = true;
+		}
+		#else
+		__socketHostResolved = true;
+		#end
+
+		return __socketHost;
 	}
 
 	/**
