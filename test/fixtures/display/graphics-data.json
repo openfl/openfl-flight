@@ -1,0 +1,325 @@
+{
+  "mutations": {
+    "solid": {
+      "color": 16702650,
+      "alpha": -0.25
+    },
+    "stroke": {
+      "pixelHinting": true,
+      "caps": 1,
+      "fillIsNull": false,
+      "thicknessIsNaN": false,
+      "fill": {
+        "color": 16702650,
+        "alpha": -0.25
+      },
+      "scaleMode": 1,
+      "thickness": -10,
+      "miterLimit": 300,
+      "joints": 0
+    },
+    "bitmap": {
+      "repeat": false,
+      "smooth": true,
+      "bitmapWidth": 4,
+      "matrix": {
+        "tx": -4,
+        "d": 3,
+        "c": 0,
+        "a": 2,
+        "b": 1,
+        "ty": 6
+      },
+      "bitmapHeight": 5
+    },
+    "triangle": {
+      "uvtData": [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6
+      ],
+      "vertices": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "culling": 0,
+      "indices": [
+        2,
+        1,
+        0
+      ]
+    },
+    "gradient": {
+      "spreadMethod": 2,
+      "ratios": [
+        -10,
+        128,
+        300
+      ],
+      "alphas": [
+        -1,
+        0.5,
+        2
+      ],
+      "focalPointRatio": 2,
+      "type": 1,
+      "matrix": {
+        "tx": 0,
+        "d": 1,
+        "c": 0,
+        "a": 1,
+        "b": 0,
+        "ty": 0
+      },
+      "colors": [
+        1,
+        2,
+        3
+      ],
+      "interpolationMethod": 0
+    }
+  },
+  "defaults": {
+    "quad": {
+      "indices": null,
+      "transforms": null,
+      "rects": null
+    },
+    "solid": {
+      "color": 0,
+      "alpha": 1
+    },
+    "stroke": {
+      "pixelHinting": false,
+      "caps": 0,
+      "fillIsNull": true,
+      "thicknessIsNaN": true,
+      "fill": null,
+      "scaleMode": 2,
+      "thickness": null,
+      "miterLimit": 3,
+      "joints": 2
+    },
+    "interfaceFillCount": 4,
+    "bitmap": {
+      "repeat": true,
+      "smooth": false,
+      "bitmapWidth": null,
+      "matrix": null,
+      "bitmapHeight": null
+    },
+    "triangle": {
+      "uvtData": null,
+      "vertices": null,
+      "culling": 1,
+      "indices": null
+    },
+    "path": {
+      "commands": null,
+      "data": null,
+      "winding": 0
+    },
+    "gradient": {
+      "spreadMethod": 0,
+      "ratios": null,
+      "alphas": null,
+      "focalPointRatio": 0,
+      "type": 0,
+      "matrix": null,
+      "colors": null,
+      "interpolationMethod": 1
+    },
+    "interfaceDataCount": 8
+  },
+  "pathMethods": {
+    "commands": [
+      1,
+      2,
+      3,
+      6,
+      1,
+      2
+    ],
+    "data": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "winding": 0
+  },
+  "values": {
+    "bitmapReferences": {
+      "bitmap": true,
+      "matrix": true
+    },
+    "quad": {
+      "indices": [
+        1,
+        0
+      ],
+      "transforms": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "rects": [
+        1,
+        2,
+        30,
+        40,
+        5,
+        6,
+        70,
+        80
+      ]
+    },
+    "strokeFillSameReference": true,
+    "solid": {
+      "color": 2311527,
+      "alpha": 0.4
+    },
+    "stroke": {
+      "pixelHinting": true,
+      "caps": 2,
+      "fillIsNull": false,
+      "thicknessIsNaN": false,
+      "fill": {
+        "color": 2311527,
+        "alpha": 0.4
+      },
+      "scaleMode": 0,
+      "thickness": 5.5,
+      "miterLimit": 7,
+      "joints": 1
+    },
+    "bitmap": {
+      "repeat": false,
+      "smooth": true,
+      "bitmapWidth": 2,
+      "matrix": {
+        "tx": 5,
+        "d": 4,
+        "c": 3,
+        "a": 1,
+        "b": 2,
+        "ty": 6
+      },
+      "bitmapHeight": 3
+    },
+    "gradientReferences": {
+      "ratios": true,
+      "alphas": true,
+      "matrix": true,
+      "colors": true
+    },
+    "triangle": {
+      "uvtData": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "vertices": [
+        0,
+        0,
+        10,
+        0,
+        0,
+        10
+      ],
+      "culling": 2,
+      "indices": [
+        0,
+        1,
+        2
+      ]
+    },
+    "path": {
+      "commands": [
+        1,
+        2
+      ],
+      "data": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "winding": 1
+    },
+    "pathReferences": {
+      "commands": true,
+      "data": true
+    },
+    "gradient": {
+      "spreadMethod": 1,
+      "ratios": [
+        10,
+        240
+      ],
+      "alphas": [
+        0.25,
+        0.75
+      ],
+      "focalPointRatio": -0.75,
+      "type": 1,
+      "matrix": {
+        "tx": 4,
+        "d": 3,
+        "c": 0,
+        "a": 2,
+        "b": 0,
+        "ty": 5
+      },
+      "colors": [
+        1193046,
+        11259375
+      ],
+      "interpolationMethod": 0
+    },
+    "triangleReferences": {
+      "vertices": true,
+      "indices": true,
+      "uvt": true
+    },
+    "quadReferences": {
+      "indices": true,
+      "transforms": true,
+      "rects": true
+    }
+  },
+  "commands": {
+    "curveTo": 3,
+    "wideMoveTo": 4,
+    "cubicCurveTo": 6,
+    "wideLineTo": 5,
+    "lineTo": 2,
+    "moveTo": 1,
+    "noOp": 0
+  }
+}

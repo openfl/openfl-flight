@@ -28,6 +28,7 @@ import harness.scenarios.FileReferenceScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.FontAndStyleScenario;
 import harness.scenarios.GraphicsDrawScenario;
+import harness.scenarios.GraphicsDataScenario;
 import harness.scenarios.InteractiveObjectScenario;
 import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
@@ -93,6 +94,10 @@ class Scenarios {
 			{
 				name: "display/graphics-draw",
 				run: GraphicsDrawScenario.run
+			},
+			{
+				name: "display/graphics-data",
+				run: GraphicsDataScenario.run
 			},
 			{
 				name: "display/hit-test",
