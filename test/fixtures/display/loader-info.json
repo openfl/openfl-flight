@@ -1,0 +1,40 @@
+{
+  "defaults": {
+    "childAllowsParent": true,
+    "parentAllowsChild": null,
+    "sharedEvents": null,
+    "bytesTotal": 0,
+    "contentType": null,
+    "url": null,
+    "assetLibrary": null,
+    "uncaughtErrorEventsExists": true,
+    "loaderMatches": true,
+    "content": null,
+    "sameDomain": null,
+    "height": -1,
+    "applicationDomainIsCurrent": true,
+    "bytes": null,
+    "loaderURL": null,
+    "parameterFields": [],
+    "frameRate": -1,
+    "bytesLoaded": 0,
+    "width": -1,
+    "stableReference": true
+  },
+  "afterLoadBytes": {
+    "bytesSameReference": false,
+    "bytesTotal": 0,
+    "contentMatchesLoader": true,
+    "contentType": null,
+    "url": null,
+    "definitionLookupMatches": true,
+    "unknownDefinitionReturnsNull": true,
+    "height": 0,
+    "loaderURL": null,
+    "bytesLength": null,
+    "frameRate": -1,
+    "bytesLoaded": 0,
+    "contentIsBitmap": true,
+    "width": 0
+  }
+}

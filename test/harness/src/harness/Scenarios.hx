@@ -32,6 +32,7 @@ import harness.scenarios.InteractiveObjectScenario;
 import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.LoaderScenario;
+import harness.scenarios.LoaderInfoScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
 import harness.scenarios.MouseScenario;
@@ -132,6 +133,10 @@ class Scenarios {
 			{
 				name: "display/loader",
 				run: LoaderScenario.run
+			},
+			{
+				name: "display/loader-info",
+				run: LoaderInfoScenario.run
 			},
 			{
 				name: "display/stage",
