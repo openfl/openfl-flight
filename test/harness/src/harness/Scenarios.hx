@@ -50,6 +50,7 @@ import harness.scenarios.TimerScenario;
 import harness.scenarios.TilesScenario;
 import harness.scenarios.TransformScenario;
 import harness.scenarios.Utils3DScenario;
+import harness.scenarios.URLLoaderScenario;
 import harness.scenarios.Vector3DScenario;
 
 class Scenarios {
@@ -190,6 +191,10 @@ class Scenarios {
 			{
 				name: "security/certificate-status",
 				run: CertificateStatusScenario.run
+			},
+			{
+				name: "net/url-loader-request",
+				run: URLLoaderScenario.run
 			},
 			{
 				name: "display/display-object",

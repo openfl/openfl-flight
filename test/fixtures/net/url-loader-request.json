@@ -1,0 +1,48 @@
+{
+  "header": {
+    "defaultValue": "",
+    "name": "Accept",
+    "defaultName": "",
+    "value": "text/plain"
+  },
+  "loaderDefaults": {
+    "bytesTotal": 0,
+    "dataFormat": 1,
+    "data": null,
+    "bytesLoaded": 0
+  },
+  "loadStart": {
+    "bytesTotal": 9,
+    "events": [
+      "open"
+    ],
+    "dataFormat": 1,
+    "data": "before",
+    "bytesLoaded": 7
+  },
+  "requestDefaults": {
+    "idleTimeout": 30000,
+    "withCredentials": false,
+    "contentType": null,
+    "url": null,
+    "method": "GET",
+    "headerCount": 0,
+    "manageCookies": true,
+    "followRedirects": true,
+    "userAgent": null,
+    "data": null
+  },
+  "requestMutation": {
+    "idleTimeout": 1250,
+    "withCredentials": true,
+    "contentType": "application/json",
+    "url": "https://example.invalid/resource",
+    "headerName": "X-Flight",
+    "method": "POST",
+    "headerValue": "adapter",
+    "manageCookies": false,
+    "followRedirects": false,
+    "userAgent": "openfl-flight-test",
+    "data": "{\"flight\":true}"
+  }
+}
