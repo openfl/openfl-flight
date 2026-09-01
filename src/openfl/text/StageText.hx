@@ -1,6 +1,12 @@
 package openfl.text;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
+import flight.Node as FlightNode;
+import flight.Text as FlightText;
+import flight.TextInput as FlightTextInput;
+import flight.types.RichText as FlightRichText;
+import flight.types.TextFormat as FlightTextFormat;
+import flight.types.TextInputManager as FlightTextInputManager;
 import openfl.display.BitmapData;
 import openfl.display.Stage;
 import openfl.events.Event;
@@ -74,8 +80,11 @@ import openfl.text.engine.FontWeight;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.DisplayObject)
 class StageText extends EventDispatcher
 {
+	@:noCompletion private var __flightText:FlightRichText;
+	@:noCompletion private var __flightTextInputManager:FlightTextInputManager;
 	@:noCompletion private var __textField:TextField;
 	@:noCompletion private var __initOptions:StageTextInitOptions;
 	@:noCompletion private var __complete:Bool = false;
@@ -151,6 +160,7 @@ class StageText extends EventDispatcher
 		__textFormat.color = value;
 		__textField.defaultTextFormat = __textFormat;
 		__textField.setTextFormat(__textFormat);
+		__syncFlightTextFormat();
 		return __textFormat.color;
 	}
 
@@ -175,7 +185,9 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function set_displayAsPassword(value:Bool):Bool
 	{
-		return __textField.displayAsPassword = value;
+		__textField.displayAsPassword = value;
+		FlightTextInput.enableTextInput(__flightText, {displayAsPassword: value});
+		return value;
 	}
 
 	/**
@@ -191,6 +203,11 @@ class StageText extends EventDispatcher
 	@:noCompletion private function set_editable(value:Bool):Bool
 	{
 		__textField.type = value ? INPUT : DYNAMIC;
+		__flightTextInputManager.enabled = value;
+		if (!value)
+		{
+			FlightTextInput.blurTextInput(__flightTextInputManager);
+		}
 		return __textField.type == INPUT;
 	}
 
@@ -216,6 +233,7 @@ class StageText extends EventDispatcher
 		__textFormat.font = value;
 		__textField.defaultTextFormat = __textFormat;
 		__textField.setTextFormat(__textFormat);
+		__syncFlightTextFormat();
 		return __textFormat.font;
 	}
 
@@ -239,6 +257,7 @@ class StageText extends EventDispatcher
 		__textFormat.italic = value == ITALIC;
 		__textField.defaultTextFormat = __textFormat;
 		__textField.setTextFormat(__textFormat);
+		__syncFlightTextFormat();
 		return __textFormat.italic ? ITALIC : NORMAL;
 	}
 
@@ -261,6 +280,7 @@ class StageText extends EventDispatcher
 		__textFormat.size = value;
 		__textField.defaultTextFormat = __textFormat;
 		__textField.setTextFormat(__textFormat);
+		__syncFlightTextFormat();
 		return __textFormat.size;
 	}
 
@@ -283,6 +303,7 @@ class StageText extends EventDispatcher
 		__textFormat.bold = value == BOLD;
 		__textField.defaultTextFormat = __textFormat;
 		__textField.setTextFormat(__textFormat);
+		__syncFlightTextFormat();
 		return __textFormat.bold ? BOLD : NORMAL;
 	}
 
@@ -310,7 +331,10 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function set_maxChars(value:Int):Int
 	{
-		return __textField.maxChars = value;
+		__textField.maxChars = value;
+		FlightText.setRichTextMaxChars(__flightText, value == 0 ? -1 : value);
+		FlightText.setRichTextString(__flightText, __textField.text);
+		return value;
 	}
 
 	/**
@@ -398,7 +422,9 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function set_restrict(value:String):String
 	{
-		return __textField.restrict = value;
+		__textField.restrict = value;
+		FlightTextInput.enableTextInput(__flightText, {restrict: __toFlightRestrict(value)});
+		return value;
 	}
 
 	/**
@@ -433,7 +459,7 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function get_selectionActiveIndex():Int
 	{
-		return __textField.selectionEndIndex;
+		return Std.int(FlightTextInput.getTextInputSelectionEndIndex(__flightText));
 	}
 
 	/**
@@ -451,7 +477,7 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function get_selectionAnchorIndex():Int
 	{
-		return __textField.selectionBeginIndex;
+		return Std.int(FlightTextInput.getTextInputSelectionBeginIndex(__flightText));
 	}
 
 	/**
@@ -497,12 +523,14 @@ class StageText extends EventDispatcher
 		}
 		if (__textField.stage != null)
 		{
+			__removeFlightTextFromStage();
 			__textField.parent.removeChild(__textField);
 			__complete = false;
 		}
 		if (value != null)
 		{
 			value.addChild(__textField);
+			FlightNode.addNodeChild(value.__flightNode, __flightText);
 			__dispatchComplete();
 		}
 		return __textField.stage;
@@ -517,12 +545,20 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function get_text():String
 	{
-		return __textField.text;
+		var value = __flightText.data.text;
+		if (__textField.text != value)
+		{
+			__textField.text = value;
+		}
+		return value;
 	}
 
 	@:noCompletion private function set_text(value:String):String
 	{
-		return __textField.text = value;
+		__textField.text = value;
+		FlightText.setRichTextString(__flightText, __textField.text);
+		FlightTextInput.setTextInputSelection(__flightText, 0, 0);
+		return value;
 	}
 
 	/**
@@ -565,6 +601,7 @@ class StageText extends EventDispatcher
 		__textFormat.align = value;
 		__textField.defaultTextFormat = __textFormat;
 		__textField.setTextFormat(__textFormat);
+		__syncFlightTextFormat();
 		return __textAlign;
 	}
 
@@ -591,6 +628,11 @@ class StageText extends EventDispatcher
 		__textField.y = __viewPort.y;
 		__textField.width = __viewPort.width;
 		__textField.height = __viewPort.height;
+		__flightText.x = __viewPort.x;
+		__flightText.y = __viewPort.y;
+		FlightText.setRichTextWidth(__flightText, __viewPort.width);
+		FlightText.setRichTextHeight(__flightText, __viewPort.height);
+		FlightNode.invalidateNodeLocalTransform(__flightText);
 
 		__dispatchComplete();
 
@@ -610,7 +652,10 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function set_visible(value:Bool):Bool
 	{
-		return __textField.visible = value;
+		__textField.visible = value;
+		__flightText.visible = value;
+		FlightNode.invalidateNodeAppearance(__flightText);
+		return value;
 	}
 
 	/**
@@ -636,11 +681,12 @@ class StageText extends EventDispatcher
 	**/
 	public function assignFocus():Void
 	{
-		if (__textField.parent == null)
+		if (__textField.parent == null || !editable)
 		{
 			return;
 		}
 		__textField.stage.focus = __textField;
+		FlightTextInput.focusTextInput(__flightTextInputManager, __flightText);
 	}
 
 	/**
@@ -655,6 +701,11 @@ class StageText extends EventDispatcher
 	public function dispose():Void
 	{
 		this.stage = null;
+		FlightTextInput.blurTextInput(__flightTextInputManager);
+		FlightTextInput.disableTextInput(__flightText);
+		FlightNode.disposeNode(__flightText);
+		__flightText = null;
+		__flightTextInputManager = null;
 		__textField = null;
 		__textFormat = null;
 	}
@@ -707,6 +758,7 @@ class StageText extends EventDispatcher
 	public function selectRange(anchorIndex:Int, activeIndex:Int):Void
 	{
 		__textField.setSelection(anchorIndex, activeIndex);
+		FlightTextInput.setTextInputSelection(__flightText, anchorIndex, activeIndex);
 	}
 
 	@:noCompletion private function __createTextField():Void
@@ -723,6 +775,57 @@ class StageText extends EventDispatcher
 		__textField.addEventListener(FocusEvent.KEY_FOCUS_CHANGE, textField_onKeyFocusChange);
 		__textFormat = new TextFormat(null, 11, 0x000000, false, false, false);
 		__textField.defaultTextFormat = __textFormat;
+
+		__flightText = FlightText.createRichText();
+		__flightTextInputManager = FlightTextInput.createTextInputManager();
+		FlightText.setRichTextMultiline(__flightText, __initOptions.multiline);
+		FlightText.setRichTextWordWrap(__flightText, __initOptions.multiline);
+		FlightText.setRichTextMaxChars(__flightText, -1);
+		FlightTextInput.enableTextInput(__flightText, {
+			displayAsPassword: false,
+			restrict: ""
+		});
+		__syncFlightTextFormat();
+	}
+
+	@:noCompletion private function __removeFlightTextFromStage():Void
+	{
+		var parent = FlightNode.getNodeParent(__flightText);
+		if (parent != null)
+		{
+			FlightNode.removeNodeChild(cast parent, __flightText);
+		}
+	}
+
+	@:noCompletion private function __syncFlightTextFormat():Void
+	{
+		var format:FlightTextFormat = {};
+		if (__textFormat.font != null) format.font = __textFormat.font;
+		if (__textFormat.size != null) format.size = __textFormat.size;
+		if (__textFormat.color != null) format.color = __textFormat.color;
+		if (__textFormat.bold != null) format.bold = __textFormat.bold;
+		if (__textFormat.italic != null) format.italic = __textFormat.italic;
+		format.align = switch (__textAlign)
+		{
+			case CENTER: "center";
+			case END: "end";
+			case JUSTIFY: "justify";
+			case RIGHT: "right";
+			case START: "start";
+			default: "left";
+		};
+		FlightText.setRichTextDefaultTextFormat(__flightText, format);
+		if (__textFormat.color != null)
+		{
+			FlightText.setRichTextTextColor(__flightText, __textFormat.color);
+		}
+	}
+
+	@:noCompletion private function __toFlightRestrict(value:String):String
+	{
+		if (value == null) return "";
+		if (value == "") return "^\u0000-\uFFFF";
+		return value;
 	}
 
 	@:noCompletion private function __dispatchComplete():Void
@@ -740,6 +843,19 @@ class StageText extends EventDispatcher
 
 	@:noCompletion private function textField_onEvent(event:Event):Void
 	{
+		if (event.type == Event.CHANGE)
+		{
+			FlightText.setRichTextString(__flightText, __textField.text);
+			FlightTextInput.setTextInputSelection(__flightText, __textField.selectionBeginIndex, __textField.selectionEndIndex);
+		}
+		else if (event.type == FocusEvent.FOCUS_IN && editable)
+		{
+			FlightTextInput.focusTextInput(__flightTextInputManager, __flightText);
+		}
+		else if (event.type == FocusEvent.FOCUS_OUT)
+		{
+			FlightTextInput.blurTextInput(__flightTextInputManager);
+		}
 		dispatchEvent(event);
 	}
 

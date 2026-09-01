@@ -175,6 +175,16 @@ currently provides (or doesn't).
   items and Power keep-awake operations back `startAtLogin` and
   `systemIdleMode`; the remaining surfaces stay deterministic stubs.
 
+- **StageText host input ownership**: Flight TextInput provides the RichText
+  editor, selection, restrictions, focus manager, and a connector for an
+  explicit `TextInputSource`. OpenFL's Stage surface does not yet retain or
+  expose the host-local Flight `InputManager`, so StageText can back its text,
+  selection, restrictions, formatting, focus state, and scene node with Flight
+  but cannot autonomously connect native keyboard/text ingress. The display
+  bridge needs to own one host input source per Stage and make it available to
+  StageText; Flight-driven edits also need a change signal from TextInput so
+  OpenFL `Event.CHANGE` can be dispatched without polling the RichText value.
+
 ## Suspected Gaps
 
 - **Event system bridging**: OpenFL's capture/target/bubble event model is kept
