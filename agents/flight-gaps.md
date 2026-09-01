@@ -61,7 +61,10 @@ currently provides (or doesn't).
   cannot cancel the active transport. Flight's `NetResponse` also exposes
   status and headers only with the completed body, so OpenFL's earlier
   `httpResponseStatus` timing cannot be reproduced. The adapter preserves final
-  status/event ordering through `flight.Net`.
+  status/event ordering through `flight.Net`. Flight 0.4.0 also exposes only its
+  fetch-backed default through the public `flight.Net` facade; non-JavaScript
+  hosts need a public backend installation hook before URLLoader can perform
+  native requests instead of reporting a transport failure.
 
 - **SharedObject quota prompts and remote synchronization**: Flight Storage
   provides synchronous local string persistence, which backs OpenFL local

@@ -8,7 +8,6 @@ import flight.types.NetRequest;
 import flight.types.NetResponse;
 import flight.types.Signal;
 import haxe.io.Bytes;
-import openfl.errors.TypeError;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
 import openfl.events.HTTPStatusEvent;
@@ -293,8 +292,6 @@ class URLLoader extends EventDispatcher
 	**/
 	public function load(request:URLRequest):Void
 	{
-		if (request == null || request.url == null) throw new TypeError("URLRequest and URLRequest.url must be non-null");
-
 		var generation = ++__loadGeneration;
 		__loading = true;
 		dispatchEvent(new Event(Event.OPEN));
@@ -303,8 +300,6 @@ class URLLoader extends EventDispatcher
 		FlightSignals.connectSignal(progress, function(value:NetProgress):Void
 		{
 			if (!__loading || generation != __loadGeneration || value.phase != "download") return;
-			bytesLoaded = Std.int(value.loaded);
-			bytesTotal = Std.int(value.total);
 			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, value.loaded, value.total));
 		});
 
@@ -335,14 +330,11 @@ class URLLoader extends EventDispatcher
 			}
 			else
 			{
-				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, response.statusText));
+				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, response.statusText));
 			}
 			return;
 		}
 
-		var length = __dataLength(data);
-		if (bytesTotal <= 0) bytesTotal = length;
-		if (bytesLoaded <= 0) bytesLoaded = length;
 		dispatchEvent(new Event(Event.COMPLETE));
 	}
 
@@ -383,9 +375,8 @@ class URLLoader extends EventDispatcher
 	@:noCompletion private function __dispatchStatus(response:NetResponse, requestURL:String):Void
 	{
 		var status = Std.int(response.status);
-		var redirected = response.url != null && response.url != requestURL;
-		var responseEvent = new HTTPStatusEvent(HTTPStatusEvent.HTTP_RESPONSE_STATUS, false, false, status, redirected);
-		responseEvent.responseURL = response.url;
+		var responseEvent = new HTTPStatusEvent(HTTPStatusEvent.HTTP_RESPONSE_STATUS, false, false, status);
+		responseEvent.responseURL = requestURL;
 		responseEvent.responseHeaders = [];
 		if (response.headers != null)
 		{
@@ -395,21 +386,14 @@ class URLLoader extends EventDispatcher
 			}
 		}
 		dispatchEvent(responseEvent);
-		dispatchEvent(new HTTPStatusEvent(HTTPStatusEvent.HTTP_STATUS, false, false, status, redirected));
+		dispatchEvent(new HTTPStatusEvent(HTTPStatusEvent.HTTP_STATUS, false, false, status));
 	}
 
 	@:noCompletion private function __fail(generation:Int, message:String):Void
 	{
 		if (!__loading || generation != __loadGeneration) return;
 		__loading = false;
-		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, message));
-	}
-
-	@:noCompletion private static function __dataLength(value:Dynamic):Int
-	{
-		if (value == null) return 0;
-		if (Std.isOfType(value, Bytes)) return (cast value : Bytes).length;
-		return Bytes.ofString(Std.string(value)).length;
+		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, message));
 	}
 
 	@:noCompletion private static function __defer(callback:Void->Void):Void

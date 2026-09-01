@@ -20,6 +20,34 @@
     "data": "before",
     "bytesLoaded": 7
   },
+  "invalidLoads": {
+    "nullRequest": {
+      "errorClass": "String",
+      "openEvents": 1,
+      "threw": true
+    },
+    "nullUrl": {
+      "errorClass": null,
+      "openEvents": 1,
+      "threw": false
+    }
+  },
+  "constructorLoad": {
+    "bytesTotal": 0,
+    "dataFormat": "text",
+    "data": null,
+    "bytesLoaded": 0
+  },
+  "closeAndReload": {
+    "bytesTotal": 0,
+    "events": [
+      "open",
+      "open"
+    ],
+    "dataFormat": "variables",
+    "data": null,
+    "bytesLoaded": 0
+  },
   "requestDefaults": {
     "idleTimeout": 30000,
     "withCredentials": false,
