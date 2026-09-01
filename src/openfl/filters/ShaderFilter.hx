@@ -57,6 +57,7 @@ import openfl.display.Shader;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.Shader)
 class ShaderFilter extends BitmapFilter
 {
 	@:dox(hide) @:noCompletion @:beta @SuppressWarnings("checkstyle:FieldDocComment")
@@ -147,6 +148,7 @@ class ShaderFilter extends BitmapFilter
 		this.shader = shader;
 
 		__numShaderPasses = 1;
+		__syncFlightEffect();
 	}
 
 	public override function clone():BitmapFilter
@@ -163,6 +165,12 @@ class ShaderFilter extends BitmapFilter
 	public function invalidate():Void
 	{
 		__renderDirty = true;
+		__syncFlightEffect();
+	}
+
+	@:noCompletion private override function __syncFlightEffect():Void
+	{
+		__flightEffect = shader == null ? null : shader.__getFlightEffect();
 	}
 
 	private function get_topExtension():Int
