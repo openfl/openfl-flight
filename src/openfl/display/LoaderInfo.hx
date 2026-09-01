@@ -2,6 +2,8 @@ package openfl.display;
 
 import openfl.utils.AssetLibrary;
 #if !flash
+import flight.types.ImageResourceReference as FlightImageResourceReference;
+import haxe.ds.ObjectMap;
 import openfl.events.EventDispatcher;
 import openfl.events.Event;
 import openfl.events.ProgressEvent;
@@ -115,8 +117,9 @@ import js.Browser;
 class LoaderInfo extends EventDispatcher
 {
 	@:noCompletion private static var __rootURL:String = #if (js && html5) (Browser.supported ? Browser.document.URL : "") #else "" #end;
+	@:noCompletion private static var __definitionLoaderInfo:ObjectMap<Dynamic, LoaderInfo> = new ObjectMap();
 
-	// @:noCompletion @:dox(hide) public var actionScriptVersion (default, never):openfl.display.ActionScriptVersion;
+	@:noCompletion @:dox(hide) public var actionScriptVersion(default, null):ActionScriptVersion;
 
 	/**
 		When an external SWF file is loaded, all ActionScript 3.0 definitions
@@ -195,7 +198,7 @@ class LoaderInfo extends EventDispatcher
 	**/
 	public var childAllowsParent(default, null):Bool;
 
-	// @:noCompletion @:dox(hide) @:require(flash11_4) public var childSandboxBridge:Dynamic;
+	@:noCompletion @:dox(hide) public var childSandboxBridge:Dynamic;
 
 	/**
 		The loaded object associated with this LoaderInfo object.
@@ -253,7 +256,7 @@ class LoaderInfo extends EventDispatcher
 	**/
 	public var height(default, null):Int = -1;
 
-	// @:noCompletion @:dox(hide) @:require(flash10_1) public var isURLInaccessible (default, null):Bool;
+	@:noCompletion @:dox(hide) public var isURLInaccessible(default, null):Bool;
 
 	/**
 		The Loader object associated with this LoaderInfo object. If this
@@ -321,7 +324,7 @@ class LoaderInfo extends EventDispatcher
 	**/
 	public var parentAllowsChild(default, null):Bool;
 
-	// @:noCompletion @:dox(hide) @:require(flash11_4) public var parentSandboxBridge:Dynamic;
+	@:noCompletion @:dox(hide) public var parentSandboxBridge:Dynamic;
 
 	/**
 		Expresses the domain relationship between the loader and the content:
@@ -342,7 +345,7 @@ class LoaderInfo extends EventDispatcher
 	**/
 	public var sharedEvents(default, null):EventDispatcher;
 
-	// @:noCompletion @:dox(hide) public var swfVersion (default, null):UInt;
+	@:noCompletion @:dox(hide) public var swfVersion(default, null):UInt;
 
 	/**
 		An object that dispatches an `uncaughtError` event when an
@@ -388,16 +391,20 @@ class LoaderInfo extends EventDispatcher
 	public var width(default, null):Int = -1;
 
 	@:noCompletion private var __completed:Bool;
+	@:noCompletion private var __flightResourceReference:FlightImageResourceReference;
 
 	@:noCompletion private function new()
 	{
 		super();
 
+		actionScriptVersion = ActionScriptVersion.ACTIONSCRIPT3;
 		applicationDomain = ApplicationDomain.currentDomain;
 		bytesLoaded = 0;
 		bytesTotal = 0;
 		childAllowsParent = true;
+		isURLInaccessible = false;
 		parameters = {};
+		swfVersion = 0;
 	}
 
 	@:noCompletion @:dox(hide)
@@ -419,7 +426,24 @@ class LoaderInfo extends EventDispatcher
 		return loaderInfo;
 	}
 
-	// @:noCompletion @:dox(hide) public static function getLoaderInfoByDefinition (object:Dynamic):LoaderInfo;
+	public static function getLoaderInfoByDefinition(object:Dynamic):LoaderInfo
+	{
+		if (object == null) return null;
+		if (Std.isOfType(object, DisplayObject)) return (cast object : DisplayObject).loaderInfo;
+		return __definitionLoaderInfo.get(object);
+	}
+
+	@:noCompletion private static function __registerDefinition(object:Dynamic, loaderInfo:LoaderInfo):Void
+	{
+		if (object == null || loaderInfo == null) return;
+		var definition = Type.getClass(object);
+		if (definition != null) __definitionLoaderInfo.set(definition, loaderInfo);
+	}
+
+	@:noCompletion private function __setFlightResourceReference(reference:FlightImageResourceReference):Void
+	{
+		__flightResourceReference = reference;
+	}
 	@:noCompletion private function __complete():Void
 	{
 		if (!__completed)

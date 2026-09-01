@@ -64,6 +64,7 @@ class Loader extends DisplayObjectContainer
 		contentLoaderInfo.dispatchEvent(new Event(Event.OPEN));
 		contentLoaderInfo.url = request.url;
 		__flightImageReference = FlightImage.createExternalImageResourceReference(request.url);
+		contentLoaderInfo.__setFlightResourceReference(__flightImageReference);
 		__unloaded = false;
 	}
 
@@ -77,7 +78,7 @@ class Loader extends DisplayObjectContainer
 		var bytes = new FlightUInt8Array(buffer.length);
 		for (i in 0...buffer.length) bytes[i] = buffer[i];
 		__flightImageReference = FlightImage.createEmbeddedImageResourceReference(bytes);
-		contentLoaderInfo.bytes = buffer;
+		contentLoaderInfo.__setFlightResourceReference(__flightImageReference);
 		Loader_onComplete(new Bitmap(new BitmapData(0, 0)));
 	}
 
@@ -116,6 +117,7 @@ class Loader extends DisplayObjectContainer
 
 			content = null;
 			__flightImageReference = null;
+			contentLoaderInfo.__setFlightResourceReference(null);
 			contentLoaderInfo.url = null;
 			contentLoaderInfo.contentType = null;
 			contentLoaderInfo.content = null;
@@ -148,6 +150,7 @@ class Loader extends DisplayObjectContainer
 		if (content != null)
 		{
 			contentLoaderInfo.content = content;
+			LoaderInfo.__registerDefinition(content, contentLoaderInfo);
 			if (contentLoaderInfo.width == -1 || contentLoaderInfo.height == -1)
 			{
 				contentLoaderInfo.width = Std.int(content.width);
