@@ -3,6 +3,7 @@ package openfl.sensors;
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
 import flight.Sensors as FlightSensors;
 import flight.Signals as FlightSignals;
+import flight.types.HasSystemSensors as FlightSystemSensorsHost;
 import flight.types.OrientationReading;
 import flight.types.QuaternionReading;
 import flight.types.Sensors as FlightSensorSet;
@@ -47,9 +48,10 @@ class DeviceRotation extends EventDispatcher
 
 	private static function get_isSupported():Bool
 	{
-		return FlightSensors.hasOrientationSensor();
+		return FlightSensors.hasOrientationSensor(__getFlightHost());
 	}
 
+	@:noCompletion private static var __flightHost:FlightSystemSensorsHost;
 	@:noCompletion private var __flightSensors:FlightSensorSet;
 
 	/**
@@ -69,7 +71,17 @@ class DeviceRotation extends EventDispatcher
 
 		__flightSensors = FlightSensors.createSensors();
 		FlightSignals.connectSignal(__flightSensors.onOrientation, deviceRotation_onFlightUpdate);
-		FlightSensors.attachSensors(__flightSensors);
+		FlightSensors.attachSensors(__getFlightHost(), __flightSensors);
+	}
+
+	@:noCompletion private static function __getFlightHost():FlightSystemSensorsHost
+	{
+		if (__flightHost == null)
+		{
+			// HostLime and HostClay do not currently expose Flight's sensors capability.
+			__flightHost = cast {system: {sensors: {isOrientationSupported: function():Bool return false}}};
+		}
+		return __flightHost;
 	}
 
 	/**
