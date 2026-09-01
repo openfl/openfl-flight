@@ -2,7 +2,18 @@ package openfl.desktop;
 
 #if !flash
 import flight.Clipboard as FlightClipboard;
+import flight.types.HasClipboardFormats as FlightClipboardFormatsHost;
+import flight.types.HasClipboardText as FlightClipboardTextHost;
+import flight.types.Host as FlightHost;
 import openfl.utils.Object;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
 
 /**
 	The Clipboard class provides a container for transferring data and objects
@@ -105,6 +116,8 @@ class Clipboard
 	public static var generalClipboard(get, never):Clipboard;
 
 	@:noCompletion private static var __generalClipboard:Clipboard;
+	@:noCompletion private static var __host:FlightHost;
+	@:noCompletion private static var __hostResolved:Bool;
 
 	/**
 		An array of strings containing the names of the data formats available
@@ -160,7 +173,8 @@ class Clipboard
 	{
 		if (__systemClipboard)
 		{
-			FlightClipboard.clearClipboard();
+			var host:FlightClipboardTextHost = cast __getHost();
+			if (host != null) FlightClipboard.clearClipboard(host);
 		}
 
 		__htmlText = null;
@@ -184,10 +198,11 @@ class Clipboard
 	{
 		if (__systemClipboard)
 		{
+			var host:FlightClipboardTextHost = cast __getHost();
 			switch (format)
 			{
 				case HTML_FORMAT, RICH_TEXT_FORMAT, TEXT_FORMAT:
-					FlightClipboard.clearClipboard();
+					if (host != null) FlightClipboard.clearClipboard(host);
 					__htmlText = null;
 					__richText = null;
 					__text = null;
@@ -384,16 +399,19 @@ class Clipboard
 	{
 		if (__systemClipboard)
 		{
+			var host = __getHost();
+			var formatsHost:FlightClipboardFormatsHost = cast host;
+			var textHost:FlightClipboardTextHost = cast host;
 			switch (format)
 			{
 				case HTML_FORMAT:
-					FlightClipboard.writeClipboardHtml(Std.string(data));
+					if (formatsHost != null) FlightClipboard.writeClipboardHtml(formatsHost, Std.string(data));
 
 				case RICH_TEXT_FORMAT:
-					FlightClipboard.writeClipboardRTF(Std.string(data));
+					if (formatsHost != null) FlightClipboard.writeClipboardRTF(formatsHost, Std.string(data));
 
 				case TEXT_FORMAT:
-					FlightClipboard.writeClipboardText(Std.string(data));
+					if (textHost != null) FlightClipboard.writeClipboardText(textHost, Std.string(data));
 
 				default:
 					return false;
@@ -520,6 +538,29 @@ class Clipboard
 	@:noCompletion private function get_supportsFilePromise():Bool
 	{
 		return false;
+	}
+
+	@:noCompletion private static function __getHost():FlightHost
+	{
+		if (__host != null || __hostResolved) return __host;
+
+		#if (js && html5)
+		__host = cast FlightHostWeb.webClipboardHost;
+		__hostResolved = true;
+		#elseif (clay && sys)
+		__host = cast FlightHostClay.createClayHost();
+		__hostResolved = true;
+		#elseif (lime && sys)
+		if (LimeApplication.current != null)
+		{
+			__host = cast FlightHostLime.createLimeHost(LimeApplication.current);
+			__hostResolved = true;
+		}
+		#else
+		__hostResolved = true;
+		#end
+
+		return __host;
 	}
 
 	@:noCompletion private static function get_generalClipboard():Clipboard
