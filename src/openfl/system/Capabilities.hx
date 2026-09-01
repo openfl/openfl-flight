@@ -671,7 +671,7 @@ import sys.io.Process;
 		return label != null ? label : "";
 		#end
 		#else
-		return null;
+		return "";
 		#end
 	}
 
@@ -722,9 +722,12 @@ import sys.io.Process;
 		var value = "OFL";
 		#end
 
-		if (Compiler.getDefine("openfl") != null)
+		var openflVersion = Compiler.getDefine("openfl");
+		if (openflVersion == "1") openflVersion = "9.5.2";
+
+		if (openflVersion != null)
 		{
-			value += " " + StringTools.replace(Compiler.getDefine("openfl"), ".", ",") + ",0";
+			value += " " + StringTools.replace(openflVersion, ".", ",") + ",0";
 		}
 
 		return value;
