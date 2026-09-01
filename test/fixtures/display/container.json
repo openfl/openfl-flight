@@ -5,9 +5,27 @@
     "containsGrandchild": true,
     "containsChild": true
   },
+  "addChildReindex": {
+    "child0": "b",
+    "child1": "c",
+    "numChildren": 3,
+    "child2": "a"
+  },
   "getChildByName": {
     "found": true,
     "notFound": true
+  },
+  "removeChildren": {
+    "child0": "a",
+    "cParent": true,
+    "bParent": true,
+    "child1": "d",
+    "numChildren": 2
+  },
+  "swapChildren": {
+    "child0": "c",
+    "child1": "b",
+    "child2": "a"
   },
   "addChild": {
     "childParent": true,
@@ -23,6 +41,11 @@
     "indexB": 1,
     "indexA": 0
   },
+  "swapChildrenAt": {
+    "child0": "c",
+    "child1": "b",
+    "child2": "a"
+  },
   "reparent": {
     "parent1Before": 1,
     "parent2After": 1,
@@ -32,6 +55,12 @@
   "getChildAt": {
     "second": "second",
     "first": "first"
+  },
+  "numChildren": {
+    "afterClear": 0,
+    "one": 1,
+    "two": 2,
+    "empty": 0
   },
   "addedEvents": {
     "firstEvent": "added",
@@ -45,6 +74,12 @@
   "removeChild": {
     "childParent": true,
     "numChildren": 0
+  },
+  "removeChildAt": {
+    "child0": "a",
+    "child1": "c",
+    "numChildren": 2,
+    "removedParent": true
   },
   "removedEvents": {
     "firstEvent": "removed",

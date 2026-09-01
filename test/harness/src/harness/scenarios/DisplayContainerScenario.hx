@@ -16,7 +16,13 @@ class DisplayContainerScenario {
 			reparent: testReparent(),
 			addedEvents: testAddedEvents(),
 			removedEvents: testRemovedEvents(),
-			setChildIndex: testSetChildIndex()
+			setChildIndex: testSetChildIndex(),
+			swapChildren: testSwapChildren(),
+			swapChildrenAt: testSwapChildrenAt(),
+			removeChildren: testRemoveChildren(),
+			removeChildAt: testRemoveChildAt(),
+			numChildren: testNumChildren(),
+			addChildReindex: testAddChildReindex()
 		};
 	}
 
@@ -184,6 +190,141 @@ class DisplayContainerScenario {
 		parent.setChildIndex(a, 2);
 
 		return {
+			child0: parent.getChildAt(0).name,
+			child1: parent.getChildAt(1).name,
+			child2: parent.getChildAt(2).name
+		};
+	}
+
+	private static function testSwapChildren():Dynamic {
+		var parent = new Sprite();
+		var a = new Sprite();
+		a.name = "a";
+		var b = new Sprite();
+		b.name = "b";
+		var c = new Sprite();
+		c.name = "c";
+
+		parent.addChild(a);
+		parent.addChild(b);
+		parent.addChild(c);
+
+		parent.swapChildren(a, c);
+
+		return {
+			child0: parent.getChildAt(0).name,
+			child1: parent.getChildAt(1).name,
+			child2: parent.getChildAt(2).name
+		};
+	}
+
+	private static function testSwapChildrenAt():Dynamic {
+		var parent = new Sprite();
+		var a = new Sprite();
+		a.name = "a";
+		var b = new Sprite();
+		b.name = "b";
+		var c = new Sprite();
+		c.name = "c";
+
+		parent.addChild(a);
+		parent.addChild(b);
+		parent.addChild(c);
+
+		parent.swapChildrenAt(0, 2);
+
+		return {
+			child0: parent.getChildAt(0).name,
+			child1: parent.getChildAt(1).name,
+			child2: parent.getChildAt(2).name
+		};
+	}
+
+	private static function testRemoveChildren():Dynamic {
+		var parent = new Sprite();
+		var a = new Sprite();
+		a.name = "a";
+		var b = new Sprite();
+		b.name = "b";
+		var c = new Sprite();
+		c.name = "c";
+		var d = new Sprite();
+		d.name = "d";
+
+		parent.addChild(a);
+		parent.addChild(b);
+		parent.addChild(c);
+		parent.addChild(d);
+
+		parent.removeChildren(1, 2);
+
+		return {
+			numChildren: parent.numChildren,
+			child0: parent.getChildAt(0).name,
+			child1: parent.getChildAt(1).name,
+			bParent: b.parent == null,
+			cParent: c.parent == null
+		};
+	}
+
+	private static function testRemoveChildAt():Dynamic {
+		var parent = new Sprite();
+		var a = new Sprite();
+		a.name = "a";
+		var b = new Sprite();
+		b.name = "b";
+		var c = new Sprite();
+		c.name = "c";
+
+		parent.addChild(a);
+		parent.addChild(b);
+		parent.addChild(c);
+
+		parent.removeChildAt(1);
+
+		return {
+			numChildren: parent.numChildren,
+			child0: parent.getChildAt(0).name,
+			child1: parent.getChildAt(1).name,
+			removedParent: b.parent == null
+		};
+	}
+
+	private static function testNumChildren():Dynamic {
+		var parent = new Sprite();
+		var empty = parent.numChildren;
+		parent.addChild(new Sprite());
+		var one = parent.numChildren;
+		parent.addChild(new Sprite());
+		var two = parent.numChildren;
+		parent.removeChildren();
+		var afterClear = parent.numChildren;
+
+		return {
+			empty: empty,
+			one: one,
+			two: two,
+			afterClear: afterClear
+		};
+	}
+
+	private static function testAddChildReindex():Dynamic {
+		var parent = new Sprite();
+		var a = new Sprite();
+		a.name = "a";
+		var b = new Sprite();
+		b.name = "b";
+		var c = new Sprite();
+		c.name = "c";
+
+		parent.addChild(a);
+		parent.addChild(b);
+		parent.addChild(c);
+
+		parent.addChild(a);
+
+		return {
+			numChildren: parent.numChildren,
 			child0: parent.getChildAt(0).name,
 			child1: parent.getChildAt(1).name,
 			child2: parent.getChildAt(2).name
