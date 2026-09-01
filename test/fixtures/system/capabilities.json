@@ -1,0 +1,14 @@
+{
+  "capabilities": {
+    "playerType": "Desktop",
+    "os": "",
+    "screenResolutionY": 0,
+    "language": "en",
+    "version": "OFL 9,5,2,0",
+    "screenResolutionX": 0
+  },
+  "system": {
+    "totalMemoryNonNegative": true,
+    "totalMemoryIsInt": true
+  }
+}

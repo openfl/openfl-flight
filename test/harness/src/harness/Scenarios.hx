@@ -22,6 +22,7 @@ import harness.scenarios.MatrixScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
+import harness.scenarios.SystemScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFormatScenario;
@@ -130,6 +131,10 @@ class Scenarios {
 			{
 				name: "text/text-format",
 				run: TextFormatScenario.run
+			},
+			{
+				name: "system/capabilities",
+				run: SystemScenario.run
 			},
 			{
 				name: "utils/byte-array",
