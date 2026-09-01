@@ -89,9 +89,23 @@ currently provides (or doesn't).
   references immediately; decoding and playable-channel creation remain
   pending on an asynchronous host bridge.
 
-- **System pause and resume**: Flight application pause/resume operations need
-  the authoritative Application handle, but the OpenFL application adapter does
-  not currently expose that handle to the static `System` API.
+- **Synchronous desktop clipboard reads**: Flight clipboard reads are
+  asynchronous, while OpenFL's `Clipboard.getData()` and `hasFormat()` return
+  synchronously. Flight also clears the whole clipboard rather than one format
+  at a time and does not expose OpenFL-style deferred data handlers. The adapter
+  synchronously shadows its own text, HTML, and RTF writes, but cannot reflect
+  external clipboard changes until Flight provides synchronous inspection (or
+  OpenFL adopts an asynchronous boundary).
+
+- **Native child processes**: Flight 0.4.0's public shell API has no process
+  spawn, standard-stream, or exit-status primitive that can back
+  `NativeProcess.start()` and its asynchronous IO events.
+
+- **Desktop application metadata and shell capabilities**: Flight exposes the
+  authoritative application and window handles needed for lifecycle and window
+  operations, but it has no public application-identifier getter or definitive
+  capability queries for OpenFL's dock-icon, system-tray-icon, and native-menu
+  support flags.
 
 ## Suspected Gaps
 
@@ -106,3 +120,8 @@ currently provides (or doesn't).
 
 (Entries move here when flight-hx ships the fix or the gap turns out to be a
 misunderstanding of the API.)
+
+- **System pause and resume**: `NativeApplication` now owns and exposes the
+  authoritative Flight `Application` handle internally, so the static `System`
+  API can route pause and resume through Flight without constructing a second
+  application.
