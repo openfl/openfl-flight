@@ -212,7 +212,11 @@ currently provides (or doesn't).
   OpenFL `DeviceRotation.setRequestedUpdateInterval()` remains a compatibility
   hint. Flight Geolocation can forward accuracy and cached-position age, but it
   has no requested update cadence, always-versus-when-in-use permission choice,
-  or background pause policy corresponding to OpenFL's geolocation fields.
+  or background pause policy corresponding to OpenFL's geolocation fields. Its
+  public API can prompt for access and report that prompt's outcome, but cannot
+  query the current permission state or subscribe to later permission changes;
+  OpenFL's `permissionStatus` therefore updates only from prompt outcomes and
+  geolocation watch errors.
 
 - **Desktop application metadata and shell capabilities**: Flight exposes the
   authoritative application and window handles needed for lifecycle and window
@@ -241,11 +245,14 @@ currently provides (or doesn't).
   therefore remain in the Haxe adapter. A future Flight CSS parser could
   replace this code while feeding TextMarkup's existing class-style registry.
 
-- **Screen safe-area geometry**: Flight Screen exposes display bounds, work
-  areas, modes, and scale information, but `ScreenInfo` has no safe-area inset
-  or rectangle for notches, cutouts, and rounded corners. The adapter therefore
-  uses OpenFL's documented fallback of returning `visibleBounds` until Flight
-  can expose host safe-area geometry.
+- **Screen display modes and safe-area geometry**: Flight Screen exposes display
+  bounds, work areas, the current mode, and scale information, but its current
+  public facade has no query for the complete supported-mode list required by
+  OpenFL `Screen.modes`. The adapter returns the current mode as a singleton
+  until Flight restores that query. `ScreenInfo` also has no safe-area inset or
+  rectangle for notches, cutouts, and rounded corners, so the adapter uses
+  OpenFL's documented fallback of returning `visibleBounds` until Flight can
+  expose host safe-area geometry.
 
 ## Suspected Gaps
 
