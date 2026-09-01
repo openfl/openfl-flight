@@ -1,0 +1,57 @@
+{
+  "defaults": {
+    "upStatePresent": true,
+    "trackAsMenu": false,
+    "tabEnabled": true,
+    "hitTestStatePresent": true,
+    "soundPan": 0,
+    "useHandCursor": true,
+    "downStatePresent": false,
+    "overStatePresent": false,
+    "enabled": true,
+    "soundVolume": 1
+  },
+  "replacements": {
+    "activeUpWidth": 15,
+    "activeOverWidth": 25
+  },
+  "constructor": {
+    "up": true,
+    "upDetachedFromParent": true,
+    "down": true,
+    "hit": true,
+    "initialWidth": 10,
+    "over": true
+  },
+  "soundTransform": {
+    "leftToLeft": 0,
+    "firstVolume": 0.25,
+    "secondPan": -0.5,
+    "setterCopied": true,
+    "firstPanAfterMutation": 1,
+    "secondVolume": 0.25,
+    "getterCopied": true
+  },
+  "values": {
+    "trackAsMenu": true,
+    "up": true,
+    "tabEnabled": true,
+    "useHandCursor": false,
+    "down": true,
+    "hit": true,
+    "enabled": false,
+    "over": true
+  },
+  "disabled": {
+    "upWidth": 15,
+    "downWidth": 25
+  },
+  "transitions": [
+    10,
+    20,
+    30,
+    10,
+    10,
+    20
+  ]
+}

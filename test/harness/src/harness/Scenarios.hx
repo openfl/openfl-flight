@@ -36,6 +36,7 @@ import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
+import harness.scenarios.SimpleButtonScenario;
 import harness.scenarios.SystemScenario;
 import harness.scenarios.ShapeBitmapScenario;
 import harness.scenarios.StageScenario;
@@ -182,6 +183,10 @@ class Scenarios {
 			{
 				name: "display/interactive-object",
 				run: InteractiveObjectScenario.run
+			},
+			{
+				name: "display/simple-button",
+				run: SimpleButtonScenario.run
 			},
 			{
 				name: "display/property-edges",
