@@ -1,6 +1,7 @@
 package openfl.display3D.textures;
 
 #if !flash
+import flight.Texture as FlightTexture;
 import haxe.io.ArrayBufferView;
 import openfl.display.BitmapData;
 import openfl.display3D.Context3D;
@@ -11,6 +12,7 @@ import openfl.utils.ByteArray;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.BitmapData)
 @:access(openfl.display3D.Context3D)
 @:final class RectangleTexture extends TextureBase
 {
@@ -20,11 +22,12 @@ import openfl.utils.ByteArray;
 		__width = width;
 		__height = height;
 		__optimizeForRenderToTexture = optimizeForRenderToTexture;
+		__flightTexture = FlightTexture.createTexture2D();
 	}
 
 	public function uploadFromBitmapData(source:BitmapData):Void
 	{
-		// TODO: Upload rectangular bitmap data through Flight GPU services.
+		FlightTexture.setTextureSource(__flightTexture, source.__flightBitmap);
 	}
 
 	public function uploadFromByteArray(data:ByteArray, byteArrayOffset:UInt):Void

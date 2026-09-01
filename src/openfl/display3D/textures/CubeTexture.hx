@@ -1,6 +1,7 @@
 package openfl.display3D.textures;
 
 #if !flash
+import flight.Texture as FlightTexture;
 import haxe.io.ArrayBufferView;
 import openfl.display.BitmapData;
 import openfl.display3D.Context3D;
@@ -12,6 +13,7 @@ import openfl.utils.ByteArray;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.BitmapData)
 @:access(openfl.display3D.Context3D)
 @:final class CubeTexture extends TextureBase
 {
@@ -25,6 +27,9 @@ import openfl.utils.ByteArray;
 		__height = size;
 		__optimizeForRenderToTexture = optimizeForRenderToTexture;
 		__streamingLevels = streamingLevels;
+		__flightTexture = FlightTexture.createCubeTexture({
+			sampler: FlightTexture.createSampler({mipmaps: streamingLevels > 0})
+		});
 	}
 
 	public function uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:UInt, async:Bool = false):Void
@@ -34,7 +39,7 @@ import openfl.utils.ByteArray;
 
 	public function uploadFromBitmapData(source:BitmapData, side:UInt, miplevel:UInt = 0, generateMipmap:Bool = false):Void
 	{
-		// TODO: Upload cube bitmap data through Flight GPU services.
+		if (miplevel == 0) FlightTexture.setCubeTextureFace(cast __flightTexture, side, source.__flightBitmap);
 	}
 
 	public function uploadFromByteArray(data:ByteArray, byteArrayOffset:UInt, side:UInt, miplevel:UInt = 0):Void

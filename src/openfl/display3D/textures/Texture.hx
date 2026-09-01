@@ -1,6 +1,7 @@
 package openfl.display3D.textures;
 
 #if !flash
+import flight.Texture as FlightTexture;
 import haxe.io.ArrayBufferView;
 import openfl.display.BitmapData;
 import openfl.display3D.Context3D;
@@ -12,6 +13,7 @@ import openfl.utils.ByteArray;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.BitmapData)
 @:access(openfl.display3D.Context3D)
 @:final class Texture extends TextureBase
 {
@@ -23,6 +25,9 @@ import openfl.utils.ByteArray;
 		__height = height;
 		__optimizeForRenderToTexture = optimizeForRenderToTexture;
 		__streamingLevels = streamingLevels;
+		__flightTexture = FlightTexture.createTexture2D({
+			sampler: FlightTexture.createSampler({mipmaps: streamingLevels > 0})
+		});
 	}
 
 	public function uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:UInt, async:Bool = false):Void
@@ -32,7 +37,7 @@ import openfl.utils.ByteArray;
 
 	public function uploadFromBitmapData(source:BitmapData, miplevel:UInt = 0, generateMipmap:Bool = false):Void
 	{
-		// TODO: Upload bitmap texture data through Flight GPU services.
+		if (miplevel == 0) FlightTexture.setTextureSource(__flightTexture, source.__flightBitmap);
 	}
 
 	public function uploadFromByteArray(data:ByteArray, byteArrayOffset:UInt, miplevel:UInt = 0):Void

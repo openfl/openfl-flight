@@ -1,6 +1,7 @@
 package openfl.display3D.textures;
 
 #if !flash
+import flight.types.TextureLike as FlightTexture;
 import openfl.display3D.Context3D;
 import openfl.events.EventDispatcher;
 
@@ -13,6 +14,7 @@ import openfl.events.EventDispatcher;
 class TextureBase extends EventDispatcher
 {
 	@:noCompletion private var __context:Context3D;
+	@:noCompletion private var __flightTexture:FlightTexture;
 	@:noCompletion private var __height:Int;
 	@:noCompletion private var __optimizeForRenderToTexture:Bool;
 	@:noCompletion private var __streamingLevels:Int;
@@ -22,12 +24,11 @@ class TextureBase extends EventDispatcher
 	{
 		super();
 		__context = context;
-		// TODO: Allocate the Flight GPU texture resource.
 	}
 
 	public function dispose():Void
 	{
-		// TODO: Release the Flight GPU texture resource.
+		__flightTexture = null;
 	}
 }
 #else
