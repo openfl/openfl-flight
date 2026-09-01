@@ -1,0 +1,93 @@
+{
+  "formatsIsCopy": true,
+  "afterUnsupportedClear": {
+    "text": "{\\rtf1 flight}",
+    "hasHtml": true,
+    "hasText": true,
+    "formats": [
+      "air:html",
+      "air:rtf",
+      "air:text"
+    ],
+    "hasRichText": true,
+    "richText": "{\\rtf1 flight}",
+    "html": "{\\rtf1 flight}"
+  },
+  "handlerCalls": 0,
+  "supportsFilePromise": false,
+  "invalidTransferModeThrows": false,
+  "setRichText": true,
+  "handlerSet": false,
+  "afterRichText": {
+    "text": "{\\rtf1 flight}",
+    "hasHtml": true,
+    "hasText": true,
+    "formats": [
+      "air:html",
+      "air:rtf",
+      "air:text"
+    ],
+    "hasRichText": true,
+    "richText": "{\\rtf1 flight}",
+    "html": "{\\rtf1 flight}"
+  },
+  "initial": {
+    "text": null,
+    "hasHtml": false,
+    "hasText": false,
+    "formats": [],
+    "hasRichText": false,
+    "richText": null,
+    "html": null
+  },
+  "afterText": {
+    "text": "plain text",
+    "hasHtml": true,
+    "hasText": true,
+    "formats": [
+      "air:html",
+      "air:rtf",
+      "air:text"
+    ],
+    "hasRichText": true,
+    "richText": "plain text",
+    "html": "plain text"
+  },
+  "generalSingletonStable": true,
+  "setHtml": true,
+  "nullFormatSet": false,
+  "setText": true,
+  "afterNullData": {
+    "text": null,
+    "hasHtml": false,
+    "hasText": false,
+    "formats": [],
+    "hasRichText": false,
+    "richText": null,
+    "html": null
+  },
+  "afterHtml": {
+    "text": "<b>flight</b>",
+    "hasHtml": true,
+    "hasText": true,
+    "formats": [
+      "air:html",
+      "air:rtf",
+      "air:text"
+    ],
+    "hasRichText": true,
+    "richText": "<b>flight</b>",
+    "html": "<b>flight</b>"
+  },
+  "afterClearHtml": {
+    "text": null,
+    "hasHtml": false,
+    "hasText": false,
+    "formats": [],
+    "hasRichText": false,
+    "richText": null,
+    "html": null
+  },
+  "unsupportedSet": false,
+  "nullDataSet": true
+}

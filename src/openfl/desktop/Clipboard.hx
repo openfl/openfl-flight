@@ -115,6 +115,11 @@ class Clipboard
 	**/
 	public var formats(get, never):Array<ClipboardFormats>;
 
+	/**
+		Indicates whether the clipboard supports file promises.
+	**/
+	public var supportsFilePromise(get, never):Bool;
+
 	@:noCompletion private var __htmlText:String;
 	@:noCompletion private var __richText:String;
 	@:noCompletion private var __systemClipboard:Bool;
@@ -131,6 +136,9 @@ class Clipboard
 		});
 		untyped global.Object.defineProperty(Clipboard.prototype, "formats", {
 			get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_formats (); }")
+		});
+		untyped global.Object.defineProperty(Clipboard.prototype, "supportsFilePromise", {
+			get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_supportsFilePromise (); }")
 		});
 	}
 	#end
@@ -180,6 +188,10 @@ class Clipboard
 			{
 				case HTML_FORMAT, RICH_TEXT_FORMAT, TEXT_FORMAT:
 					FlightClipboard.clearClipboard();
+					__htmlText = null;
+					__richText = null;
+					__text = null;
+					return;
 
 				default:
 			}
@@ -386,6 +398,13 @@ class Clipboard
 				default:
 					return false;
 			}
+
+			// OpenFL exposes the platform clipboard's single text value through
+			// each of its supported text formats on non-AIR targets.
+			__htmlText = data;
+			__richText = data;
+			__text = data;
+			return true;
 		}
 
 		switch (format)
@@ -496,6 +515,11 @@ class Clipboard
 		if (hasFormat(RICH_TEXT_FORMAT)) formats.push(RICH_TEXT_FORMAT);
 		if (hasFormat(TEXT_FORMAT)) formats.push(TEXT_FORMAT);
 		return formats;
+	}
+
+	@:noCompletion private function get_supportsFilePromise():Bool
+	{
+		return false;
 	}
 
 	@:noCompletion private static function get_generalClipboard():Clipboard

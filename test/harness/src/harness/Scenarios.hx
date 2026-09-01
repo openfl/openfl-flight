@@ -3,6 +3,7 @@ package harness;
 import harness.scenarios.BitmapDataScenario;
 import harness.scenarios.ByteArrayScenario;
 import harness.scenarios.CertificateStatusScenario;
+import harness.scenarios.ClipboardScenario;
 import harness.scenarios.ColorTransformScenario;
 import harness.scenarios.DateTimeFormatterScenario;
 import harness.scenarios.DictionaryScenario;
@@ -282,6 +283,10 @@ class Scenarios {
 			{
 				name: "desktop/native-application",
 				run: NativeApplicationScenario.run
+			},
+			{
+				name: "desktop/clipboard",
+				run: ClipboardScenario.run
 			},
 			{
 				name: "ui/keyboard",
