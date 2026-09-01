@@ -106,6 +106,13 @@ currently provides (or doesn't).
   with timer-driven polling until Flight exposes a raw-stream socket capability
   or native socket host.
 
+- **XMLSocket servers on HTML5**: `XMLSocket` composes the Flight-backed OpenFL
+  `Socket`, and its adapter consistently appends and reassembles null-delimited
+  XML messages. Browsers can expose only Flight's framed WebSocket transport,
+  however, not the raw TCP stream required by a traditional XMLSocket daemon.
+  HTML5 therefore requires a WebSocket-capable endpoint or bridge; native
+  targets retain the Haxe system transport described above.
+
 - **Arbitrary batched tile hierarchies**: Flight's native `Tilemap` is a regular
   row/column grid. OpenFL tilemaps accept freely positioned, rotated, scaled,
   nested `Tile`/`TileContainer` nodes with per-tile source rectangles. The

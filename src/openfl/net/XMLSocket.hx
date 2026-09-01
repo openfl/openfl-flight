@@ -103,9 +103,7 @@ class XMLSocket extends EventDispatcher
 	**/
 	public var timeout:Int;
 
-	#if !js
 	@:noCompletion private var __inputBuffer:ByteArray;
-	#end
 	@:noCompletion private var __socket:Socket;
 
 	/**
@@ -139,9 +137,7 @@ class XMLSocket extends EventDispatcher
 	{
 		super();
 
-		#if !js
 		__inputBuffer = new ByteArray();
-		#end
 
 		if (host != null)
 		{
@@ -157,12 +153,10 @@ class XMLSocket extends EventDispatcher
 	**/
 	public function close():Void
 	{
-		__socket.removeEventListener(Event.CLOSE, __onClose);
-		__socket.removeEventListener(Event.CONNECT, __onConnect);
-		__socket.removeEventListener(IOErrorEvent.IO_ERROR, __onError);
-		__socket.removeEventListener(ProgressEvent.SOCKET_DATA, __onSocketData);
-
+		__removeSocketListeners();
 		__socket.close();
+		connected = false;
+		__inputBuffer.clear();
 	}
 
 	/**
@@ -212,8 +206,23 @@ class XMLSocket extends EventDispatcher
 	public function connect(host:String, port:Int):Void
 	{
 		connected = false;
+		__inputBuffer.clear();
+
+		if (__socket != null)
+		{
+			__removeSocketListeners();
+			try
+			{
+				__socket.close();
+			}
+			catch (_:Dynamic) {}
+		}
 
 		__socket = new Socket();
+		if (timeout != null)
+		{
+			__socket.timeout = timeout;
+		}
 
 		__socket.addEventListener(Event.CLOSE, __onClose);
 		__socket.addEventListener(Event.CONNECT, __onConnect);
@@ -248,6 +257,7 @@ class XMLSocket extends EventDispatcher
 	@:noCompletion private function __onClose(_):Void
 	{
 		connected = false;
+		__inputBuffer.clear();
 		dispatchEvent(new Event(Event.CLOSE));
 	}
 
@@ -259,35 +269,40 @@ class XMLSocket extends EventDispatcher
 
 	@:noCompletion private function __onError(_):Void
 	{
+		connected = false;
 		dispatchEvent(new Event(IOErrorEvent.IO_ERROR));
 	}
 
 	@:noCompletion private function __onSocketData(_):Void
 	{
-		#if !js
 		var bytesAvailable = __socket.bytesAvailable;
-		var byte:Int;
-		var data:String;
 
 		for (i in 0...bytesAvailable)
 		{
-			byte = __socket.readByte();
-			__inputBuffer.writeByte(byte);
+			var byte = __socket.readUnsignedByte();
 
 			if (byte == 0)
 			{
 				__inputBuffer.endian = __socket.endian;
 				__inputBuffer.position = 0;
-				data = __inputBuffer.readUTFBytes(__inputBuffer.bytesAvailable);
-				__inputBuffer.position = 0;
-				__inputBuffer.length = 0;
+				var data = __inputBuffer.readUTFBytes(__inputBuffer.bytesAvailable);
+				__inputBuffer.clear();
 
 				dispatchEvent(new DataEvent(DataEvent.DATA, false, false, data));
 			}
+			else
+			{
+				__inputBuffer.writeByte(byte);
+			}
 		}
-		#else
-		dispatchEvent(new DataEvent(DataEvent.DATA, false, false, __socket.readUTFBytes(__socket.bytesAvailable)));
-		#end
+	}
+
+	@:noCompletion private function __removeSocketListeners():Void
+	{
+		__socket.removeEventListener(Event.CLOSE, __onClose);
+		__socket.removeEventListener(Event.CONNECT, __onConnect);
+		__socket.removeEventListener(IOErrorEvent.IO_ERROR, __onError);
+		__socket.removeEventListener(ProgressEvent.SOCKET_DATA, __onSocketData);
 	}
 }
 #else
