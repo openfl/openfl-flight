@@ -1,13 +1,203 @@
 {
-  "glow": {
-    "strength": 3.5,
-    "quality": 2,
-    "color": 11259375,
-    "alpha": 0.6,
-    "blurY": 11,
-    "knockout": true,
-    "inner": true,
-    "blurX": 10
+  "mutations": {
+    "bevel": {
+      "strength": 1,
+      "quality": 1,
+      "shadowColor": 6636321,
+      "distance": -8,
+      "highlightColor": 1193046,
+      "angle": -90,
+      "blurY": 255,
+      "knockout": true,
+      "highlightAlpha": 0,
+      "type": "full",
+      "shadowAlpha": 1,
+      "blurX": 0
+    },
+    "glow": {
+      "strength": -4,
+      "quality": 0,
+      "color": -2,
+      "alpha": -0.5,
+      "blurY": 301,
+      "knockout": true,
+      "inner": true,
+      "blurX": -3
+    },
+    "colorMatrix": {
+      "readsShareReference": false,
+      "matrix": [
+        20,
+        19,
+        18,
+        17,
+        16,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10,
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "dropShadow": {
+      "strength": -3,
+      "quality": 20,
+      "color": -1,
+      "alpha": 1.5,
+      "distance": -10,
+      "angle": -45,
+      "blurY": 300,
+      "hideObject": true,
+      "knockout": true,
+      "inner": true,
+      "blurX": -2
+    },
+    "convolution": {
+      "matrixY": 0,
+      "clamp": false,
+      "color": -12,
+      "alpha": 1.5,
+      "preserveAlpha": false,
+      "bias": -0.25,
+      "matrix": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "matrixX": -2,
+      "divisor": -3
+    },
+    "blur": {
+      "quality": 20,
+      "blurY": 300,
+      "blurX": -1
+    },
+    "displacement": {
+      "componentY": 8,
+      "color": -20,
+      "alpha": 2,
+      "mapPoint": {
+        "x": -3,
+        "y": 7
+      },
+      "mode": "ignore",
+      "scaleX": -15,
+      "mapWidth": 2,
+      "componentX": 2,
+      "mapHeight": 4,
+      "scaleY": 22
+    }
+  },
+  "defaults": {
+    "bevel": {
+      "strength": 1,
+      "quality": 1,
+      "shadowColor": 0,
+      "distance": 4,
+      "highlightColor": 16777215,
+      "angle": 45,
+      "blurY": 4,
+      "knockout": false,
+      "highlightAlpha": 1,
+      "type": "inner",
+      "shadowAlpha": 1,
+      "blurX": 4
+    },
+    "glow": {
+      "strength": 2,
+      "quality": 1,
+      "color": 16711680,
+      "alpha": 1,
+      "blurY": 6,
+      "knockout": false,
+      "inner": false,
+      "blurX": 6
+    },
+    "colorMatrix": {
+      "readsShareReference": false,
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    "dropShadow": {
+      "strength": 1,
+      "quality": 1,
+      "color": 0,
+      "alpha": 1,
+      "distance": 4,
+      "angle": 45,
+      "blurY": 4,
+      "hideObject": false,
+      "knockout": false,
+      "inner": false,
+      "blurX": 4
+    },
+    "convolution": {
+      "matrixY": 0,
+      "clamp": true,
+      "color": 0,
+      "alpha": 0,
+      "preserveAlpha": true,
+      "bias": 0,
+      "matrix": null,
+      "matrixX": 0,
+      "divisor": 1
+    },
+    "blur": {
+      "quality": 1,
+      "blurY": 4,
+      "blurX": 4
+    },
+    "displacement": {
+      "componentY": 0,
+      "color": 0,
+      "alpha": 0,
+      "mapPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "mode": "wrap",
+      "scaleX": 0,
+      "mapWidth": null,
+      "componentX": 0,
+      "mapHeight": null,
+      "scaleY": 0
+    }
   },
   "clones": {
     "shadow": {
@@ -23,6 +213,42 @@
       "inner": true,
       "blurX": 8
     },
+    "convolutionCloneAfterSourceMatrixMutation": {
+      "matrixY": 3,
+      "clamp": true,
+      "color": 0,
+      "alpha": 0,
+      "preserveAlpha": true,
+      "bias": 0,
+      "matrix": [
+        99,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "matrixX": 3,
+      "divisor": 1
+    },
+    "displacementSameReference": false,
+    "bevel": {
+      "strength": 2.5,
+      "quality": 3,
+      "shadowColor": 6636321,
+      "distance": 7,
+      "highlightColor": 1193046,
+      "angle": 30,
+      "blurY": 9,
+      "knockout": true,
+      "highlightAlpha": 0.25,
+      "type": "outer",
+      "shadowAlpha": 0.75,
+      "blurX": 8
+    },
     "glow": {
       "strength": 3.5,
       "quality": 2,
@@ -33,43 +259,279 @@
       "inner": true,
       "blurX": 10
     },
+    "displacementSharesBitmap": true,
+    "colorMatrix": {
+      "readsShareReference": false,
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        2,
+        0,
+        0,
+        1,
+        0,
+        3,
+        0,
+        0,
+        0,
+        1,
+        4
+      ]
+    },
+    "colorMatrixMatricesShareReference": false,
+    "convolutionSameReference": false,
     "blur": {
       "quality": 2,
       "blurY": 6,
       "blurX": 5
     },
+    "convolutionMatricesShareReference": true,
     "blurSameReference": false,
+    "colorMatrixSameReference": false,
+    "displacementSharesPoint": false,
     "glowSameReference": false,
-    "shadowSameReference": false
+    "displacement": {
+      "componentY": 4,
+      "color": 1193046,
+      "alpha": 0.4,
+      "mapPoint": {
+        "x": 4,
+        "y": 5
+      },
+      "mode": "color",
+      "scaleX": 12,
+      "mapWidth": 3,
+      "componentX": 1,
+      "mapHeight": 2,
+      "scaleY": -8
+    },
+    "shadowSameReference": false,
+    "bevelSameReference": false
   },
   "displayObject": {
-    "sameReference": false,
-    "quality": 2,
+    "sameAsAssigned": false,
     "count": 1,
-    "blurY": 3,
-    "blurX": 2
+    "storedAfterReadMutation": {
+      "quality": 2,
+      "blurY": 3,
+      "blurX": 40
+    },
+    "firstReadAfterMutation": {
+      "quality": 2,
+      "blurY": 3,
+      "blurX": 40
+    },
+    "assigned": {
+      "quality": 2,
+      "blurY": 3,
+      "blurX": 2
+    },
+    "readsShareArray": false,
+    "readsShareFilter": true
   },
-  "dropShadow": {
-    "strength": 2.5,
-    "quality": 3,
-    "color": 1193046,
-    "alpha": 0.4,
-    "distance": 7,
-    "angle": 30,
-    "blurY": 9,
-    "hideObject": true,
-    "knockout": true,
-    "inner": true,
-    "blurX": 8
+  "values": {
+    "bevel": {
+      "strength": 2.5,
+      "quality": 3,
+      "shadowColor": 6636321,
+      "distance": 7,
+      "highlightColor": 1193046,
+      "angle": 30,
+      "blurY": 9,
+      "knockout": true,
+      "highlightAlpha": 0.25,
+      "type": "outer",
+      "shadowAlpha": 0.75,
+      "blurX": 8
+    },
+    "glow": {
+      "strength": 3.5,
+      "quality": 2,
+      "color": 11259375,
+      "alpha": 0.6,
+      "blurY": 11,
+      "knockout": true,
+      "inner": true,
+      "blurX": 10
+    },
+    "colorMatrix": {
+      "readsShareReference": false,
+      "matrix": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ]
+    },
+    "dropShadow": {
+      "strength": 2.5,
+      "quality": 3,
+      "color": 1193046,
+      "alpha": 0.4,
+      "distance": 7,
+      "angle": 30,
+      "blurY": 9,
+      "hideObject": true,
+      "knockout": true,
+      "inner": true,
+      "blurX": 8
+    },
+    "convolution": {
+      "matrixY": 3,
+      "clamp": false,
+      "color": 1193046,
+      "alpha": 0.4,
+      "preserveAlpha": false,
+      "bias": 0.25,
+      "matrix": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "matrixX": 3,
+      "divisor": 45
+    },
+    "blur": {
+      "quality": 3,
+      "blurY": 12,
+      "blurX": 8
+    },
+    "displacement": {
+      "componentY": 4,
+      "color": 1193046,
+      "alpha": 0.4,
+      "mapPoint": {
+        "x": 4,
+        "y": 5
+      },
+      "mode": "color",
+      "scaleX": 12,
+      "mapWidth": 3,
+      "componentX": 1,
+      "mapHeight": 2,
+      "scaleY": -8
+    }
   },
-  "blurDefaults": {
-    "quality": 1,
-    "blurY": 4,
-    "blurX": 4
-  },
-  "blurValues": {
-    "quality": 3,
-    "blurY": 12,
-    "blurX": 8
+  "edges": {
+    "bevel": {
+      "strength": 1,
+      "quality": 1,
+      "shadowColor": 0,
+      "distance": -4,
+      "highlightColor": 16777215,
+      "angle": -720,
+      "blurY": 255,
+      "knockout": true,
+      "highlightAlpha": 0,
+      "type": "inner",
+      "shadowAlpha": 1,
+      "blurX": 0
+    },
+    "glow": {
+      "strength": -4,
+      "quality": -5,
+      "color": -1,
+      "alpha": 2,
+      "blurY": 999,
+      "knockout": true,
+      "inner": true,
+      "blurX": -3
+    },
+    "dropShadow": {
+      "strength": -3,
+      "quality": -4,
+      "color": -1,
+      "alpha": -1,
+      "distance": -5,
+      "angle": -720,
+      "blurY": 999,
+      "hideObject": true,
+      "knockout": true,
+      "inner": true,
+      "blurX": -2
+    },
+    "blur": {
+      "quality": -4,
+      "blurY": 999,
+      "blurX": -5
+    },
+    "colorMatrixNullReset": {
+      "readsShareReference": false,
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    "displacementNullPoint": {
+      "componentY": 0,
+      "color": 0,
+      "alpha": 0,
+      "mapPoint": null,
+      "mode": "wrap",
+      "scaleX": 0,
+      "mapWidth": null,
+      "componentX": 0,
+      "mapHeight": null,
+      "scaleY": 0
+    },
+    "convolutionZeroKernel": {
+      "matrixY": 0,
+      "clamp": true,
+      "color": 0,
+      "alpha": 0,
+      "preserveAlpha": true,
+      "bias": 0,
+      "matrix": [],
+      "matrixX": 0,
+      "divisor": 1
+    },
+    "convolutionSetterError": "Only a 3x3 matrix is supported"
   }
 }
