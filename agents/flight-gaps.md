@@ -15,6 +15,14 @@ the capability that this adapter can compile against.
   many large bitmaps and dispose them in a tight loop may see higher peak memory.
   (Reported by builder2, BitmapData Flight-backing.)
 
+- **Synchronous image decode for Loader.loadBytes**: OpenFL's `Loader.loadBytes()`
+  synchronously decodes image bytes into a Bitmap/BitmapData and makes them
+  available as `contentLoaderInfo.content`. Flight's image decoding is promise-based
+  and host-dependent — no synchronous Loader-to-DisplayObject adapter exists in
+  interp/headless mode. Workaround: returns a 0x0 Bitmap fallback while retaining
+  the Flight resource reference. Impact: `loadBytes` in non-async contexts produces
+  empty content. (Reported by builder, Loader Flight-backing.)
+
 - **SimpleButton menu tracking**: Flight has no menu-release interaction model
   corresponding to OpenFL's `trackAsMenu` behavior.
 
