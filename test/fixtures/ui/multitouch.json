@@ -1,0 +1,15 @@
+{
+  "supportsAfterFlightTouch": true,
+  "modes": {
+    "none": "none",
+    "touchPoint": "touchPoint",
+    "gesture": "gesture"
+  },
+  "initial": {
+    "supportsGestureEvents": false,
+    "inputMode": "touchPoint",
+    "maxTouchPoints": 2,
+    "supportedGesturesIsNull": true,
+    "supportsTouchEvents": true
+  }
+}

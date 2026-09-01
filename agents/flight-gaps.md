@@ -20,6 +20,13 @@ currently provides (or doesn't).
   not expose a mutation hook; Flight cursor state can only be refreshed when
   pointer activity is observed.
 
+- **Touch maximums and gesture recognition**: Flight Platform reports whether
+  a host is touch-capable and Flight Input exposes typed pointer contacts, but
+  neither API publishes a hardware maximum-contact count or recognizes the
+  OpenFL gesture catalog. `Multitouch` retains OpenFL's default maximum and can
+  raise it from observed concurrent Flight contacts; gesture support and the
+  supported-gesture list remain unavailable.
+
 - **Per-object interaction metadata**: Flight does not expose per-node
   equivalents for OpenFL's `doubleClickEnabled`, context-menu metadata, or
   soft-keyboard input area.

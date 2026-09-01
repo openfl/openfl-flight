@@ -38,6 +38,7 @@ import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
 import harness.scenarios.MouseScenario;
 import harness.scenarios.MovieClipScenario;
+import harness.scenarios.MultitouchScenario;
 import harness.scenarios.NativeApplicationScenario;
 import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
@@ -345,6 +346,10 @@ class Scenarios {
 			{
 				name: "ui/mouse",
 				run: MouseScenario.run
+			},
+			{
+				name: "ui/multitouch",
+				run: MultitouchScenario.run
 			},
 			{
 				name: "utils/byte-array",

@@ -1,7 +1,15 @@
 package openfl.ui;
 
 #if !flash
+import flight.Input as FlightInput;
+import flight.Platform as FlightPlatform;
+import flight.Signals as FlightSignals;
+import flight.types.InputManager as FlightInputManager;
+import flight.types.InputPointerData as FlightPointerData;
 import openfl.Vector;
+#if (js && html5)
+import js.Browser;
+#end
 
 /**
 	The Multitouch class manages and provides information about the current
@@ -108,12 +116,39 @@ import openfl.Vector;
 	**/
 	public static var supportsTouchEvents(get, never):Bool;
 
+	@:noCompletion private static var __activeTouchPoints:Map<Int, Bool>;
+	@:noCompletion private static var __flightInputManager:FlightInputManager;
+	@:noCompletion private static var __supportsTouchEvents:Bool;
+
 	private static function __init__():Void
 	{
 		maxTouchPoints = 2;
 		supportedGestures = null;
 		supportsGestureEvents = false;
 		inputMode = MultitouchInputMode.TOUCH_POINT;
+		__activeTouchPoints = new Map();
+		__supportsTouchEvents = FlightPlatform.isPlatformTouch();
+
+		#if (!js || !html5)
+		#if !mac
+		// Preserve OpenFL's non-Mac capability contract when the Flight host
+		// cannot report platform touch support.
+		if (!__supportsTouchEvents) __supportsTouchEvents = true;
+		#end
+		#end
+
+		__flightInputManager = FlightInput.createInputManager();
+		FlightSignals.connectSignal(__flightInputManager.onPointerDown, __onFlightPointerDown);
+		FlightSignals.connectSignal(__flightInputManager.onPointerMove, __onFlightPointerMove);
+		FlightSignals.connectSignal(__flightInputManager.onPointerUp, __onFlightPointerUp);
+		FlightSignals.connectSignal(__flightInputManager.onPointerCancel, __onFlightPointerUp);
+
+		#if (js && html5)
+		if (Browser.supported && Browser.document.documentElement != null)
+		{
+			FlightInput.attachPointerInput(__flightInputManager, cast Browser.document.documentElement, {preventDefault: false});
+		}
+		#end
 
 		#if openfljs
 		untyped Object.defineProperties(Multitouch, {
@@ -130,18 +165,32 @@ import openfl.Vector;
 	// Getters & Setters
 	@:noCompletion private static function get_supportsTouchEvents():Bool
 	{
-		#if (js && html5)
-		if (untyped #if haxe4 js.Syntax.code #else __js__ #end ("('ontouchstart' in document.documentElement) || (window.DocumentTouch && document instanceof DocumentTouch)"))
-		{
-			return true;
-		}
+		return __supportsTouchEvents;
+	}
 
-		return false;
-		#elseif !mac
-		return true;
-		#else
-		return false;
-		#end
+	@:noCompletion private static function __onFlightPointerDown(data:FlightPointerData):Void
+	{
+		if (data.pointerType != "touch") return;
+
+		__supportsTouchEvents = true;
+		__activeTouchPoints.set(Std.int(data.pointerId), true);
+
+		var activeCount = 0;
+		for (_ in __activeTouchPoints.keys()) activeCount++;
+		if (activeCount > maxTouchPoints) maxTouchPoints = activeCount;
+	}
+
+	@:noCompletion private static function __onFlightPointerMove(data:FlightPointerData):Void
+	{
+		if (data.pointerType == "touch") __supportsTouchEvents = true;
+	}
+
+	@:noCompletion private static function __onFlightPointerUp(data:FlightPointerData):Void
+	{
+		if (data.pointerType != "touch") return;
+
+		__supportsTouchEvents = true;
+		__activeTouchPoints.remove(Std.int(data.pointerId));
 	}
 }
 #else
