@@ -66,6 +66,12 @@ currently provides (or doesn't).
   `Tile` into a Flight material. The public property is preserved while custom
   shader rendering remains unsupported.
 
+- **Per-channel audio pan and peak metering**: Flight audio channels expose
+  gain, time, playback rate, and lifecycle controls, but no direct pan control
+  or left/right peak levels. Flight audio buses can pan only through a mixer and
+  audio context, which does not map to OpenFL's independently mutable
+  `SoundChannel.soundTransform` without additional routing infrastructure.
+
 - **System pause and resume**: Flight application pause/resume operations need
   the authoritative Application handle, but the OpenFL application adapter does
   not currently expose that handle to the static `System` API.

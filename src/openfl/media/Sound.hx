@@ -105,7 +105,7 @@ class Sound extends EventDispatcher
 	public function play(startTime:Float = 0.0, loops:Int = 0, sndTransform:SoundTransform = null):SoundChannel
 	{
 		// TODO: Start playback through Flight audio.
-		return new SoundChannel(this, null, sndTransform);
+		return new SoundChannel(this, null, sndTransform, startTime);
 	}
 
 	#if (js && html5)

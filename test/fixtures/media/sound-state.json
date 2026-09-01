@@ -1,0 +1,56 @@
+{
+  "transform": {
+    "clone": {
+      "leftToLeft": 0,
+      "rightToRight": 0,
+      "rightToLeft": 0,
+      "volume": 0.6,
+      "pan": -0.25,
+      "leftToRight": 0
+    },
+    "defaults": {
+      "leftToLeft": 0,
+      "rightToRight": 0,
+      "rightToLeft": 0,
+      "volume": 1,
+      "pan": 0,
+      "leftToRight": 0
+    },
+    "explicit": {
+      "leftToLeft": 0.1,
+      "rightToRight": 0.4,
+      "rightToLeft": 0.3,
+      "volume": 0.6,
+      "pan": -0.25,
+      "leftToRight": 0.2
+    },
+    "cloneDistinct": true
+  },
+  "mixer": {
+    "storedVolumeAfterInputMutation": 0.8,
+    "inaccessible": false,
+    "setterCopies": true,
+    "getterIdentityStable": false,
+    "bufferTime": null
+  },
+  "channel": {
+    "defaults": {
+      "position": 250,
+      "leftPeak": 1,
+      "rightPeak": 1,
+      "getterReturnsCopy": true,
+      "volume": 0.7,
+      "pan": -0.4
+    },
+    "mutation": {
+      "positionAfterSetStopped": 0,
+      "leftToLeft": 0,
+      "setAfterStop": 0,
+      "positionAfterStop": 0,
+      "volume": 0.35,
+      "pan": 0.9
+    },
+    "isNull": false,
+    "stopAllPosition": 0
+  }
+}

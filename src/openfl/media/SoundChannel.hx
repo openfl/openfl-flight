@@ -1,6 +1,8 @@
 package openfl.media;
 
 #if !flash
+import flight.Media as FlightMedia;
+import flight.types.AudioChannel as FlightAudioChannel;
 import openfl.events.EventDispatcher;
 
 /** Controls one sound playback instance. **/
@@ -18,18 +20,20 @@ import openfl.events.EventDispatcher;
 	public var soundTransform(get, set):SoundTransform;
 
 	@:noCompletion private var __isValid:Bool;
+	@:noCompletion private var __flightChannel:FlightAudioChannel;
 	@:noCompletion private var __position:Float;
 	@:noCompletion private var __sound:Sound;
 	@:noCompletion private var __soundTransform:SoundTransform;
 
-	@:noCompletion private function new(sound:Sound, audioSource:Dynamic = null, soundTransform:SoundTransform = null):Void
+	@:noCompletion private function new(sound:Sound, audioSource:Dynamic = null, soundTransform:SoundTransform = null, position:Float = 0):Void
 	{
 		super(this);
 		__sound = sound;
-		__position = 0;
+		__position = position;
+		__flightChannel = cast audioSource;
 		__isValid = true;
-		leftPeak = 0;
-		rightPeak = 0;
+		leftPeak = 1;
+		rightPeak = 1;
 		__soundTransform = soundTransform == null ? new SoundTransform() : soundTransform.clone();
 		SoundMixer.__registerSoundChannel(this);
 		// TODO: Bind this channel to a Flight audio source.
@@ -40,7 +44,8 @@ import openfl.events.EventDispatcher;
 		if (!__isValid) return;
 		__isValid = false;
 		SoundMixer.__unregisterSoundChannel(this);
-		// TODO: Stop and release the Flight audio source.
+		if (__flightChannel != null) FlightMedia.stopAudioChannel(__flightChannel);
+		__flightChannel = null;
 	}
 
 	@:noCompletion private function __startSampleData():Void
@@ -50,17 +55,25 @@ import openfl.events.EventDispatcher;
 
 	@:noCompletion private function __updateTransform():Void
 	{
-		// TODO: Apply the combined channel and mixer transforms through Flight.
+		if (__flightChannel != null)
+		{
+			FlightMedia.setAudioChannelGain(__flightChannel, SoundMixer.__soundTransform.volume * __soundTransform.volume);
+		}
 	}
 
 	@:noCompletion private function get_position():Float
 	{
+		if (!__isValid) return 0;
+		if (__flightChannel != null) return FlightMedia.getAudioChannelCurrentTime(__flightChannel) * 1000;
 		return __position;
 	}
 
 	@:noCompletion private function set_position(value:Float):Float
 	{
-		return __position = value;
+		if (!__isValid) return 0;
+		__position = value;
+		if (__flightChannel != null) FlightMedia.setAudioChannelCurrentTime(__flightChannel, value / 1000);
+		return value;
 	}
 
 	@:noCompletion private function get_soundTransform():SoundTransform
