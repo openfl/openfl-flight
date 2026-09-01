@@ -124,6 +124,13 @@ currently provides (or doesn't).
   external clipboard changes until Flight provides synchronous inspection (or
   OpenFL adopts an asynchronous boundary).
 
+- **FileReference network transfers and cancellation**: Flight Dialog and
+  FileSystem can back file selection, metadata, loading, and saving, but their
+  promise operations do not expose cancellation handles. `FileReference`
+  ignores stale completions after `cancel()`; true host-operation cancellation
+  and the combined download/save and multipart upload workflows still require
+  Flight primitives that compose dialog, filesystem, and network operations.
+
 - **Native child processes**: Flight 0.4.0's public shell API has no process
   spawn, standard-stream, or exit-status primitive that can back
   `NativeProcess.start()` and its asynchronous IO events.

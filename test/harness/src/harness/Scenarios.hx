@@ -24,6 +24,7 @@ import harness.scenarios.EventSubclassesScenario;
 import harness.scenarios.EventPropagationScenario;
 import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
+import harness.scenarios.FileReferenceScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.FontAndStyleScenario;
 import harness.scenarios.GraphicsDrawScenario;
@@ -215,6 +216,10 @@ class Scenarios {
 			{
 				name: "net/url-types",
 				run: URLTypesScenario.run
+			},
+			{
+				name: "net/file-reference",
+				run: FileReferenceScenario.run
 			},
 			{
 				name: "net/shared-object",

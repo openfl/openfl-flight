@@ -1,0 +1,35 @@
+{
+  "browseWithoutFilter": true,
+  "filter": {
+    "description": "Pictures",
+    "macType": null,
+    "extension": "*.gif"
+  },
+  "defaultFilter": {
+    "description": null,
+    "macType": null,
+    "extension": null
+  },
+  "browseWithFilter": true,
+  "events": [],
+  "initial": {
+    "name": null,
+    "creationDateIsNull": true,
+    "creatorIsNull": true,
+    "size": null,
+    "extension": null,
+    "modificationDateIsNull": true,
+    "type": null,
+    "dataIsNull": true
+  },
+  "referenceAfterOperations": {
+    "name": null,
+    "creationDateIsNull": true,
+    "creatorIsNull": true,
+    "size": null,
+    "extension": null,
+    "modificationDateIsNull": true,
+    "type": null,
+    "dataIsNull": true
+  }
+}
