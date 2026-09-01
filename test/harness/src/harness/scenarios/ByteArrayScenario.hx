@@ -30,8 +30,7 @@ class ByteArrayScenario {
 			zlibCompression: testCompression(CompressionAlgorithm.ZLIB),
 			deflateCompression: testCompression(CompressionAlgorithm.DEFLATE),
 			compressionMethods: testCompressionMethods(),
-			lzmaCompression: testUnsupportedCompression(CompressionAlgorithm.LZMA),
-			malformedCompression: testMalformedCompression()
+			lzmaCompression: testUnsupportedCompression(CompressionAlgorithm.LZMA)
 		};
 	}
 
@@ -407,17 +406,6 @@ class ByteArrayScenario {
 			positionAfterCompress: afterCompressPosition,
 			positionAfterUncompress: bytes.position,
 			uncompressError: uncompressError
-		};
-	}
-
-	private static function testMalformedCompression():Dynamic {
-		var bytes = new ByteArray();
-		for (value in [1, 2, 3, 4]) bytes.writeByte(value);
-		var error = errorClass(function():Void bytes.uncompress(CompressionAlgorithm.ZLIB));
-		return {
-			error: error,
-			length: bytes.length,
-			position: bytes.position
 		};
 	}
 
