@@ -12,6 +12,11 @@
     "positionAfterWrite": 3,
     "firstUnsigned": 42
   },
+  "zlibCompression": {
+    "positionAfterUncompress": 0,
+    "roundTripMatches": true,
+    "positionAtCompressedEnd": true
+  },
   "writeReadFloat": {
     "zero": 0,
     "approxPi": true,
@@ -61,6 +66,11 @@
   "writeReadUTF": {
     "lengthAfterWrite": 7,
     "readBack": "hello"
+  },
+  "deflateCompression": {
+    "positionAfterUncompress": 0,
+    "roundTripMatches": true,
+    "positionAtCompressedEnd": true
   },
   "signedByte": {
     "zero": 0,

@@ -1,8 +1,9 @@
 package harness.scenarios;
 
-import openfl.utils.ByteArray;
-import openfl.utils.Endian;
 import openfl.net.ObjectEncoding;
+import openfl.utils.ByteArray;
+import openfl.utils.CompressionAlgorithm;
+import openfl.utils.Endian;
 
 class ByteArrayScenario {
 	public static function run():Dynamic {
@@ -25,7 +26,9 @@ class ByteArrayScenario {
 			zeroMemory: testZeroMemory(),
 			emptyArray: testEmptyArray(),
 			utfBytes: testUTFBytes(),
-			objectEncodingWrite: testObjectEncodingWrite()
+			objectEncodingWrite: testObjectEncodingWrite(),
+			zlibCompression: testCompression(CompressionAlgorithm.ZLIB),
+			deflateCompression: testCompression(CompressionAlgorithm.DEFLATE)
 		};
 	}
 
@@ -348,6 +351,28 @@ class ByteArrayScenario {
 			encoding: bytes.objectEncoding,
 			lengthAfterWrite: lengthAfterWrite,
 			positionAfterWrite: positionAfterWrite
+		};
+	}
+
+	private static function testCompression(algorithm:CompressionAlgorithm):Dynamic {
+		var bytes = new ByteArray();
+		for (index in 0...64) bytes.writeByte((index % 4) + 1);
+
+		bytes.compress(algorithm);
+		var compressedLength = bytes.length;
+		var compressedPosition = bytes.position;
+		bytes.uncompress(algorithm);
+		var positionAfterUncompress = bytes.position;
+
+		var roundTripMatches = bytes.length == 64;
+		for (index in 0...64) {
+			if (bytes.readUnsignedByte() != (index % 4) + 1) roundTripMatches = false;
+		}
+
+		return {
+			positionAtCompressedEnd: compressedPosition == compressedLength,
+			positionAfterUncompress: positionAfterUncompress,
+			roundTripMatches: roundTripMatches
 		};
 	}
 }
