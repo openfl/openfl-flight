@@ -25,12 +25,15 @@ import openfl.geom.Rectangle;
 	@:noCompletion private var __positionX:Float;
 	@:noCompletion private var __positionY:Float;
 	@:noCompletion private var __flightShape:FlightShapeData;
+	@:noCompletion private var __lineBounds:Rectangle;
+	@:noCompletion private var __strokePadding:Float;
 
 	@:noCompletion private function new(owner:DisplayObject)
 	{
 		__owner = owner;
 		__positionX = 0;
 		__positionY = 0;
+		__strokePadding = 0;
 		FlightShape.registerDefaultShapeBoundsCommands();
 		FlightInteraction.registerDefaultHitTests();
 		FlightInteraction.registerShapeHitTest();
@@ -64,6 +67,8 @@ import openfl.geom.Rectangle;
 	{
 		__positionX = 0;
 		__positionY = 0;
+		__lineBounds = null;
+		__strokePadding = 0;
 		FlightShape.clearShapeCommands(__flightShape);
 		__invalidate();
 	}
@@ -74,6 +79,8 @@ import openfl.geom.Rectangle;
 		FlightShape.copyShapeCommands(__flightShape, sourceGraphics.__flightShape);
 		__positionX = sourceGraphics.__positionX;
 		__positionY = sourceGraphics.__positionY;
+		__lineBounds = sourceGraphics.__lineBounds == null ? null : sourceGraphics.__lineBounds.clone();
+		__strokePadding = sourceGraphics.__strokePadding;
 		__invalidate();
 	}
 
@@ -176,6 +183,11 @@ import openfl.geom.Rectangle;
 	{
 		if (caps == null) caps = CapsStyle.ROUND;
 		if (joints == null) joints = JointStyle.ROUND;
+		if (thickness != null)
+		{
+			var padding = joints == JointStyle.MITER ? Math.ceil(thickness) : Math.ceil(thickness / 2);
+			if (padding > __strokePadding) __strokePadding = padding;
+		}
 		FlightShape.appendShapeLineStyle(__flightShape, thickness, color & 0xFFFFFF, alpha, pixelHinting, cast scaleMode, cast caps, cast joints,
 			miterLimit);
 		__invalidate();
@@ -183,6 +195,13 @@ import openfl.geom.Rectangle;
 
 	public function lineTo(x:Float, y:Float):Void
 	{
+		if (__strokePadding > 0)
+		{
+			__inflateLineBounds(__positionX - __strokePadding, __positionY - __strokePadding);
+			__inflateLineBounds(__positionX + __strokePadding, __positionY + __strokePadding);
+			__inflateLineBounds(x - __strokePadding, y - __strokePadding);
+			__inflateLineBounds(x + __strokePadding * 2, y + __strokePadding);
+		}
 		__positionX = x;
 		__positionY = y;
 		FlightShape.appendShapeLineTo(__flightShape, x, y);
@@ -216,6 +235,11 @@ import openfl.geom.Rectangle;
 		if (bounds.width == 0 && bounds.height == 0 && FlightShape.isShapeEmpty(__flightShape)) return;
 		var transformed = DisplayObject.__transformRectangle(new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height), matrix);
 		rect.copyFrom(transformed);
+		if (includeStroke && __lineBounds != null)
+		{
+			var transformedLine = DisplayObject.__transformRectangle(__lineBounds, matrix);
+			rect.copyFrom(rect.union(transformedLine));
+		}
 	}
 
 	@:noCompletion private function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
@@ -226,6 +250,22 @@ import openfl.geom.Rectangle;
 	@:noCompletion private function __invalidate():Void
 	{
 		__owner.__setRenderDirty();
+	}
+
+	@:noCompletion private function __inflateLineBounds(x:Float, y:Float):Void
+	{
+		if (__lineBounds == null)
+		{
+			__lineBounds = new Rectangle(x, y, 0, 0);
+		}
+		else
+		{
+			var minX = Math.min(__lineBounds.x, x);
+			var minY = Math.min(__lineBounds.y, y);
+			var maxX = Math.max(__lineBounds.right, x);
+			var maxY = Math.max(__lineBounds.bottom, y);
+			__lineBounds.setTo(minX, minY, maxX - minX, maxY - minY);
+		}
 	}
 
 	@:noCompletion private static function __colorsToFloat(values:Dynamic):Array<Float>

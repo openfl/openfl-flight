@@ -21,6 +21,7 @@ import harness.scenarios.EventPropagationScenario;
 import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FilterScenario;
+import harness.scenarios.GraphicsDrawScenario;
 import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.Matrix3DScenario;
@@ -64,6 +65,10 @@ class Scenarios {
 			{
 				name: "display/bounds",
 				run: DisplayBoundsScenario.run
+			},
+			{
+				name: "display/graphics-draw",
+				run: GraphicsDrawScenario.run
 			},
 			{
 				name: "display/hit-test",
