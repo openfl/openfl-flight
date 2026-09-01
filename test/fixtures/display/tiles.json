@@ -1,0 +1,141 @@
+{
+  "container": {
+    "removedParentIsNull": true,
+    "reindexedOrder": [
+      2,
+      -1,
+      1,
+      0
+    ],
+    "containsDirect": false,
+    "remainingCount": 3,
+    "movedOrder": [
+      1,
+      -1,
+      0
+    ],
+    "swappedOrder": [
+      -1,
+      2,
+      1,
+      0
+    ],
+    "cloneChildDistinct": true,
+    "initialOrder": [
+      0,
+      1,
+      -1
+    ],
+    "cloneCount": 4,
+    "containsNestedChild": true,
+    "removedId": 0,
+    "invalidRemovalIsNull": true,
+    "addedFromNestedOrder": [
+      1,
+      2,
+      -1,
+      0
+    ],
+    "sortedOrder": [
+      -1,
+      0,
+      1,
+      2
+    ]
+  },
+  "tile": {
+    "defaults": {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "height": 10,
+        "width": 12
+      },
+      "originY": 4,
+      "tilesetIsNull": false,
+      "originX": 2,
+      "alpha": 1,
+      "blendMode": "null",
+      "visible": true,
+      "rectIsNull": true,
+      "id": 1,
+      "scaleX": 2,
+      "x": 5,
+      "y": 6,
+      "rotation": 450,
+      "height": 24.0000000000000107,
+      "scaleY": 3,
+      "width": 30.0000000000000071
+    },
+    "hitWithoutParents": false,
+    "mutated": {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "height": 10,
+        "width": 12
+      },
+      "originY": 4,
+      "tilesetIsNull": false,
+      "originX": 2,
+      "alpha": 0.25,
+      "blendMode": "add",
+      "visible": false,
+      "rectIsNull": false,
+      "id": 1,
+      "scaleX": 1,
+      "x": 5,
+      "y": 6,
+      "rotation": 450,
+      "height": 12.0000000000000053,
+      "scaleY": 2,
+      "width": 20.0000000000000036
+    },
+    "originalXAfterCloneMutation": 5,
+    "cloneRectDistinct": true,
+    "originalRectXAfterCloneMutation": 1,
+    "cloneMatrixDistinct": true,
+    "cloneDistinct": true
+  },
+  "tileset": {
+    "invalidHighIsNull": true,
+    "cloneRectCount": 3,
+    "numRects": 3,
+    "cloneBitmapShared": true,
+    "firstRectIsCopied": true,
+    "invalidLowIsNull": true,
+    "rectData": [
+      0,
+      0,
+      16,
+      8,
+      16,
+      4,
+      12,
+      10,
+      32.8,
+      8.2,
+      7.9,
+      9.9
+    ],
+    "thirdId": 2,
+    "missingIdIsNull": true,
+    "cloneDistinct": true,
+    "nullRectId": -1,
+    "hasSecond": true
+  },
+  "tilemap": {
+    "snapshotChildDistinct": true,
+    "colorTransformEnabled": true,
+    "blendModeEnabled": true,
+    "hitInside": false,
+    "hitOutside": false,
+    "tilesetIsClone": true,
+    "alphaEnabled": true,
+    "smoothing": false,
+    "snapshotCount": 2,
+    "height": 120,
+    "numTiles": 4,
+    "width": 160
+  }
+}

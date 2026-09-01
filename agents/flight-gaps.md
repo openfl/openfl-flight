@@ -54,6 +54,18 @@ currently provides (or doesn't).
   encoding-selectable serializer/deserializer that consumes and returns bytes,
   including the number of bytes read for ByteArray position updates.
 
+- **Arbitrary batched tile hierarchies**: Flight's native `Tilemap` is a regular
+  row/column grid. OpenFL tilemaps accept freely positioned, rotated, scaled,
+  nested `Tile`/`TileContainer` nodes with per-tile source rectangles. The
+  adapter can preserve those semantics with Flight sprites and display-object
+  nodes backed by a Flight texture atlas, but Flight has no equivalent batched
+  primitive for that arbitrary hierarchy.
+
+- **OpenFL per-tile shaders**: Flight materials can tint and adjust tile
+  appearance, but there is no adapter from an OpenFL `Shader` assigned to a
+  `Tile` into a Flight material. The public property is preserved while custom
+  shader rendering remains unsupported.
+
 ## Suspected Gaps
 
 - **Event system bridging**: OpenFL's capture/target/bubble event model is kept

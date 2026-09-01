@@ -1,5 +1,10 @@
 package openfl.display;
 
+#if !flash
+import flight.Texture as FlightTexture;
+import flight.TextureAtlas as FlightTextureAtlas;
+import flight.types.TextureAtlas as FlightTextureAtlasData;
+#end
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.Vector;
@@ -18,6 +23,7 @@ import openfl.Vector;
 @:noDebug
 #end
 #if !flash
+@:access(openfl.display.BitmapData)
 @:access(openfl.geom.Rectangle)
 #end
 class Tileset
@@ -42,6 +48,9 @@ class Tileset
 
 	@:noCompletion private var __bitmapData:BitmapData;
 	@:noCompletion private var __data:Array<TileData>;
+	#if !flash
+	@:noCompletion private var __flightAtlas:FlightTextureAtlasData;
+	#end
 
 	#if openfljs
 	@:noCompletion private static function __init__()
@@ -70,6 +79,9 @@ class Tileset
 		rectData = new Vector<Float>();
 
 		__data = new Array();
+		#if !flash
+		__rebuildFlightAtlas();
+		#end
 
 		if (rects != null)
 		{
@@ -98,6 +110,9 @@ class Tileset
 		var tileData = new TileData(rect);
 		tileData.__update(__bitmapData);
 		__data.push(tileData);
+		#if !flash
+		FlightTextureAtlas.addTextureAtlasRegion(__flightAtlas, tileData.x, tileData.y, tileData.width, tileData.height);
+		#end
 
 		return __data.length - 1;
 	}
@@ -110,17 +125,13 @@ class Tileset
 	public function clone():Tileset
 	{
 		var tileset = new Tileset(__bitmapData, null);
-		var rect = #if flash new Rectangle() #else Rectangle.__pool.get() #end;
+		var rect = new Rectangle();
 
 		for (tileData in __data)
 		{
 			rect.setTo(tileData.x, tileData.y, tileData.width, tileData.height);
 			tileset.addRect(rect);
 		}
-
-		#if !flash
-		Rectangle.__pool.release(rect);
-		#end
 
 		return tileset;
 	}
@@ -205,6 +216,9 @@ class Tileset
 		{
 			data.__update(__bitmapData);
 		}
+		#if !flash
+		__rebuildFlightAtlas();
+		#end
 
 		return value;
 	}
@@ -213,6 +227,18 @@ class Tileset
 	{
 		return __data.length;
 	}
+
+	#if !flash
+	@:noCompletion private function __rebuildFlightAtlas():Void
+	{
+		var texture = __bitmapData == null || __bitmapData.__flightBitmap == null ? null : FlightTexture.createTexture2D({source: __bitmapData.__flightBitmap});
+		__flightAtlas = FlightTextureAtlas.createTextureAtlas({texture: texture});
+		for (data in __data)
+		{
+			FlightTextureAtlas.addTextureAtlasRegion(__flightAtlas, data.x, data.y, data.width, data.height);
+		}
+	}
+	#end
 }
 
 #if !openfl_debug

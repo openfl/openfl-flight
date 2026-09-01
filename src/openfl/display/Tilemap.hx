@@ -1,5 +1,8 @@
 package openfl.display;
 
+#if !flash
+import flight.Node as FlightNode;
+#end
 import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
 
@@ -40,6 +43,7 @@ class Tilemap extends #if !flash DisplayObject #else Bitmap implements IDisplayO
 		__group = new TileContainer();
 		__group.tileset = tileset;
 		#if !flash
+		FlightNode.addNodeChild(__flightNode, __group.__flightNode);
 		__width = width;
 		__height = height;
 		#else
@@ -78,7 +82,9 @@ class Tilemap extends #if !flash DisplayObject #else Bitmap implements IDisplayO
 	#if !flash
 	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
 	{
+		__group.__syncFlightTree();
 		if (__group.__dirty) __setRenderDirty();
+		super.__enterFrame(deltaTime);
 	}
 
 	@:noCompletion private override function __getBounds(rect:Rectangle, matrix:Matrix):Void
@@ -88,19 +94,14 @@ class Tilemap extends #if !flash DisplayObject #else Bitmap implements IDisplayO
 		rect.__expand(bounds.x, bounds.y, bounds.width, bounds.height);
 	}
 
-	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool,
-		hitObject:DisplayObject):Bool
+	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
-		if (!hitObject.visible) return false;
-		__getRenderTransform();
-		var px = __renderTransform.__transformInverseX(x, y);
-		var py = __renderTransform.__transformInverseY(x, y);
-		if (px >= 0 && py >= 0 && px <= __width && py <= __height)
-		{
-			if (stack != null && !interactiveOnly) stack.push(hitObject);
-			return true;
-		}
-		return false;
+		if (!visible) return false;
+		var matrix = __getWorldTransform();
+		matrix.invert();
+		var px = matrix.__transformX(x, y);
+		var py = matrix.__transformY(x, y);
+		return px >= 0 && py >= 0 && px <= __width && py <= __height;
 	}
 
 	@:noCompletion private override function get_height():Float return __height * Math.abs(scaleY);

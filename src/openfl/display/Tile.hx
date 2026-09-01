@@ -1,5 +1,14 @@
 package openfl.display;
 
+#if !flash
+import flight.Node as FlightNode;
+import flight.Scene2D as FlightScene2D;
+import flight.Texture as FlightTexture;
+import flight.TextureAtlas as FlightTextureAtlas;
+import flight.types.Node2D as FlightNode2D;
+import flight.types.Sprite as FlightSpriteData;
+import flight.types.Texture2D as FlightTextureData;
+#end
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
@@ -28,6 +37,10 @@ import openfl.geom.Rectangle;
 @:access(openfl.geom.ColorTransform)
 @:access(openfl.geom.Matrix)
 @:access(openfl.geom.Rectangle)
+#if !flash
+@:access(openfl.display.BitmapData)
+@:access(openfl.display.Tileset)
+#end
 class Tile
 {
 	/**
@@ -207,6 +220,11 @@ class Tile
 	@:noCompletion private var __shader:Shader;
 	@:noCompletion private var __tileset:Tileset;
 	@:noCompletion private var __visible:Bool;
+	#if !flash
+	@:noCompletion private var __flightNode:FlightNode2D;
+	@:noCompletion private var __flightSprite:FlightSpriteData;
+	@:noCompletion private var __flightTexture:FlightTextureData;
+	#end
 	#if flash
 	@:noCompletion private var __tempMatrix = new Matrix();
 	@:noCompletion private var __tempRectangle = new Rectangle();
@@ -302,6 +320,11 @@ class Tile
 		__alpha = 1;
 		__blendMode = null;
 		__visible = true;
+		#if !flash
+		__flightSprite = FlightScene2D.createSprite();
+		__flightNode = __flightSprite;
+		__syncFlightNode();
+		#end
 	}
 
 	/**
@@ -352,21 +375,18 @@ class Tile
 		__findTileRect(result);
 
 		// Copied from DisplayObject. Create the translation matrix.
-		var matrix = #if flash __tempMatrix #else Matrix.__pool.get() #end;
+		var matrix = new Matrix();
 
 		if (targetCoordinateSpace != null && targetCoordinateSpace != this)
 		{
 			matrix.copyFrom(__getWorldTransform()); // ? Is this correct?
-			var targetMatrix = #if flash new Matrix() #else Matrix.__pool.get() #end;
+			var targetMatrix = new Matrix();
 
 			targetMatrix.copyFrom(targetCoordinateSpace.__getWorldTransform());
 			targetMatrix.invert();
 
 			matrix.concat(targetMatrix);
 
-			#if !flash
-			Matrix.__pool.release(targetMatrix);
-			#end
 		}
 		else
 		{
@@ -374,10 +394,6 @@ class Tile
 		}
 
 		__getBounds(result, matrix);
-
-		#if !flash
-		Matrix.__pool.release(matrix);
-		#end
 
 		return result;
 	}
@@ -525,6 +541,7 @@ class Tile
 	@:noCompletion private function __setRenderDirty():Void
 	{
 		#if !flash
+		__syncFlightNode();
 		if (!__dirty)
 		{
 			__dirty = true;
@@ -536,6 +553,46 @@ class Tile
 		}
 		#end
 	}
+
+	#if !flash
+	@:noCompletion private function __syncFlightNode():Void
+	{
+		if (__flightNode == null) return;
+		__flightNode.alpha = __alpha;
+		__flightNode.blendMode = cast __blendMode;
+		__flightNode.visible = __visible;
+		__flightNode.pivotX = __originX;
+		__flightNode.pivotY = __originY;
+		FlightNode.setNodeLocalMatrix(__flightNode, cast __matrix);
+
+		if (__flightSprite != null)
+		{
+			var sourceTileset = __findTileset();
+			var sourceRect = __rect;
+			if (sourceRect == null && sourceTileset != null) sourceRect = sourceTileset.getRect(__id);
+			if (sourceTileset == null || sourceTileset.bitmapData == null || sourceTileset.bitmapData.__flightBitmap == null || sourceRect == null)
+			{
+				__flightTexture = null;
+			}
+			else if (__rect == null)
+			{
+				__flightTexture = FlightTextureAtlas.getTextureAtlasRegionTexture(sourceTileset.__flightAtlas, __id);
+			}
+			else
+			{
+				__flightTexture = FlightTexture.createTexture2D({source: sourceTileset.bitmapData.__flightBitmap});
+				FlightTexture.setTextureUvFromPixelRect(__flightTexture, sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height);
+			}
+			__flightSprite.data.texture = __flightTexture;
+		}
+		FlightNode.invalidateNodeAppearance(__flightNode);
+	}
+
+	@:noCompletion private function __syncFlightTree():Void
+	{
+		__syncFlightNode();
+	}
+	#end
 
 	// Get & Set Methods
 	@:keep @:noCompletion private function get_alpha():Float
@@ -588,30 +645,24 @@ class Tile
 
 	@:keep @:noCompletion private function get_height():Float
 	{
-		var result:Rectangle = #if flash __tempRectangle #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 
 		__findTileRect(result);
 
 		__getBounds(result, matrix);
 		var h = result.height;
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
 		return h;
 	}
 
 	@:keep @:noCompletion private function set_height(value:Float):Float
 	{
-		var result:Rectangle = #if flash __tempRectangle #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 
 		__findTileRect(result);
 		if (result.height != 0)
 		{
 			scaleY = value / result.height;
 		}
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
 		return value;
 	}
 
@@ -883,30 +934,24 @@ class Tile
 	@:keep @:noCompletion private function get_width():Float
 	{
 		// TODO how does pooling work with flash target?
-		var result:Rectangle = #if flash new Rectangle() #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 
 		__findTileRect(result);
 
 		__getBounds(result, matrix);
 		var w = result.width;
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
 		return w;
 	}
 
 	@:keep @:noCompletion private function set_width(value:Float):Float
 	{
-		var result:Rectangle = #if flash __tempRectangle #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 
 		__findTileRect(result);
 		if (result.width != 0)
 		{
 			scaleX = value / result.width;
 		}
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
 		return value;
 	}
 

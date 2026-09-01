@@ -46,6 +46,7 @@ import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFieldBehaviorScenario;
 import harness.scenarios.TextFormatScenario;
 import harness.scenarios.TimerScenario;
+import harness.scenarios.TilesScenario;
 import harness.scenarios.TransformScenario;
 import harness.scenarios.Utils3DScenario;
 import harness.scenarios.Vector3DScenario;
@@ -132,6 +133,10 @@ class Scenarios {
 			{
 				name: "display/movie-clip",
 				run: MovieClipScenario.run
+			},
+			{
+				name: "display/tiles",
+				run: TilesScenario.run
 			},
 			{
 				name: "errors/error",

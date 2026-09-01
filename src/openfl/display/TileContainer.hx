@@ -1,5 +1,9 @@
 package openfl.display;
 
+#if !flash
+import flight.Node as FlightNode;
+import flight.Scene2D as FlightScene2D;
+#end
 import openfl.geom.Rectangle;
 
 /**
@@ -39,6 +43,11 @@ class TileContainer extends Tile implements ITileContainer
 
 		__tiles = new Array();
 		__length = 0;
+		#if !flash
+		__flightSprite = null;
+		__flightNode = FlightScene2D.createDisplayObject();
+		__syncFlightNode();
+		#end
 	}
 
 	/**
@@ -63,6 +72,10 @@ class TileContainer extends Tile implements ITileContainer
 		__tiles[numTiles] = tile;
 		tile.parent = this;
 		__length++;
+		#if !flash
+		FlightNode.addNodeChild(__flightNode, tile.__flightNode);
+		tile.__syncFlightNode();
+		#end
 
 		__setRenderDirty();
 
@@ -99,6 +112,10 @@ class TileContainer extends Tile implements ITileContainer
 		__tiles.insert(index, tile);
 		tile.parent = this;
 		__length++;
+		#if !flash
+		FlightNode.addNodeChildAt(__flightNode, tile.__flightNode, index);
+		tile.__syncFlightNode();
+		#end
 
 		__setRenderDirty();
 
@@ -222,6 +239,9 @@ class TileContainer extends Tile implements ITileContainer
 			tile.parent = null;
 			__tiles.remove(tile);
 			__length--;
+			#if !flash
+			FlightNode.removeNodeChild(__flightNode, tile.__flightNode);
+			#end
 			__setRenderDirty();
 		}
 
@@ -261,6 +281,9 @@ class TileContainer extends Tile implements ITileContainer
 		for (tile in removed)
 		{
 			tile.parent = null;
+			#if !flash
+			FlightNode.removeNodeChild(__flightNode, tile.__flightNode);
+			#end
 		}
 		__length = __tiles.length;
 
@@ -304,6 +327,9 @@ class TileContainer extends Tile implements ITileContainer
 		{
 			__tiles.remove(tile);
 			__tiles.insert(index, tile);
+			#if !flash
+			FlightNode.setNodeChildIndex(__flightNode, tile.__flightNode, index);
+			#end
 			__setRenderDirty();
 		}
 	}
@@ -347,6 +373,9 @@ class TileContainer extends Tile implements ITileContainer
 
 			__tiles[index1] = tile2;
 			__tiles[index2] = tile1;
+			#if !flash
+			FlightNode.swapNodeChildren(__flightNode, tile1.__flightNode, tile2.__flightNode);
+			#end
 
 			__setRenderDirty();
 		}
@@ -365,6 +394,9 @@ class TileContainer extends Tile implements ITileContainer
 		var swap = __tiles[index1];
 		__tiles[index1] = __tiles[index2];
 		__tiles[index2] = swap;
+		#if !flash
+		FlightNode.swapNodeChildrenAt(__flightNode, index1, index2);
+		#end
 		swap = null;
 
 		__setRenderDirty();
@@ -376,9 +408,17 @@ class TileContainer extends Tile implements ITileContainer
 		return __length;
 	}
 
+	#if !flash
+	@:noCompletion private override function __syncFlightTree():Void
+	{
+		__syncFlightNode();
+		for (tile in __tiles) tile.__syncFlightTree();
+	}
+	#end
+
 	override function get_height():Float
 	{
-		var result:Rectangle = #if flash __tempRectangle #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 		var rect:Rectangle = null;
 
 		for (tile in __tiles)
@@ -396,16 +436,12 @@ class TileContainer extends Tile implements ITileContainer
 		__getBounds(result, matrix);
 
 		var h = result.height;
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
-
 		return h;
 	}
 
 	override function set_height(value:Float):Float
 	{
-		var result:Rectangle = #if flash __tempRectangle #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 		var rect:Rectangle = null;
 
 		for (tile in __tiles)
@@ -425,16 +461,12 @@ class TileContainer extends Tile implements ITileContainer
 			scaleY = value / result.height;
 		}
 
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
-
 		return value;
 	}
 
 	override function get_width():Float
 	{
-		var result:Rectangle = #if flash __tempRectangle #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 		var rect:Rectangle = null;
 
 		for (tile in __tiles)
@@ -452,16 +484,12 @@ class TileContainer extends Tile implements ITileContainer
 		__getBounds(result, matrix);
 
 		var w = result.width;
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
-
 		return w;
 	}
 
 	override function set_width(value:Float):Float
 	{
-		var result:Rectangle = #if flash __tempRectangle #else Rectangle.__pool.get() #end;
+		var result = new Rectangle();
 		var rect:Rectangle = null;
 
 		for (tile in __tiles)
@@ -480,10 +508,6 @@ class TileContainer extends Tile implements ITileContainer
 		{
 			scaleX = value / result.width;
 		}
-
-		#if !flash
-		Rectangle.__pool.release(result);
-		#end
 
 		return value;
 	}
