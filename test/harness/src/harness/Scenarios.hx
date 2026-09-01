@@ -22,6 +22,7 @@ import harness.scenarios.EventPropagationScenario;
 import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FilterScenario;
+import harness.scenarios.FontAndStyleScenario;
 import harness.scenarios.GraphicsDrawScenario;
 import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
@@ -204,6 +205,10 @@ class Scenarios {
 			{
 				name: "text/text-format",
 				run: TextFormatScenario.run
+			},
+			{
+				name: "text/font-and-style",
+				run: FontAndStyleScenario.run
 			},
 			{
 				name: "geom/transform",

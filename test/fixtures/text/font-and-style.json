@@ -1,0 +1,58 @@
+{
+  "style": {
+    "names": [
+      ".headline"
+    ],
+    "storedFontSize": "18px",
+    "format": {
+      "blockIndent": 4,
+      "color": 3368601,
+      "size": 18,
+      "rightMargin": null,
+      "align": 0,
+      "font": "_sans",
+      "underline": true,
+      "leading": null,
+      "italic": true,
+      "bold": true
+    }
+  },
+  "css": {
+    "dashedMarginRight": "9px",
+    "names": [
+      ".body"
+    ],
+    "color": "#112233",
+    "marginRight": null,
+    "fontFamily": "serif, Arial",
+    "fontSize": "14px",
+    "format": {
+      "blockIndent": null,
+      "color": 1122867,
+      "size": 14,
+      "rightMargin": null,
+      "align": null,
+      "font": "_serif",
+      "underline": null,
+      "leading": 2,
+      "italic": null,
+      "bold": null
+    },
+    "leading": "-2px"
+  },
+  "lineMetrics": {
+    "descent": 2.25,
+    "x": 1.5,
+    "ascent": 9.5,
+    "height": 12.75,
+    "leading": -1,
+    "width": 20.25
+  },
+  "font": {
+    "style": 0,
+    "after": 1,
+    "name": "Harness Font",
+    "type": 1,
+    "before": 0
+  }
+}
