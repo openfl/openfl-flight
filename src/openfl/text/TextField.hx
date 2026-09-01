@@ -1,6 +1,10 @@
 package openfl.text;
 
 #if !flash
+import flight.TextLayout as FlightTextLayout;
+import flight.types.TextFormat as FlightTextFormat;
+import flight.types.TextLayoutResult as FlightTextLayoutResult;
+import flight.types.TextMeasureFunction;
 import openfl.display.InteractiveObject;
 import openfl.errors.RangeError;
 import openfl.errors.TypeError;
@@ -195,11 +199,10 @@ class TextField extends InteractiveObject
 
 	public function getLineMetrics(lineIndex:Int):TextLineMetrics
 	{
-		var line = getLineText(lineIndex);
-		if (line == null) throw new RangeError();
-		var width = __measureLine(__withoutLineBreak(line));
-		var height = __lineHeight();
-		return new TextLineMetrics(2, width, height, height * 0.8, height * 0.2, __textFormat.leading == null ? 0 : __textFormat.leading);
+		if (getLineText(lineIndex) == null) throw new RangeError();
+		var metrics = FlightTextLayout.computeRichTextLineMetrics(__createTextLayout(), lineIndex);
+		if (metrics == null) throw new RangeError();
+		return new TextLineMetrics(metrics.x, metrics.width, metrics.height, metrics.ascent, metrics.descent, metrics.leading);
 	}
 
 	public function getLineOffset(lineIndex:Int):Int
@@ -292,6 +295,41 @@ class TextField extends InteractiveObject
 		return __textFormat.size == null ? 12 : __textFormat.size;
 	}
 
+	@:noCompletion private function __createTextLayout():FlightTextLayoutResult
+	{
+		var layout = FlightTextLayout.createTextLayoutResult();
+		var measure:TextMeasureFunction = cast FlightTextLayout.getTextLayoutMeasureProvider();
+		if (measure == null)
+		{
+			measure = function(value:String, format:FlightTextFormat):Float return 0;
+		}
+
+		var ranges = [];
+		if (__formatByCharacter.length == 0)
+		{
+			ranges.push(FlightTextLayout.createTextFormatRange(__toFlightTextFormat(__textFormat), 0, __text.length));
+		}
+		else
+		{
+			for (i in 0...__text.length)
+			{
+				var format = i < __formatByCharacter.length ? __formatByCharacter[i] : __textFormat;
+				ranges.push(FlightTextLayout.createTextFormatRange(__toFlightTextFormat(format), i, i + 1));
+			}
+		}
+
+		FlightTextLayout.computeTextLayout(layout, {
+			text: __text,
+			formatRanges: ranges,
+			width: __fieldWidth,
+			height: __fieldHeight,
+			measure: measure,
+			multiline: __multiline,
+			wordWrap: __wordWrap
+		});
+		return layout;
+	}
+
 	@:noCompletion private function __lineBounds(lineIndex:Int):Null<{start:Int, end:Int}>
 	{
 		if (lineIndex < 0) return null;
@@ -323,6 +361,42 @@ class TextField extends InteractiveObject
 	@:noCompletion private function __measureLine(value:String):Float
 	{
 		return value.length * __fontSize() * 0.6;
+	}
+
+	@:noCompletion private function __toFlightTextFormat(format:TextFormat):FlightTextFormat
+	{
+		var result:FlightTextFormat = {};
+		if (format.align != null)
+		{
+			result.align = switch (format.align)
+			{
+				case TextFormatAlign.CENTER: "center";
+				case TextFormatAlign.END: "end";
+				case TextFormatAlign.JUSTIFY: "justify";
+				case TextFormatAlign.RIGHT: "right";
+				case TextFormatAlign.START: "start";
+				default: "left";
+			};
+		}
+		if (format.blockIndent != null) result.blockIndent = format.blockIndent;
+		if (format.bold != null) result.bold = format.bold;
+		if (format.bullet != null) result.bullet = format.bullet;
+		if (format.color != null) result.color = format.color;
+		if (format.font != null) result.font = format.font;
+		if (format.indent != null) result.indent = format.indent;
+		if (format.italic != null) result.italic = format.italic;
+		if (format.kerning != null) result.kerning = format.kerning;
+		if (format.leading != null) result.leading = format.leading;
+		if (format.leftMargin != null) result.leftMargin = format.leftMargin;
+		if (format.letterSpacing != null) result.letterSpacing = format.letterSpacing;
+		if (format.rightMargin != null) result.rightMargin = format.rightMargin;
+		if (format.size != null) result.size = format.size;
+		if (format.strikethrough != null) result.strikethrough = format.strikethrough;
+		if (format.tabStops != null) result.tabStops = [for (stop in format.tabStops) stop * 1.0];
+		if (format.target != null) result.target = format.target;
+		if (format.underline != null) result.underline = format.underline;
+		if (format.url != null) result.url = format.url;
+		return result;
 	}
 
 	@:noCompletion private function __retainCommonFormat(result:TextFormat, other:TextFormat):Void
@@ -508,7 +582,7 @@ class TextField extends InteractiveObject
 	@:noCompletion private function set_mouseWheelEnabled(value:Bool):Bool return __mouseWheelEnabled = value;
 	@:noCompletion private function get_multiline():Bool return __multiline;
 	@:noCompletion private function set_multiline(value:Bool):Bool return __multiline = value;
-	@:noCompletion private function get_numLines():Int return __text == "" ? 1 : __text.split("\n").length;
+	@:noCompletion private function get_numLines():Int return Std.int(FlightTextLayout.computeRichTextLineCount(__createTextLayout()));
 	@:noCompletion private function get_restrict():String return __restrict;
 	@:noCompletion private function set_restrict(value:String):String return __restrict = value;
 	@:noCompletion private function get_scrollH():Int return __scrollH;
@@ -570,16 +644,11 @@ class TextField extends InteractiveObject
 	}
 	@:noCompletion private function get_textHeight():Float
 	{
-		if (__text == "") return 0;
-		var lines = numLines;
-		if (__type != TextFieldType.INPUT && StringTools.endsWith(__text, "\n")) lines--;
-		return Math.max(1, lines) * __lineHeight();
+		return FlightTextLayout.computeRichTextTextHeight(__createTextLayout());
 	}
 	@:noCompletion private function get_textWidth():Float
 	{
-		var widest = 0.0;
-		for (line in __text.split("\n")) widest = Math.max(widest, __measureLine(line));
-		return widest;
+		return FlightTextLayout.computeRichTextTextWidth(__createTextLayout());
 	}
 	@:noCompletion private function get_type():TextFieldType return __type;
 	@:noCompletion private function set_type(value:TextFieldType):TextFieldType
