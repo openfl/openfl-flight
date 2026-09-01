@@ -2,6 +2,9 @@ package openfl.display;
 
 #if !flash
 import openfl.Vector;
+import openfl.display3D.Context3D;
+import openfl.display3D.IndexBuffer3D;
+import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.textures.TextureBase;
 import openfl.filters.BitmapFilter;
 import openfl.geom.ColorTransform;
@@ -13,6 +16,7 @@ import openfl.utils.Future;
 import openfl.utils.Object;
 #if lime
 import lime.graphics.Image;
+import lime.graphics.cairo.CairoImageSurface;
 #else
 private typedef Image = Dynamic;
 #end
@@ -40,7 +44,19 @@ class BitmapData implements IBitmapDrawable
 	public var transparent(default, null):Bool;
 	public var width(default, null):Int;
 
+	@:noCompletion private var __blendMode:BlendMode;
+	@:noCompletion private var __drawableType:Dynamic;
+	@:noCompletion private var __isMask:Bool;
+	@:noCompletion private var __isValid:Bool;
+	@:noCompletion private var __mask:DisplayObject;
 	@:noCompletion private var __pixels:Array<UInt>;
+	@:noCompletion private var __renderable:Bool;
+	@:noCompletion private var __renderTransform:Matrix;
+	@:noCompletion private var __scrollRect:Rectangle;
+	@:noCompletion private var __transform:Matrix;
+	@:noCompletion private var __worldAlpha:Float;
+	@:noCompletion private var __worldColorTransform:ColorTransform;
+	@:noCompletion private var __worldTransform:Matrix;
 
 	public function new(width:Int, height:Int, transparent:Bool = true, fillColor:UInt = 0xFFFFFFFF)
 	{
@@ -48,6 +64,8 @@ class BitmapData implements IBitmapDrawable
 		this.height = height < 0 ? 0 : height;
 		this.transparent = transparent;
 		readable = true;
+		__isValid = true;
+		__renderable = true;
 		rect = new Rectangle(0, 0, this.width, this.height);
 		__pixels = [];
 		var color = transparent ? fillColor : (0xFF000000 | (fillColor & 0xFFFFFF));
@@ -100,6 +118,12 @@ class BitmapData implements IBitmapDrawable
 		__pixels = [];
 		readable = false;
 		// TODO: Release Flight bitmap resources.
+	}
+
+	@:beta public function disposeImage():Void
+	{
+		image = null;
+		readable = false;
 	}
 
 	public function draw(source:IBitmapDrawable, matrix:Matrix = null, colorTransform:ColorTransform = null, blendMode:BlendMode = null,
@@ -180,6 +204,31 @@ class BitmapData implements IBitmapDrawable
 	{
 		// TODO: Query color bounds through Flight bitmap services.
 		return new Rectangle();
+	}
+
+	@:dox(hide) public function getIndexBuffer(context:Context3D, scale9Grid:Rectangle = null):IndexBuffer3D
+	{
+		// TODO (Flight): expose a Flight-backed index buffer.
+		return null;
+	}
+
+	@SuppressWarnings("checkstyle:Dynamic")
+	@:dox(hide) public function getSurface():#if lime CairoImageSurface #else Dynamic #end
+	{
+		// TODO (Flight): expose a Flight-backed Cairo surface.
+		return null;
+	}
+
+	@:dox(hide) public function getTexture(context:Context3D):TextureBase
+	{
+		// TODO (Flight): expose a Flight-backed texture.
+		return null;
+	}
+
+	@:dox(hide) public function getVertexBuffer(context:Context3D, scale9Grid:Rectangle = null, targetObject:DisplayObject = null):VertexBuffer3D
+	{
+		// TODO (Flight): expose a Flight-backed vertex buffer.
+		return null;
 	}
 
 	public function getPixel(x:Int, y:Int):Int
@@ -311,6 +360,10 @@ class BitmapData implements IBitmapDrawable
 	}
 
 	public function unlock(changeRect:Rectangle = null):Void {}
+
+	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix):Void {}
+	@:noCompletion private function __update(transformOnly:Bool, updateChildren:Bool):Void {}
+	@:noCompletion private function __updateTransforms(overrideTransform:Matrix = null):Void {}
 }
 #else
 typedef BitmapData = flash.display.BitmapData;

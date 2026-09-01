@@ -150,6 +150,12 @@ import openfl.geom.Matrix;
 		// TODO: Record a Flight move command.
 	}
 
+	@SuppressWarnings("checkstyle:FieldDocComment")
+	@:dox(hide) @:noCompletion public function overrideBlendMode(blendMode:BlendMode):Void
+	{
+		// TODO (Flight): override the active vector blend mode.
+	}
+
 	public function readGraphicsData(recurse:Bool = true):Vector<IGraphicsData>
 	{
 		// TODO: Reconstruct graphics data from the Flight command buffer.
