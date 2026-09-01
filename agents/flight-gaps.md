@@ -24,6 +24,14 @@ currently provides (or doesn't).
   equivalents for OpenFL's `doubleClickEnabled`, context-menu metadata, or
   soft-keyboard input area.
 
+- **Raw Context3D command model**: Flight has no public immediate-mode API that
+  maps OpenFL's AGAL programs and registers, separate vertex/index buffers, GPU
+  state setters, draw calls, and `present()` lifecycle.
+
+- **Context3D texture bridges**: Flight has no adapter for compressed ATF,
+  `ByteArray`/typed-array uploads, arbitrary mip levels, render-target textures,
+  or `VideoTexture`. BitmapData uploads at the base mip are supported.
+
 ## Suspected Gaps
 
 - **Event system bridging**: OpenFL's capture/target/bubble event model is kept
@@ -32,9 +40,6 @@ currently provides (or doesn't).
 
 - **Text metrics in interp/headless mode**: OpenFL's TextField.textWidth/textHeight
   depend on font measurement. Flight's TextLayout may require a renderer context.
-
-- **Display3D / Context3D**: Heavy GPU API surface. Flight's Scene3D coverage is
-  unclear for the full Context3D contract.
 
 ## Resolved
 
