@@ -23,6 +23,7 @@ import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
 import harness.scenarios.MouseScenario;
+import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
@@ -37,6 +38,10 @@ import harness.scenarios.Vector3DScenario;
 class Scenarios {
 	public static function all():Array<Scenario> {
 		return [
+			{
+				name: "utils/object-pool",
+				run: ObjectPoolScenario.run
+			},
 			{
 				name: "utils/timer",
 				run: TimerScenario.run
