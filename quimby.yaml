@@ -60,7 +60,7 @@ presets:
         # initiative, which stamps those parcels `userDirected` in meta.yaml. Authority is separate
         # from interruption — `nudge: all` above already wakes both sides, so what this edge adds
         # is directive weight one way. Escalation is the inverse edge, so builder may summon review.
-        directs: [builder]
+        directs: ['@builder']
       builder:
         role: builder
       builder2:
