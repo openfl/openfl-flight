@@ -11,6 +11,10 @@ each file declares its own state.
 - [Architecture](architecture.md) — the adapter pattern, the three adaptation layers, package structure
 - [Roadmap](roadmap.md) — phased implementation plan from leaf packages to display core
 
+## Flight upstream
+
+- [Flight upstream requests](flight-upstream.md) — gaps and requirements on flight-hx discovered during implementation
+
 ## Compatibility harness
 
 - (planned) `harness.md` — capture/compare architecture, fixture format, scenario authoring
