@@ -2,6 +2,7 @@ package harness.scenarios;
 
 import openfl.utils.ByteArray;
 import openfl.utils.Endian;
+import openfl.net.ObjectEncoding;
 
 class ByteArrayScenario {
 	public static function run():Dynamic {
@@ -22,7 +23,9 @@ class ByteArrayScenario {
 			signedByte: testSignedByte(),
 			signedShort: testSignedShort(),
 			zeroMemory: testZeroMemory(),
-			emptyArray: testEmptyArray()
+			emptyArray: testEmptyArray(),
+			utfBytes: testUTFBytes(),
+			objectEncodingWrite: testObjectEncodingWrite()
 		};
 	}
 
@@ -312,6 +315,39 @@ class ByteArrayScenario {
 		}
 		return {
 			throwsOnEmptyRead: threw
+		};
+	}
+
+	private static function testUTFBytes():Dynamic {
+		var written = new ByteArray();
+		written.writeUTFBytes("flight");
+
+		var readable = new ByteArray();
+		for (value in [102, 108, 105, 103, 104, 116]) readable.writeByte(value);
+		readable.position = 0;
+		var first = readable.readUTFBytes(3);
+		var remaining = readable.readUTFBytes(readable.bytesAvailable);
+
+		return {
+			lengthAfterWrite: written.length,
+			positionAfterWrite: written.position,
+			first: first,
+			remaining: remaining,
+			positionAfterRead: readable.position
+		};
+	}
+
+	private static function testObjectEncodingWrite():Dynamic {
+		var bytes = new ByteArray();
+		bytes.objectEncoding = ObjectEncoding.HXSF;
+		bytes.writeObject({name: "flight", count: 3, enabled: true, values: [1, 2, 3]});
+		var lengthAfterWrite = bytes.length;
+		var positionAfterWrite = bytes.position;
+
+		return {
+			encoding: bytes.objectEncoding,
+			lengthAfterWrite: lengthAfterWrite,
+			positionAfterWrite: positionAfterWrite
 		};
 	}
 }
