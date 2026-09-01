@@ -371,7 +371,9 @@ class URLLoader extends EventDispatcher
 				}
 
 			case URLLoaderDataFormat.VARIABLES:
-				new URLVariables(body == null ? "" : Std.string(body));
+				var variables:URLVariables = cast {};
+				variables.decode(body == null ? "" : Std.string(body));
+				variables;
 
 			default:
 				body == null ? null : Std.string(body);
