@@ -1,0 +1,27 @@
+{
+  "nullMessage": {
+    "name": "Error",
+    "errorID": 9,
+    "message": "",
+    "className": "openfl.errors.Error",
+    "stringValue": ""
+  },
+  "empty": {
+    "name": "Error",
+    "errorID": 0,
+    "message": "",
+    "className": "openfl.errors.Error",
+    "stringValue": ""
+  },
+  "stackTrace": {
+    "isString": true,
+    "isNull": false
+  },
+  "populated": {
+    "name": "Error",
+    "errorID": 37,
+    "message": "message",
+    "className": "openfl.errors.Error",
+    "stringValue": "message"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "connected": false,
+  "spanMarker": 0,
+  "metricSucceeded": true,
+  "spanMetricSucceeded": true,
+  "registerCommandHandler": false,
+  "unregisterCommandHandler": false
+}

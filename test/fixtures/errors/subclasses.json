@@ -1,0 +1,67 @@
+{
+  "permission": {
+    "name": "PermissionError",
+    "errorID": 44,
+    "message": "permission",
+    "className": "openfl.errors.PermissionError",
+    "isError": true,
+    "stringValue": "permission"
+  },
+  "security": {
+    "name": "SecurityError",
+    "errorID": 0,
+    "message": "security",
+    "className": "openfl.errors.SecurityError",
+    "isError": true,
+    "stringValue": "security"
+  },
+  "illegalOperation": {
+    "name": "IllegalOperationError",
+    "errorID": 0,
+    "message": "illegal",
+    "className": "openfl.errors.IllegalOperationError",
+    "isError": true,
+    "stringValue": "illegal"
+  },
+  "eofIsIOError": true,
+  "argument": {
+    "name": "ArgumentError",
+    "errorID": 0,
+    "message": "argument",
+    "className": "openfl.errors.ArgumentError",
+    "isError": true,
+    "stringValue": "argument"
+  },
+  "type": {
+    "name": "TypeError",
+    "errorID": 0,
+    "message": "type",
+    "className": "openfl.errors.TypeError",
+    "isError": true,
+    "stringValue": "type"
+  },
+  "io": {
+    "name": "IOError",
+    "errorID": 0,
+    "message": "io",
+    "className": "openfl.errors.IOError",
+    "isError": true,
+    "stringValue": "io"
+  },
+  "eof": {
+    "name": "EOFError",
+    "errorID": 2030,
+    "message": "End of file was encountered",
+    "className": "openfl.errors.EOFError",
+    "isError": true,
+    "stringValue": "End of file was encountered"
+  },
+  "range": {
+    "name": "RangeError",
+    "errorID": 0,
+    "message": "range",
+    "className": "openfl.errors.RangeError",
+    "isError": true,
+    "stringValue": "range"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "rightToLeft": {
+    "name": "ar-EG",
+    "script": "",
+    "language": "ar",
+    "rightToLeft": true,
+    "statusIsNoError": true,
+    "variant": "",
+    "region": "EG"
+  },
+  "languageAndRegion": {
+    "name": "en-US",
+    "script": "",
+    "language": "en",
+    "rightToLeft": false,
+    "statusIsNoError": true,
+    "variant": "",
+    "region": "US"
+  },
+  "scriptRegionAndVariant": {
+    "name": "zh-Hant-TW",
+    "script": "Hant",
+    "language": "zh",
+    "rightToLeft": false,
+    "statusIsNoError": true,
+    "variant": "",
+    "region": "TW"
+  }
+}

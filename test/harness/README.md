@@ -9,6 +9,9 @@ Capture reference fixtures with the pinned OpenFL release:
 haxe test/harness/capture.hxml
 ```
 
+Capture mode pins Lime 8.3.2, the release paired with OpenFL 9.5.2. Both
+haxelibs must be installed before running the command.
+
 Compare openfl-flight with the committed fixtures:
 
 ```sh

@@ -1,0 +1,20 @@
+{
+  "initial": {
+    "pattern": "EEEE, MMMM d, yyyy h:mm a",
+    "actualLocaleIDName": "en-US",
+    "local": "Thursday, February 29, 2024 1:05 PM",
+    "requestedLocaleIDName": "en-US",
+    "statusIsNoError": true,
+    "timeStyleIsShort": true,
+    "dateStyleIsLong": true,
+    "utc": "Thursday, February 30, 2024 1:05 PM"
+  },
+  "custom": {
+    "timeStyleIsCustom": true,
+    "pattern": "yyyy-MM-dd HH:mm:ss",
+    "local": "2024-02-30 13:05:09",
+    "statusIsNoError": true,
+    "dateStyleIsCustom": true,
+    "utc": "2024-02-30 13:05:09"
+  }
+}

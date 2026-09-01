@@ -1,0 +1,11 @@
+{
+  "invalid": "invalid",
+  "unknown": "unknown",
+  "invalidChain": "invalidChain",
+  "trusted": "trusted",
+  "revoked": "revoked",
+  "untrustedSigners": "untrustedSigners",
+  "principalMismatch": "principalMismatch",
+  "expired": "expired",
+  "notYetValid": "notYetValid"
+}

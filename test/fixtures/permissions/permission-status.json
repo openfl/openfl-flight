@@ -1,0 +1,7 @@
+{
+  "unknown": "unknown",
+  "allDistinct": true,
+  "granted": "granted",
+  "denied": "denied",
+  "onlyWhenInUse": "onlyWhenInUse"
+}

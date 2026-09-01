@@ -1,3 +1,4 @@
 test/harness/common.hxml
+-lib lime:8.3.2
 -lib openfl:9.5.2
 -D harness_capture
