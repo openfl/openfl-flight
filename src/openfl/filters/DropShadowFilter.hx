@@ -63,8 +63,6 @@ import openfl.geom.Rectangle;
 @:access(openfl.geom.Rectangle)
 @:final class DropShadowFilter extends BitmapFilter
 {
-	@:noCompletion private static var __hideShader = new HideShader();
-
 	/**
 		The alpha transparency value for the shadow color. Valid values are 0.0 to
 		1.0. For example, .25 sets a transparency value of 25%. The default value
@@ -294,81 +292,8 @@ import openfl.geom.Rectangle;
 
 	@:noCompletion private override function __initShader(renderer:DisplayObjectRenderer, pass:Int, sourceBitmapData:BitmapData):Shader
 	{
-		#if !macro
-		// Drop shadow is glow with an offset
-		if (__inner && pass == 0)
-		{
-			return GlowFilter.__invertAlphaShader;
-		}
-
-		var blurPass = pass - (__inner ? 1 : 0);
-		var numBlurPasses = __horizontalPasses + __verticalPasses;
-
-		if (blurPass < numBlurPasses)
-		{
-			var shader = GlowFilter.__blurAlphaShader;
-			if (blurPass < __horizontalPasses)
-			{
-				var scale = Math.pow(0.5, blurPass >> 1) * 0.5;
-				shader.uRadius.value[0] = blurX * scale;
-				shader.uRadius.value[1] = 0;
-			}
-			else
-			{
-				var scale = Math.pow(0.5, (blurPass - __horizontalPasses) >> 1) * 0.5;
-				shader.uRadius.value[0] = 0;
-				shader.uRadius.value[1] = blurY * scale;
-			}
-			shader.uColor.value[0] = ((color >> 16) & 0xFF) / 255;
-			shader.uColor.value[1] = ((color >> 8) & 0xFF) / 255;
-			shader.uColor.value[2] = (color & 0xFF) / 255;
-			shader.uColor.value[3] = alpha;
-			shader.uStrength.value[0] = blurPass == (numBlurPasses - 1) ? __strength : 1.0;
-			return shader;
-		}
-		if (__inner)
-		{
-			if (__knockout || __hideObject)
-			{
-				var shader = GlowFilter.__innerCombineKnockoutShader;
-				shader.sourceBitmap.input = sourceBitmapData;
-				shader.offset.value[0] = __offsetX;
-				shader.offset.value[1] = __offsetY;
-				return shader;
-			}
-			var shader = GlowFilter.__innerCombineShader;
-			shader.sourceBitmap.input = sourceBitmapData;
-			shader.offset.value[0] = __offsetX;
-			shader.offset.value[1] = __offsetY;
-			return shader;
-		}
-		else
-		{
-			if (__knockout)
-			{
-				var shader = GlowFilter.__combineKnockoutShader;
-				shader.sourceBitmap.input = sourceBitmapData;
-				shader.offset.value[0] = __offsetX;
-				shader.offset.value[1] = __offsetY;
-				return shader;
-			}
-			else if (__hideObject)
-			{
-				var shader = __hideShader;
-				shader.sourceBitmap.input = sourceBitmapData;
-				shader.offset.value[0] = __offsetX;
-				shader.offset.value[1] = __offsetY;
-				return shader;
-			}
-			var shader = GlowFilter.__combineShader;
-			shader.sourceBitmap.input = sourceBitmapData;
-			shader.offset.value[0] = __offsetX;
-			shader.offset.value[1] = __offsetY;
-			return shader;
-		}
-		#else
+		// TODO(Flight): Create drop-shadow shader passes through Flight's effects API.
 		return null;
-		#end
 	}
 
 	@:noCompletion private function __updateSize():Void
@@ -535,41 +460,6 @@ import openfl.geom.Rectangle;
 	}
 }
 
-#if !openfl_debug
-@:fileXml('tags="haxe,release"')
-@:noDebug
-#end
-private class HideShader extends BitmapFilterShader
-{
-	@:glFragmentSource("
-		uniform sampler2D openfl_Texture;
-		uniform sampler2D sourceBitmap;
-		varying vec4 textureCoords;
-
-		void main(void) {
-			gl_FragColor = texture2D(openfl_Texture, textureCoords.zw);
-		}
-	")
-	@:glVertexSource("attribute vec4 openfl_Position;
-		attribute vec2 openfl_TextureCoord;
-		uniform mat4 openfl_Matrix;
-		uniform vec2 openfl_TextureSize;
-		uniform vec2 offset;
-		varying vec4 textureCoords;
-
-		void main(void) {
-			gl_Position = openfl_Matrix * openfl_Position;
-			textureCoords = vec4(openfl_TextureCoord, openfl_TextureCoord - offset / openfl_TextureSize);
-		}
-	")
-	public function new()
-	{
-		super();
-		#if !macro
-		offset.value = [0, 0];
-		#end
-	}
-}
 #else
 typedef DropShadowFilter = flash.filters.DropShadowFilter;
 #end
