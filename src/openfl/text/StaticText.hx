@@ -1,6 +1,8 @@
 package openfl.text;
 
 #if !flash
+import flight.Text as FlightText;
+import flight.types.TextLabel as FlightTextLabel;
 import openfl.display.DisplayObject;
 
 /**
@@ -31,6 +33,7 @@ import openfl.display.DisplayObject;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.DisplayObject)
 class StaticText extends DisplayObject
 {
 	/**
@@ -41,11 +44,20 @@ class StaticText extends DisplayObject
 	**/
 	public var text(default, null):String;
 
+	@:noCompletion private var __flightText:FlightTextLabel;
+
 	@:noCompletion private function new()
 	{
 		super();
-		// TODO(Flight): Bind authoring-tool static text to Flight's public text
-		// node API once the display bridge exposes one.
+		__flightText = FlightText.createTextLabel();
+		__flightNode = __flightText;
+		__syncFlightNode();
+	}
+
+	@:noCompletion private function __setText(value:String):Void
+	{
+		text = value;
+		FlightText.setTextLabelString(__flightText, value == null ? "" : value);
 	}
 }
 #else

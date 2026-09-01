@@ -113,6 +113,13 @@ currently provides (or doesn't).
   HTML5 therefore requires a WebSocket-capable endpoint or bridge; native
   targets retain the Haxe system transport described above.
 
+- **Authored StaticText import**: Flight provides a renderable `TextLabel`, which
+  now backs `StaticText` and can mirror its read-only string through the private
+  authoring hook. OpenFL exposes no public `StaticText` constructor, and this
+  adapter has no SWF/authoring importer that supplies the source text, glyph
+  layout, formatting, and authored bounds. Existing authored static-text assets
+  therefore need an asset-import bridge before their full layout can appear.
+
 - **Arbitrary batched tile hierarchies**: Flight's native `Tilemap` is a regular
   row/column grid. OpenFL tilemaps accept freely positioned, rotated, scaled,
   nested `Tile`/`TileContainer` nodes with per-tile source rectangles. The
