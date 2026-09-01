@@ -53,6 +53,7 @@ import harness.scenarios.SoundLifecycleScenario;
 import harness.scenarios.SocketScenario;
 import harness.scenarios.StageScenario;
 import harness.scenarios.StageTextScenario;
+import harness.scenarios.StyleSheetScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFieldBehaviorScenario;
@@ -280,6 +281,10 @@ class Scenarios {
 			{
 				name: "text/stage-text",
 				run: StageTextScenario.run
+			},
+			{
+				name: "text/style-sheet",
+				run: StyleSheetScenario.run
 			},
 			{
 				name: "text/text-field-behavior",

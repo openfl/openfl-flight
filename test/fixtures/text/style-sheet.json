@@ -1,0 +1,94 @@
+{
+  "clearNames": [],
+  "css": {
+    "names": [
+      ".a, .b",
+      ".body",
+      ".manual"
+    ],
+    "splitSelectorExists": false,
+    "combinedExists": true,
+    "bodyColorBeforeMerge": "#AABBCC",
+    "bodyMarginLeft": "7px",
+    "bodyMarginRight": null,
+    "bodyDashedMarginRight": "8px",
+    "bodyFormat": {
+      "letterSpacing": null,
+      "blockIndent": null,
+      "leftMargin": 7,
+      "color": 11189196,
+      "size": 14,
+      "rightMargin": null,
+      "align": 0,
+      "font": "_serif",
+      "underline": true,
+      "leading": null,
+      "italic": null,
+      "bold": true
+    },
+    "combinedFormat": {
+      "letterSpacing": null,
+      "blockIndent": null,
+      "leftMargin": null,
+      "color": null,
+      "size": null,
+      "rightMargin": null,
+      "align": null,
+      "font": null,
+      "underline": null,
+      "leading": 2,
+      "italic": null,
+      "bold": null
+    },
+    "bodyColorAfterMerge": "#AABBCC",
+    "bodyFontFamily": "serif, Arial",
+    "bodyFontSize": "14px"
+  },
+  "missingIsNull": true,
+  "nullTransform": {
+    "letterSpacing": null,
+    "blockIndent": null,
+    "leftMargin": null,
+    "color": null,
+    "size": null,
+    "rightMargin": null,
+    "align": null,
+    "font": null,
+    "underline": null,
+    "leading": null,
+    "italic": null,
+    "bold": null
+  },
+  "removal": {
+    "namesAfterNullCSS": [
+      ".a, .b",
+      ".body",
+      ".manual"
+    ],
+    "namesAfterCachedRemoval": [
+      ".a, .b",
+      ".body",
+      ".manual"
+    ],
+    "removedIsNull": true
+  },
+  "initialNames": [],
+  "setStyle": {
+    "storedFontSize": "18px",
+    "format": {
+      "letterSpacing": 2,
+      "blockIndent": 6,
+      "leftMargin": 4,
+      "color": 3368601,
+      "size": 18,
+      "rightMargin": 5,
+      "align": 4,
+      "font": "_sans",
+      "underline": true,
+      "leading": 3,
+      "italic": true,
+      "bold": true
+    },
+    "namesAfterCachedSet": []
+  }
+}

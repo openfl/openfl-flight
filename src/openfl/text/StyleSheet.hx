@@ -135,42 +135,38 @@ class StyleSheet extends EventDispatcher /*implements Dynamic*/
 		var rule = ~/([^{}]+)\{([^{}]*)\}/;
 		while (rule.match(css))
 		{
-			var selectors = rule.matched(1).split(",");
+			var styleName = StringTools.trim(rule.matched(1)).toLowerCase();
 			var declarations = rule.matched(2).split(";");
-			for (selector in selectors)
+			if (styleName != "")
 			{
-				var styleName = StringTools.trim(selector).toLowerCase();
-				if (styleName != "")
+				if (!__styles.exists(styleName))
 				{
-					if (!__styles.exists(styleName))
-					{
-						__styles.set(styleName, new Object());
-						__styleNamesDirty = true;
-					}
+					__styles.set(styleName, new Object());
+					__styleNamesDirty = true;
+				}
 
-					var object = __styles.get(styleName);
-					for (declaration in declarations)
+				var object = __styles.get(styleName);
+				for (declaration in declarations)
+				{
+					var separator = declaration.indexOf(":");
+					if (separator > -1)
 					{
-						var separator = declaration.indexOf(":");
-						if (separator > -1)
+						var property = StringTools.trim(declaration.substr(0, separator)).toLowerCase();
+						var value = StringTools.trim(declaration.substr(separator + 1));
+						if (property != "")
 						{
-							var property = StringTools.trim(declaration.substr(0, separator)).toLowerCase();
-							var value = StringTools.trim(declaration.substr(separator + 1));
-							if (property != "")
+							switch (property)
 							{
-								switch (property)
-								{
-									case "font-family": object.fontFamily = StringTools.replace(value, "\"", "");
-									case "font-size": object.fontSize = value;
-									case "font-style": object.fontStyle = value;
-									case "font-weight": object.fontWeight = value;
-									case "letter-spacing": object.letterSpacing = value;
-									case "margin-left": object.marginLeft = value;
-									case "text-align": object.textAlign = value;
-									case "text-decoration": object.textDecoration = value;
-									case "text-indent": object.textIndent = value;
-									default: Reflect.setField(object, property, value);
-								}
+								case "font-family": object.fontFamily = StringTools.replace(value, "\"", "");
+								case "font-size": object.fontSize = value;
+								case "font-style": object.fontStyle = value;
+								case "font-weight": object.fontWeight = value;
+								case "letter-spacing": object.letterSpacing = value;
+								case "margin-left": object.marginLeft = value;
+								case "text-align": object.textAlign = value;
+								case "text-decoration": object.textDecoration = value;
+								case "text-indent": object.textIndent = value;
+								default: Reflect.setField(object, property, value);
 							}
 						}
 					}
