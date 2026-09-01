@@ -3,8 +3,12 @@ package openfl.sensors;
 #if !flash
 import flight.Sensors as FlightSensors;
 import flight.Signals as FlightSignals;
+import flight.types.HasSystemSensors as FlightSystemSensorsHost;
 import flight.types.MotionReading;
 import flight.types.Sensors as FlightSensorSet;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#end
 import haxe.Timer;
 import openfl.errors.ArgumentError;
 import openfl.events.AccelerometerEvent;
@@ -83,6 +87,7 @@ class Accelerometer extends EventDispatcher
 	@:noCompletion private static var defaultInterval:Int = 34;
 	@:noCompletion private static var initialized:Bool = false;
 	@:noCompletion private static var supported:Bool = false;
+	@:noCompletion private static var __flightHost:FlightSystemSensorsHost;
 	@:noCompletion private static var __flightSensors:FlightSensorSet;
 
 	/**
@@ -138,15 +143,30 @@ class Accelerometer extends EventDispatcher
 	{
 		if (!initialized)
 		{
-			supported = FlightSensors.hasAccelerometer();
+			var host = __getFlightHost();
+			supported = FlightSensors.hasAccelerometer(host);
 			if (supported)
 			{
 				__flightSensors = FlightSensors.createSensors();
 				FlightSignals.connectSignal(__flightSensors.onAccelerometer, accelerometer_onFlightUpdate);
-				FlightSensors.attachSensors(__flightSensors);
+				FlightSensors.attachSensors(host, __flightSensors);
 			}
 			initialized = true;
 		}
+	}
+
+	@:noCompletion private static function __getFlightHost():FlightSystemSensorsHost
+	{
+		if (__flightHost != null) return __flightHost;
+
+		#if (js && html5)
+		__flightHost = cast FlightHostWeb.webSystemHost;
+		#else
+		// HostLime and HostClay do not currently expose Flight's sensors capability.
+		__flightHost = cast {system: {sensors: {isMotionSupported: function():Bool return false}}};
+		#end
+
+		return __flightHost;
 	}
 
 	/**
