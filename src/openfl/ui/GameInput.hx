@@ -1,14 +1,18 @@
 package openfl.ui;
 
 #if !flash
+import flight.Input as FlightInput;
+import flight.Signals as FlightSignals;
+import flight.types.InputGamepadAxisData as FlightGamepadAxisData;
+import flight.types.InputGamepadButtonData as FlightGamepadButtonData;
+import flight.types.InputGamepadConnectData as FlightGamepadConnectData;
+import flight.types.InputManager as FlightInputManager;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
 import openfl.events.EventType;
 import openfl.events.GameInputEvent;
-#if lime
-import lime.ui.Gamepad;
-import lime.ui.GamepadAxis;
-import lime.ui.GamepadButton;
+#if (js && html5)
+import js.Browser;
 #end
 
 /**
@@ -79,15 +83,20 @@ import lime.ui.GamepadButton;
 
 	@:noCompletion private static var __deviceList:Array<GameInputDevice> = new Array();
 	@:noCompletion private static var __instances:Array<GameInput> = [];
-	#if lime
-	@:noCompletion private static var __devices:Map<Gamepad, GameInputDevice> = new Map();
-	#end
+	@:noCompletion private static var __devices:Map<Int, GameInputDevice> = new Map();
+	@:noCompletion private static var __flightInputManager:FlightInputManager;
+
+	private static function __init__():Void
+	{
+		__initializeFlightInput();
+	}
 
 	public function new()
 	{
 		super();
 
 		__instances.push(this);
+		__initializeFlightInput();
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -128,26 +137,45 @@ import lime.ui.GamepadButton;
 		return null;
 	}
 
-	#if lime
-	@:noCompletion private static function __getDevice(gamepad:Gamepad):GameInputDevice
+	@:noCompletion private static function __getDevice(gamepad:Int, id:String = null):GameInputDevice
 	{
-		if (gamepad == null) return null;
-
 		if (!__devices.exists(gamepad))
 		{
-			var device = new GameInputDevice(gamepad.guid, gamepad.name);
+			var resolvedID = id == null || id == "" ? Std.string(gamepad) : id;
+			var device = new GameInputDevice(resolvedID, resolvedID);
 			__deviceList.push(device);
 			__devices.set(gamepad, device);
 			numDevices = __deviceList.length;
+
+			for (instance in __instances)
+			{
+				instance.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device));
+			}
 		}
 
 		return __devices.get(gamepad);
 	}
-	#end
 
-	#if lime
-	@:noCompletion private static function __onGamepadAxisMove(gamepad:Gamepad, axis:GamepadAxis, value:Float):Void
+	@:noCompletion private static function __initializeFlightInput():Void
 	{
+		if (__flightInputManager != null) return;
+
+		__flightInputManager = FlightInput.createInputManager();
+		FlightSignals.connectSignal(__flightInputManager.onGamepadAxisMove, __onGamepadAxisMove);
+		FlightSignals.connectSignal(__flightInputManager.onGamepadButtonDown, __onGamepadButtonDown);
+		FlightSignals.connectSignal(__flightInputManager.onGamepadButtonUp, __onGamepadButtonUp);
+		FlightSignals.connectSignal(__flightInputManager.onGamepadConnect, __onGamepadConnect);
+		FlightSignals.connectSignal(__flightInputManager.onGamepadDisconnect, __onGamepadDisconnect);
+
+		#if (js && html5)
+		if (Browser.supported) FlightInput.attachGamepadInput(__flightInputManager, cast Browser.window);
+		#end
+	}
+
+	@:noCompletion private static function __onGamepadAxisMove(data:FlightGamepadAxisData):Void
+	{
+		var gamepad = Std.int(data.gamepad);
+		var axis = Std.int(data.axis);
 		var device = __getDevice(gamepad);
 		if (device == null) return;
 
@@ -161,15 +189,15 @@ import lime.ui.GamepadButton;
 			}
 
 			var control = device.__axis.get(axis);
-			control.value = value;
+			control.value = data.value;
 			control.dispatchEvent(new Event(Event.CHANGE));
 		}
 	}
-	#end
 
-	#if lime
-	@:noCompletion private static function __onGamepadButtonDown(gamepad:Gamepad, button:GamepadButton):Void
+	@:noCompletion private static function __onGamepadButtonDown(data:FlightGamepadButtonData):Void
 	{
+		var gamepad = Std.int(data.gamepad);
+		var button = Std.int(data.button);
 		var device = __getDevice(gamepad);
 		if (device == null) return;
 
@@ -183,15 +211,15 @@ import lime.ui.GamepadButton;
 			}
 
 			var control = device.__button.get(button);
-			control.value = 1;
+			control.value = data.value;
 			control.dispatchEvent(new Event(Event.CHANGE));
 		}
 	}
-	#end
 
-	#if lime
-	@:noCompletion private static function __onGamepadButtonUp(gamepad:Gamepad, button:GamepadButton):Void
+	@:noCompletion private static function __onGamepadButtonUp(data:FlightGamepadButtonData):Void
 	{
+		var gamepad = Std.int(data.gamepad);
+		var button = Std.int(data.button);
 		var device = __getDevice(gamepad);
 		if (device == null) return;
 
@@ -205,28 +233,20 @@ import lime.ui.GamepadButton;
 			}
 
 			var control = device.__button.get(button);
-			control.value = 0;
+			control.value = data.value;
 			control.dispatchEvent(new Event(Event.CHANGE));
 		}
 	}
-	#end
 
-	#if lime
-	@:noCompletion private static function __onGamepadConnect(gamepad:Gamepad):Void
+	@:noCompletion private static function __onGamepadConnect(data:FlightGamepadConnectData):Void
 	{
-		var device = __getDevice(gamepad);
-		if (device == null) return;
-
-		for (instance in __instances)
-		{
-			instance.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device));
-		}
+		var gamepad = Std.int(data.gamepad);
+		__getDevice(gamepad, data.id);
 	}
-	#end
 
-	#if lime
-	@:noCompletion private static function __onGamepadDisconnect(gamepad:Gamepad):Void
+	@:noCompletion private static function __onGamepadDisconnect(data:FlightGamepadConnectData):Void
 	{
+		var gamepad = Std.int(data.gamepad);
 		var device = __devices.get(gamepad);
 
 		if (device != null)
@@ -245,7 +265,6 @@ import lime.ui.GamepadButton;
 			}
 		}
 	}
-	#end
 }
 #else
 typedef GameInput = flash.ui.GameInput;

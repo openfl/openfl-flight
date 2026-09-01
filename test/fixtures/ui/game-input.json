@@ -1,0 +1,47 @@
+{
+  "device": {
+    "axisID": "AXIS_0",
+    "name": "Harness Gamepad",
+    "replayedAddedCount": 1,
+    "addedCount": 1,
+    "outOfRangeControlIsNull": true,
+    "axisChanges": 1,
+    "addedDeviceMatches": true,
+    "buttonRange": [
+      0,
+      1
+    ],
+    "axisValue": 0.5,
+    "buttonID": "BUTTON_0",
+    "buttonChanges": 2,
+    "numControls": 21,
+    "id": "Harness Gamepad",
+    "numDevicesWhileConnected": 1,
+    "cachedSamples": 0,
+    "enabledBefore": null,
+    "sampleInterval": null,
+    "buttonValue": 0,
+    "axisRange": [
+      -1,
+      1
+    ]
+  },
+  "initial": {
+    "missingDeviceIsNull": true,
+    "negativeDeviceIsNull": true,
+    "numDevices": 0,
+    "isSupported": true
+  },
+  "disconnect": {
+    "numDevices": 0,
+    "deviceIsGone": true,
+    "removedDeviceMatches": true,
+    "removedCount": 1
+  },
+  "event": {
+    "bubbles": true,
+    "cloneType": "deviceAdded",
+    "cloneDeviceMatches": true,
+    "type": "deviceAdded"
+  }
+}

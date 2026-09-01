@@ -27,6 +27,14 @@ currently provides (or doesn't).
   raise it from observed concurrent Flight contacts; gesture support and the
   supported-gesture list remain unavailable.
 
+- **Native gamepad attachment and sample history**: Flight Input exposes
+  portable gamepad signals and browser attachment/polling, but no equivalent
+  native-host attachment helper or sampled-control history buffer. OpenFL
+  `GameInput` consumes Flight's signals and attaches them automatically on
+  HTML5; native hosts still need a Flight input bridge, while
+  `GameInputDevice.startCachingSamples()` and `getCachedSamples()` remain
+  deterministic no-ops.
+
 - **Per-object interaction metadata**: Flight does not expose per-node
   equivalents for OpenFL's `doubleClickEnabled`, context-menu metadata, or
   soft-keyboard input area.

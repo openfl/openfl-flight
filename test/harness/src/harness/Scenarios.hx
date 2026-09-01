@@ -28,6 +28,7 @@ import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FileReferenceScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.FontAndStyleScenario;
+import harness.scenarios.GameInputScenario;
 import harness.scenarios.GraphicsDrawScenario;
 import harness.scenarios.GraphicsDataScenario;
 import harness.scenarios.InteractiveObjectScenario;
@@ -356,6 +357,10 @@ class Scenarios {
 			{
 				name: "ui/mouse",
 				run: MouseScenario.run
+			},
+			{
+				name: "ui/game-input",
+				run: GameInputScenario.run
 			},
 			{
 				name: "ui/multitouch",
