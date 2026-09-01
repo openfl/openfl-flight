@@ -1,5 +1,16 @@
 package openfl.display;
 
+import flight.types.ApplicationWindow as FlightApplicationWindow;
+import flight.types.Host as FlightHost;
+import flight.types.WindowBackend as FlightWindowBackend;
+import flight.types.WindowOptions as FlightWindowOptions;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+#end
 import openfl.events.Event;
 #if lime
 import lime.app.Application as LimeApplication;
@@ -31,6 +42,8 @@ import openfl.events.InvokeEvent;
 @SuppressWarnings("checkstyle:FieldDocComment")
 class Application #if lime extends LimeApplication #end
 {
+	@:noCompletion private static var __flightHost:FlightHost;
+
 	#if !lime
 	public static var current:Application;
 
@@ -54,6 +67,55 @@ class Application #if lime extends LimeApplication #end
 		#end
 
 		// TODO (Flight): connect the application to Flight's display root.
+	}
+
+	@:noCompletion private static function __getFlightHost(application:Application):FlightHost
+	{
+		if (__flightHost != null) return __flightHost;
+
+		#if (js && html5)
+		__flightHost = cast FlightHostWeb.webHost;
+		#elseif (clay && sys)
+		var host:Dynamic = FlightHostClay.createClayHost();
+		host.window = __createFallbackWindowBackend();
+		__flightHost = cast host;
+		#elseif (lime && sys)
+		__flightHost = cast FlightHostLime.createLimeHost(application);
+		#else
+		__flightHost = cast {window: __createFallbackWindowBackend()};
+		#end
+
+		return __flightHost;
+	}
+
+	@:noCompletion private static inline function __hasFlightWindowHost():Bool
+	{
+		#if ((js && html5) || (lime && sys))
+		return true;
+		#else
+		return false;
+		#end
+	}
+
+	@:noCompletion private static function __createFallbackWindowBackend():FlightWindowBackend
+	{
+		return {
+			open: function(_window:FlightApplicationWindow, _options:FlightWindowOptions):Bool return true,
+			close: function(_window:FlightApplicationWindow):Void {},
+			focus: function(_window:FlightApplicationWindow):Void {},
+			show: function(_window:FlightApplicationWindow):Void {},
+			hide: function(_window:FlightApplicationWindow):Void {},
+			setPosition: function(_window:FlightApplicationWindow, _x:Float, _y:Float):Void {},
+			setSize: function(_window:FlightApplicationWindow, _width:Float, _height:Float):Void {},
+			setTitle: function(_window:FlightApplicationWindow, _title:String):Void {},
+			setFullscreen: function(_window:FlightApplicationWindow, _fullscreen:Bool):Void {},
+			setParent: function(_window:FlightApplicationWindow, _parent:Null<FlightApplicationWindow>):Void {},
+			setMinimumSize: function(_window:FlightApplicationWindow, _width:Float, _height:Float):Void {},
+			setMaximumSize: function(_window:FlightApplicationWindow, _width:Float, _height:Float):Void {},
+			minimize: function(_window:FlightApplicationWindow):Void {},
+			maximize: function(_window:FlightApplicationWindow):Void {},
+			restore: function(_window:FlightApplicationWindow):Void {}
+		};
 	}
 
 	#if lime
