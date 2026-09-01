@@ -8,6 +8,13 @@ the capability that this adapter can compile against.
 
 ## Confirmed Gaps
 
+- **Bitmap explicit dispose/release**: OpenFL's `BitmapData.dispose()` explicitly
+  frees pixel storage and sets width/height to 0. Flight's `flight.Bitmap` has no
+  public explicit release API — disposal relies on GC collecting the handle.
+  Workaround: drop the reference and let GC handle it. Impact: apps that allocate
+  many large bitmaps and dispose them in a tight loop may see higher peak memory.
+  (Reported by builder2, BitmapData Flight-backing.)
+
 - **SimpleButton menu tracking**: Flight has no menu-release interaction model
   corresponding to OpenFL's `trackAsMenu` behavior.
 
