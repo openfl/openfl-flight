@@ -1,0 +1,44 @@
+{
+  "variables": {
+    "arrayEncoding": "amp;items[]=a%2Fb&items%5B%5D=one%20two&sp%20ace=x%2Fy",
+    "emptyString": "",
+    "initial": {
+      "repeat": "second",
+      "fieldCount": 5,
+      "canonical": "empty=&encoded%20key=a%2Fb&greeting=hello%20world&plus=a%20b&repeat=second",
+      "plus": "a b",
+      "encoded": "a/b",
+      "empty": "",
+      "greeting": "hello world"
+    },
+    "afterDecode": {
+      "fieldCount": 2,
+      "flag": "",
+      "fresh": "value",
+      "oldFieldRemoved": true
+    },
+    "emptyFieldCount": 0
+  },
+  "headerEdges": {
+    "name": "X-Reassigned",
+    "value": "two"
+  },
+  "requestEdges": {
+    "idleTimeout": 2345,
+    "emptyUrl": "",
+    "manageCookies": false,
+    "followRedirects": false,
+    "userAgent": "flight-agent",
+    "defaultsRestored": true
+  },
+  "dataFormats": {
+    "invalidIsNull": true,
+    "text": "text",
+    "fromBinary": true,
+    "invalidString": "null",
+    "variables": "variables",
+    "fromText": true,
+    "fromVariables": true,
+    "binary": "binary"
+  }
+}

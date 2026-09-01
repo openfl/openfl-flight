@@ -53,6 +53,7 @@ import harness.scenarios.TilesScenario;
 import harness.scenarios.TransformScenario;
 import harness.scenarios.Utils3DScenario;
 import harness.scenarios.URLLoaderScenario;
+import harness.scenarios.URLTypesScenario;
 import harness.scenarios.Vector3DScenario;
 import harness.scenarios.VideoScenario;
 
@@ -206,6 +207,10 @@ class Scenarios {
 			{
 				name: "net/url-loader-request",
 				run: URLLoaderScenario.run
+			},
+			{
+				name: "net/url-types",
+				run: URLTypesScenario.run
 			},
 			{
 				name: "display/display-object",
