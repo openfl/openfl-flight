@@ -22,6 +22,8 @@ import openfl.utils.IDataInput;
 import openfl.utils.IDataOutput;
 #if (js && html5)
 import js.Browser;
+import js.lib.ArrayBuffer;
+import js.lib.Uint8Array;
 #end
 #if sys
 import sys.net.Host;
@@ -1120,7 +1122,33 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		}
 		else
 		{
-			var newData:Bytes = cast data;
+			var newData:Bytes;
+			#if (js && html5)
+			if (Std.isOfType(data, ArrayBuffer))
+			{
+				var view = new Uint8Array(cast data);
+				newData = Bytes.alloc(view.length);
+				for (i in 0...view.length)
+				{
+					newData.set(i, view[i]);
+				}
+			}
+			else if (Std.isOfType(data, Uint8Array))
+			{
+				var view:Uint8Array = cast data;
+				newData = Bytes.alloc(view.length);
+				for (i in 0...view.length)
+				{
+					newData.set(i, view[i]);
+				}
+			}
+			else
+			{
+				newData = cast data;
+			}
+			#else
+			newData = cast data;
+			#end
 			__input.writeBytes(ByteArray.fromBytes(newData), 0, newData.length);
 		}
 		__input.position = cachePosition;
