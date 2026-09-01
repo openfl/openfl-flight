@@ -6,12 +6,26 @@ import flight.FileSystem as FlightFileSystem;
 import flight._internal._UInt8Array as FlightUInt8Array;
 import flight.types.FileDialogFilter as FlightFileDialogFilter;
 import flight.types.FileDialogHandle as FlightFileDialogHandle;
+import flight.types.FileOpenDialogResult as FlightFileOpenResult;
+import flight.types.FileSaveDialogResult as FlightFileSaveResult;
 import flight.types.FileStat as FlightFileStat;
+import flight.types.HasDialogFileOpen as FlightDialogOpenHost;
+import flight.types.HasDialogFileSave as FlightDialogSaveHost;
+import flight.types.HasStorageFileSystem as FlightFileSystemHost;
+import flight.types.Host as FlightHost;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
 import openfl.events.IOErrorEvent;
 import openfl.utils.ByteArray;
 import openfl.utils.ByteArray.ByteArrayData;
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
+#end
 
 /**
 	Represents a local file selected by the user for upload, download, loading,
@@ -31,6 +45,9 @@ class FileReference extends EventDispatcher
 	public var size(get, null):Float;
 	public var type(get, null):String;
 	public var extension(get, null):String;
+
+	@:noCompletion private static var __host:FlightHost;
+	@:noCompletion private static var __hostResolved:Bool;
 
 	@:noCompletion private var __creationDate:Date;
 	@:noCompletion private var __data:ByteArray;
@@ -56,22 +73,29 @@ class FileReference extends EventDispatcher
 
 		if (!__hasDialogBackend()) return true;
 		var generation = ++__operationGeneration;
-		FlightDialog.showOpenFileDialog({multiple: false, filters: __toFlightFilters(typeFilter)}).then(function(handles:Array<FlightFileDialogHandle>):Array<FlightFileDialogHandle>
+		var dialogHost:FlightDialogOpenHost = cast __getHost();
+		FlightDialog.showOpenFileDialog(dialogHost, {multiple: false, filters: __toFlightFilters(typeFilter)}).then(function(result:FlightFileOpenResult):FlightFileOpenResult
 		{
-			if (generation != __operationGeneration) return handles;
-			if (handles == null || handles.length == 0)
+			if (generation != __operationGeneration) return result;
+			var outcome = result == null ? null : Reflect.field(result, "outcome");
+			var handles:Array<FlightFileDialogHandle> = result == null ? null : cast Reflect.field(result, "handles");
+			if (outcome == "cancelled")
 			{
 				dispatchEvent(new Event(Event.CANCEL));
 			}
-			else
+			else if (outcome == "selected" && handles != null && handles.length > 0)
 			{
 				__selectHandle(handles[0], generation);
 			}
-			return handles;
-		}, function(error:Dynamic):Array<FlightFileDialogHandle>
+			else
+			{
+				__dispatchIOError(outcome == null ? "Unable to open a file dialog" : outcome);
+			}
+			return result;
+		}, function(error:Dynamic):FlightFileOpenResult
 		{
 			if (generation == __operationGeneration) __dispatchIOError(error);
-			return [];
+			return cast {outcome: "file-open-failed"};
 		});
 		return true;
 	}
@@ -90,7 +114,9 @@ class FileReference extends EventDispatcher
 	{
 		if (__flightHandle == null) return;
 		var generation = ++__operationGeneration;
-		FlightFileSystem.readDialogHandleBinaryFile(__flightHandle).then(function(bytes:FlightUInt8Array):FlightUInt8Array
+		var fileSystemHost:FlightFileSystemHost = cast __getHost();
+		if (fileSystemHost == null) return;
+		FlightFileSystem.readDialogHandleBinaryFile(fileSystemHost, __flightHandle).then(function(bytes:FlightUInt8Array):FlightUInt8Array
 		{
 			if (generation != __operationGeneration) return bytes;
 			if (bytes == null)
@@ -119,13 +145,23 @@ class FileReference extends EventDispatcher
 		if (data == null || !__hasDialogBackend()) return;
 
 		var generation = ++__operationGeneration;
-		FlightDialog.showSaveFileDialog({defaultName: defaultFileName}).then(function(handle:FlightFileDialogHandle):FlightFileDialogHandle
+		var host = __getHost();
+		var dialogHost:FlightDialogSaveHost = cast host;
+		var fileSystemHost:FlightFileSystemHost = cast host;
+		FlightDialog.showSaveFileDialog(dialogHost, {defaultName: defaultFileName}).then(function(result:FlightFileSaveResult):FlightFileSaveResult
 		{
-			if (generation != __operationGeneration) return handle;
-			if (handle == null)
+			if (generation != __operationGeneration) return result;
+			var outcome = result == null ? null : Reflect.field(result, "outcome");
+			var handle:FlightFileDialogHandle = result == null ? null : cast Reflect.field(result, "handle");
+			if (outcome == "cancelled")
 			{
 				dispatchEvent(new Event(Event.CANCEL));
-				return handle;
+				return result;
+			}
+			if (outcome != "selected" || handle == null)
+			{
+				__dispatchIOError(outcome == null ? "Unable to open a save dialog" : outcome);
+				return result;
 			}
 
 			__flightHandle = handle;
@@ -140,17 +176,17 @@ class FileReference extends EventDispatcher
 				__data = byteArray;
 				var bytes = new FlightUInt8Array(byteArray.length);
 				for (index in 0...byteArray.length) bytes[index] = byteArray[index];
-				__finishWrite(FlightFileSystem.writeDialogHandleBinaryFile(handle, bytes), generation);
+				__finishWrite(FlightFileSystem.writeDialogHandleBinaryFile(fileSystemHost, handle, bytes), generation);
 			}
 			else
 			{
-				__finishWrite(FlightFileSystem.writeDialogHandleTextFile(handle, Std.string(data)), generation);
+				__finishWrite(FlightFileSystem.writeDialogHandleTextFile(fileSystemHost, handle, Std.string(data)), generation);
 			}
-			return handle;
-		}, function(error:Dynamic):FlightFileDialogHandle
+			return result;
+		}, function(error:Dynamic):FlightFileSaveResult
 		{
 			if (generation == __operationGeneration) __dispatchIOError(error);
-			return null;
+			return cast {outcome: "file-save-failed"};
 		});
 	}
 
@@ -187,14 +223,30 @@ class FileReference extends EventDispatcher
 
 	@:noCompletion private static function __hasDialogBackend():Bool
 	{
-		try
+		return __getHost() != null;
+	}
+
+	@:noCompletion private static function __getHost():FlightHost
+	{
+		if (__host != null || __hostResolved) return __host;
+
+		#if (js && html5)
+		__host = cast FlightHostWeb.webHost;
+		__hostResolved = true;
+		#elseif (clay && sys)
+		__host = cast FlightHostClay.createClayHost();
+		__hostResolved = true;
+		#elseif (lime && sys)
+		if (LimeApplication.current != null)
 		{
-			return FlightDialog.explainDialogBackend().layer != "host-not-enabled";
+			__host = cast FlightHostLime.createLimeHost(LimeApplication.current);
+			__hostResolved = true;
 		}
-		catch (error:Dynamic)
-		{
-			return false;
-		}
+		#else
+		__hostResolved = true;
+		#end
+
+		return __host;
 	}
 
 	@:noCompletion private function __selectHandle(handle:FlightFileDialogHandle, generation:Int):Void
@@ -210,7 +262,14 @@ class FileReference extends EventDispatcher
 			return;
 		}
 
-		FlightFileSystem.statFile(handle.path).then(function(stat:FlightFileStat):FlightFileStat
+		var fileSystemHost:FlightFileSystemHost = cast __getHost();
+		if (fileSystemHost == null)
+		{
+			dispatchEvent(new Event(Event.SELECT));
+			return;
+		}
+
+		FlightFileSystem.statFile(fileSystemHost, handle.path).then(function(stat:FlightFileStat):FlightFileStat
 		{
 			if (generation != __operationGeneration) return stat;
 			if (stat != null)
@@ -253,7 +312,9 @@ class FileReference extends EventDispatcher
 					}
 				}
 			}
-			result.push({name: filter.description == null ? "" : filter.description, extensions: extensions});
+			var accept:Dynamic = {};
+			Reflect.setField(accept, "", extensions);
+			result.push({name: filter.description == null ? "" : filter.description, accept: cast accept});
 		}
 		return result;
 	}
