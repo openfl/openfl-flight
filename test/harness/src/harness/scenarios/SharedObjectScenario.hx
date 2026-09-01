@@ -8,7 +8,24 @@ class SharedObjectScenario
 {
 	public static function run():Dynamic
 	{
-		var invalidNames:Array<Null<String>> = [null, "", "bad name", "bad:name"];
+		var invalidNames:Array<Null<String>> = [
+			null,
+			"",
+			"bad name",
+			"bad~name",
+			"bad%name",
+			"bad&name",
+			"bad\\name",
+			"bad;name",
+			"bad:name",
+			"bad\"name",
+			"bad'name",
+			"bad,name",
+			"bad<name",
+			"bad>name",
+			"bad?name",
+			"bad#name"
+		];
 		var rejected:Array<Bool> = [];
 		for (name in invalidNames)
 		{
@@ -57,6 +74,26 @@ class SharedObjectScenario
 			sameReference: SharedObject.getLocal("flight-harness-shared-object", "/flight-harness") == shared
 		};
 
+		shared.client = null;
+		shared.objectEncoding = ObjectEncoding.AMF0;
+		shared.fps = 12;
+		shared.close();
+		#if !openfl_strict
+		shared.connect(null);
+		shared.send([]);
+		var remote = SharedObject.getRemote("flight-harness-remote", "/flight-harness");
+		var remoteIsNull = remote == null;
+		#else
+		var remoteIsNull:Null<Bool> = null;
+		#end
+		var mutations = {
+			clientAcceptsNull: shared.client == null,
+			objectEncoding: shared.objectEncoding,
+			remoteIsNull: remoteIsNull
+		};
+		shared.client = shared;
+		shared.objectEncoding = ObjectEncoding.DEFAULT;
+
 		var previousEncoding = SharedObject.defaultObjectEncoding;
 		SharedObject.defaultObjectEncoding = ObjectEncoding.HXSF;
 		var encoded = SharedObject.getLocal("flight-harness-encoding", "/flight-harness");
@@ -79,6 +116,7 @@ class SharedObjectScenario
 			identity: identity,
 			inheritedEncoding: inheritedEncoding,
 			invalidNamesRejected: rejected,
+			mutations: mutations,
 			nullProperty: nullProperty,
 			populated: populated
 		};

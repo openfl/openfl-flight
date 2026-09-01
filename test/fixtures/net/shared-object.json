@@ -4,6 +4,11 @@
     "size": 2,
     "dataFields": 0
   },
+  "mutations": {
+    "clientAcceptsNull": true,
+    "remoteIsNull": true,
+    "objectEncoding": 0
+  },
   "defaults": {
     "defaultObjectEncoding": 10,
     "size": 2,
@@ -22,6 +27,18 @@
   },
   "inheritedEncoding": 10,
   "invalidNamesRejected": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
     true,
     true,
     true,
