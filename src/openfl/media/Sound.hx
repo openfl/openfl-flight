@@ -5,6 +5,7 @@ import flight.Audio as FlightAudio;
 import flight.Media as FlightMedia;
 import flight.types.AudioResource as FlightAudioResource;
 import flight.types.AudioResourceReference as FlightAudioResourceReference;
+import flight.types.HasNetHttp as FlightNetHost;
 import flight._internal._Float32Array as FlightFloat32Array;
 import flight._internal._UInt8Array as FlightUInt8Array;
 import haxe.io.Bytes;
@@ -18,6 +19,14 @@ import openfl.utils.Endian;
 import openfl.utils.Future;
 #if lime
 import lime.media.AudioBuffer;
+#end
+#if (js && html5)
+import flight.HostWeb as FlightHostWeb;
+#elseif (clay && sys)
+import flight.hostClay.HostClay as FlightHostClay;
+#elseif (lime && sys)
+import flight.hostLime.HostLime as FlightHostLime;
+import lime.app.Application as LimeApplication;
 #end
 
 /**
@@ -45,6 +54,8 @@ class Sound extends EventDispatcher
 	@:noCompletion private var __loadGeneration:Int = 0;
 	@:noCompletion private var __pendingChannels:Array<Dynamic> = [];
 	@:noCompletion private var __urlLoading:Bool = false;
+	@:noCompletion private static var __netHost:FlightNetHost;
+	@:noCompletion private static var __netHostResolved:Bool;
 
 	#if (js && html5)
 	public var sampleRate(get, never):Int;
@@ -109,8 +120,9 @@ class Sound extends EventDispatcher
 		dispatchEvent(new Event(Event.OPEN));
 
 		var audioContext = SoundMixer.__getFlightAudioContext();
-		if (stream == null || audioContext == null) return;
-		FlightAudio.loadAudioResourceFromUrl(audioContext, stream.url).then(function(resource:FlightAudioResource):FlightAudioResource
+		var host = __getNetHost();
+		if (stream == null || audioContext == null || host == null) return;
+		FlightAudio.loadAudioResourceFromUrl(host, audioContext, stream.url).then(function(resource:FlightAudioResource):FlightAudioResource
 		{
 			__defer(function():Void __completeFlightLoad(generation, resource));
 			return resource;
@@ -211,10 +223,10 @@ class Sound extends EventDispatcher
 	@:noCompletion private function __playFlightResource(resource:FlightAudioResource, startTime:Float, loops:Int,
 			sndTransform:SoundTransform):Dynamic
 	{
-		var audioContext = SoundMixer.__getFlightAudioContext();
-		if (audioContext == null) return null;
+		var audioDevice = SoundMixer.__getFlightAudioDevice();
+		if (audioDevice == null) return null;
 		var transform = sndTransform == null ? new SoundTransform() : sndTransform;
-		return FlightMedia.playAudioResource(audioContext, resource, {
+		return FlightMedia.playAudioResource(audioDevice, resource, {
 			currentTime: startTime,
 			gain: SoundMixer.__soundTransform.volume * transform.volume,
 			loops: loops
@@ -279,6 +291,29 @@ class Sound extends EventDispatcher
 		#else
 		haxe.Timer.delay(callback, 0);
 		#end
+	}
+
+	@:noCompletion private static function __getNetHost():FlightNetHost
+	{
+		if (__netHost != null || __netHostResolved) return __netHost;
+
+		#if (js && html5)
+		__netHost = cast FlightHostWeb.webHostNet;
+		__netHostResolved = true;
+		#elseif (clay && sys)
+		__netHost = cast FlightHostClay.createClayHost();
+		__netHostResolved = true;
+		#elseif (lime && sys)
+		if (LimeApplication.current != null)
+		{
+			__netHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+			__netHostResolved = true;
+		}
+		#else
+		__netHostResolved = true;
+		#end
+
+		return __netHost;
 	}
 
 	#if (js && html5)
