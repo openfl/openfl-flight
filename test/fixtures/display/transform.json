@@ -1,0 +1,37 @@
+{
+  "concatenatedColor": {
+    "blueMultiplier": 1,
+    "redOffset": 0,
+    "greenMultiplier": 1,
+    "alphaMultiplier": 1,
+    "alphaOffset": 0,
+    "redMultiplier": 1,
+    "blueOffset": 0,
+    "greenOffset": 0
+  },
+  "rotated": {
+    "x": 27.071068,
+    "y": 37.071068
+  },
+  "inverted": {
+    "x": 0,
+    "y": 0
+  },
+  "translated": {
+    "x": 150,
+    "y": 0
+  },
+  "matrix": {
+    "tx": 12,
+    "d": 0,
+    "c": -3,
+    "a": 0,
+    "scaleX": 2,
+    "x": 12,
+    "b": 2,
+    "ty": 34,
+    "y": 34,
+    "rotation": 90,
+    "scaleY": 3
+  }
+}
