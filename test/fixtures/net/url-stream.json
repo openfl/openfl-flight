@@ -1,0 +1,47 @@
+{
+  "completedBody": {
+    "connected": false,
+    "bytesAvailable": 3,
+    "readBack": [
+      1,
+      2,
+      255
+    ],
+    "events": [
+      "progress",
+      "complete"
+    ]
+  },
+  "defaults": {
+    "connected": false,
+    "bytesAvailable": 0,
+    "endianError": "String",
+    "objectEncoding": null
+  },
+  "requestMapping": {
+    "header": "stream",
+    "credentials": "include",
+    "redirect": "manual",
+    "contentType": "application/octet-stream",
+    "url": "https://example.invalid/stream",
+    "method": "POST",
+    "responseType": "arraybuffer",
+    "body": "flight=true",
+    "timeoutMs": 1250,
+    "userAgent": "openfl-flight-stream"
+  },
+  "loadStart": {
+    "connectedAfterLoad": false,
+    "bytesAvailableAfterClose": 0,
+    "connectedAfterClose": false,
+    "events": []
+  },
+  "dataInput": {
+    "endian": 0,
+    "availableAtEnd": 0,
+    "second": -1,
+    "first": 258,
+    "objectEncoding": 10,
+    "availableAfterFirst": 1
+  }
+}

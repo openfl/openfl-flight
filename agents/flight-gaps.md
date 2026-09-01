@@ -84,13 +84,17 @@ currently provides (or doesn't).
   image reference while using OpenFL-compatible defaults and an adapter-local
   definition registry for those SWF-only surfaces.
 
-- **URLLoader cancellation and early response metadata**: Flight Net requests
-  use Flight's configured network backend and accept an abort signal, but Flight
-  has no public abort-controller factory that an OpenFL `URLLoader` can own.
-  `URLLoader.close()` can suppress stale progress/completion callbacks but
-  cannot cancel the active transport. Flight's `NetResponse` also exposes
-  status and headers only with the completed body, so OpenFL's earlier
-  `httpResponseStatus` timing cannot be reproduced. The adapter preserves final
+- **URLLoader/URLStream cancellation, chunks, and early response metadata**:
+  Flight Net requests use Flight's configured network backend and accept an
+  abort signal, but Flight has no public abort-controller factory that an
+  OpenFL network loader can own.
+  `URLLoader.close()` and `URLStream.close()` can suppress stale callbacks but
+  cannot cancel the active transport. Flight internally reads response streams
+  and emits byte counts, but progress signals contain no downloaded chunk and
+  `NetResponse.body` is available only after completion; `URLStream` therefore
+  cannot expose bytes incrementally during progress. Flight also exposes status
+  and headers only with the completed body, so OpenFL's earlier
+  `httpResponseStatus` timing cannot be reproduced. The adapters preserve final
   status/event ordering through `flight.Net`. Flight 0.4.0 also exposes only its
   fetch-backed default through the public `flight.Net` facade; non-JavaScript
   hosts need a public backend installation hook before URLLoader can perform

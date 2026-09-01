@@ -1,14 +1,21 @@
 package openfl.net;
 
 #if !flash
-import openfl.events.EventDispatcher;
+import flight.Net as FlightNet;
+import flight.Signals as FlightSignals;
+import flight.types.NetProgress;
+import flight.types.NetRequest;
+import flight.types.NetResponse;
+import flight.types.Signal;
+import haxe.io.Bytes;
 import openfl.events.Event;
+import openfl.events.EventDispatcher;
 import openfl.events.IOErrorEvent;
-import openfl.events.SecurityErrorEvent;
 import openfl.events.ProgressEvent;
-import openfl.utils.IDataInput;
+import openfl.events.SecurityErrorEvent;
 import openfl.utils.ByteArray;
 import openfl.utils.Endian;
+import openfl.utils.IDataInput;
 
 /**
 	The URLStream class provides low-level access to downloading URLs. Data is
@@ -106,7 +113,11 @@ class URLStream extends EventDispatcher implements IDataInput
 
 	// @:require(flash11_4) public var position:Float;
 	@:noCompletion private var __data:ByteArray;
-	@:noCompletion private var __loader:URLLoader;
+	@:noCompletion private var __endian:Endian;
+	@:noCompletion private var __loadGeneration:Int = 0;
+	@:noCompletion private var __loading:Bool = false;
+	@:noCompletion private var __loaded:Float = 0;
+	@:noCompletion private var __total:Float = 0;
 
 	#if openfljs
 	@:noCompletion private static function __init__()
@@ -126,8 +137,7 @@ class URLStream extends EventDispatcher implements IDataInput
 	{
 		super();
 
-		__loader = new URLLoader();
-		__loader.dataFormat = URLLoaderDataFormat.BINARY;
+		__endian = Endian.BIG_ENDIAN;
 	}
 
 	/**
@@ -139,7 +149,8 @@ class URLStream extends EventDispatcher implements IDataInput
 	**/
 	public function close():Void
 	{
-		__removeEventListeners();
+		__loadGeneration++;
+		__loading = false;
 		__data = null;
 	}
 
@@ -273,10 +284,30 @@ class URLStream extends EventDispatcher implements IDataInput
 	**/
 	public function load(request:URLRequest):Void
 	{
-		__removeEventListeners();
-		__addEventListeners();
+		var generation = ++__loadGeneration;
+		__loading = true;
+		__loaded = 0;
+		__total = 0;
+		__data = new ByteArray();
+		__data.endian = __endian;
+		__data.objectEncoding = objectEncoding;
 
-		__loader.load(request);
+		var progress:Signal<NetProgress->Void> = FlightSignals.createSignal();
+		FlightSignals.connectSignal(progress, function(value:NetProgress):Void
+		{
+			__onFlightProgress(generation, value);
+		});
+
+		var promise = FlightNet.sendNetRequest(__toFlightRequest(request), {progress: progress});
+		promise.then(function(response:NetResponse):NetResponse
+		{
+			__defer(function():Void __complete(generation, request, response));
+			return response;
+		}, function(error:Dynamic):NetResponse
+		{
+			__defer(function():Void __fail(generation, Std.string(error)));
+			return cast null;
+		});
 	}
 
 	/**
@@ -583,50 +614,125 @@ class URLStream extends EventDispatcher implements IDataInput
 	}
 
 	// @:require(flash11_4) public function stop ():Void;
-	@:noCompletion private function __addEventListeners():Void
+	@:noCompletion private function __onFlightProgress(generation:Int, value:NetProgress):Void
 	{
-		__loader.addEventListener(Event.COMPLETE, loader_onComplete);
-		__loader.addEventListener(IOErrorEvent.IO_ERROR, loader_onIOError);
-		__loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, loader_onSecurityError);
-		__loader.addEventListener(ProgressEvent.PROGRESS, loader_onProgressEvent);
+		if (!__loading || generation != __loadGeneration || value.phase != "download") return;
+
+		__loaded = value.loaded;
+		__total = value.total;
+		dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, value.loaded, value.total));
 	}
 
-	@:noCompletion private function __removeEventListeners():Void
+	@:noCompletion private function __complete(generation:Int, request:URLRequest, response:NetResponse):Void
 	{
-		__loader.removeEventListener(Event.COMPLETE, loader_onComplete);
-		__loader.removeEventListener(IOErrorEvent.IO_ERROR, loader_onIOError);
-		__loader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, loader_onSecurityError);
-		__loader.removeEventListener(ProgressEvent.PROGRESS, loader_onProgressEvent);
-	}
+		if (!__loading || generation != __loadGeneration) return;
+		__loading = false;
 
-	// Event Handlers
-	@:noCompletion private function loader_onComplete(event:Event):Void
-	{
-		__removeEventListeners();
-		__data = __loader.data;
+		if (!response.ok)
+		{
+			if (Std.int(response.status) == 403)
+			{
+				dispatchEvent(new SecurityErrorEvent(SecurityErrorEvent.SECURITY_ERROR, false, false, response.statusText));
+			}
+			else
+			{
+				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, response.statusText));
+			}
+			return;
+		}
 
-		dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, __loader.bytesLoaded, __loader.bytesTotal));
+		__data = __decodeResponseBody(response.body);
+		__data.endian = __endian;
+		__data.objectEncoding = objectEncoding;
+		var loaded = __loaded > 0 ? __loaded : __data.length;
+		var total = __total > 0 ? __total : loaded;
+		dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, loaded, total));
 		dispatchEvent(new Event(Event.COMPLETE));
 	}
 
-	@:noCompletion private function loader_onIOError(event:IOErrorEvent):Void
+	@:noCompletion private function __decodeResponseBody(body:Dynamic):ByteArray
 	{
-		__removeEventListeners();
-
-		dispatchEvent(event);
+		if (body == null) return new ByteArray();
+		if (Std.isOfType(body, Bytes)) return ByteArray.fromBytes(cast body);
+		#if js
+		if (Std.isOfType(body, js.lib.ArrayBuffer)) return ByteArray.fromBytes(Bytes.ofData(cast body));
+		#end
+		return ByteArray.fromBytes(Bytes.ofString(Std.string(body)));
 	}
 
-	@:noCompletion private function loader_onSecurityError(event:SecurityErrorEvent):Void
+	@:noCompletion private function __fail(generation:Int, message:String):Void
 	{
-		__removeEventListeners();
-
-		dispatchEvent(event);
+		if (!__loading || generation != __loadGeneration) return;
+		__loading = false;
+		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, message));
 	}
 
-	@:noCompletion private function loader_onProgressEvent(event:ProgressEvent):Void
+	@:noCompletion private static function __defer(callback:Void->Void):Void
 	{
-		__data = __loader.data;
-		dispatchEvent(event);
+		#if (clay || lime || js)
+		callback();
+		#else
+		haxe.Timer.delay(callback, 0);
+		#end
+	}
+
+	@:noCompletion private static function __encodeData(value:Dynamic):String
+	{
+		if (value == null) return "";
+		if (Std.isOfType(value, String)) return cast value;
+		if (Std.isOfType(value, Bytes)) return Std.string(value);
+
+		var values = [];
+		for (name in Reflect.fields(value))
+		{
+			values.push(StringTools.urlEncode(name) + "=" + StringTools.urlEncode(Std.string(Reflect.field(value, name))));
+		}
+		return values.length == 0 ? Std.string(value) : values.join("&");
+	}
+
+	@:noCompletion private function __toFlightRequest(request:URLRequest):NetRequest
+	{
+		var method = request.method == null ? URLRequestMethod.GET : request.method;
+		var url = request.url;
+		var body:Dynamic = null;
+		if (request.data != null)
+		{
+			if (method == URLRequestMethod.GET)
+			{
+				var query = __encodeData(request.data);
+				if (query != "") url += (url.indexOf("?") == -1 ? "?" : "&") + query;
+			}
+			else if (Std.isOfType(request.data, Bytes))
+			{
+				body = cast request.data;
+			}
+			else
+			{
+				body = __encodeData(request.data);
+			}
+		}
+
+		var headers:Dynamic = {};
+		if (request.requestHeaders != null)
+		{
+			for (header in request.requestHeaders)
+			{
+				if (header != null && header.name != null) Reflect.setField(headers, header.name, header.value);
+			}
+		}
+		if (request.contentType != null) Reflect.setField(headers, "Content-Type", request.contentType);
+		if (request.userAgent != null) Reflect.setField(headers, "User-Agent", request.userAgent);
+
+		return cast {
+			url: url,
+			method: method,
+			headers: headers,
+			body: body,
+			responseType: "arraybuffer",
+			timeoutMs: request.idleTimeout,
+			credentials: request.manageCookies || request.withCredentials ? "include" : "omit",
+			redirect: request.followRedirects ? "follow" : "manual"
+		};
 	}
 
 	// Get & Set Methods
@@ -652,7 +758,9 @@ class URLStream extends EventDispatcher implements IDataInput
 
 	private function set_endian(value:Endian):Endian
 	{
-		return __data.endian = value;
+		__endian = value;
+		if (__data != null) __data.endian = value;
+		return value;
 	}
 }
 #else
