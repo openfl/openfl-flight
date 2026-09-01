@@ -24,6 +24,7 @@ import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.FontAndStyleScenario;
 import harness.scenarios.GraphicsDrawScenario;
+import harness.scenarios.InteractiveObjectScenario;
 import harness.scenarios.KeyboardScenario;
 import harness.scenarios.LocaleIDScenario;
 import harness.scenarios.LoaderScenario;
@@ -177,6 +178,10 @@ class Scenarios {
 			{
 				name: "display/display-object",
 				run: DisplayObjectScenario.run
+			},
+			{
+				name: "display/interactive-object",
+				run: InteractiveObjectScenario.run
 			},
 			{
 				name: "display/property-edges",

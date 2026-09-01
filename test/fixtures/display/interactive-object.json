@@ -1,0 +1,27 @@
+{
+  "defaults": {
+    "needsSoftKeyboard": false,
+    "tabEnabled": false,
+    "mouseEnabled": true,
+    "tabIndex": -1,
+    "softKeyboardInputAreaOfInterest": null,
+    "focusRect": null,
+    "doubleClickEnabled": false
+  },
+  "requestSoftKeyboard": false,
+  "values": {
+    "needsSoftKeyboard": true,
+    "tabEnabled": true,
+    "mouseEnabled": false,
+    "tabIndex": 7,
+    "softKeyboardInputAreaOfInterest": {
+      "x": 1.5,
+      "y": 2.5,
+      "height": 40.5,
+      "width": 30.5
+    },
+    "focusRect": false,
+    "doubleClickEnabled": true
+  },
+  "contextMenuProperty": false
+}
