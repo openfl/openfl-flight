@@ -39,6 +39,7 @@ import harness.scenarios.ShapeBitmapScenario;
 import harness.scenarios.StageScenario;
 import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
+import harness.scenarios.TextFieldBehaviorScenario;
 import harness.scenarios.TextFormatScenario;
 import harness.scenarios.TimerScenario;
 import harness.scenarios.TransformScenario;
@@ -195,6 +196,10 @@ class Scenarios {
 			{
 				name: "text/text-field",
 				run: TextFieldScenario.run
+			},
+			{
+				name: "text/text-field-behavior",
+				run: TextFieldBehaviorScenario.run
 			},
 			{
 				name: "text/text-format",
