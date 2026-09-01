@@ -44,6 +44,7 @@ import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.RectangleScenario;
 import harness.scenarios.SensorScenario;
+import harness.scenarios.ShaderTypesScenario;
 import harness.scenarios.SimpleButtonScenario;
 import harness.scenarios.SystemScenario;
 import harness.scenarios.ShapeBitmapScenario;
@@ -133,6 +134,10 @@ class Scenarios {
 			{
 				name: "geom/utils3d",
 				run: Utils3DScenario.run
+			},
+			{
+				name: "display/shader-types",
+				run: ShaderTypesScenario.run
 			},
 			{
 				name: "display/shape-bitmap",

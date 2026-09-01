@@ -1,0 +1,312 @@
+{
+  "job": {
+    "mutated": {
+      "targetIsNull": false,
+      "shaderIsNull": false,
+      "height": 90000,
+      "progress": 0,
+      "width": -4
+    },
+    "progressAfterCalls": 0,
+    "completeCount": 0,
+    "targetSameReference": true,
+    "shaderSameReference": true,
+    "constructed": {
+      "targetIsNull": true,
+      "shaderIsNull": true,
+      "height": 8,
+      "progress": 0,
+      "width": 0
+    }
+  },
+  "parameter": {
+    "defaults": {
+      "name": null,
+      "typeIsNull": true,
+      "type": null,
+      "value": null,
+      "index": 0
+    },
+    "mutated": {
+      "name": "manual",
+      "typeIsNull": true,
+      "type": null,
+      "value": [
+        -1.5,
+        0,
+        2.25
+      ],
+      "index": 0
+    },
+    "valueSameReference": true
+  },
+  "input": {
+    "defaults": {
+      "name": null,
+      "channels": 0,
+      "filter": 5,
+      "wrap": 0,
+      "mipFilter": 2,
+      "inputWidth": null,
+      "height": 0,
+      "inputIsNull": true,
+      "inputHeight": null,
+      "index": 0,
+      "width": 0
+    },
+    "mutated": {
+      "name": null,
+      "channels": 0,
+      "filter": 5,
+      "wrap": 0,
+      "mipFilter": 2,
+      "inputWidth": 2,
+      "height": 70000,
+      "inputIsNull": false,
+      "inputHeight": 5,
+      "index": 0,
+      "width": -3
+    },
+    "inputSameReference": true
+  },
+  "filter": {
+    "clone": {
+      "rightExtension": 11,
+      "blendMode": 9,
+      "shaderSameReference": true,
+      "leftExtension": 7,
+      "bottomExtension": -4,
+      "topExtension": 999
+    },
+    "defaults": {
+      "rightExtension": 0,
+      "blendMode": 10,
+      "shaderSameReference": true,
+      "leftExtension": 0,
+      "bottomExtension": 0,
+      "topExtension": 0
+    },
+    "mutated": {
+      "rightExtension": 11,
+      "blendMode": 9,
+      "shaderSameReference": true,
+      "leftExtension": 7,
+      "bottomExtension": -4,
+      "topExtension": 999
+    },
+    "cloneIsDistinct": true
+  },
+  "precision": [
+    {
+      "text": "fast",
+      "value": 0
+    },
+    {
+      "text": "full",
+      "value": 1
+    }
+  ],
+  "parameterTypes": [
+    {
+      "text": "bool",
+      "value": 0
+    },
+    {
+      "text": "bool2",
+      "value": 1
+    },
+    {
+      "text": "bool3",
+      "value": 2
+    },
+    {
+      "text": "bool4",
+      "value": 3
+    },
+    {
+      "text": "float",
+      "value": 4
+    },
+    {
+      "text": "float2",
+      "value": 5
+    },
+    {
+      "text": "float3",
+      "value": 6
+    },
+    {
+      "text": "float4",
+      "value": 7
+    },
+    {
+      "text": "int",
+      "value": 8
+    },
+    {
+      "text": "int2",
+      "value": 9
+    },
+    {
+      "text": "int3",
+      "value": 10
+    },
+    {
+      "text": "int4",
+      "value": 11
+    },
+    {
+      "text": "matrix2x2",
+      "value": 12
+    },
+    {
+      "text": "matrix2x3",
+      "value": 13
+    },
+    {
+      "text": "matrix2x4",
+      "value": 14
+    },
+    {
+      "text": "matrix3x2",
+      "value": 15
+    },
+    {
+      "text": "matrix3x3",
+      "value": 16
+    },
+    {
+      "text": "matrix3x4",
+      "value": 17
+    },
+    {
+      "text": "matrix4x2",
+      "value": 18
+    },
+    {
+      "text": "matrix4x3",
+      "value": 19
+    },
+    {
+      "text": "matrix4x4",
+      "value": 20
+    }
+  ],
+  "shader": {
+    "recreatedFields": [],
+    "sourceChange": {
+      "second": {
+        "name": "second",
+        "typeIsNull": false,
+        "type": 4,
+        "value": null,
+        "index": 0
+      },
+      "fields": [
+        "first",
+        "position",
+        "second"
+      ],
+      "firstSameReference": true,
+      "dataSameReference": true
+    },
+    "position": {
+      "name": "position",
+      "typeIsNull": false,
+      "type": 5,
+      "value": [
+        1,
+        2
+      ],
+      "index": 0
+    },
+    "customRoundtrip": true,
+    "bitmap": {
+      "name": "bitmap",
+      "channels": 0,
+      "filter": 5,
+      "wrap": 0,
+      "mipFilter": 2,
+      "inputWidth": 3,
+      "height": 19,
+      "inputIsNull": false,
+      "inputHeight": 4,
+      "index": 0,
+      "width": 17
+    },
+    "reflectedFields": [
+      "bitmap",
+      "enabled",
+      "matrix",
+      "mode",
+      "position",
+      "tint"
+    ],
+    "initial": {
+      "precisionHint": 1,
+      "byteCodeSameReference": true,
+      "glProgramIsNull": true,
+      "fragmentSource": null,
+      "programIsNull": true,
+      "dataFields": [],
+      "dataSameReference": true,
+      "vertexSource": null
+    },
+    "beforeBoth": [],
+    "mode": {
+      "name": "mode",
+      "typeIsNull": false,
+      "type": 8,
+      "value": [
+        -7
+      ],
+      "index": 0
+    },
+    "tint": {
+      "name": "tint",
+      "typeIsNull": false,
+      "type": 7,
+      "value": [
+        -1,
+        0.25,
+        2,
+        0.75
+      ],
+      "index": 0
+    },
+    "enabled": {
+      "name": "enabled",
+      "typeIsNull": false,
+      "type": 0,
+      "value": [
+        true
+      ],
+      "index": 0
+    },
+    "recreatedIsNotCustom": true,
+    "matrix": {
+      "name": "matrix",
+      "typeIsNull": false,
+      "type": 20,
+      "value": [
+        0.5,
+        1.5,
+        2.5,
+        3.5,
+        4.5,
+        5.5,
+        6.5,
+        7.5,
+        8.5,
+        9.5,
+        10.5,
+        11.5,
+        12.5,
+        13.5,
+        14.5,
+        15.5
+      ],
+      "index": 0
+    }
+  }
+}
