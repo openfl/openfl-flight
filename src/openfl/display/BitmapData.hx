@@ -13,6 +13,7 @@ import openfl.display3D.textures.TextureBase;
 import openfl.errors.Error;
 import openfl.filters.BitmapFilter;
 import openfl.filters.ColorMatrixFilter;
+import openfl.filters.ConvolutionFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -120,6 +121,21 @@ class BitmapData implements IBitmapDrawable
 					output[outputOffset + 3] = __colorMatrixComponent(matrix, 15, red, green, blue, alpha);
 				}
 			}
+		}
+		else if (Std.isOfType(filter, ConvolutionFilter) && (cast filter : ConvolutionFilter).clamp)
+		{
+			var convolution:ConvolutionFilter = cast filter;
+			if (convolution.matrix == null || convolution.matrixX <= 0 || convolution.matrixY <= 0
+				|| convolution.matrix.length < convolution.matrixX * convolution.matrixY) return;
+			FlightBitmap.convolveBitmap(output, source, {
+				matrix: convolution.matrix,
+				matrixX: convolution.matrixX,
+				matrixY: convolution.matrixY,
+				divisor: convolution.divisor,
+				bias: convolution.bias,
+				preserveAlpha: convolution.preserveAlpha,
+				edge: "clamp"
+			});
 		}
 		else
 		{

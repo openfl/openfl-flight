@@ -5,6 +5,7 @@ import openfl.display.BitmapDataChannel;
 import openfl.display.PNGEncoderOptions;
 import openfl.display.Shape;
 import openfl.filters.ColorMatrixFilter;
+import openfl.filters.ConvolutionFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -36,6 +37,7 @@ class BitmapDataScenario {
 			merge: testMerge(),
 			paletteMap: testPaletteMap(),
 			applyColorMatrixFilter: testApplyColorMatrixFilter(),
+			applyConvolutionFilter: testApplyConvolutionFilter(),
 			noise: testNoise(),
 			perlinNoise: testPerlinNoise(),
 			drawBitmapData: testDrawBitmapData(),
@@ -341,6 +343,19 @@ class BitmapDataScenario {
 		]);
 		destination.applyFilter(destination, destination.rect, new Point(), filter);
 		return pixels(destination);
+	}
+
+	private static function testApplyConvolutionFilter():Dynamic {
+		var bmd = new BitmapData(2, 1, true, 0);
+		bmd.setPixel32(0, 0, 0x80402010);
+		bmd.setPixel32(1, 0, 0xFF102030);
+		var identity = [
+			0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0
+		];
+		bmd.applyFilter(bmd, bmd.rect, new Point(), new ConvolutionFilter(3, 3, identity, 1, 5, false, true));
+		return {width: bmd.width, height: bmd.height};
 	}
 
 	private static function testNoise():Dynamic {

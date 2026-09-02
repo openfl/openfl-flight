@@ -294,6 +294,10 @@
     "outside": 0,
     "inside": 16777215
   },
+  "applyConvolutionFilter": {
+    "height": 1,
+    "width": 2
+  },
   "copyChannel": {
     "translucent": 1611669671,
     "opaque": -15720278
