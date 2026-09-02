@@ -7,6 +7,9 @@ import openfl.utils.ByteArray;
 import openfl.utils.Future;
 #if lime
 import lime.text.Font as LimeFont;
+#if (!js && lime_cairo)
+import flight.hostLime.LimeFonts as FlightLimeFonts;
+#end
 #end
 
 /**
@@ -268,6 +271,14 @@ class Font #if lime extends LimeFont #end
 
 			__registeredFonts.push(instance);
 			__fontByName[instance.fontName] = instance;
+			#if (lime && !js && lime_cairo)
+			if (instance.fontName != null && instance.src != null)
+			{
+				var bold = instance.fontStyle == FontStyle.BOLD || instance.fontStyle == FontStyle.BOLD_ITALIC;
+				var italic = instance.fontStyle == FontStyle.ITALIC || instance.fontStyle == FontStyle.BOLD_ITALIC;
+				FlightLimeFonts.registerLimeFont(instance.fontName, instance, bold, italic);
+			}
+			#end
 		}
 	}
 
