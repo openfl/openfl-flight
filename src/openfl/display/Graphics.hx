@@ -77,7 +77,7 @@ private typedef GraphicsBitmapPaint =
 	{
 		if (__fillActive) FlightPath.appendPathClose(__flightPath);
 		__fillActive = true;
-		FlightShape.appendShapeBeginFill(__flightShape, color & 0xFFFFFF, alpha);
+		FlightShape.appendShapeBeginFill(__flightShape, __colorToFlight(color), alpha);
 		__invalidate();
 	}
 
@@ -87,7 +87,7 @@ private typedef GraphicsBitmapPaint =
 	{
 		if (__fillActive) FlightPath.appendPathClose(__flightPath);
 		__fillActive = true;
-		FlightShape.appendShapeBeginGradientFill(__flightShape, cast type, __colorsToFloat(colors), alphas, __colorsToFloat(ratios), cast matrix,
+		FlightShape.appendShapeBeginGradientFill(__flightShape, cast type, __colorsToFlight(colors), alphas, __colorsToFloat(ratios), cast matrix,
 			cast spreadMethod, cast interpolationMethod, focalPointRatio);
 		__invalidate();
 	}
@@ -370,7 +370,7 @@ private typedef GraphicsBitmapPaint =
 			spreadMethod:SpreadMethod = SpreadMethod.PAD, interpolationMethod:InterpolationMethod = InterpolationMethod.RGB,
 			focalPointRatio:Float = 0):Void
 	{
-		FlightShape.appendShapeLineGradientStyle(__flightShape, cast type, __colorsToFloat(colors), alphas, __colorsToFloat(ratios), cast matrix,
+		FlightShape.appendShapeLineGradientStyle(__flightShape, cast type, __colorsToFlight(colors), alphas, __colorsToFloat(ratios), cast matrix,
 			cast spreadMethod, cast interpolationMethod, focalPointRatio);
 		__invalidate();
 	}
@@ -385,7 +385,7 @@ private typedef GraphicsBitmapPaint =
 			var padding = joints == JointStyle.MITER ? Math.ceil(thickness) : Math.ceil(thickness / 2);
 			if (padding > __strokePadding) __strokePadding = padding;
 		}
-		FlightShape.appendShapeLineStyle(__flightShape, thickness, color & 0xFFFFFF, alpha, pixelHinting, cast scaleMode, cast caps, cast joints,
+		FlightShape.appendShapeLineStyle(__flightShape, thickness, __colorToFlight(color), alpha, pixelHinting, cast scaleMode, cast caps, cast joints,
 			miterLimit);
 		__invalidate();
 	}
@@ -469,11 +469,11 @@ private typedef GraphicsBitmapPaint =
 			switch (name)
 			{
 				case "beginFill":
-					result.push(new GraphicsSolidFill(Std.int(values[0]), values[1]));
+					result.push(new GraphicsSolidFill(__colorFromFlight(values[0]), values[1]));
 				case "beginGradientFill":
 					var colors:Array<Float> = cast values[1];
 					var ratios:Array<Float> = cast values[3];
-					result.push(new GraphicsGradientFill(cast values[0], [for (value in colors) Std.int(value)], cast values[2],
+					result.push(new GraphicsGradientFill(cast values[0], [for (value in colors) __colorFromFlight(value)], cast values[2],
 						[for (value in ratios) Std.int(value)], __matrix(values[4]), cast values[5], cast values[6], values[7]));
 				case "beginTextureFill":
 					var paint = __bitmapPaints.get(cast values[0]);
@@ -483,7 +483,7 @@ private typedef GraphicsBitmapPaint =
 					}
 				case "lineStyle":
 					var stroke = new GraphicsStroke(values[0], values[3], cast values[4], cast values[5], cast values[6], values[7]);
-					stroke.fill = new GraphicsSolidFill(Std.int(values[1]), values[2]);
+					stroke.fill = new GraphicsSolidFill(__colorFromFlight(values[1]), values[2]);
 					result.push(stroke);
 				case "endFill":
 					result.push(new GraphicsEndFill());
@@ -588,6 +588,24 @@ private typedef GraphicsBitmapPaint =
 		if (values == null) return null;
 		var result:Array<Float> = [];
 		for (i in 0...values.length) result.push(values[i]);
+		return result;
+	}
+
+	@:noCompletion private static inline function __colorToFlight(value:Int):Float
+	{
+		return (value & 0xFFFFFF) * 256.0 + 0xFF;
+	}
+
+	@:noCompletion private static inline function __colorFromFlight(value:Float):Int
+	{
+		return Std.int(Math.floor(value / 256.0)) & 0xFFFFFF;
+	}
+
+	@:noCompletion private static function __colorsToFlight(values:Dynamic):Array<Float>
+	{
+		if (values == null) return null;
+		var result:Array<Float> = [];
+		for (i in 0...values.length) result.push(__colorToFlight(values[i]));
 		return result;
 	}
 
