@@ -125,7 +125,7 @@ class Sprite extends DisplayObjectContainer
 	public static function fromTimeline(timeline:Timeline):Sprite
 	{
 		var sprite = new Sprite();
-		if (timeline != null) timeline.initializeSprite(sprite);
+		timeline.initializeSprite(sprite);
 		return sprite;
 	}
 

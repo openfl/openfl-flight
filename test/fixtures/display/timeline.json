@@ -1,0 +1,35 @@
+{
+  "spriteFactory": {
+    "name": "timeline-sprite",
+    "isSprite": true,
+    "initializeCalls": 1
+  },
+  "nullFactories": {
+    "movieClipFramesLoaded": 1,
+    "spriteIsNull": true,
+    "movieClipTotalFrames": 1,
+    "movieClipIsValid": true,
+    "spriteThrows": true
+  },
+  "movieClipFactory": {
+    "name": "timeline-movie-clip",
+    "attachCalls": 1,
+    "isMovieClip": true,
+    "framesLoaded": 0,
+    "isPlaying": null,
+    "currentSceneIsNull": true,
+    "currentFrame": 1,
+    "totalFrames": 0
+  },
+  "directSpriteInitialization": {
+    "name": "timeline-sprite",
+    "isSprite": true,
+    "initializeCalls": 1
+  },
+  "emptyTimeline": {
+    "scenesAreNull": true,
+    "scriptsAreNull": true,
+    "exists": true,
+    "frameRate": null
+  }
+}

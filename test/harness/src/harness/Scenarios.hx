@@ -71,6 +71,7 @@ import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFieldBehaviorScenario;
 import harness.scenarios.TextFormatScenario;
 import harness.scenarios.TimerScenario;
+import harness.scenarios.TimelineScenario;
 import harness.scenarios.TilesScenario;
 import harness.scenarios.TransformScenario;
 import harness.scenarios.Utils3DScenario;
@@ -192,6 +193,10 @@ class Scenarios {
 			{
 				name: "display/movie-clip",
 				run: MovieClipScenario.run
+			},
+			{
+				name: "display/timeline",
+				run: TimelineScenario.run
 			},
 			{
 				name: "display/tiles",
