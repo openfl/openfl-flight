@@ -169,6 +169,23 @@
     "height": 0,
     "width": 0
   },
+  "pixelsBytes": {
+    "inputPosition": 0,
+    "pixels": [
+      0,
+      -15720400,
+      -2143268768,
+      -9404272,
+      0,
+      0,
+      0,
+      0
+    ],
+    "outputBigEndian": true,
+    "eof": true,
+    "outputLength": 12,
+    "outputPosition": 0
+  },
   "rect": {
     "matchesDimensions": true,
     "x": 0,

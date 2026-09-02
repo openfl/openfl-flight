@@ -2,18 +2,21 @@ package openfl.display;
 
 #if !flash
 import flight.Bitmap as FlightBitmap;
+import flight._internal._UInt8ClampedArray as FlightUInt8ClampedArray;
 import flight.types.Bitmap as FlightBitmapHandle;
 import openfl.Vector;
 import openfl.display3D.Context3D;
 import openfl.display3D.IndexBuffer3D;
 import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.textures.TextureBase;
+import openfl.errors.Error;
 import openfl.filters.BitmapFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.ByteArray;
+import openfl.utils.Endian;
 import openfl.utils.Future;
 import openfl.utils.Object;
 #if lime
@@ -372,8 +375,25 @@ class BitmapData implements IBitmapDrawable
 
 	public function getPixels(rect:Rectangle):ByteArray
 	{
-		// TODO: Export bitmap regions through Flight.
-		return new ByteArray();
+		if (!readable || __bitmap == null) return null;
+		if (rect == null) rect = this.rect;
+		var regionWidth = Std.int(Math.max(0, rect.width));
+		var regionHeight = Std.int(Math.max(0, rect.height));
+		var pixels = new FlightUInt8ClampedArray(regionWidth * regionHeight * 4);
+		FlightBitmap.extractBitmapPixels(pixels,
+			FlightBitmap.createBitmapRegion(__toStraightBitmap(this), rect.x, rect.y, regionWidth, regionHeight));
+		var result = new ByteArray();
+		result.endian = Endian.BIG_ENDIAN;
+		for (index in 0...(regionWidth * regionHeight))
+		{
+			var offset = index * 4;
+			result.writeByte(pixels[offset + 3]);
+			result.writeByte(pixels[offset]);
+			result.writeByte(pixels[offset + 1]);
+			result.writeByte(pixels[offset + 2]);
+		}
+		result.position = 0;
+		return result;
 	}
 
 	public function getVector(rect:Rectangle):Vector<UInt>
@@ -474,7 +494,28 @@ class BitmapData implements IBitmapDrawable
 
 	public function setPixels(rect:Rectangle, byteArray:ByteArray):Void
 	{
-		// TODO: Import bitmap bytes through Flight.
+		if (!readable || __bitmap == null || rect == null) return;
+		var regionWidth = Std.int(Math.max(0, rect.width));
+		var regionHeight = Std.int(Math.max(0, rect.height));
+		var length = regionWidth * regionHeight * 4;
+		if (byteArray.bytesAvailable < length) throw new Error("End of file was encountered.", 2030);
+		if (length == 0) return;
+
+		var pixels = new FlightUInt8ClampedArray(length);
+		var position = byteArray.position;
+		for (index in 0...(regionWidth * regionHeight))
+		{
+			var color = byteArray.readUnsignedInt();
+			var offset = index * 4;
+			pixels[offset] = (color >>> 16) & 0xFF;
+			pixels[offset + 1] = (color >>> 8) & 0xFF;
+			pixels[offset + 2] = color & 0xFF;
+			pixels[offset + 3] = (color >>> 24) & 0xFF;
+		}
+		byteArray.position = position;
+		var destinationBitmap = __toStraightBitmap(this);
+		FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(destinationBitmap, rect.x, rect.y, regionWidth, regionHeight), pixels);
+		__writeStraightRegion(destinationBitmap, Std.int(rect.x), Std.int(rect.y), regionWidth, regionHeight);
 	}
 
 	public function setVector(rect:Rectangle, inputVector:Vector<UInt>):Void

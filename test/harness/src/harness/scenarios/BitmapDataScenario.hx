@@ -6,6 +6,8 @@ import openfl.display.Shape;
 import openfl.geom.ColorTransform;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
+import openfl.utils.ByteArray;
+import openfl.utils.Endian;
 
 class BitmapDataScenario {
 	public static function run():Dynamic {
@@ -26,6 +28,7 @@ class BitmapDataScenario {
 			scroll: testScroll(),
 			colorBounds: testColorBounds(),
 			histogram: testHistogram(),
+			pixelsBytes: testPixelsBytes(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -228,6 +231,37 @@ class BitmapDataScenario {
 		return {
 			full: histogramSummary(full),
 			region: histogramSummary(region)
+		};
+	}
+
+	private static function testPixelsBytes():Dynamic {
+		var input = new ByteArray();
+		input.endian = Endian.BIG_ENDIAN;
+		input.writeUnsignedInt(0xFF102030);
+		input.writeUnsignedInt(0x80405060);
+		input.writeUnsignedInt(0xFF708090);
+		input.position = 0;
+
+		var bmd = new BitmapData(4, 2, true, 0);
+		bmd.setPixels(new Rectangle(1, 0, 3, 1), input);
+		var output = bmd.getPixels(new Rectangle(1, 0, 3, 1));
+		var tooShort = new ByteArray();
+		tooShort.writeUnsignedInt(0xFFFFFFFF);
+		tooShort.position = 0;
+		var eof = false;
+		try {
+			bmd.setPixels(new Rectangle(0, 1, 2, 1), tooShort);
+		} catch (_:Dynamic) {
+			eof = true;
+		}
+
+		return {
+			pixels: pixels(bmd),
+			inputPosition: input.position,
+			outputLength: output.length,
+			outputPosition: output.position,
+			outputBigEndian: output.endian == Endian.BIG_ENDIAN,
+			eof: eof
 		};
 	}
 
