@@ -1,4 +1,14 @@
 {
+  "stopImmediateAtTarget": [
+    "target-first"
+  ],
+  "stopPropagationCapture": [
+    "root-first",
+    "root-second",
+    "parent-capture",
+    "child-capture",
+    "target"
+  ],
   "stopImmediatePropagation": [
     "target",
     "child-first"
@@ -11,7 +21,23 @@
     "child-first",
     "child-second"
   ],
+  "preventDefault": {
+    "cancelable": {
+      "dispatchResult": false,
+      "isDefaultPrevented": true
+    },
+    "nonCancelable": {
+      "dispatchResult": true,
+      "isDefaultPrevented": null
+    }
+  },
   "route": [
+    {
+      "listener": "root-capture",
+      "currentTarget": "root",
+      "phase": 1,
+      "target": "grandchild"
+    },
     {
       "listener": "parent-capture",
       "currentTarget": "parent",
@@ -39,6 +65,12 @@
     {
       "listener": "parent-bubble",
       "currentTarget": "parent",
+      "phase": 3,
+      "target": "grandchild"
+    },
+    {
+      "listener": "root-bubble",
+      "currentTarget": "root",
       "phase": 3,
       "target": "grandchild"
     }
