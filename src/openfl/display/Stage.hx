@@ -907,9 +907,12 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 	@:noCompletion private function __setLogicalSize(width:Int, height:Int):Void
 	{
+		if (stageWidth == width && stageHeight == height) return;
 		stageWidth = width;
 		stageHeight = height;
 		FlightScene2D.setScene2DSize(__scene, width, height);
+		__setTransformDirty();
+		dispatchEvent(new Event(Event.RESIZE));
 	}
 }
 #else

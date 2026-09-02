@@ -1,0 +1,191 @@
+{
+  "stageResize": {
+    "events": 1,
+    "height": 360,
+    "width": 640
+  },
+  "descendantStageEvents": {
+    "allOnStage": true,
+    "events": [
+      {
+        "listener": "container",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": null,
+        "currentTarget": "container",
+        "bubbles": false,
+        "target": "container",
+        "type": "addedToStage"
+      },
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "container",
+        "currentTarget": "child",
+        "bubbles": false,
+        "target": "child",
+        "type": "addedToStage"
+      },
+      {
+        "listener": "grandchild",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "child",
+        "currentTarget": "grandchild",
+        "bubbles": false,
+        "target": "grandchild",
+        "type": "addedToStage"
+      }
+    ]
+  },
+  "addRemove": {
+    "added": [
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "parent",
+        "currentTarget": "child",
+        "bubbles": true,
+        "target": "child",
+        "type": "added"
+      },
+      {
+        "listener": "parent",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": null,
+        "currentTarget": "parent",
+        "bubbles": true,
+        "target": "child",
+        "type": "added"
+      },
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "parent",
+        "currentTarget": "child",
+        "bubbles": false,
+        "target": "child",
+        "type": "addedToStage"
+      }
+    ],
+    "stageAfterAdd": true,
+    "childDetached": true,
+    "removed": [
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "parent",
+        "currentTarget": "child",
+        "bubbles": true,
+        "target": "child",
+        "type": "removed"
+      },
+      {
+        "listener": "parent",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": null,
+        "currentTarget": "parent",
+        "bubbles": true,
+        "target": "child",
+        "type": "removed"
+      },
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "parent",
+        "currentTarget": "child",
+        "bubbles": false,
+        "target": "child",
+        "type": "removedFromStage"
+      }
+    ]
+  },
+  "reparent": {
+    "events": [
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "left",
+        "currentTarget": "child",
+        "bubbles": true,
+        "target": "child",
+        "type": "removed"
+      },
+      {
+        "listener": "left",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": null,
+        "currentTarget": "left",
+        "bubbles": true,
+        "target": "child",
+        "type": "removed"
+      },
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "left",
+        "currentTarget": "child",
+        "bubbles": false,
+        "target": "child",
+        "type": "removedFromStage"
+      },
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "right",
+        "currentTarget": "child",
+        "bubbles": true,
+        "target": "child",
+        "type": "added"
+      },
+      {
+        "listener": "right",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": null,
+        "currentTarget": "right",
+        "bubbles": true,
+        "target": "child",
+        "type": "added"
+      },
+      {
+        "listener": "child",
+        "onStageAtDispatch": true,
+        "parentAtDispatch": "right",
+        "currentTarget": "child",
+        "bubbles": false,
+        "target": "child",
+        "type": "addedToStage"
+      }
+    ],
+    "rightChildren": 1,
+    "remainsOnStage": true,
+    "leftChildren": 0,
+    "parentIsRight": true
+  },
+  "mouseTargeting": {
+    "defaultTarget": "child",
+    "disabledRootTarget": null,
+    "disabledChildRoute": [
+      {
+        "listener": "root",
+        "target": "root"
+      }
+    ],
+    "disabledChildTarget": "root",
+    "disabledChildrenTarget": "root",
+    "disabledChildrenRoute": [
+      {
+        "listener": "root",
+        "target": "root"
+      }
+    ],
+    "defaultRoute": [
+      {
+        "listener": "child",
+        "target": "child"
+      },
+      {
+        "listener": "root",
+        "target": "child"
+      }
+    ]
+  }
+}
