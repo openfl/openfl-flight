@@ -34,6 +34,7 @@ class BitmapDataScenario {
 			merge: testMerge(),
 			paletteMap: testPaletteMap(),
 			applyColorMatrixFilter: testApplyColorMatrixFilter(),
+			noise: testNoise(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -334,6 +335,36 @@ class BitmapDataScenario {
 		]);
 		destination.applyFilter(destination, destination.rect, new Point(), filter);
 		return pixels(destination);
+	}
+
+	private static function testNoise():Dynamic {
+		var first = new BitmapData(8, 4, true, 0);
+		first.noise(12345, 20, 200, BitmapDataChannel.RED | BitmapDataChannel.ALPHA);
+		var same = new BitmapData(8, 4, true, 0);
+		same.noise(12345, 20, 200, BitmapDataChannel.RED | BitmapDataChannel.ALPHA);
+		var different = new BitmapData(8, 4, true, 0);
+		different.noise(54321, 20, 200, BitmapDataChannel.RED | BitmapDataChannel.ALPHA);
+		var channelsValid = true;
+		for (color in pixels(first)) {
+			var alpha = (color >>> 24) & 0xFF;
+			var red = (color >>> 16) & 0xFF;
+			channelsValid = channelsValid && alpha >= 20 && alpha <= 200 && red >= 20 && red <= 200 && (color & 0xFFFF) == 0;
+		}
+
+		var gray = new BitmapData(8, 4, true, 0);
+		gray.noise(2468, 10, 100, BitmapDataChannel.RED, true);
+		var grayValid = true;
+		for (color in pixels(gray)) {
+			var red = (color >>> 16) & 0xFF;
+			grayValid = grayValid && ((color >>> 24) & 0xFF) == 0xFF && ((color >>> 8) & 0xFF) == red && (color & 0xFF) == red;
+		}
+
+		return {
+			deterministic: first.compare(same) == 0,
+			seedChangesOutput: first.compare(different) != 0,
+			channelsValid: channelsValid,
+			grayValid: grayValid
+		};
 	}
 
 	private static function testDrawShape():Dynamic {

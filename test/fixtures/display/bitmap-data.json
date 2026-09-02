@@ -201,6 +201,12 @@
     "outputLength": 12,
     "outputPosition": 0
   },
+  "noise": {
+    "seedChangesOutput": true,
+    "channelsValid": true,
+    "grayValid": true,
+    "deterministic": true
+  },
   "paletteMap": {
     "outside": -16711165,
     "height": 1,

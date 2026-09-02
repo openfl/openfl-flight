@@ -533,7 +533,25 @@ class BitmapData implements IBitmapDrawable
 
 	public function noise(randomSeed:Int, low:Int = 0, high:Int = 255, channelOptions:Int = 7, grayScale:Bool = false):Void
 	{
-		// TODO: Generate bitmap noise through Flight.
+		if (!readable || __bitmap == null || width == 0 || height == 0) return;
+		var output = FlightBitmap.createBitmap(width, height, 0);
+		FlightBitmap.fillBitmapNoise(FlightBitmap.createBitmapRegion(output), randomSeed, low, high, grayScale);
+		if (!grayScale)
+		{
+			var alphaNoise = FlightBitmap.createBitmap(width, height, 0);
+			if ((channelOptions & 8) != 0)
+				FlightBitmap.fillBitmapNoise(FlightBitmap.createBitmapRegion(alphaNoise), randomSeed ^ 0x6D2B79F5, low, high, true);
+			for (y in 0...height) for (x in 0...width)
+			{
+				var color = Std.int(FlightBitmap.getBitmapPixel(output, x, y));
+				var red = (channelOptions & 1) == 0 ? 0 : (color >>> 24) & 0xFF;
+				var green = (channelOptions & 2) == 0 ? 0 : (color >>> 16) & 0xFF;
+				var blue = (channelOptions & 4) == 0 ? 0 : (color >>> 8) & 0xFF;
+				var alpha = (channelOptions & 8) == 0 ? 0xFF : (Std.int(FlightBitmap.getBitmapPixel(alphaNoise, x, y)) >>> 24) & 0xFF;
+				FlightBitmap.setBitmapPixel(output, x, y, (red << 24) | (green << 16) | (blue << 8) | alpha);
+			}
+		}
+		__writeStraightRegion(output, 0, 0, width, height);
 	}
 
 	public function paletteMap(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redArray:Array<Int> = null,
