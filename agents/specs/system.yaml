@@ -1,0 +1,303 @@
+package: system
+
+entries:
+
+  - id: system.AD.current-domain-one-eagerly-initialized-singleton-during
+    section: "ApplicationDomain"
+    behavior: >
+      currentDomain is one eagerly initialized singleton. During its own
+      construction the static slot is still null, so its parentDomain is null.
+    status: covered
+    scenarios:
+      - "system/capabilities:applicationDomain"
+
+  - id: system.AD.new-stores-non-null-argument-verbatim-omitted
+    section: "ApplicationDomain"
+    behavior: >
+      new(parentDomain = null) stores a non-null argument verbatim; an omitted or
+      explicit null argument instead stores currentDomain. Thus every ordinary
+      child domain defaults to the singleton parent.
+    status: covered
+    scenarios:
+      - "system/capabilities:applicationDomain"
+
+  - id: system.AD.get-definition-delegates-directly-type-resolve-class
+    section: "ApplicationDomain"
+    behavior: >
+      getDefinition(name) delegates directly to Type.resolveClass(name) and
+      returns its class or null. hasDefinition(name) is exactly the corresponding
+      null check. Neither method searches or isolates definitions by domain, and
+      the parent is not consulted.
+    status: covered
+    scenarios:
+      - "system/capabilities:applicationDomain"
+
+  - id: system.AD.class-final-commented-air-members-domain-memory
+    section: "ApplicationDomain"
+    behavior: >
+      The class is final. The commented AIR members (domainMemory,
+      getQualifiedDefinitionNames, MIN_DOMAIN_MEMORY_LENGTH) are not public
+      members of the compiled 9.5.2 class.
+    status: covered
+    scenarios: []
+
+  - id: system.LC.constructor-stores-check-policy-file-default-false
+    section: "LoaderContext"
+    behavior: >
+      The constructor stores checkPolicyFile (default false), applicationDomain
+      (default null), and securityDomain (default null), then initializes
+      allowCodeImport and allowLoadBytesCodeExecution to true. These five fields
+      remain directly mutable records.
+    status: covered
+    scenarios:
+      - "system/capabilities:loaderContext"
+
+  - id: system.LC.air-image-decoding-parameters-requested-content-parent
+    section: "LoaderContext"
+    behavior: >
+      AIR image-decoding parameters, requested content parent, and uncaught error
+      listener options are inside disabled source blocks and do not exist on the
+      non-Flash public type.
+    status: covered
+    scenarios:
+      - "system/capabilities:loaderContext"
+
+  - id: system.LC.image-decoding-policy-air-sys-only-nullable
+    section: "LoaderContext"
+    behavior: >
+      ImageDecodingPolicy is an AIR/sys-only nullable integer abstract with
+      ON_DEMAND = "onDemand" (integer 0) and ON_LOAD = "onLoad" (1); unknown
+      strings map to null. LoaderContext itself exposes no field of that type in
+      this source version.
+    status: covered
+    scenarios: []
+
+  - id: system.SEC.security-domain-current-domain-one-eagerly-created
+    section: "SecurityDomain and Security"
+    behavior: >
+      SecurityDomain.currentDomain is one eagerly created instance. Its
+      constructor is private and it exposes no other state or behavior.
+    status: covered
+    scenarios:
+      - "system/capabilities:security"
+
+  - id: system.SEC.security-trusted-file-network-remote-respectively-local
+    section: "SecurityDomain and Security"
+    behavior: >
+      Security.LOCAL_TRUSTED, LOCAL_WITH_FILE, LOCAL_WITH_NETWORK, and REMOTE are
+      respectively "localTrusted", "localWithFile", "localWithNetwork", and
+      "remote".
+    status: covered
+    scenarios:
+      - "system/capabilities:constants"
+
+  - id: system.SEC.exact-settings-hidden-disable-avm-1-loading
+    section: "SecurityDomain and Security"
+    behavior: >
+      exactSettings and hidden disableAVM1Loading are uninitialized static
+      Booleans (observable default false). Read-only sandboxType is uninitialized
+      and therefore null.
+    status: covered
+    scenarios:
+      - "system/capabilities:security"
+
+  - id: system.SEC.allow-domain-allow-insecure-domain-accept-up
+    section: "SecurityDomain and Security"
+    behavior: >
+      allowDomain and allowInsecureDomain accept up to five optional dynamic
+      arguments and do nothing. loadPolicyFile(url) also does nothing. The
+      disabled pageDomain and showSettings blocks produce no public members.
+    status: covered
+    scenarios: []
+
+  - id: system.SYS.total-memory-reports-target-runtime-s-current
+    section: "System > Memory and runtime state"
+    behavior: >
+      totalMemory reports the target runtime's current heap/GC usage on Neko, C++,
+      HashLink, or supporting HTML5 browsers and otherwise zero. totalMemoryNumber
+      uses 64-bit C++/HashLink memory APIs and otherwise returns totalMemory as a
+      Float.
+    status: covered
+    scenarios:
+      - "system/capabilities:system"
+
+  - id: system.SYS.gc-requests-full-collection-c-neko-major
+    section: "System > Memory and runtime state"
+    behavior: >
+      gc() requests a full collection on C++/Neko and a major collection on
+      HashLink; it is a no-op on other targets.
+    status: covered
+    scenarios:
+      - "system/capabilities:system"
+
+  - id: system.SYS.use-code-page-mutable-static-state-initialized
+    section: "System > Memory and runtime state"
+    behavior: >
+      useCodePage is mutable static state initialized to false. Hidden vmVersion
+      always returns "1.0.0"; hidden disposeXML(node) is a no-op. ime,
+      privateMemory, and freeMemory are disabled and absent.
+    status: covered
+    scenarios:
+      - "system/capabilities:system"
+
+  - id: system.SYS.exit-forwards-numeric-status-lime-system-exit
+    section: "System > Process, application loop, and clipboard"
+    behavior: >
+      Reference exit(code) forwards the numeric status to Lime System.exit. The
+      adapter asks the current Flight host to quit and discards the code; without
+      a supported host it is a no-op.
+    status: missing
+    scenarios: []
+
+  - id: system.SYS.non-strict-builds-pause-resume-only-call
+    section: "System > Process, application loop, and clipboard"
+    behavior: >
+      In non-strict builds reference pause() and resume() only call the OpenFL
+      notImplemented hook. The adapter pauses/resumes the authoritative Flight
+      Application loop on sys builds. This is an intentional extension; the
+      required Flight handle is recorded as resolved in agents/flight-gaps.md.
+    status: deviation
+    notes: >
+      Keep Flight application pause/resume integration as an intentional extension
+      to the OpenFL stubs.
+    scenarios: []
+
+  - id: system.SYS.set-clipboard-void-writes-supplied-string-platform
+    section: "System > Process, application loop, and clipboard"
+    behavior: >
+      setClipboard(string) is void and writes the supplied string to the platform
+      clipboard. The adapter routes the write through Flight when a web, Clay, or
+      active Lime host exists and otherwise does nothing, matching the reference's
+      best-effort target behavior.
+    status: covered
+    scenarios: []
+
+  - id: system.CAP.these-values-unchanged-av-hardware-disable-true
+    section: "Capabilities > Fixed/compile-time values"
+    behavior: >
+      These values are unchanged by the adapter: ; avHardwareDisable = true;
+      hasAudio = true; hasTLS = true. ; hasAccessibility, hasAudioEncoder,
+      hasEmbeddedVideo, hasIME, hasMP3, hasScreenBroadcast, hasScreenPlayback,
+      hasStreamingAudio, hasStreamingVideo, and isEmbeddedInAcrobat are false. ;
+      hasPrinting and hasVideoEncoder are true only for HTML5. ; isDebugger
+      follows the debug define; localFileReadDisable follows web;
+      supports32BitProcesses follows sys. ; maxLevelIDC = 0, pixelAspectRatio = 1,
+      and screenColor = "color". ; playerType is "PlugIn" for web, "Desktop" for
+      sys, otherwise "StandAlone"; hasMultiChannelAudio(type) always returns
+      false.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
+
+  - id: system.CAP.language-lowercases-current-locale-language-accepts-only
+    section: "Capabilities > Locale and platform descriptions"
+    behavior: >
+      language lowercases the current locale language and accepts only cs, da, nl,
+      en, fi, fr, de, hu, it, ja, ko, nb, pl, pt, ru, es, sv, and tr. Chinese
+      becomes zh-TW when the locale includes TW or Hant, otherwise zh-CN; another
+      known language becomes xu; absence falls back to en. The adapter obtains
+      locale through Flight but preserves this mapping.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
+
+  - id: system.CAP.cpu-architecture-compile-time-arm-only-real
+    section: "Capabilities > Locale and platform descriptions"
+    behavior: >
+      Reference cpuArchitecture is compile-time ARM only on a real mobile device
+      and x86 otherwise. The adapter first maps Flight architecture text to ARM,
+      PowerPC, SPARC, or x86, then uses the reference fallback.
+    status: missing
+    scenarios: []
+
+  - id: system.CAP.manufacturer-open-fl-macintosh-open-fl-linux
+    section: "Capabilities > Locale and platform descriptions"
+    behavior: >
+      Reference manufacturer is OpenFL Macintosh, OpenFL Linux, or "OpenFL " +
+      Lime platformName (and null without Lime). Adapter derives it from Flight OS
+      data, returning OpenFL when no name exists and normalizing Mac only.
+    status: missing
+    scenarios: []
+
+  - id: system.CAP.os-reports-i-os-tv-os-device
+    section: "Capabilities > Locale and platform descriptions"
+    behavior: >
+      Reference os reports iOS/tvOS device model, Mac OS <version>, Linux plus
+      uname -r when available, or Lime's platform label; it is null without Lime.
+      Adapter combines Flight osName/osVersion, normalizes Mac, and returns an
+      empty string when unavailable.
+    status: missing
+    scenarios: []
+
+  - id: system.CAP.version-starts-target-code-win-mac-lnx
+    section: "Capabilities > Locale and platform descriptions"
+    behavior: >
+      version starts with target code WIN, MAC, LNX, IOS, TVO, AND, QNX, MOZ, WEB,
+      or fallback OFL, then appends the OpenFL define with dots changed to commas
+      and final ,0 when present. The adapter also normalizes a bare Haxe define
+      value 1 to 9.5.2, a build-system correction that otherwise leaves the public
+      format unchanged.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
+
+  - id: system.CAP.desktop-web-screen-dpi-window-scale-mobile
+    section: "Capabilities > Screen, process, touch, and server report"
+    behavior: >
+      Reference desktop/web screenDPI is 72 * window.scale; mobile selects the
+      closest of 120, 160, 240, 320, 480, 640, 800, or 960 to the active display
+      DPI. Adapter prefers Flight device density, then screen DPI, then 72 times a
+      reported scale/pixel ratio.
+    status: missing
+    scenarios: []
+
+  - id: system.CAP.screen-resolution-x-y-use-active-display
+    section: "Capabilities > Screen, process, touch, and server report"
+    behavior: >
+      Reference screenResolutionX/Y use active display mode times window scale,
+      then stage dimensions, and return zero without Lime/Stage. Adapter prefers
+      Flight physical metrics, derives physical size from logical metrics and
+      scale, and finally returns deterministic 800 by 600 without host metrics.
+    status: missing
+    scenarios: []
+
+  - id: system.CAP.supports-64-bit-processes-true-desktop-defined
+    section: "Capabilities > Screen, process, touch, and server report"
+    behavior: >
+      Reference supports64BitProcesses is true when desktop is defined and false
+      otherwise. Adapter uses Flight pointer width when known and otherwise
+      returns true for any desktop or sys build.
+    status: missing
+    scenarios: []
+
+  - id: system.CAP.touchscreen-type-constant-finger-every-target-reports
+    section: "Capabilities > Screen, process, touch, and server report"
+    behavior: >
+      Reference touchscreenType is the constant FINGER on every target. Adapter
+      reports STYLUS for a Flight stylus, otherwise FINGER for a touch platform
+      and NONE for a non-touch platform.
+    status: missing
+    scenarios: []
+
+  - id: system.CAP.server-string-empty-string-constructs-stable-ampersand
+    section: "Capabilities > Screen, process, touch, and server report"
+    behavior: >
+      Reference serverString is the empty string. Adapter constructs a stable
+      ampersand-delimited capability report containing audio/video/accessibility,
+      printing/debug, version/manufacturer/resolution/DPI/color/aspect, OS/locale,
+      player type, local-file/TLS, and WD=f fields with values URL-encoded.
+    status: missing
+    scenarios: []
+
+  - id: system.TS.ordinary-haxe-targets-nullable-integer-abstract-finger
+    section: "TouchscreenType"
+    behavior: >
+      On ordinary Haxe targets this is a nullable integer abstract with FINGER =
+      0, NONE = 1, and STYLUS = 2; their string forms are "finger", "none", and
+      "stylus". Unknown strings map to null. openfljs uses those strings directly.
+    status: covered
+    scenarios:
+      - "system/capabilities:constants"

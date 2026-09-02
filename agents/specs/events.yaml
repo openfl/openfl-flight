@@ -297,3 +297,929 @@ entries:
       than the stricter Stage behavior.
     status: missing
     scenarios: []
+
+  # ── Remaining checklist-events.md sections 2 through 7 ──
+
+  - id: events.ME.open-fl-walks-child-arrays-highest-index
+    section: "Mouse event dispatch > Hit testing and target selection"
+    behavior: >
+      OpenFL walks child arrays from highest index to zero, so visually frontmost
+      children are considered first. The adapter's getObjectsUnderPoint collection
+      also descends from highest index and returns front-to-back results.
+    status: covered
+    scenarios:
+      - "display/hit-test:objects"
+      - "display/container:objectsUnderPoint"
+
+  - id: events.ME.basic-mouse-enabled-mouse-children-targeting-represented
+    section: "Mouse event dispatch > Hit testing and target selection"
+    behavior: >
+      Basic mouseEnabled/mouseChildren targeting is represented: a disabled leaf
+      can fall back to an enabled ancestor, and mouseChildren == false makes the
+      enabled container the target. If both container flags disable interaction,
+      the hit falls through. The cross-package display/events fixture covers the
+      expected flag combinations, although it does not invoke the native Stage
+      handler itself.
+    status: covered
+    scenarios:
+      - "integration/display-events:mouseTargeting"
+      - "display/hit-test:mouseEnabled"
+
+  - id: events.ME.open-fl-performs-those-checks-during-one
+    section: "Mouse event dispatch > Hit testing and target selection"
+    behavior: >
+      OpenFL performs those checks during one recursive hit walk, including masks,
+      scroll rectangles, Sprite hitArea, visibility, and non-interactive
+      descendants. The adapter first calls getObjectsUnderPoint and resolves flags
+      afterward; its collection bypasses parts of the OpenFL interactive hit path.
+      Nested masks/hit areas and overlapping disabled branches need captures.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.if-no-interactive-display-object-hit-stage
+    section: "Mouse event dispatch > Hit testing and target selection"
+    behavior: >
+      If no interactive display object is hit, Stage is the fallback target and
+      the stack is [stage].
+    status: covered
+    scenarios: []
+
+  - id: events.ME.open-fl-transforms-window-coordinates-through-stage
+    section: "Mouse event dispatch > Hit testing and target selection"
+    behavior: >
+      OpenFL transforms window coordinates through Stage's inverse display matrix
+      before hit testing (scale mode, alignment, DPI). The adapter only multiplies
+      incoming coordinates by window.scale, so scaled/aligned stages can select
+      the wrong target.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.raw-stage-mouse-event-local-x-local
+    section: "Mouse event dispatch > Raw mouse fields and route"
+    behavior: >
+      For a raw Stage mouse event, localX/localY are computed once in the selected
+      target's coordinate space. They remain target-local while ancestors receive
+      the event; currentTarget does not cause coordinate recomputation.
+    status: covered
+    scenarios: []
+
+  - id: events.ME.supplies-local-x-local-y-stage-x
+    section: "Mouse event dispatch > Raw mouse fields and route"
+    behavior: >
+      The adapter supplies localX, localY, stageX, stageY, and primary buttonDown,
+      but drops modifier keys, command/control distinctions, and clickCount.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.only-mouse-down-move-up-wired-current
+    section: "Mouse event dispatch > Raw mouse fields and route"
+    behavior: >
+      Only mouse down, move, and up are wired by the current Stage. Wheel,
+      relative motion, leave, context-menu/default handling, pending move
+      coalescing, cursor resolution, and release-outside behavior are absent.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.open-fl-can-cancel-originating-lime-signal
+    section: "Mouse event dispatch > Raw mouse fields and route"
+    behavior: >
+      OpenFL can cancel the originating Lime signal after a cancelable event is
+      default-prevented. Flight DOM input currently decides preventDefault before
+      emitting and exposes no deferred native-default callback; see
+      agents/flight-upstream.md, “Input: dynamic preventDefault support.”
+    status: flight-gap
+    gap: "Event system bridging"
+    scenarios: []
+
+  - id: events.ME.open-fl-remembers-down-target-separately-left
+    section: "Mouse event dispatch > Click and double-click synthesis"
+    behavior: >
+      OpenFL remembers the down target separately for left, middle, and right
+      buttons. Up on the same target generates CLICK, MIDDLE_CLICK, or
+      RIGHT_CLICK; left up elsewhere dispatches RELEASE_OUTSIDE to the original
+      down target. The adapter generates none of these. Flight Interaction owns
+      this state but lacks the required one-shot pre-bubble ingress hook.
+    status: flight-gap
+    gap: "Event system bridging"
+    scenarios: []
+
+  - id: events.ME.left-double-click-requires-target-double-click
+    section: "Mouse event dispatch > Click and double-click synthesis"
+    behavior: >
+      Left double-click requires target.doubleClickEnabled, the same target as the
+      previous click, and elapsed time strictly below 500 ms. There is no
+      coordinate-distance threshold. A successful double-click clears the stored
+      target/time; a non-enabled target also clears them. Flight has no per-node
+      equivalent for doubleClickEnabled, and resolved interaction ingress remains
+      unavailable.
+    status: flight-gap
+    gap: "Per-object interaction metadata"
+    scenarios: []
+
+  - id: events.ME.lime-raw-down-up-events-may-receive
+    section: "Mouse event dispatch > Click and double-click synthesis"
+    behavior: >
+      On Lime 8.1+, raw down/up events may receive window.clickCount; synthesized
+      click/double-click events in this source are created with clickCount == 0.
+      The adapter has no corresponding raw count.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.open-fl-dispatch-order-original-down-up
+    section: "Mouse event dispatch > Click and double-click synthesis"
+    behavior: >
+      OpenFL dispatch order is the original down/up/move event first, then any
+      synthesized click, then hover-transition events. This sequencing is absent.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.hit-target-changes-open-fl-dispatches-bubbling
+    section: "Mouse event dispatch > Over/out and roll transitions"
+    behavior: >
+      When the hit target changes, OpenFL dispatches bubbling MOUSE_OUT on the old
+      stack, direct non-bubbling ROLL_OUT on departed stack members, direct
+      non-bubbling ROLL_OVER on newly entered members, then bubbling MOUSE_OVER on
+      the new stack. The explicit source comment requires MOUSE_OVER after
+      ROLL_OVER. None of this state or dispatch exists in the adapter; Flight's
+      direct roll signals cannot be observed exactly once through its current
+      bubble-only API.
+    status: flight-gap
+    gap: "Event system bridging"
+    scenarios: []
+
+  - id: events.ME.source-semantics-distinguish-transitions-over-out-propagate
+    section: "Mouse event dispatch > Over/out and roll transitions"
+    behavior: >
+      Source semantics distinguish the transitions: MOUSE_OVER/MOUSE_OUT propagate
+      through the Stage stack; ROLL_OVER/ROLL_OUT target each changed object
+      directly with bubbles == false. The adapter implements neither path.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.generated-over-out-events-leave-related-object
+    section: "Mouse event dispatch > Over/out and roll transitions"
+    behavior: >
+      Generated over/out events leave relatedObject null in the 9.5.2 source.
+      Roll-event localX/localY are computed in the old/new leaf target's space
+      even when the roll event targets an ancestor. These surprising details need
+      fixtures before a future bridge is implemented.
+    status: missing
+    scenarios: []
+
+  - id: events.ME.open-fl-rechecks-existing-hover-target-pending
+    section: "Mouse event dispatch > Over/out and roll transitions"
+    behavior: >
+      OpenFL rechecks an existing hover target on pending mouse processing when it
+      is transformed, removed, hidden, disabled, or placed below an ancestor whose
+      mouseChildren becomes false. The adapter retains no hover target to
+      invalidate.
+    status: missing
+    scenarios: []
+
+  - id: events.KE.open-fl-targets-keyboard-input-stage-focus
+    section: "Keyboard and text input dispatch"
+    behavior: >
+      OpenFL targets keyboard input at Stage.focus when non-null and at Stage
+      otherwise. There is no separate focusManager field in the 9.5.2 Stage
+      source. The adapter uses the same focus-or-Stage choice.
+    status: covered
+    scenarios: []
+
+  - id: events.KE.down-up-constructed-bubbles-true-cancelable-true
+    section: "Keyboard and text input dispatch"
+    behavior: >
+      KEY_DOWN and KEY_UP are constructed with bubbles == true and cancelable ==
+      true in this source, despite an adjacent source comment about Flash Player
+      events. Character code, converted key code, and key location are derived
+      before routing.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:keyboardEvent"
+      - "ui/keyboard:keyboardEvent"
+
+  - id: events.KE.does-not-reproduce-open-fl-s-mac
+    section: "Keyboard and text input dispatch"
+    behavior: >
+      The adapter does not reproduce OpenFL's macOS control/command folding and
+      routes through public DisplayObject dispatch rather than the Stage stack.
+    status: missing
+    scenarios: []
+
+  - id: events.KE.keyboard-event-default-prevented-open-fl-cancels
+    section: "Keyboard and text input dispatch"
+    behavior: >
+      When a keyboard event is default-prevented, OpenFL cancels the matching Lime
+      onKeyDown or onKeyUp signal. The adapter ignores the dispatch result, so
+      host default behavior continues (in addition to the Flight browser blocker
+      described above).
+    status: missing
+    scenarios: []
+
+  - id: events.KE.up-space-or-enter-synthesizes-mouse-click
+    section: "Keyboard and text input dispatch"
+    behavior: >
+      On KEY_UP, Space or Enter synthesizes a mouse CLICK for a focused Sprite
+      when buttonMode is true and focusRect == true. The adapter omits this
+      keyboard activation path.
+    status: missing
+    scenarios: []
+
+  - id: events.KE.after-unprevented-down-open-fl-generates-bubbling
+    section: "Keyboard and text input dispatch"
+    behavior: >
+      After an unprevented KEY_DOWN, OpenFL generates bubbling/cancelable COPY,
+      CUT, PASTE, or SELECT_ALL events for the matching Ctrl/Command shortcut on a
+      focused non-TextField. The adapter omits these events.
+    status: missing
+    scenarios: []
+
+  - id: events.KE.input-not-synthesized-inside-key-open-fl
+    section: "Keyboard and text input dispatch"
+    behavior: >
+      TEXT_INPUT is not synthesized inside __onKey; OpenFL receives the platform's
+      separate text-input callback, constructs TextEvent(TEXT_INPUT, true, true,
+      text), routes it to focus or Stage, and cancels the platform callback when
+      prevented. The current Window exposes a text-input signal but Stage does not
+      register or route it. The intended Flight architecture also lacks Stage
+      ownership of a host-local InputManager; see agents/flight-gaps.md,
+      “TextField and StageText host input ownership.”
+    status: flight-gap
+    gap: "TextField and StageText host input ownership"
+    scenarios: []
+
+  - id: events.FE.programmatically-changing-stage-focus-dispatches-out-old
+    section: "Focus and tab behavior"
+    behavior: >
+      Programmatically changing Stage.focus dispatches FOCUS_OUT on the old object
+      before FOCUS_IN on the new object. Both bubble, neither is cancelable, and
+      both use the full display route in the normal case.
+    status: covered
+    scenarios:
+      - "display/stage:focus"
+
+  - id: events.FE.old-object-s-out-related-object-new
+    section: "Focus and tab behavior"
+    behavior: >
+      The old object's FOCUS_OUT.relatedObject is the new focus; the new object's
+      FOCUS_IN.relatedObject is the old focus. Clearing focus supplies null to the
+      old object.
+    status: covered
+    scenarios: []
+
+  - id: events.FE.open-fl-routes-those-focus-events-through
+    section: "Focus and tab behavior"
+    behavior: >
+      OpenFL routes those focus events through Stage.__dispatchStack; the adapter
+      calls public dispatchEvent. Listener order is the same without cancellation,
+      but capture-phase stop behavior differs as described above.
+    status: missing
+    scenarios: []
+
+  - id: events.FE.mouse-down-focus-changes-first-send-bubbling
+    section: "Focus and tab behavior"
+    behavior: >
+      Mouse-down focus changes first send a bubbling/cancelable MOUSE_FOCUS_CHANGE
+      to the old focus with the proposed target as relatedObject. Only if it is
+      not prevented does OpenFL apply the target's mouseEnabled && tabEnabled
+      focus eligibility. Current mouse dispatch never changes focus and omits this
+      veto event.
+    status: missing
+    scenarios: []
+
+  - id: events.FE.tab-focus-changes-first-send-bubbling-cancelable
+    section: "Focus and tab behavior"
+    behavior: >
+      Tab focus changes first send bubbling/cancelable KEY_FOCUS_CHANGE on the old
+      focus with the proposed next object and Shift state. Preventing it retains
+      focus and cancels the platform Tab. This path is absent.
+    status: missing
+    scenarios: []
+
+  - id: events.FE.open-fl-gathers-tab-candidates-depth-first
+    section: "Focus and tab behavior"
+    behavior: >
+      OpenFL gathers tab candidates depth-first in child-index order. A container
+      contributes itself when tabEnabled, then descends only when tabChildren is
+      true. MovieClip.enabled == false suppresses that subtree's candidate logic.
+      Current DisplayObjectContainer has no recursive __tabTest, so Stage's
+      candidate list is effectively empty.
+    status: missing
+    scenarios: []
+
+  - id: events.FE.candidates-sorted-ascending-tab-index-if-any
+    section: "Focus and tab behavior"
+    behavior: >
+      Candidates are sorted by ascending tabIndex. If any nonnegative index
+      exists, all -1 candidates are discarded. Forward/Shift-Tab traversal wraps,
+      tries siblings when the current focus is outside the candidate list, and
+      avoids selecting the current object again. None of this traversal is
+      present.
+    status: missing
+    scenarios: []
+
+  - id: events.FE.tab-index-state-validation-exist-means-unspecified
+    section: "Focus and tab behavior"
+    behavior: >
+      tabIndex state and validation exist: -1 means unspecified and values below
+      -1 throw. tabEnabled defaults false for a plain InteractiveObject; class
+      overrides may opt in.
+    status: covered
+    scenarios:
+      - "display/interactive-object:values"
+      - "display/stage:defaults"
+
+  - id: events.FE.activate-deactivate-independent-broadcast-events-not-substitutes
+    section: "Focus and tab behavior"
+    behavior: >
+      ACTIVATE/DEACTIVATE are independent broadcast events, not substitutes for
+      object FOCUS_IN/FOCUS_OUT. OpenFL broadcasts them on window focus in and
+      focus out (and deactivates on close/module exit). The adapter registers
+      broadcast listeners but does not wire Stage to Window focus/close signals,
+      so automatic activation events do not fire.
+    status: missing
+    scenarios: []
+
+  - id: events.FE.open-fl-caches-focus-around-mobile-window
+    section: "Focus and tab behavior"
+    behavior: >
+      OpenFL caches focus around mobile/window focus loss and may restore it on
+      focus-in. The adapter has no cached-focus state.
+    status: missing
+    scenarios: []
+
+  - id: events.STG.activate-deactivate-frame-constructed-frame-render-listeners
+    section: "Frame and render broadcasts"
+    behavior: >
+      ACTIVATE, DEACTIVATE, ENTER_FRAME, FRAME_CONSTRUCTED, EXIT_FRAME, and RENDER
+      listeners place their DisplayObject into a static type registry; removing
+      the final listener removes that object from the registry.
+    status: covered
+    scenarios: []
+
+  - id: events.STG.broadcast-order-registry-insertion-order-order-objects
+    section: "Frame and render broadcasts"
+    behavior: >
+      Broadcast order is registry insertion order (the order objects first gain a
+      listener), not display-list walk order. Reordering or reparenting the
+      display list does not reorder the registry. Detached objects with stage ==
+      null are eligible too.
+    status: covered
+    scenarios: []
+
+  - id: events.STG.open-fl-iterates-live-registry-invokes-private
+    section: "Frame and render broadcasts"
+    behavior: >
+      OpenFL iterates the live registry and invokes the private local dispatcher
+      with one shared Event. The adapter iterates dispatchers.copy(), creates a
+      new Event per object, and calls public dispatchEvent(). Removal/addition
+      during a broadcast, Event identity/target retention, and mutation leakage
+      therefore differ.
+    status: missing
+    scenarios: []
+
+  - id: events.STG.calling-public-dispatch-also-introduces-ancestor-capture
+    section: "Frame and render broadcasts"
+    behavior: >
+      Calling public dispatch also introduces ancestor capture listeners in the
+      adapter. OpenFL's private broadcast dispatch is local-only; broadcast events
+      have neither capture nor bubble traversal.
+    status: missing
+    scenarios: []
+
+  - id: events.STG.per-rendered-frame-source-order-frame-then
+    section: "Frame and render broadcasts"
+    behavior: >
+      Per rendered frame, source order is ENTER_FRAME, then FRAME_CONSTRUCTED,
+      then EXIT_FRAME, followed by the recursive internal __enterFrame(deltaTime)
+      timeline advance. The adapter uses the same order.
+    status: covered
+    scenarios: []
+
+  - id: events.STG.invalidate-coalesces-boolean-one-render-broadcast-clears
+    section: "Frame and render broadcasts"
+    behavior: >
+      invalidate() coalesces in a Boolean. One RENDER broadcast clears it; callers
+      must invalidate again for another event.
+    status: covered
+    scenarios: []
+
+  - id: events.STG.open-fl-sends-render-immediately-before-renderer
+    section: "Frame and render broadcasts"
+    behavior: >
+      OpenFL sends RENDER immediately before renderer update/draw only when the
+      Stage is invalidated and that frame is actually eligible to render. The
+      adapter sends it from __advanceFrame before render-state preparation, even
+      if preparation later cancels the render.
+    status: missing
+    scenarios: []
+
+  - id: events.STG.automatic-beta-render-event-callbacks-individual-custom
+    section: "Frame and render broadcasts"
+    behavior: >
+      Automatic beta RenderEvent callbacks for individual custom-rendered objects
+      require a per-node Flight render-lifecycle bridge. This is distinct from the
+      standard Stage Event.RENDER broadcast; see agents/flight-gaps.md, “Custom
+      render-event lifecycle.”
+    status: flight-gap
+    gap: "Custom render-event lifecycle"
+    scenarios: []
+
+  - id: events.DOC.adding-child-sets-parent-connecting-detached-subtree
+    section: "Display-list lifecycle events"
+    behavior: >
+      Adding a child sets parent and, when connecting a detached subtree to a
+      Stage, sets the Stage reference before any event. It then dispatches
+      bubbling ADDED on the root child, followed by non-bubbling ADDED_TO_STAGE on
+      that child.
+    status: covered
+    scenarios:
+      - "integration/display-events:addRemove"
+      - "integration/display-events:descendantStageEvents"
+      - "display/container:addedEvents"
+
+  - id: events.DOC.added-participates-capture-target-bubble-routing-stage
+    section: "Display-list lifecycle events"
+    behavior: >
+      ADDED participates in capture, target, and bubble routing. ADDED_TO_STAGE
+      has bubbles == false, but its explicit display dispatch still runs capture
+      before the target.
+    status: covered
+    scenarios:
+      - "integration/display-events:addRemove"
+      - "integration/display-events:descendantStageEvents"
+      - "display/container:addedEvents"
+
+  - id: events.DOC.stage-then-visits-descendants-depth-first-child
+    section: "Display-list lifecycle events"
+    behavior: >
+      ADDED_TO_STAGE then visits descendants depth-first in child-index order,
+      dispatching a target event on each descendant before recursing into its
+      children. A detached subtree receives no ADDED_TO_STAGE until connected to
+      Stage.
+    status: covered
+    scenarios:
+      - "integration/display-events:addRemove"
+      - "integration/display-events:descendantStageEvents"
+      - "display/container:addedEvents"
+
+  - id: events.DOC.removal-first-dispatches-bubbling-removed-while-parent
+    section: "Display-list lifecycle events"
+    behavior: >
+      Removal first dispatches bubbling REMOVED while parent and stage still point
+      to the old tree. If staged, it then dispatches REMOVED_FROM_STAGE on the
+      root and descendants while those references are still intact; Stage and
+      parent references are cleared only afterward.
+    status: covered
+    scenarios:
+      - "integration/display-events:addRemove"
+      - "display/container:removedEvents"
+
+  - id: events.DOC.reparenting-through-add-child-first-invokes-old
+    section: "Display-list lifecycle events"
+    behavior: >
+      Reparenting through addChild first invokes the old parent's full removal
+      sequence. Even a move between two containers on the same Stage therefore
+      produces REMOVED, REMOVED_FROM_STAGE, ADDED, and ADDED_TO_STAGE in that
+      order. Reindexing a child already in the same parent produces none of these
+      events.
+    status: covered
+    scenarios:
+      - "integration/display-events:reparent"
+      - "display/container:reparent"
+
+  - id: events.DOC.open-fl-reuses-one-event-while-recursively
+    section: "Display-list lifecycle events"
+    behavior: >
+      OpenFL reuses one Event while recursively dispatching to descendants and
+      overwrites its target per direct child. The adapter creates a fresh base
+      Event for every child. Event identity, final target/currentTarget, default
+      state, and stop-propagation leakage across siblings therefore differ.
+    status: missing
+    scenarios: []
+
+  - id: events.DOC.implementations-traverse-live-child-arrays-retain-precomputed
+    section: "Display-list lifecycle events"
+    behavior: >
+      Both implementations traverse live child arrays and retain precomputed
+      add/remove decisions across callbacks. A listener that removes, reparents,
+      or inserts children during ADDED_TO_STAGE/REMOVED_FROM_STAGE can change
+      which later descendants are visited or cause the outer operation to continue
+      with stale assumptions. Exact mutation cases need reference captures before
+      this behavior is frozen.
+    status: missing
+    scenarios: []
+
+  - id: events.DOC.open-fl-clears-stage-focus-directly-removed
+    section: "Display-list lifecycle events"
+    behavior: >
+      OpenFL clears Stage focus when the directly removed child owns it before
+      finishing REMOVED_FROM_STAGE. The adapter removal path does not clear focus.
+      Descendant-focus behavior is unclear in the 9.5.2 source and should be
+      captured.
+    status: missing
+    scenarios: []
+
+  - id: events.EV.s-event-subclass-clone-bodies-match-open
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      The adapter's event subclass clone bodies match the OpenFL 9.5.2 source;
+      RenderEvent uses an equivalent public-field ColorTransform copy instead of
+      the upstream private helper.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:cloneBehavior"
+
+  - id: events.EV.contrary-common-expectation-that-dispatch-metadata-cleared
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      Contrary to the common expectation that dispatch metadata is cleared, OpenFL
+      9.5.2 Event.clone() explicitly copies target, currentTarget, and eventPhase.
+      Most subclass overrides do the same. Public redispatch then overwrites
+      target/currentTarget as listeners are invoked.
+    status: covered
+    scenarios:
+      - "ui/mouse:mouseEventClone"
+      - "events/redispatch:cloneRedispatch"
+
+  - id: events.EV.requested-clone-should-not-preserve-target-current
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      The requested “clone should not preserve target/currentTarget” contract
+      conflicts with the inspected 9.5.2 source and current captured MouseEvent
+      behavior. Any policy change requires a direct post-dispatch clone fixture;
+      it should not be made from documentation alone.
+    status: missing
+    scenarios: []
+
+  - id: events.EV.cancellation-flags-default-prevented-state-update-after
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      Cancellation flags, default-prevented state, and updateAfterEvent flags are
+      not copied; the clone keeps fresh constructor/default internal state.
+    status: covered
+    scenarios:
+      - "events/construction:cloned"
+      - "events/propagation:preventDefault"
+
+  - id: events.EV.non-pooled-eval-capture-untouched-event-s
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      In the non-pooled eval capture, an untouched Event's internal
+      default-prevented flag can remain null rather than an explicit false; the
+      existing propagation fixture records that source edge and the adapter
+      matches.
+    status: covered
+    scenarios: []
+
+  - id: events.EV.payload-copies-generally-shallow-arrays-byte-arrays
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      Payload copies are generally shallow: arrays, ByteArrays, Rectangles,
+      devices, sockets, and dynamic objects are passed by reference. RenderEvent
+      is the notable deep-copy case for its matrix and color transform.
+    status: covered
+    scenarios: []
+
+  - id: events.EV.six-direct-return-overrides-omit-dispatch-metadata
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      Six direct-return overrides omit dispatch metadata: DNSResolverEvent,
+      DatagramSocketDataEvent, DeviceRotationEvent, GeolocationEvent,
+      ScreenMouseEvent, and ServerSocketConnectEvent. Their payload is copied, but
+      the new event starts with null target/currentTarget and AT_TARGET phase.
+    status: covered
+    scenarios: []
+
+  - id: events.EV.file-list-event-invoke-event-output-progress
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      FileListEvent, InvokeEvent, and OutputProgressEvent do not override clone at
+      all. Inherited Event.clone() returns a base Event, so their concrete type
+      and subclass payload are lost. The adapter preserves this upstream source
+      behavior.
+    status: covered
+    scenarios: []
+
+  - id: events.EV.render-event-clone-assumes-non-null-object
+    section: "Event.clone() contract > Cross-cutting rules"
+    behavior: >
+      RenderEvent.clone() assumes non-null objectMatrix and objectColorTransform;
+      cloning a default-constructed instance fails while dereferencing them. The
+      adapter has the same edge behavior.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:renderEvent"
+
+  - id: events.E.event-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      Event.clone() copies none. Metadata and notable omissions: copied.
+    status: covered
+    scenarios:
+      - "events/event-basics:clone"
+      - "events/construction:cloned"
+
+  - id: events.A.accelerometer-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      AccelerometerEvent.clone() copies timestamp, acceleration X/Y/Z. Metadata
+      and notable omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.A.activity-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      ActivityEvent.clone() copies activating. Metadata and notable omissions:
+      copied.
+    status: covered
+    scenarios: []
+
+  - id: events.AE.async-error-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      AsyncErrorEvent.clone() copies text, error. Metadata and notable omissions:
+      copied.
+    status: covered
+    scenarios: []
+
+  - id: events.CM.context-menu-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      ContextMenuEvent.clone() copies mouseTarget, contextMenuOwner. Metadata and
+      notable omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.DNSR.d-n-s-resolver-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      DNSResolverEvent.clone() copies host, resourceRecords. Metadata and notable
+      omissions: omitted.
+    status: covered
+    scenarios: []
+
+  - id: events.D.data-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      DataEvent.clone() copies data. Metadata and notable omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.DSD.datagram-socket-data-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      DatagramSocketDataEvent.clone() copies source/destination addresses and
+      ports, data. Metadata and notable omissions: omitted.
+    status: covered
+    scenarios: []
+
+  - id: events.DR.device-rotation-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      DeviceRotationEvent.clone() copies timestamp, roll, pitch, yaw, quaternion.
+      Metadata and notable omissions: omitted.
+    status: covered
+    scenarios: []
+
+  - id: events.E.error-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      ErrorEvent.clone() copies text, errorID. Metadata and notable omissions:
+      copied.
+    status: covered
+    scenarios: []
+
+  - id: events.FL.file-list-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      FileListEvent.clone() copies none: inherited clone loses files and subtype.
+      Metadata and notable omissions: copied by base clone.
+    status: covered
+    scenarios: []
+
+  - id: events.F.focus-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      FocusEvent.clone() copies relatedObject, shiftKey, keyCode. Metadata and
+      notable omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.FS.full-screen-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      FullScreenEvent.clone() copies fullScreen, interactive. Metadata and notable
+      omissions: copied.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:fullScreenEvent"
+
+  - id: events.GI.game-input-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      GameInputEvent.clone() copies device. Metadata and notable omissions:
+      copied.
+    status: covered
+    scenarios: []
+
+  - id: events.G.geolocation-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      GeolocationEvent.clone() copies latitude, longitude, altitude, accuracies,
+      speed, heading, timestamp. Metadata and notable omissions: omitted.
+    status: covered
+    scenarios: []
+
+  - id: events.HTTPS.h-t-t-p-status-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      HTTPStatusEvent.clone() copies status, redirected. Metadata and notable
+      omissions: copied; responseURL and responseHeaders are not copied.
+    status: covered
+    scenarios: []
+
+  - id: events.IOE.i-o-error-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      IOErrorEvent.clone() copies text, errorID. Metadata and notable omissions:
+      copied.
+    status: covered
+    scenarios: []
+
+  - id: events.I.invoke-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      InvokeEvent.clone() copies none: inherited clone loses currentDirectory,
+      arguments, reason, and subtype. Metadata and notable omissions: copied by
+      base clone.
+    status: covered
+    scenarios: []
+
+  - id: events.K.keyboard-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      KeyboardEvent.clone() copies charCode, keyCode, keyLocation,
+      ctrl/alt/shift/control/command. Metadata and notable omissions: copied.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:cloneBehavior"
+
+  - id: events.M.mouse-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      MouseEvent.clone() copies local coordinates, relatedObject, modifiers,
+      buttonDown, delta, clickCount. Metadata and notable omissions: copied;
+      stageX/stageY, inaccessible flag, and update flag are not copied.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:cloneBehavior"
+      - "ui/mouse:mouseEventClone"
+
+  - id: events.NPE.native-process-exit-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      NativeProcessExitEvent.clone() copies exitCode. Metadata and notable
+      omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.NWB.native-window-bounds-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      NativeWindowBoundsEvent.clone() copies beforeBounds, afterBounds. Metadata
+      and notable omissions: copied; Rectangle references are shallow.
+    status: covered
+    scenarios: []
+
+  - id: events.NWDS.native-window-display-state-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      NativeWindowDisplayStateEvent.clone() copies beforeDisplayState,
+      afterDisplayState. Metadata and notable omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.NS.net-status-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      NetStatusEvent.clone() copies info. Metadata and notable omissions: copied;
+      dynamic info is shallow.
+    status: covered
+    scenarios: []
+
+  - id: events.OP.output-progress-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      OutputProgressEvent.clone() copies none: inherited clone loses bytesPending,
+      bytesTotal, and subtype. Metadata and notable omissions: copied by base
+      clone.
+    status: covered
+    scenarios: []
+
+  - id: events.P.permission-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      PermissionEvent.clone() copies status. Metadata and notable omissions:
+      copied.
+    status: covered
+    scenarios: []
+
+  - id: events.P.progress-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      ProgressEvent.clone() copies bytesLoaded, bytesTotal. Metadata and notable
+      omissions: copied.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:cloneBehavior"
+
+  - id: events.R.render-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      RenderEvent.clone() copies objectMatrix, objectColorTransform,
+      allowSmoothing. Metadata and notable omissions: copied; matrix/color are
+      deep, renderer and update flag are not copied.
+    status: covered
+    scenarios:
+      - "events/event-subclass-construction:renderEvent"
+
+  - id: events.SD.sample-data-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      SampleDataEvent.clone() copies data, position. Metadata and notable
+      omissions: copied; ByteArray is shallow.
+    status: covered
+    scenarios: []
+
+  - id: events.SM.screen-mouse-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      ScreenMouseEvent.clone() copies screen coordinates, modifiers, buttonDown.
+      Metadata and notable omissions: omitted.
+    status: covered
+    scenarios: []
+
+  - id: events.SE.security-error-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      SecurityErrorEvent.clone() copies text, errorID. Metadata and notable
+      omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.SSC.server-socket-connect-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      ServerSocketConnectEvent.clone() copies socket. Metadata and notable
+      omissions: omitted.
+    status: covered
+    scenarios: []
+
+  - id: events.SO.stage-orientation-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      StageOrientationEvent.clone() copies beforeOrientation, afterOrientation.
+      Metadata and notable omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.T.text-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      TextEvent.clone() copies text. Metadata and notable omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.T.timer-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      TimerEvent.clone() copies no subclass payload. Metadata and notable
+      omissions: copied.
+    status: covered
+    scenarios: []
+
+  - id: events.T.touch-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      TouchEvent.clone() copies touch ID/primary flag, local coordinates, size,
+      pressure, relatedObject, modifiers. Metadata and notable omissions: copied;
+      stageX/stageY and update flag are not copied.
+    status: covered
+    scenarios: []
+
+  - id: events.UE.uncaught-error-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      UncaughtErrorEvent.clone() copies error. Metadata and notable omissions:
+      copied.
+    status: covered
+    scenarios: []
+
+  - id: events.VT.video-texture-clone
+    section: "Event.clone() contract > Clone inventory"
+    behavior: >
+      VideoTextureEvent.clone() copies status, colorSpace. Metadata and notable
+      omissions: copied.
+    status: covered
+    scenarios: []
