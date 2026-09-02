@@ -16,14 +16,39 @@
     "portZeroConnected": false,
     "port65535Connected": false
   },
+  "lifecycleAndUTF8": {
+    "pendingAfterWrite": 17,
+    "readBack": "flight socket ✓",
+    "connectedAfterOpen": true,
+    "connectedAfterClose": false,
+    "availableBeforeRead": 17,
+    "availableAfterRead": 0,
+    "eventsBeforeLocalClose": [
+      "connect",
+      "close"
+    ],
+    "pendingAfterEmptyFlush": 0,
+    "emptyFlushError": null,
+    "eventsAfterLocalClose": [
+      "connect",
+      "close"
+    ]
+  },
   "invalidPorts": {
     "negative": "openfl.errors.SecurityError",
     "tooHigh": "openfl.errors.SecurityError"
+  },
+  "amfCompatibility": {
+    "readResult": null,
+    "pending": 0,
+    "writeError": null
   },
   "disconnectedErrors": {
     "writeByte": "openfl.errors.IOError",
     "flush": "openfl.errors.IOError",
     "close": "openfl.errors.IOError",
+    "writeUTFBytes": "openfl.errors.IOError",
+    "readUTFBytes": "openfl.errors.IOError",
     "readByte": "openfl.errors.IOError"
   }
 }

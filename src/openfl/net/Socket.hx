@@ -748,7 +748,8 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		}
 		else
 		{
-			// TODO: Add support for AMF if haxelib "format" is included
+			// Flight exposes no AMF serializer. Preserve OpenFL 9.5.2's null
+			// compatibility result until a byte-oriented codec is available.
 			return null;
 		}
 	}
@@ -1022,7 +1023,8 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		}
 		else
 		{
-			// TODO: Add support for AMF if haxelib "format" is included
+			// Flight exposes no AMF serializer. Preserve OpenFL 9.5.2's no-op
+			// compatibility behavior until a byte-oriented codec is available.
 		}
 	}
 

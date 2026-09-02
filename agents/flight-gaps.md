@@ -100,8 +100,9 @@ the capability that this adapter can compile against.
   flight-hx remains the gap, and ByteArray continues to use `haxe.io.Bytes`.
 
 - **Object wire formats**: OpenFL `ByteArray.readObject` and `writeObject`
-  support AMF0, AMF3, HXSF, and JSON encodings. Flight 0.4.0 exposes no public
-  object serialization API. HXSF and JSON currently fall back to Haxe standard
+  support AMF0, AMF3, HXSF, and JSON encodings, while `Socket` retains its HXSF
+  fallback and shares the AMF gap. Flight 0.4.0 exposes no public object
+  serialization API. HXSF and JSON currently fall back to Haxe standard
   serializers; AMF0 and AMF3 are explicit no-ops because their OpenFL internal
   readers and writers cannot be carried into this adapter. Flight needs an
   encoding-selectable serializer/deserializer that consumes and returns bytes,
@@ -147,9 +148,11 @@ the capability that this adapter can compile against.
   reports a raw TCP `SocketBackend` in `@flighthq/socket`, but the refreshed
   generated `flight.Socket` facade still exposes the WebSocket-shaped
   `SocketOptions` (`url`, protocols, and binary type) and no raw TCP factory or
-  endpoint options. OpenFL `Socket` therefore retains its Haxe system transport
-  with timer-driven polling on native targets until flight-hx exposes the new
-  backend and a maintained native host installs it.
+  endpoint options. Flight currently backs HTML5 WebSocket connection events,
+  binary messages, closure, errors, and buffered sends. OpenFL `Socket`
+  therefore retains its Haxe system transport with timer-driven polling for
+  native raw TCP until flight-hx exposes the new backend and a maintained
+  native host installs it.
 
 - **UDP datagram sockets**: Flight Socket accepts a WebSocket URL and exposes a
   connection-oriented message channel. It has no UDP endpoint, local bind,
