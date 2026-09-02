@@ -1,14 +1,36 @@
 package harness.scenarios;
 
 import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import openfl.display.DisplayObject;
+import openfl.display.IDisplayObjectLoader;
 import openfl.display.Loader;
+import openfl.display.LoaderInfo;
+import openfl.display.Stage;
+import openfl.display.Window;
+import openfl.errors.Error;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.events.ProgressEvent;
+import openfl.Lib;
+import openfl.net.URLRequest;
+import openfl.system.LoaderContext;
 import openfl.utils.ByteArray;
+import openfl.utils.Future;
 
 class LoaderScenario {
 	public static function run():Dynamic {
+		var idleLoader = new Loader();
+		var idleCloseError:String = null;
+		try
+		{
+			idleLoader.close();
+		}
+		catch (error:Dynamic)
+		{
+			idleCloseError = Std.string(error);
+		}
+
 		var loader = new Loader();
 		var info = loader.contentLoaderInfo;
 		var events:Array<String> = [];
@@ -21,7 +43,9 @@ class LoaderScenario {
 
 		var defaults = {
 			contentIsNull: loader.content == null,
+			contentLoaderInfoExists: loader.contentLoaderInfo != null,
 			contentLoaderInfoStable: loader.contentLoaderInfo == info,
+			idleCloseError: idleCloseError,
 			loaderMatches: info.loader == loader,
 			bytesLoaded: info.bytesLoaded,
 			bytesTotal: info.bytesTotal,
@@ -61,25 +85,71 @@ class LoaderScenario {
 			events: events.copy()
 		};
 
-		var closeError:String = null;
+		var loadedContent = loader.content;
+		var removedContent:DisplayObject = null;
+		var removeChildError:String = null;
 		try
 		{
-			loader.close();
+			removedContent = loader.removeChild(loadedContent);
 		}
 		catch (error:Dynamic)
 		{
-			closeError = Std.string(error);
+			removeChildError = Std.string(error);
 		}
-		loader.unload();
+
+		var addChildErrorID:Null<Int> = null;
+		try
+		{
+			loader.addChild(loadedContent);
+		}
+		catch (error:Dynamic)
+		{
+			addChildErrorID = Std.isOfType(error, Error) ? (cast error : Error).errorID : -1;
+		}
+
+		Loader.registerLoader(new MemoryDisplayObjectLoader());
+		var rootStage = createRootStage();
+		var unloadLoader = new Loader();
+		var unloadEvents:Array<String> = [];
+		unloadLoader.contentLoaderInfo.addEventListener(Event.OPEN, function(_):Void unloadEvents.push("open"));
+		unloadLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(_):Void unloadEvents.push("complete"));
+		unloadLoader.contentLoaderInfo.addEventListener(Event.UNLOAD, function(_):Void unloadEvents.push("unload"));
+		var memoryLoadError:String = null;
+		try
+		{
+			unloadLoader.load(new URLRequest(MemoryDisplayObjectLoader.URL));
+		}
+		catch (error:Dynamic)
+		{
+			memoryLoadError = Std.string(error);
+		}
+		if (Lib.current.parent == rootStage) rootStage.removeChild(Lib.current);
+		var beforeUnload = {
+			loadError: memoryLoadError,
+			contentIsBitmap: Std.isOfType(unloadLoader.content, Bitmap),
+			contentParentMatches: unloadLoader.content != null && unloadLoader.content.parent == unloadLoader,
+			numChildren: unloadLoader.numChildren,
+			events: unloadEvents.copy()
+		};
+		unloadLoader.unload();
 
 		return {
 			defaults: defaults,
-			afterLoad: afterLoad,
-			afterUnload: {
-				closeError: closeError,
-				contentIsNull: loader.content == null,
+			afterLoadBytes: afterLoad,
+			loadedContentInteraction: {
+				removedContentMatches: removedContent == loadedContent,
+				removeChildError: removeChildError,
+				contentStillMatches: loader.content == loadedContent,
+				contentParentIsNull: loadedContent != null && loadedContent.parent == null,
 				numChildren: loader.numChildren,
-				events: events
+				addChildErrorID: addChildErrorID
+			},
+			beforeUnload: beforeUnload,
+			afterUnload: {
+				contentIsNull: unloadLoader.content == null,
+				infoContentIsNull: unloadLoader.contentLoaderInfo.content == null,
+				numChildren: unloadLoader.numChildren,
+				events: unloadEvents
 			}
 		};
 	}
@@ -96,5 +166,41 @@ class LoaderScenario {
 		for (value in values) result.writeByte(value);
 		result.position = 0;
 		return result;
+	}
+
+	private static function createRootStage():Stage
+	{
+		var window:Dynamic = Type.createEmptyInstance(Window);
+		#if harness_capture
+		Reflect.setField(window, "__width", 1);
+		Reflect.setField(window, "__height", 1);
+		Reflect.setField(window, "__scale", 1);
+		Reflect.setField(window, "__fullscreen", false);
+		#else
+		window.width = 1;
+		window.height = 1;
+		window.scale = 1;
+		window.fullscreen = false;
+		#end
+		return new Stage(cast window, 0);
+	}
+}
+
+private class MemoryDisplayObjectLoader implements IDisplayObjectLoader
+{
+	public static inline var URL = "memory://loader.png";
+
+	public function new() {}
+
+	public function load(request:URLRequest, context:LoaderContext, contentLoaderInfo:LoaderInfo):Future<DisplayObject>
+	{
+		if (request == null || request.url != URL) return null;
+		var content:DisplayObject = new Bitmap(new BitmapData(1, 1, true, 0x80402010));
+		return Future.withValue(content);
+	}
+
+	public function loadBytes(buffer:ByteArray, context:LoaderContext, contentLoaderInfo:LoaderInfo):Future<DisplayObject>
+	{
+		return null;
 	}
 }

@@ -2,9 +2,11 @@
   "defaults": {
     "uncaughtEventsMatch": true,
     "bytesTotal": 0,
+    "idleCloseError": null,
     "contentType": null,
     "contentLoaderInfoStable": true,
     "url": null,
+    "contentLoaderInfoExists": true,
     "loaderMatches": true,
     "applicationDomainExists": true,
     "contentIsNull": true,
@@ -16,14 +18,16 @@
     "width": -1
   },
   "afterUnload": {
+    "infoContentIsNull": true,
     "events": [
-      "complete"
+      "open",
+      "complete",
+      "unload"
     ],
-    "contentIsNull": false,
-    "numChildren": 1,
-    "closeError": null
+    "contentIsNull": true,
+    "numChildren": 0
   },
-  "afterLoad": {
+  "afterLoadBytes": {
     "bytesTotal": 0,
     "contentType": null,
     "events": [
@@ -37,5 +41,23 @@
     "bytesLoaded": 0,
     "contentIsBitmap": true,
     "width": 0
+  },
+  "beforeUnload": {
+    "events": [
+      "open",
+      "complete"
+    ],
+    "contentParentMatches": true,
+    "loadError": null,
+    "numChildren": 1,
+    "contentIsBitmap": true
+  },
+  "loadedContentInteraction": {
+    "removeChildError": null,
+    "contentParentIsNull": true,
+    "contentStillMatches": true,
+    "numChildren": 0,
+    "removedContentMatches": true,
+    "addChildErrorID": 2069
   }
 }

@@ -63,9 +63,28 @@ class Loader extends DisplayObjectContainer
 		}
 		contentLoaderInfo.dispatchEvent(new Event(Event.OPEN));
 		contentLoaderInfo.url = request.url;
+		__unloaded = false;
+
+		if (__registeredLoaders != null)
+		{
+			var i = __registeredLoaders.length;
+			while (i > 0)
+			{
+				i--;
+				var registeredLoader = __registeredLoaders[i];
+				var future = registeredLoader.load(request, context, contentLoaderInfo);
+				if (future != null)
+				{
+					future.onComplete(Loader_onComplete);
+					future.onProgress(Loader_onProgress);
+					future.onError(Loader_onError);
+					return;
+				}
+			}
+		}
+
 		__flightImageReference = FlightImage.createExternalImageResourceReference(request.url);
 		contentLoaderInfo.__setFlightResourceReference(__flightImageReference);
-		__unloaded = false;
 	}
 
 	public function loadBytes(buffer:ByteArray, context:LoaderContext = null):Void
