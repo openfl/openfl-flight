@@ -49,10 +49,29 @@
     "width": 20.25
   },
   "font": {
-    "style": 0,
-    "after": 1,
-    "name": "Harness Font",
-    "type": 1,
-    "before": 0
+    "direct": {
+      "style": 1,
+      "name": "Renamed Font",
+      "type": 0
+    },
+    "registration": {
+      "after": 2,
+      "allFonts": true,
+      "lastName": "Harness Font",
+      "isArray": true,
+      "instanceError": null,
+      "classError": null,
+      "before": 0
+    },
+    "factories": {
+      "loadFromBytesAvailable": true,
+      "fromFileNull": true,
+      "loadFromFileAvailable": true,
+      "fromBytesError": null,
+      "fromBytesAvailable": true,
+      "loadFromNameAvailable": true,
+      "fromFileAvailable": true,
+      "fromBytesIsFont": true
+    }
   }
 }

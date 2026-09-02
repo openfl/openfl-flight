@@ -6,6 +6,7 @@ import openfl.text.FontType;
 import openfl.text.StyleSheet;
 import openfl.text.TextFormat;
 import openfl.text.TextLineMetrics;
+import openfl.utils.ByteArray;
 import openfl.utils.Object;
 
 class FontAndStyleScenario {
@@ -19,17 +20,61 @@ class FontAndStyleScenario {
 	}
 
 	private static function testFont():Dynamic {
+		var direct = new Font("Direct Font");
+		direct.fontName = "Renamed Font";
+		direct.fontStyle = FontStyle.BOLD_ITALIC;
+		direct.fontType = FontType.DEVICE;
+
 		var before = Font.enumerateFonts().length;
-		Font.registerFont(HarnessFont);
+		var classRegistrationError = call(function():Void Font.registerFont(HarnessFont));
+		var instanceRegistrationError = call(function():Void Font.registerFont(new HarnessFont()));
 		var fonts = Font.enumerateFonts();
-		var font = fonts[fonts.length - 1];
+
+		var fromBytesResult:Dynamic = null;
+		var fromBytesError = call(function():Void fromBytesResult = Font.fromBytes(new ByteArray()));
+
 		return {
-			before: before,
-			after: fonts.length,
-			name: font.fontName,
-			style: font.fontStyle,
-			type: font.fontType
+			direct: {
+				name: direct.fontName,
+				style: direct.fontStyle,
+				type: direct.fontType
+			},
+			registration: {
+				before: before,
+				after: fonts.length,
+				classError: classRegistrationError,
+				instanceError: instanceRegistrationError,
+				isArray: Std.isOfType(fonts, Array),
+				allFonts: allFonts(fonts),
+				lastName: fonts[fonts.length - 1].fontName
+			},
+			factories: {
+				fromBytesAvailable: Reflect.isFunction(Reflect.field(Font, "fromBytes")),
+				fromFileAvailable: Reflect.isFunction(Reflect.field(Font, "fromFile")),
+				loadFromBytesAvailable: Reflect.isFunction(Reflect.field(Font, "loadFromBytes")),
+				loadFromFileAvailable: Reflect.isFunction(Reflect.field(Font, "loadFromFile")),
+				loadFromNameAvailable: Reflect.isFunction(Reflect.field(Font, "loadFromName")),
+				fromBytesError: fromBytesError,
+				fromBytesIsFont: fromBytesResult != null && Std.isOfType(fromBytesResult, Font),
+				fromFileNull: Font.fromFile(null) == null
+			}
 		};
+	}
+
+	private static function allFonts(fonts:Array<Font>):Bool {
+		for (font in fonts) {
+			if (!Std.isOfType(font, Font)) return false;
+		}
+		return true;
+	}
+
+	private static function call(operation:Void->Void):Null<String> {
+		try {
+			operation();
+		} catch (error:Dynamic) {
+			return Std.string(error);
+		}
+		return null;
 	}
 
 	private static function testLineMetrics():Dynamic {
