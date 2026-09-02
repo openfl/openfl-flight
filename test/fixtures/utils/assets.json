@@ -1,0 +1,50 @@
+{
+  "defaultLibrary": {
+    "lookupMatchesNamedDefault": true,
+    "hasLibraryMatchesLookup": true
+  },
+  "populatedCache": {
+    "removeMissingBitmapData": false,
+    "removeBitmapData": true,
+    "fontMatches": true,
+    "reenabled": true,
+    "disabled": true,
+    "enabledByDefault": true,
+    "hasBitmapDataAfterRemove": false,
+    "hasFont": true,
+    "bitmapDataMatches": true,
+    "hasBitmapData": true
+  },
+  "assetTypes": {
+    "text": "TEXT",
+    "music": "MUSIC",
+    "sound": "SOUND",
+    "movieClip": "MOVIE_CLIP",
+    "font": "FONT",
+    "binary": "BINARY",
+    "image": "IMAGE",
+    "template": "TEMPLATE"
+  },
+  "clearedCache": {
+    "bitmapDataIsNull": true,
+    "fontIsNull": true,
+    "hasFont": false,
+    "hasBitmapData": false
+  },
+  "registeredLibrary": {
+    "listedImages": [
+      "harness-assets:image"
+    ],
+    "hasBeforeRegister": false,
+    "path": "memory://image.png",
+    "existsAsImage": true,
+    "lookupMatches": true,
+    "isLocal": true,
+    "hasAfterRegister": true,
+    "existsAsSound": false
+  },
+  "unregisteredLibrary": {
+    "hasLibrary": false,
+    "lookupIsNull": true
+  }
+}

@@ -1,5 +1,6 @@
 package harness;
 
+import harness.scenarios.AssetScenario;
 import harness.scenarios.BitmapDataScenario;
 import harness.scenarios.ByteArrayScenario;
 import harness.scenarios.CertificateStatusScenario;
@@ -84,6 +85,10 @@ import harness.scenarios.XMLSocketScenario;
 class Scenarios {
 	public static function all():Array<Scenario> {
 		return [
+			{
+				name: "utils/assets",
+				run: AssetScenario.run
+			},
 			{
 				name: "utils/object-pool",
 				run: ObjectPoolScenario.run

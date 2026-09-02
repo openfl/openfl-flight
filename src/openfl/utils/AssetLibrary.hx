@@ -44,6 +44,11 @@ class AssetLibrary #if lime extends LimeAssetLibrary #end
 			return super.exists(id, type);
 		}
 	}
+	#else
+	public function exists(id:String, type:String):Bool
+	{
+		return false;
+	}
 	#end
 
 	public static function fromBundle(bundle:AssetBundle):AssetLibrary
@@ -205,6 +210,11 @@ class AssetLibrary #if lime extends LimeAssetLibrary #end
 			return super.getPath(id);
 		}
 	}
+	#else
+	public function getPath(id:String):String
+	{
+		return null;
+	}
 	#end
 
 	#if lime
@@ -233,6 +243,11 @@ class AssetLibrary #if lime extends LimeAssetLibrary #end
 			return super.isLocal(id, type);
 		}
 	}
+	#else
+	public function isLocal(id:String, type:String):Bool
+	{
+		return false;
+	}
 	#end
 
 	#if lime
@@ -246,6 +261,11 @@ class AssetLibrary #if lime extends LimeAssetLibrary #end
 		{
 			return super.list(type);
 		}
+	}
+	#else
+	public function list(type:String):Array<String>
+	{
+		return [];
 	}
 	#end
 
@@ -409,5 +429,7 @@ class AssetLibrary #if lime extends LimeAssetLibrary #end
 			return super.unload();
 		}
 	}
+	#else
+	public function unload():Void {}
 	#end
 }

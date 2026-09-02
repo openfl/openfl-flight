@@ -1,3 +1,4 @@
 -cp test/harness/src
 -main harness.Main
 --interp
+-D tools

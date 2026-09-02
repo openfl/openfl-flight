@@ -52,6 +52,9 @@ class Assets
 
 	@:noCompletion private static var dispatcher:EventDispatcher #if !macro = new EventDispatcher() #end;
 	private static var libraryBindings:Map<String, AssetLibrary> = new Map();
+	#if !lime
+	private static var registeredLibraries:Map<String, AssetLibrary> = new Map();
+	#end
 
 	public static function addEventListener(type:String, listener:Dynamic, useCapture:Bool = false, priority:Int = 0, useWeakReference:Bool = false):Void
 	{
@@ -81,7 +84,8 @@ class Assets
 		#if lime
 		return LimeAssets.exists(id, cast type);
 		#else
-		return false;
+		var symbol = __resolveLibrarySymbol(id);
+		return symbol.library != null && symbol.library.exists(symbol.id, cast type);
 		#end
 	}
 
@@ -222,7 +226,8 @@ class Assets
 		#if lime
 		return LimeAssets.getLibrary(name);
 		#else
-		return null;
+		if (name == null || name == "") name = "default";
+		return registeredLibraries.get(name);
 		#end
 	}
 
@@ -310,7 +315,8 @@ class Assets
 		#if lime
 		return LimeAssets.getPath(id);
 		#else
-		return null;
+		var symbol = __resolveLibrarySymbol(id);
+		return symbol.library != null && symbol.library.exists(symbol.id, null) ? symbol.library.getPath(symbol.id) : null;
 		#end
 	}
 
@@ -391,7 +397,8 @@ class Assets
 		#if lime
 		return LimeAssets.hasLibrary(name);
 		#else
-		return false;
+		if (name == null || name == "") name = "default";
+		return registeredLibraries.exists(name);
 		#end
 	}
 
@@ -470,9 +477,14 @@ class Assets
 		{
 			return library.isLocal(symbolName, cast type);
 		}
-		#end
 
 		return false;
+		#elseif !lime
+		var symbol = __resolveLibrarySymbol(id);
+		return symbol.library != null && symbol.library.isLocal(symbol.id, cast type);
+		#else
+		return false;
+		#end
 	}
 
 	@:analyzer(ignore) private static function isValidBitmapData(bitmapData:BitmapData):Bool
@@ -516,7 +528,13 @@ class Assets
 		#if lime
 		return LimeAssets.list(cast type);
 		#else
-		return [];
+		var result:Array<String> = [];
+		for (library in registeredLibraries)
+		{
+			var items = library.list(cast type);
+			if (items != null) result = result.concat(items);
+		}
+		return result;
 		#end
 	}
 
@@ -889,6 +907,10 @@ class Assets
 	{
 		#if lime
 		LimeAssets.registerLibrary(name, library);
+		#else
+		if (name == null || name == "") name = "default";
+		if (registeredLibraries.exists(name)) unloadLibrary(name);
+		registeredLibraries.set(name, library);
 		#end
 	}
 
@@ -916,10 +938,26 @@ class Assets
 		return value;
 	}
 
+	#if !lime
+	@:noCompletion private static function __resolveLibrarySymbol(id:String):{library:AssetLibrary, id:String}
+	{
+		if (id == null) return {library: null, id: null};
+		var separator = id.indexOf(":");
+		var libraryName = separator > -1 ? id.substring(0, separator) : "default";
+		var symbolID = separator > -1 ? id.substr(separator + 1) : id;
+		return {library: getLibrary(libraryName), id: symbolID};
+	}
+	#end
+
 	public static function unloadLibrary(name:String):Void
 	{
 		#if lime
 		LimeAssets.unloadLibrary(name);
+		#else
+		if (name == null || name == "") name = "default";
+		var library = registeredLibraries.get(name);
+		if (library != null) library.unload();
+		registeredLibraries.remove(name);
 		#end
 	}
 
