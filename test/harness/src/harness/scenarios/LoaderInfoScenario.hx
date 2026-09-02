@@ -3,6 +3,7 @@ package harness.scenarios;
 import openfl.display.Bitmap;
 import openfl.display.Loader;
 import openfl.display.LoaderInfo;
+import openfl.events.EventDispatcher;
 import openfl.system.ApplicationDomain;
 import openfl.utils.ByteArray;
 
@@ -12,6 +13,11 @@ class LoaderInfoScenario {
 		var info = loader.contentLoaderInfo;
 		var parameterFields = Reflect.fields(info.parameters);
 		parameterFields.sort(Reflect.compare);
+		var lookup = Reflect.field(LoaderInfo, "getLoaderInfoByDefinition");
+		var nullDefinitionReturnsNull = lookup == null
+			|| Reflect.callMethod(LoaderInfo, lookup, [null]) == null;
+		var unknownDefinitionReturnsNull = lookup == null
+			|| Reflect.callMethod(LoaderInfo, lookup, [String]) == null;
 
 		var defaults = {
 			stableReference: info == loader.contentLoaderInfo,
@@ -28,21 +34,23 @@ class LoaderInfoScenario {
 			height: info.height,
 			loaderURL: info.loaderURL,
 			parameterFields: parameterFields,
+			parametersExist: info.parameters != null,
+			parametersAreEmpty: parameterFields.length == 0,
 			parentAllowsChild: info.parentAllowsChild,
 			sameDomain: info.sameDomain,
 			sharedEvents: info.sharedEvents,
+			sharedEventsIsEventDispatcher: Std.isOfType(info.sharedEvents, EventDispatcher),
 			uncaughtErrorEventsExists: info.uncaughtErrorEvents != null,
+			nullDefinitionReturnsNull: nullDefinitionReturnsNull,
+			unknownDefinitionReturnsNull: unknownDefinitionReturnsNull,
 			url: info.url,
 			width: info.width
 		};
 
 		var bytes = pngBytes();
 		loader.loadBytes(bytes);
-		var lookup = Reflect.field(LoaderInfo, "getLoaderInfoByDefinition");
 		var definitionLookupMatches = lookup == null
 			|| Reflect.callMethod(LoaderInfo, lookup, [Type.getClass(loader.content)]) == info;
-		var unknownDefinitionReturnsNull = lookup == null
-			|| Reflect.callMethod(LoaderInfo, lookup, [String]) == null;
 
 		return {
 			defaults: defaults,
@@ -58,7 +66,6 @@ class LoaderInfoScenario {
 				frameRate: info.frameRate,
 				height: info.height,
 				loaderURL: info.loaderURL,
-				unknownDefinitionReturnsNull: unknownDefinitionReturnsNull,
 				url: info.url,
 				width: info.width
 			}
