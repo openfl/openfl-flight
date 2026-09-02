@@ -557,7 +557,9 @@ private typedef GraphicsBitmapPaint =
 
 	@:noCompletion private function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
-		return FlightInteraction.hitTestNodeRegion(__flightShape, x, y, shapeFlag);
+		// OpenFL 9.5.2 performs precise vector hit tests only through its HTML5
+		// canvas and Lime CFFI renderers; other targets fall back to bounds.
+		return FlightInteraction.hitTestNodeRegion(__flightShape, x, y, #if ((js && html5) || lime_cffi) shapeFlag #else false #end);
 	}
 
 	@:noCompletion private function __invalidate():Void

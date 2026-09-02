@@ -15,6 +15,7 @@ import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
 import harness.scenarios.DisplayCompositionScenario;
 import harness.scenarios.DisplayEventsIntegrationScenario;
+import harness.scenarios.DisplayGeomIntegrationScenario;
 import harness.scenarios.DisplayHitTestScenario;
 import harness.scenarios.DisplayObjectScenario;
 import harness.scenarios.DisplayObjectPropertyEdgesScenario;
@@ -115,6 +116,10 @@ class Scenarios {
 			{
 				name: "integration/display-events",
 				run: DisplayEventsIntegrationScenario.run
+			},
+			{
+				name: "integration/display-geom",
+				run: DisplayGeomIntegrationScenario.run
 			},
 			{
 				name: "geom/point",

@@ -1,0 +1,94 @@
+{
+  "bounds": {
+    "parentOnStage": {
+      "x": 145.632845,
+      "y": 81.893624,
+      "height": 36.248589,
+      "width": 45.37243
+    },
+    "parent": {
+      "x": 15.430338,
+      "y": -25.846639,
+      "height": 33.497267,
+      "width": 38.278647
+    },
+    "self": {
+      "x": -10,
+      "y": -5,
+      "height": 20,
+      "width": 40
+    },
+    "stage": {
+      "x": 145.632845,
+      "y": 81.893624,
+      "height": 36.248589,
+      "width": 45.37243
+    }
+  },
+  "shapeHitTest": {
+    "outside": {
+      "bounds": false,
+      "shape": false
+    },
+    "center": {
+      "bounds": true,
+      "shape": true
+    },
+    "corner": {
+      "bounds": true,
+      "shape": true
+    }
+  },
+  "concatenatedMatrix": {
+    "viaDisplay": {
+      "x": 16.55515,
+      "y": 49.604784
+    },
+    "matrix": {
+      "tx": 14.29758,
+      "d": 0.569035,
+      "c": -0.167897,
+      "a": 0.976386,
+      "b": 0.830167,
+      "ty": 44.838144
+    },
+    "matchesDisplayConversion": true,
+    "viaMatrix": {
+      "x": 16.55515,
+      "y": 49.604784
+    }
+  },
+  "matrixAssignment": {
+    "scaleX": 2,
+    "x": 45,
+    "y": -30,
+    "rotation": 90,
+    "matrix": {
+      "tx": 45,
+      "d": 0,
+      "c": -3,
+      "a": 0,
+      "b": 2,
+      "ty": -30
+    },
+    "scaleY": 3
+  },
+  "coordinateRoundTrip": {
+    "delta": {
+      "x": 0,
+      "y": 0
+    },
+    "local": {
+      "x": 7.25,
+      "y": -3.5
+    },
+    "restored": {
+      "x": 7.25,
+      "y": -3.5
+    },
+    "global": {
+      "x": 120.315925,
+      "y": 46.238102
+    }
+  }
+}
