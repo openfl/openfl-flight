@@ -1,0 +1,42 @@
+{
+  "defaults": {
+    "idleTimeout": 30000,
+    "contentType": null,
+    "url": null,
+    "method": "GET",
+    "requestHeaderCount": 0,
+    "manageCookies": true,
+    "followRedirects": true,
+    "userAgent": null,
+    "dataIsNull": true
+  },
+  "variables": {
+    "plus": "hello again",
+    "space": "hello world",
+    "toString": "ampersand=a%26b&equals=a%3Db&plus=hello%20again&space=hello%20world",
+    "roundTrip": "ampersand=a%26b&equals=a%3Db&plus=hello%20again&space=hello%20world",
+    "equals": "a=b",
+    "ampersand": "a&b"
+  },
+  "properties": {
+    "dataCount": "2",
+    "idleTimeout": 1234,
+    "contentType": "application/x-www-form-urlencoded",
+    "url": "https://example.invalid/second",
+    "method": "POST",
+    "requestHeaderCount": 2,
+    "dataIdentityPreserved": true,
+    "manageCookies": false,
+    "followRedirects": false,
+    "userAgent": "flight-test-agent",
+    "secondHeader": {
+      "name": "X-Mode",
+      "value": "two"
+    },
+    "dataName": "flight",
+    "firstHeader": {
+      "name": "X-Flight",
+      "value": "one"
+    }
+  }
+}
