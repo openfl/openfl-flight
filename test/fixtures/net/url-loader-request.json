@@ -5,6 +5,15 @@
     "defaultName": "",
     "value": "text/plain"
   },
+  "errorEvents": {
+    "bytesTotal": 0,
+    "events": [
+      "ioError:io failure",
+      "securityError:security failure"
+    ],
+    "data": null,
+    "bytesLoaded": 0
+  },
   "loaderDefaults": {
     "bytesTotal": 0,
     "dataFormat": 1,

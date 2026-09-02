@@ -55,6 +55,8 @@ class URLTypesScenario {
 
 	private static function testVariables():Dynamic {
 		var empty = new URLVariables();
+		var nullSource = new URLVariables(null);
+		var emptySource = new URLVariables("");
 		var decoded = new URLVariables("greeting=hello%20world&plus=a+b&empty&=ignored&repeat=first&repeat=second&encoded%20key=a%2Fb");
 		var initial = {
 			fieldCount: Reflect.fields(cast decoded).length,
@@ -78,12 +80,35 @@ class URLTypesScenario {
 		Reflect.setField(cast arrays, "items[]", ["one two", "a/b"]);
 		Reflect.setField(cast arrays, "sp ace", "x/y");
 
+		var nullable = new URLVariables();
+		Reflect.setField(cast nullable, "empty", "");
+		Reflect.setField(cast nullable, "null", null);
+		Reflect.setField(cast nullable, "unicode", "caf\u00e9 \u2603");
+
+		var nullDecodeError:Dynamic = null;
+		try {
+			decoded.decode(null);
+		} catch (error:Dynamic) {
+			nullDecodeError = error;
+		}
+
 		return {
 			emptyFieldCount: Reflect.fields(cast empty).length,
 			emptyString: empty.toString(),
+			nullSourceFieldCount: Reflect.fields(cast nullSource).length,
+			emptySource: {
+				fieldCount: Reflect.fields(cast emptySource).length,
+				serialized: emptySource.toString()
+			},
 			initial: initial,
 			afterDecode: afterDecode,
-			arrayEncoding: canonical(arrays.toString())
+			arrayEncoding: canonical(arrays.toString()),
+			nullableEncoding: canonical(nullable.toString()),
+			nullDecode: {
+				errorClass: errorClass(nullDecodeError),
+				fieldCountAfterError: Reflect.fields(cast decoded).length,
+				threw: nullDecodeError != null
+			}
 		};
 	}
 
@@ -108,5 +133,11 @@ class URLTypesScenario {
 		var parts = value.split("&");
 		parts.sort(function(a:String, b:String):Int return a < b ? -1 : (a > b ? 1 : 0));
 		return parts.join("&");
+	}
+
+	private static function errorClass(error:Dynamic):String {
+		if (error == null) return null;
+		var type = Type.getClass(error);
+		return type == null ? Std.string(Type.typeof(error)) : Type.getClassName(type);
 	}
 }

@@ -19,9 +19,26 @@ class URLLoaderScenario {
 			header: testHeader(),
 			loaderDefaults: testLoaderDefaults(),
 			loadStart: testLoadStart(),
+			errorEvents: testErrorEvents(),
 			invalidLoads: testInvalidLoads(),
 			closeAndReload: testCloseAndReload(),
 			constructorLoad: testConstructorLoad()
+		};
+	}
+
+	private static function testErrorEvents():Dynamic {
+		var loader = new URLLoader();
+		var events:Array<String> = [];
+		loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):Void events.push('${event.type}:${event.text}'));
+		loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(event:SecurityErrorEvent):Void events.push('${event.type}:${event.text}'));
+		loader.dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, "io failure"));
+		loader.dispatchEvent(new SecurityErrorEvent(SecurityErrorEvent.SECURITY_ERROR, false, false, "security failure"));
+
+		return {
+			bytesLoaded: loader.bytesLoaded,
+			bytesTotal: loader.bytesTotal,
+			data: loader.data,
+			events: events
 		};
 	}
 

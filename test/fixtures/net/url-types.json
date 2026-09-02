@@ -1,6 +1,13 @@
 {
   "variables": {
+    "nullSourceFieldCount": 0,
     "arrayEncoding": "amp;items[]=a%2Fb&items%5B%5D=one%20two&sp%20ace=x%2Fy",
+    "nullableEncoding": "empty=&null=null&unicode=caf%C3%A9%20%E2%98%83",
+    "nullDecode": {
+      "errorClass": "String",
+      "fieldCountAfterError": 0,
+      "threw": true
+    },
     "emptyString": "",
     "initial": {
       "repeat": "second",
@@ -10,6 +17,10 @@
       "encoded": "a/b",
       "empty": "",
       "greeting": "hello world"
+    },
+    "emptySource": {
+      "fieldCount": 1,
+      "serialized": "="
     },
     "afterDecode": {
       "fieldCount": 2,

@@ -5,6 +5,7 @@
     "url": null,
     "method": "GET",
     "requestHeaderCount": 0,
+    "cloneMethodAvailable": false,
     "manageCookies": true,
     "followRedirects": true,
     "userAgent": null,

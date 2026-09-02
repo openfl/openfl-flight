@@ -20,6 +20,7 @@ class URLRequestScenario {
 			url: request.url,
 			method: request.method,
 			contentType: request.contentType,
+			cloneMethodAvailable: Reflect.isFunction(Reflect.field(request, "clone")),
 			requestHeaderCount: request.requestHeaders.length,
 			dataIsNull: request.data == null,
 			followRedirects: request.followRedirects,
