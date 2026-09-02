@@ -23,6 +23,7 @@ class BitmapDataScenario {
 			copyPixels: testCopyPixels(),
 			copyChannel: testCopyChannel(),
 			colorTransformPixels: testColorTransformPixels(),
+			scroll: testScroll(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -176,6 +177,28 @@ class BitmapDataScenario {
 		var transform = new ColorTransform(2, 0.5, 1, 0.5, 5, 10, -8, 16);
 		bmd.colorTransform(new Rectangle(0, 0, 1, 1), transform);
 		return pixels(bmd);
+	}
+
+	private static function testScroll():Dynamic {
+		var source = new BitmapData(3, 2, true, 0);
+		var colors = [
+			0xFF100000, 0xFF200000, 0xFF300000,
+			0xFF400000, 0xFF500000, 0xFF600000
+		];
+		for (i in 0...colors.length) source.setPixel32(i % 3, Std.int(i / 3), colors[i]);
+
+		var positive = source.clone();
+		positive.scroll(1, 1);
+		var negative = source.clone();
+		negative.scroll(-1, -1);
+		var outside = source.clone();
+		outside.scroll(3, 2);
+
+		return {
+			positive: pixels(positive),
+			negative: pixels(negative),
+			outside: pixels(outside)
+		};
 	}
 
 	private static function testDrawShape():Dynamic {

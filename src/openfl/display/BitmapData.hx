@@ -441,7 +441,11 @@ class BitmapData implements IBitmapDrawable
 
 	public function scroll(x:Int, y:Int):Void
 	{
-		// TODO: Scroll bitmap pixels through Flight.
+		if (!readable || __bitmap == null || (x == 0 && y == 0)) return;
+		var sourceBitmap = FlightBitmap.cloneBitmap(__bitmap);
+		var source = FlightBitmap.createBitmapRegion(sourceBitmap, 0, 0, width, height);
+		var destination = FlightBitmap.createBitmapRegion(__bitmap, x, y, width, height);
+		FlightBitmap.copyBitmapPixels(destination, source, false);
 	}
 
 	public function setPixel(x:Int, y:Int, color:Int):Void
