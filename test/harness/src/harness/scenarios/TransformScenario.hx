@@ -11,15 +11,62 @@ import openfl.geom.PerspectiveProjection;
 class TransformScenario {
 	public static function run():Dynamic {
 		return {
+			transformIdentity: testTransformIdentity(),
+			matrixGetterClone: testMatrixGetterClone(),
+			matrixSetterProperties: testMatrixSetterProperties(),
 			matrixSync: testMatrixSync(),
 			rotationMatrixSync: testRotationMatrixSync(),
 			scaleMatrixSync: testScaleMatrixSync(),
 			matrixMutualExclusion: testMatrixMutualExclusion(),
 			concatenatedMatrix: testConcatenatedMatrix(),
+			concatenatedMatrixReadOnly: testConcatenatedMatrixReadOnly(),
 			concatenatedColorTransform: testConcatenatedColorTransform(),
 			colorTransformAccess: testColorTransformAccess(),
 			perspectiveProjectionDefaults: testPerspectiveProjectionDefaults(),
-			pixelBoundsDefaults: testPixelBoundsDefaults()
+			pixelBoundsLifecycle: testPixelBoundsLifecycle()
+		};
+	}
+
+	private static function testTransformIdentity():Dynamic {
+		var sprite = new Sprite();
+		var first = sprite.transform;
+		var second = sprite.transform;
+		return {
+			sameInstance: first == second,
+			belongsToSprite: first.matrix.tx == sprite.x && first.matrix.ty == sprite.y
+		};
+	}
+
+	private static function testMatrixGetterClone():Dynamic {
+		var sprite = new Sprite();
+		sprite.x = 12;
+		sprite.y = -5;
+		sprite.scaleX = 2;
+		var first = sprite.transform.matrix;
+		var second = sprite.transform.matrix;
+		first.a = 99;
+		first.tx = 999;
+		var afterMutation = sprite.transform.matrix;
+		return {
+			getterReturnsDistinctInstances: first != second,
+			secondA: second.a,
+			secondTX: second.tx,
+			spriteScaleXAfterCloneMutation: sprite.scaleX,
+			spriteXAfterCloneMutation: sprite.x,
+			rereadA: afterMutation.a,
+			rereadTX: afterMutation.tx
+		};
+	}
+
+	private static function testMatrixSetterProperties():Dynamic {
+		var sprite = new Sprite();
+		sprite.transform.matrix = new Matrix(0, 2, -3, 0, 12, -8);
+		return {
+			x: sprite.x,
+			y: sprite.y,
+			rotation: sprite.rotation,
+			scaleX: sprite.scaleX,
+			scaleY: sprite.scaleY
 		};
 	}
 
@@ -79,6 +126,30 @@ class TransformScenario {
 		return {
 			tx: matrix.tx,
 			ty: matrix.ty
+		};
+	}
+
+	private static function testConcatenatedMatrixReadOnly():Dynamic {
+		var parent = new Sprite();
+		var child = new Sprite();
+		parent.x = 10;
+		parent.y = 20;
+		child.x = 5;
+		child.y = 7;
+		parent.addChild(child);
+		var first = child.transform.concatenatedMatrix;
+		var second = child.transform.concatenatedMatrix;
+		first.tx = 999;
+		first.ty = 888;
+		var afterMutation = child.transform.concatenatedMatrix;
+		return {
+			getterReturnsDistinctInstances: first != second,
+			secondTX: second.tx,
+			secondTY: second.ty,
+			rereadTX: afterMutation.tx,
+			rereadTY: afterMutation.ty,
+			childXUnchanged: child.x,
+			childYUnchanged: child.y
 		};
 	}
 
@@ -154,8 +225,27 @@ class TransformScenario {
 		};
 	}
 
-	private static function testPixelBoundsDefaults():Dynamic {
-		var bounds = new Sprite().transform.pixelBounds;
+	private static function testPixelBoundsLifecycle():Dynamic {
+		var sprite = new Sprite();
+		sprite.graphics.beginFill(0x336699);
+		sprite.graphics.drawRect(2, 3, 10, 20);
+		sprite.graphics.endFill();
+		sprite.x = 30;
+		sprite.y = 40;
+		var detached = rectangleValues(sprite.transform.pixelBounds);
+		Lib.current.stage.addChild(sprite);
+		var onStage = rectangleValues(sprite.transform.pixelBounds);
+		Lib.current.stage.removeChild(sprite);
+		var detachedAgain = rectangleValues(sprite.transform.pixelBounds);
+
+		return {
+			detached: detached,
+			onStage: onStage,
+			detachedAgain: detachedAgain
+		};
+	}
+
+	private static function rectangleValues(bounds:openfl.geom.Rectangle):Dynamic {
 		return {
 			x: bounds.x,
 			y: bounds.y,

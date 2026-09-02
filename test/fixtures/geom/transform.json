@@ -20,6 +20,19 @@
     "blueOffset": 0,
     "greenOffset": 0
   },
+  "transformIdentity": {
+    "belongsToSprite": true,
+    "sameInstance": true
+  },
+  "matrixGetterClone": {
+    "secondTX": 12,
+    "spriteXAfterCloneMutation": 12,
+    "rereadA": 2,
+    "spriteScaleXAfterCloneMutation": 2,
+    "getterReturnsDistinctInstances": true,
+    "secondA": 2,
+    "rereadTX": 12
+  },
   "matrixSync": {
     "matrixTY": 50,
     "spriteX": 200,
@@ -38,12 +51,35 @@
     "blueOffset": 30,
     "greenOffset": 20
   },
-  "pixelBoundsDefaults": {
-    "isEmpty": true,
-    "x": 0,
-    "y": 0,
-    "height": 0,
-    "width": 0
+  "pixelBoundsLifecycle": {
+    "onStage": {
+      "isEmpty": true,
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    },
+    "detached": {
+      "isEmpty": true,
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    },
+    "detachedAgain": {
+      "isEmpty": true,
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    }
+  },
+  "matrixSetterProperties": {
+    "scaleX": 2,
+    "x": 12,
+    "y": -8,
+    "rotation": 90,
+    "scaleY": 3
   },
   "matrixMutualExclusion": {
     "matrix3DIsNullAfterMatrix": true,
@@ -60,6 +96,15 @@
       0
     ],
     "matrixIsNullAfterMatrix3D": true
+  },
+  "concatenatedMatrixReadOnly": {
+    "secondTX": 15,
+    "getterReturnsDistinctInstances": true,
+    "rereadTY": 27,
+    "secondTY": 27,
+    "childXUnchanged": 5,
+    "rereadTX": 15,
+    "childYUnchanged": 7
   },
   "perspectiveProjectionDefaults": {
     "fieldOfView": 0,
