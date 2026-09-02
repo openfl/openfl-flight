@@ -35,6 +35,7 @@ class BitmapDataScenario {
 			paletteMap: testPaletteMap(),
 			applyColorMatrixFilter: testApplyColorMatrixFilter(),
 			noise: testNoise(),
+			perlinNoise: testPerlinNoise(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -362,6 +363,35 @@ class BitmapDataScenario {
 		return {
 			deterministic: first.compare(same) == 0,
 			seedChangesOutput: first.compare(different) != 0,
+			channelsValid: channelsValid,
+			grayValid: grayValid
+		};
+	}
+
+	private static function testPerlinNoise():Dynamic {
+		var fractal = new BitmapData(8, 6, true, 0);
+		fractal.perlinNoise(12, 9, 3, 13579, false, true, BitmapDataChannel.RED);
+		var same = new BitmapData(8, 6, true, 0);
+		same.perlinNoise(12, 9, 3, 13579, false, true, BitmapDataChannel.RED);
+		var turbulenceFlag = new BitmapData(8, 6, true, 0);
+		turbulenceFlag.perlinNoise(12, 9, 3, 13579, false, false, BitmapDataChannel.RED);
+		var different = new BitmapData(8, 6, true, 0);
+		different.perlinNoise(12, 9, 3, 97531, false, true, BitmapDataChannel.RED);
+		var channelsValid = true;
+		for (color in pixels(fractal)) channelsValid = channelsValid && ((color >>> 24) & 0xFF) == 0xFF && (color & 0xFFFF) == 0;
+
+		var gray = new BitmapData(8, 6, true, 0);
+		gray.perlinNoise(12, 9, 2, 2468, false, true, BitmapDataChannel.RED, true);
+		var grayValid = true;
+		for (color in pixels(gray)) {
+			var red = (color >>> 16) & 0xFF;
+			grayValid = grayValid && ((color >>> 24) & 0xFF) == 0xFF && ((color >>> 8) & 0xFF) == red && (color & 0xFF) == red;
+		}
+
+		return {
+			deterministic: fractal.compare(same) == 0,
+			fractalFlagIgnored: fractal.compare(turbulenceFlag) == 0,
+			seedChangesOutput: fractal.compare(different) != 0,
 			channelsValid: channelsValid,
 			grayValid: grayValid
 		};

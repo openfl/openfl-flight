@@ -76,6 +76,13 @@
     -2143005594,
     -2143005594
   ],
+  "perlinNoise": {
+    "seedChangesOutput": true,
+    "channelsValid": true,
+    "grayValid": true,
+    "fractalFlagIgnored": true,
+    "deterministic": true
+  },
   "dimensions": {
     "height": 100,
     "width": 200

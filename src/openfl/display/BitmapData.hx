@@ -579,7 +579,14 @@ class BitmapData implements IBitmapDrawable
 	public function perlinNoise(baseX:Float, baseY:Float, numOctaves:UInt, randomSeed:Int, stitch:Bool, fractalNoise:Bool,
 			channelOptions:UInt = 7, grayScale:Bool = false, offsets:Array<Point> = null):Void
 	{
-		// TODO: Generate Perlin noise through Flight.
+		if (!readable || __bitmap == null || width == 0 || height == 0) return;
+		var output = FlightBitmap.createBitmap(width, height, 0);
+		var flightChannels:UInt = grayScale ? 7 : channelOptions & 7;
+		FlightBitmap.fillBitmapPerlinNoise(FlightBitmap.createBitmapRegion(output), baseX, baseY, numOctaves, randomSeed, grayScale, stitch,
+			flightChannels);
+		__writeStraightRegion(output, 0, 0, width, height);
+		// OpenFL 9.5.2 ignores `fractalNoise`, alpha channel selection, and
+		// octave offsets in its Perlin implementation; the adapter does likewise.
 	}
 
 	public function scroll(x:Int, y:Int):Void
