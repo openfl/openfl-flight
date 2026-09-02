@@ -3,6 +3,7 @@ package openfl.display;
 #if !flash
 import flight.Bitmap as FlightBitmap;
 import flight._internal._UInt8ClampedArray as FlightUInt8ClampedArray;
+import flight._internal._UInt8Array as FlightUInt8Array;
 import flight.types.Bitmap as FlightBitmapHandle;
 import openfl.Vector;
 import openfl.display3D.Context3D;
@@ -334,8 +335,39 @@ class BitmapData implements IBitmapDrawable
 
 	public function encode(rect:Rectangle, compressor:Object, byteArray:ByteArray = null):ByteArray
 	{
-		// TODO: Encode bitmap pixels through Flight codecs.
-		return byteArray == null ? new ByteArray() : byteArray;
+		if (!readable || __bitmap == null || rect == null) return null;
+		var format:String;
+		var quality = 0.9;
+		if (Std.isOfType(compressor, PNGEncoderOptions))
+		{
+			format = "png";
+		}
+		else if (Std.isOfType(compressor, JPEGEncoderOptions))
+		{
+			format = "jpeg";
+			quality = (cast compressor : JPEGEncoderOptions).quality / 100;
+		}
+		else
+		{
+			return null;
+		}
+
+		var source = __toStraightBitmap(this);
+		if (!rect.equals(this.rect))
+		{
+			var regionWidth = Std.int(Math.max(0, Math.ceil(rect.width)));
+			var regionHeight = Std.int(Math.max(0, Math.ceil(rect.height)));
+			var cropped = FlightBitmap.createBitmap(regionWidth, regionHeight, 0);
+			FlightBitmap.copyBitmapPixels(FlightBitmap.createBitmapRegion(cropped),
+				FlightBitmap.createBitmapRegion(source, Math.round(rect.x), Math.round(rect.y), regionWidth, regionHeight), false);
+			source = cropped;
+		}
+
+		var encoded:FlightUInt8Array = FlightBitmap.encodeBitmap(source, format, quality);
+		if (encoded == null) return null;
+		if (byteArray == null) byteArray = new ByteArray();
+		for (index in 0...encoded.length) byteArray.writeByte(encoded[index]);
+		return byteArray;
 	}
 
 	public function fillRect(rect:Rectangle, color:Int):Void

@@ -2,6 +2,7 @@ package harness.scenarios;
 
 import openfl.display.BitmapData;
 import openfl.display.BitmapDataChannel;
+import openfl.display.PNGEncoderOptions;
 import openfl.display.Shape;
 import openfl.filters.ColorMatrixFilter;
 import openfl.geom.ColorTransform;
@@ -38,6 +39,7 @@ class BitmapDataScenario {
 			noise: testNoise(),
 			perlinNoise: testPerlinNoise(),
 			drawBitmapData: testDrawBitmapData(),
+			encodeFailures: testEncodeFailures(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -414,6 +416,17 @@ class BitmapDataScenario {
 			source: pixels(source),
 			destinationWidth: destination.width,
 			qualityWidth: quality.width
+		};
+	}
+
+	private static function testEncodeFailures():Dynamic {
+		var bmd = new BitmapData(2, 2, true, 0xFF123456);
+		var existing = new ByteArray();
+		existing.writeByte(7);
+		return {
+			invalidCompressor: bmd.encode(bmd.rect, {}, existing) == null,
+			nullRectangle: bmd.encode(null, new PNGEncoderOptions(), existing) == null,
+			existingLength: existing.length
 		};
 	}
 

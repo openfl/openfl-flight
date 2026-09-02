@@ -78,6 +78,11 @@
     -2136355859,
     -1
   ],
+  "encodeFailures": {
+    "nullRectangle": true,
+    "existingLength": 1,
+    "invalidCompressor": true
+  },
   "lockUnlock": [
     -15654349,
     -2143005594,
