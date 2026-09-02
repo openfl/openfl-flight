@@ -15,6 +15,13 @@
     "found": true,
     "notFound": true
   },
+  "removeNonChild": {
+    "errorClass": null,
+    "childStillParented": true,
+    "numChildren": 1,
+    "threw": false,
+    "unrelatedStillDetached": true
+  },
   "removeChildren": {
     "child0": "a",
     "cParent": true,

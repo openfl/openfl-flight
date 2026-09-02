@@ -9,6 +9,7 @@ class DisplayContainerScenario {
 			addChild: testAddChild(),
 			addChildAt: testAddChildAt(),
 			removeChild: testRemoveChild(),
+			removeNonChild: testRemoveNonChild(),
 			getChildAt: testGetChildAt(),
 			getChildByName: testGetChildByName(),
 			getChildIndex: testGetChildIndex(),
@@ -23,6 +24,28 @@ class DisplayContainerScenario {
 			removeChildAt: testRemoveChildAt(),
 			numChildren: testNumChildren(),
 			addChildReindex: testAddChildReindex()
+		};
+	}
+
+	private static function testRemoveNonChild():Dynamic {
+		var parent = new Sprite();
+		var child = new Sprite();
+		var unrelated = new Sprite();
+		parent.addChild(child);
+		var error:Dynamic = null;
+
+		try {
+			parent.removeChild(unrelated);
+		} catch (caught:Dynamic) {
+			error = caught;
+		}
+
+		return {
+			threw: error != null,
+			errorClass: errorClass(error),
+			numChildren: parent.numChildren,
+			childStillParented: child.parent == parent,
+			unrelatedStillDetached: unrelated.parent == null
 		};
 	}
 
@@ -329,5 +352,11 @@ class DisplayContainerScenario {
 			child1: parent.getChildAt(1).name,
 			child2: parent.getChildAt(2).name
 		};
+	}
+
+	private static function errorClass(error:Dynamic):String {
+		if (error == null) return null;
+		var type = Type.getClass(error);
+		return type == null ? Std.string(Type.typeof(error)) : Type.getClassName(type);
 	}
 }
