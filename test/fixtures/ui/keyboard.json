@@ -1,25 +1,39 @@
 {
-  "keyCodesMatchFlash": true,
   "keyCodes": {
-    "left": 37,
-    "backspace": 8,
-    "up": 38,
-    "end": 35,
-    "delete": 46,
-    "space": 32,
-    "down": 40,
-    "right": 39,
-    "tab": 9,
-    "enter": 13,
-    "escape": 27,
-    "home": 36
+    "letters": [65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90],
+    "numpadDigits": [96, 97, 98, 99, 100, 101, 102, 103, 104, 105],
+    "functionKeys": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126],
+    "punctuation": [186, 187, 188, 189, 190, 191, 192, 219, 220, 221, 222],
+    "numbers": [48, 49, 50, 51, 52, 53, 54, 55, 56, 57],
+    "numpadOperators": [106, 107, 108, 109, 110, 111],
+    "controls": [8, 9, 18, 13, 15, 16, 17, 19, 20, 21, 27, 32, 33, 34, 35, 36, 37, 39, 38, 40, 45, 46, 144]
   },
-  "accessible": false,
+  "accessible": {
+    "stable": true,
+    "second": false,
+    "first": false,
+    "readable": true
+  },
   "locks": {
+    "capsLockReadable": true,
+    "numLockReadable": true,
     "capsLockIsBool": false,
     "capsLock": null,
     "numLockIsBool": false,
     "numLock": null
   },
-  "accessibleIsBool": true
+  "allKeyCodesMatchExpected": true,
+  "keyboardEvent": {
+    "shiftKey": true,
+    "cancelable": true,
+    "keyCode": 116,
+    "bubbles": true,
+    "ctrlKey": true,
+    "charCode": 97,
+    "keyLocation": 2,
+    "commandKey": true,
+    "type": "keyUp",
+    "controlKey": true,
+    "altKey": true
+  }
 }

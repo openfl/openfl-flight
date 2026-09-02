@@ -1,7 +1,25 @@
 {
   "cursorRestored": true,
-  "supportsCursor": true,
   "hideDoesNotThrow": true,
+  "mouseEvent": {
+    "shiftKey": true,
+    "cancelable": true,
+    "stageY": -62.75,
+    "buttonDown": true,
+    "bubbles": true,
+    "delta": -3,
+    "ctrlKey": true,
+    "stageInitiallyNaN": true,
+    "localX": 10.5,
+    "clickCount": 2,
+    "relatedObjectMatches": true,
+    "commandKey": true,
+    "type": "mouseWheel",
+    "stageX": 121,
+    "localY": -4.25,
+    "controlKey": true,
+    "altKey": true
+  },
   "cursorValues": {
     "auto": "auto",
     "arrow": "arrow",
@@ -9,8 +27,12 @@
     "hand": "hand",
     "button": "button"
   },
-  "supportsNativeCursor": true,
   "showDoesNotThrow": true,
+  "capabilities": {
+    "supportsCursor": true,
+    "supportsNativeCursor": true,
+    "readable": true
+  },
   "cursorReadBack": {
     "auto": "auto",
     "arrow": "arrow",

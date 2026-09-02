@@ -9,7 +9,30 @@
     "supportsGestureEvents": false,
     "inputMode": "touchPoint",
     "maxTouchPoints": 2,
+    "supportedGestures": null,
     "supportedGesturesIsNull": true,
+    "capabilitiesReadable": true,
     "supportsTouchEvents": true
+  },
+  "touchEvent": {
+    "shiftKey": true,
+    "cancelable": true,
+    "stageY": 13.25,
+    "bubbles": true,
+    "pressure": 0.75,
+    "ctrlKey": true,
+    "stageInitiallyNaN": true,
+    "touchPointID": 17,
+    "localX": 3.5,
+    "sizeX": 8,
+    "relatedObjectMatches": true,
+    "commandKey": true,
+    "type": "touchMove",
+    "stageX": 17,
+    "localY": -2.25,
+    "sizeY": 9,
+    "isPrimaryTouchPoint": true,
+    "controlKey": true,
+    "altKey": true
   }
 }
