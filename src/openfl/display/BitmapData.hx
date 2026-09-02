@@ -537,7 +537,43 @@ class BitmapData implements IBitmapDrawable
 	public function hitTest(firstPoint:Point, firstAlphaThreshold:Int, secondObject:Object, secondBitmapDataPoint:Point = null,
 			secondAlphaThreshold:Int = 1):Bool
 	{
-		// TODO: Perform bitmap hit testing through Flight.
+		if (!readable || __bitmap == null || firstPoint == null || secondObject == null) return false;
+		if (Std.isOfType(secondObject, Bitmap)) secondObject = (cast secondObject : Bitmap).bitmapData;
+
+		if (Std.isOfType(secondObject, Point))
+		{
+			var point:Point = cast secondObject;
+			var x = Std.int(point.x - firstPoint.x);
+			var y = Std.int(point.y - firstPoint.y);
+			return x >= 0 && y >= 0 && x < width && y < height && __alphaAt(x, y) > firstAlphaThreshold;
+		}
+
+		if (Std.isOfType(secondObject, Rectangle))
+		{
+			var second:Rectangle = cast secondObject;
+			var left = Std.int(Math.max(0, second.x - firstPoint.x));
+			var top = Std.int(Math.max(0, second.y - firstPoint.y));
+			var right = Std.int(Math.min(width, second.x - firstPoint.x + second.width));
+			var bottom = Std.int(Math.min(height, second.y - firstPoint.y + second.height));
+			for (y in top...bottom) for (x in left...right) if (__alphaAt(x, y) > firstAlphaThreshold) return true;
+			return false;
+		}
+
+		if (Std.isOfType(secondObject, BitmapData))
+		{
+			var second:BitmapData = cast secondObject;
+			if (!second.readable || second.__bitmap == null) return false;
+			var offsetX = secondBitmapDataPoint == null ? 0 : Math.round(secondBitmapDataPoint.x - firstPoint.x);
+			var offsetY = secondBitmapDataPoint == null ? 0 : Math.round(secondBitmapDataPoint.y - firstPoint.y);
+			var left = Std.int(Math.max(0, offsetX));
+			var top = Std.int(Math.max(0, offsetY));
+			var right = Std.int(Math.min(width, offsetX + second.width));
+			var bottom = Std.int(Math.min(height, offsetY + second.height));
+			for (y in top...bottom) for (x in left...right)
+			{
+				if (__alphaAt(x, y) > firstAlphaThreshold && second.__alphaAt(x - offsetX, y - offsetY) > secondAlphaThreshold) return true;
+			}
+		}
 		return false;
 	}
 
@@ -762,6 +798,11 @@ class BitmapData implements IBitmapDrawable
 			blue = __premultiplyComponent(blue, alpha);
 		}
 		return (red << 24) | (green << 16) | (blue << 8) | alpha;
+	}
+
+	@:noCompletion private inline function __alphaAt(x:Int, y:Int):Int
+	{
+		return transparent ? (getPixel32(x, y) >>> 24) & 0xFF : 0xFF;
 	}
 
 	@:noCompletion private function __clipRectangle(value:Rectangle):Rectangle

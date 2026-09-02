@@ -156,6 +156,12 @@
     "heightMismatch": -4,
     "equal": 0
   },
+  "hitTestPoint": {
+    "transparent": false,
+    "outside": false,
+    "aboveThreshold": true,
+    "atThreshold": false
+  },
   "colorTransformPixels": [
     1350769158,
     -15720400

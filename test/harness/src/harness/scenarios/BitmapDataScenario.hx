@@ -40,6 +40,7 @@ class BitmapDataScenario {
 			perlinNoise: testPerlinNoise(),
 			drawBitmapData: testDrawBitmapData(),
 			encodeFailures: testEncodeFailures(),
+			hitTestPoint: testHitTestPoint(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -427,6 +428,18 @@ class BitmapDataScenario {
 			invalidCompressor: bmd.encode(bmd.rect, {}, existing) == null,
 			nullRectangle: bmd.encode(null, new PNGEncoderOptions(), existing) == null,
 			existingLength: existing.length
+		};
+	}
+
+	private static function testHitTestPoint():Dynamic {
+		var bmd = new BitmapData(3, 2, true, 0);
+		bmd.setPixel32(1, 0, 0x80123456);
+		var origin = new Point(10, 20);
+		return {
+			aboveThreshold: bmd.hitTest(origin, 127, new Point(11, 20)),
+			atThreshold: bmd.hitTest(origin, 128, new Point(11, 20)),
+			transparent: bmd.hitTest(origin, 0, new Point(10, 20)),
+			outside: bmd.hitTest(origin, 0, new Point(13, 20))
 		};
 	}
 
