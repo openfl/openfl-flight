@@ -1,0 +1,858 @@
+package: utils
+
+entries:
+
+  - id: utils.BA.new-length-position
+    section: "Storage and construction"
+    behavior: >
+      `new(length = 0)` allocates exactly that logical length, zero-fills new bytes, sets
+      `position = 0`, copies `ByteArray.defaultEndian`, and copies
+      `ByteArray.defaultObjectEncoding`. Capacity may exceed public length during later growth
+      and is not observable through the API.
+    status: covered
+    scenarios:
+      - utils/byte-array:construct
+      - utils/byte-array:zeroMemory
+      - utils/byte-array:endianness
+      - utils/byte-array:objectEncodingWrite
+
+  - id: utils.BA.length-position
+    section: "Storage and construction"
+    behavior: >
+      `length` is logical byte count. Increasing it preserves existing bytes and exposes
+      zero-filled new bytes; decreasing it truncates and clamps `position` down to the new
+      length. Writes at or beyond the end grow length to cover the written range.
+    status: covered
+    scenarios:
+      - utils/byte-array:zeroMemory
+      - utils/byte-array:position
+
+  - id: utils.BA.position-bytesavailable
+    section: "Storage and construction"
+    behavior: >
+      `position` is the next read/write offset and may be assigned directly. `bytesAvailable`
+      is `length - position`; ordinary reads advance it and writes advance it to just after
+      the data written.
+    status: covered
+    scenarios:
+      - utils/byte-array:position
+
+  - id: utils.BA.integer-array-access-reads-a-byte-by
+    section: "Storage and construction"
+    behavior: >
+      Integer array access reads a byte by zero-based index and writing masks to the low eight
+      bits, automatically growing through `index + 1`. It does not move `position`.
+    status: covered
+    scenarios:
+      - utils/byte-array:position
+      - utils/byte-array:writeAndRead
+
+  - id: utils.BA.clear
+    section: "Storage and construction"
+    behavior: >
+      `clear()` makes length and position zero. It does not reset endian or object encoding.
+    status: covered
+    scenarios:
+      - utils/byte-array:clear
+
+  - id: utils.BA.frombytes-frombytesdata
+    section: "Storage and construction"
+    behavior: >
+      `fromBytes`/`fromBytesData` and, on supported JS/Lime targets,
+      `fromArrayBuffer`/`fromLimeBytes` wrap or copy the supplied data into a ByteArray with
+      position zero. `fromFile` reads synchronously where Lime can; `loadFromBytes` and
+      `loadFromFile` return Futures and fail/return null on targets where the underlying
+      operation is unavailable.
+    status: covered
+    scenarios: []
+
+  - id: utils.BA.defaultendian-openfl-big
+    section: "Storage and construction"
+    behavior: >
+      `defaultEndian` is lazily the host/Lime system endianness unless `openfl_big_endian`
+      forces big-endian; it is little-endian on non-Lime portable builds. Assigning it affects
+      subsequently constructed arrays only. `defaultObjectEncoding` defaults to
+      `ObjectEncoding.DEFAULT` (HXSF off Flash), likewise copied at construction.
+    status: covered
+    scenarios:
+      - utils/byte-array:endianness
+      - utils/byte-array:objectEncodingWrite
+
+  - id: utils.BA.every-read-starts-at-position-advances-by
+    section: "Primitive reads"
+    behavior: >
+      Every read starts at `position`, advances by its byte width only when successful, and
+      throws `EOFError` if insufficient bytes exist.
+    status: covered
+    scenarios:
+      - utils/byte-array:position
+      - utils/byte-array:readPastEnd
+
+  - id: utils.BA.readboolean-readbyte
+    section: "Primitive reads"
+    behavior: >
+      `readBoolean()` consumes one byte and returns false only for zero. `readByte()`
+      sign-extends an 8-bit value to -128..127; `readUnsignedByte()` returns 0..255.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadBoolean
+
+  - id: utils.BA.readshort-readunsignedshort
+    section: "Primitive reads"
+    behavior: >
+      `readShort()` sign-extends 16 bits; `readUnsignedShort()` returns 0..65535. `readInt()`
+      reads a signed 32-bit bit pattern; `readUnsignedInt()` reads the same 32-bit pattern
+      through Haxe's target integer representation. `readInt64()` returns `haxe.Int64`. All
+      honor `endian`.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadShort
+      - utils/byte-array:writeReadInt
+
+  - id: utils.BA.readfloat-readdouble
+    section: "Primitive reads"
+    behavior: >
+      `readFloat()` and `readDouble()` decode IEEE-754 32-bit and 64-bit values in the
+      selected byte order.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadFloat
+      - utils/byte-array:writeReadDouble
+
+  - id: utils.BA.readbytes-destination-offset-length
+    section: "Primitive reads"
+    behavior: >
+      `readBytes(destination, offset = 0, length = 0)` copies `length` bytes from the current
+      position, or all remaining bytes when length is zero. It grows the destination to
+      `offset + length`, leaves destination position unchanged, and advances source position.
+      Insufficient source data throws `EOFError`.
+    status: covered
+    scenarios:
+      - utils/byte-array:zeroMemory
+      - utils/byte-array:readPastEnd
+      - utils/byte-array:writeReadBytes
+
+  - id: utils.BA.readutf-readutfbytes-length
+    section: "Primitive reads"
+    behavior: >
+      `readUTF()` reads an endian-sensitive unsigned 16-bit byte length then that many UTF-8
+      bytes. `readUTFBytes(length)` reads exactly the supplied raw byte count.
+      Invalid/truncated input follows `haxe.io.Bytes.getString` decoding/EOF behavior.
+      Internal `readLargeUTF()` uses a 32-bit length.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadUTF
+
+  - id: utils.BA.readmultibyte-length-charset-charset
+    section: "Primitive reads"
+    behavior: >
+      `readMultiByte(length, charSet)` ignores `charSet` and behaves as
+      `readUTFBytes(length)`; portable 9.5.2 has the same limitation.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadUTF
+
+  - id: utils.BA.writeboolean
+    section: "Primitive writes"
+    behavior: >
+      `writeBoolean` writes one byte `1` or `0`; `writeByte` writes the low 8 bits;
+      `writeShort` writes the low 16; `writeInt`/`writeUnsignedInt` write the 32-bit bit
+      pattern; and `writeInt64` writes high/low halves in selected byte order. All grow length
+      and advance position.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadBoolean
+      - utils/byte-array:writeReadShort
+      - utils/byte-array:writeReadInt
+
+  - id: utils.BA.writefloat-writedouble
+    section: "Primitive writes"
+    behavior: >
+      `writeFloat`/`writeDouble` write IEEE-754 bit patterns in selected endian order.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadFloat
+      - utils/byte-array:writeReadDouble
+
+  - id: utils.BA.writebytes-source-offset
+    section: "Primitive writes"
+    behavior: >
+      `writeBytes(source, offset = 0, length = 0)` writes the requested slice at current
+      position; zero length means all bytes after offset. Source position is ignored and
+      unchanged. Runtime byte-blit bounds behavior applies to an invalid offset/length.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeBytesSlice
+
+  - id: utils.BA.writeutf-value-rangeerror
+    section: "Primitive writes"
+    behavior: >
+      `writeUTF(value)` UTF-8 encodes the string, writes a 16-bit byte length, and throws
+      `RangeError` above 65535 bytes. `writeUTFBytes(value)` writes no prefix. Internal
+      `writeLargeUTF` uses a 32-bit length.
+    status: covered
+    scenarios:
+      - utils/byte-array:writeReadUTF
+
+  - id: utils.BA.writemultibyte-value-charset-charset
+    section: "Primitive writes"
+    behavior: >
+      `writeMultiByte(value, charSet)` ignores `charSet` and writes UTF-8, matching portable
+      9.5.2.
+    status: covered
+    scenarios: []
+
+  - id: utils.BA.tostring
+    section: "Primitive writes"
+    behavior: >
+      `toString()` decodes the entire logical byte sequence, independent of current position,
+      using the underlying Bytes string conversion. Portable code does not implement the
+      documented system-code-page/BOM matrix.
+    status: covered
+    scenarios: []
+
+  - id: utils.BA.objectencoding-hxsf
+    section: "Object formats"
+    behavior: >
+      `objectEncoding` selects the wire format. `HXSF` and `LARGE_HXSF` use Haxe
+      `Serializer`/`Unserializer` with 16-bit and 32-bit byte-length prefixes; `JSON` and
+      `LARGE_JSON` use JSON with the same prefix choices. Serialization writes at current
+      position; deserialization consumes one complete value.
+    status: covered
+    scenarios:
+      - utils/byte-array:objectEncodingWrite
+
+  - id: utils.BA.in-openfl-9-5-2-amf0-and
+    section: "Object formats"
+    behavior: >
+      In OpenFL 9.5.2, `AMF0` and `AMF3` use internal AMF readers/writers. The adapter's
+      `writeObject` emits nothing and `readObject` returns null for both without advancing
+      position. Flight exposes no selectable AMF serializer; see **Object wire formats**.
+    status: flight-gap
+    gap: "Object wire formats"
+    scenarios: []
+
+  - id: utils.BA.unknown-object-encoding-values-make-writeobject-a
+    section: "Object formats"
+    behavior: >
+      Unknown object encoding values make `writeObject` a no-op and `readObject` return null.
+    status: covered
+    scenarios: []
+
+  - id: utils.BA.compress-algorithm-uncompress
+    section: "Compression and atomics"
+    behavior: >
+      `compress(algorithm = ZLIB)` replaces the entire logical array with compressed bytes,
+      independent of position, and sets position to the new end. `uncompress(algorithm =
+      ZLIB)` replaces the entire array with decoded bytes and sets position to zero.
+      `deflate()` and `inflate()` select raw RFC 1951 framing; ZLIB selects RFC 1950 framing.
+    status: covered
+    scenarios:
+      - utils/byte-array:zlibCompression
+
+  - id: utils.BA.zlib-and-raw-deflate-encode-through-haxe
+    section: "Compression and atomics"
+    behavior: >
+      ZLIB and raw deflate encode through Haxe and decode through Flight while preserving
+      those in-place length/position rules.
+    status: covered
+    scenarios:
+      - utils/byte-array:compressionMethods
+
+  - id: utils.BA.lzma-compression-decompression-is-a-deterministic-no
+    section: "Compression and atomics"
+    behavior: >
+      LZMA compression/decompression is a deterministic no-op in the adapter (`compress`
+      preserves data/position; `uncompress` preserves data but resets position to zero).
+      OpenFL 9.5.2 delegates real LZMA to Lime. See **Byte compression encoders and LZMA**.
+    status: flight-gap
+    gap: "Byte compression encoders and LZMA"
+    scenarios:
+      - utils/byte-array:lzmaCompression
+
+  - id: utils.BA.invalid-compressed-input-is-documented-to-throw
+    section: "Compression and atomics"
+    behavior: >
+      Invalid compressed input is documented to throw `IOError`. The Flight decoder failure
+      surface and adapter do not consistently translate every invalid stream into that OpenFL
+      error.
+    status: missing
+    scenarios:
+      - utils/byte-array:malformedCompression
+
+  - id: utils.BA.shareable-atomiccompareandswapintat
+    section: "Compression and atomics"
+    behavior: >
+      `shareable`, `atomicCompareAndSwapIntAt`, and `atomicCompareAndSwapLength` are Flash
+      11.4-only declarations. They operate on shared memory atomically on Flash and are
+      deliberately absent off Flash; see **Shareable ByteArray atomics**.
+    status: flight-gap
+    gap: "Shareable ByteArray atomics"
+    scenarios: []
+
+  - id: utils.BA.utf-uses-haxe-bytes-because-the-refreshed
+    section: "Compression and atomics"
+    behavior: >
+      UTF uses Haxe Bytes because the refreshed generated Flight facade has no public codec
+      binding; observable UTF-8 behavior is present, but see **Public flight-hx UTF-8 byte
+      codec binding** for the substrate limitation.
+    status: flight-gap
+    gap: "Public flight-hx UTF-8 byte codec binding"
+    scenarios: []
+
+  - id: utils.BA.compressionalgorithm-deflate
+    section: "Compression and atomics"
+    behavior: >
+      `CompressionAlgorithm` values are `DEFLATE = "deflate"`, `LZMA = "lzma"`, and `ZLIB =
+      "zlib"` (legacy integer values 0, 1, 2).
+    status: covered
+    scenarios:
+      - utils/byte-array:lzmaCompression
+
+  - id: utils.IO.idatainput-bytesavailable
+    section: "Data interfaces"
+    behavior: >
+      `IDataInput` requires read-only `bytesAvailable`, mutable `endian` and `objectEncoding`,
+      and the complete read family: boolean, signed/unsigned integers, float/double, bytes,
+      multibyte, UTF/UTFBytes, and object. Implementors must consume sequential input and
+      signal insufficient data; the interface supplies no implementation.
+    status: covered
+    scenarios: []
+
+  - id: utils.IO.idataoutput-endian
+    section: "Data interfaces"
+    behavior: >
+      `IDataOutput` requires mutable `endian` and `objectEncoding` and the matching write
+      family. `writeBytes` reads a source slice; other methods encode a value according to
+      byte order/format.
+    status: covered
+    scenarios: []
+
+  - id: utils.IO.iexternalizable-writeexternal-output
+    section: "Data interfaces"
+    behavior: >
+      `IExternalizable` requires `writeExternal(output)` and `readExternal(input)`. Object
+      serializers call user code to define field order and encoding; read must mirror write.
+      The interface itself adds no framing.
+    status: covered
+    scenarios: []
+
+  - id: utils.TMR.new-delay-repeatcount-currentcount
+    section: "Timer"
+    behavior: >
+      `new(delay, repeatCount = 0)` begins stopped with `currentCount = 0`. Negative or NaN
+      delay throws `openfl.errors.Error`; the implementation does not reject positive infinity
+      despite documentation saying finite. Zero is accepted; values below 20 ms are only
+      discouraged, not clamped.
+    status: covered
+    scenarios:
+      - utils/timer:initial
+
+  - id: utils.TMR.start-stop
+    section: "Timer"
+    behavior: >
+      `start()` starts only if not already running; repeated calls while running do nothing
+      and do not reset phase/count. `stop()` cancels future ticks, sets `running = false`, and
+      preserves `currentCount`. Starting again continues the remaining repetitions.
+    status: covered
+    scenarios:
+      - utils/timer:singleRepeat
+
+  - id: utils.TMR.reset-currentcount
+    section: "Timer"
+    behavior: >
+      `reset()` stops if necessary and returns `currentCount` to zero.
+    status: covered
+    scenarios:
+      - utils/timer:singleRepeat
+
+  - id: utils.TMR.every-tick-increments-count-before-dispatching-timerevent
+    section: "Timer"
+    behavior: >
+      Every tick increments count before dispatching `TimerEvent.TIMER`. With positive
+      `repeatCount`, the final tick first stops the Timer, dispatches `TIMER`, then dispatches
+      `TIMER_COMPLETE`. Repeat count zero runs indefinitely.
+    status: covered
+    scenarios:
+      - utils/timer:infiniteRepeat
+
+  - id: utils.TMR.changing-delay-while-running-stops-and-restarts
+    section: "Timer"
+    behavior: >
+      Changing `delay` while running stops and restarts the underlying host interval while
+      preserving count. The setter performs no validation. Changing `repeatCount` to a nonzero
+      value less than or equal to current count stops immediately without a completion event;
+      other values are stored verbatim.
+    status: covered
+    scenarios:
+      - utils/timer:infiniteRepeat
+
+  - id: utils.TMR.a-timerevent-whose-updateafterevent-flag-was-set
+    section: "Timer"
+    behavior: >
+      A TimerEvent whose `updateAfterEvent()` flag was set requests a stage render after that
+      individual dispatch when a current stage exists.
+    status: covered
+    scenarios:
+      - utils/timer:singleRepeat
+
+  - id: utils.LIB.these-are-static-openfl-lib-helpers-included
+    section: "Lib.setTimeout / setInterval"
+    behavior: >
+      These are static `openfl.Lib` helpers, included here because they are the package's
+      scheduling convention. Each increments a process-local UInt ID, stores a Haxe Timer, and
+      invokes `closure` via `Reflect.callMethod` with the supplied `args` array or no
+      arguments when null.
+    status: covered
+    scenarios: []
+
+  - id: utils.LIB.settimeout-setinterval
+    section: "Lib.setTimeout / setInterval"
+    behavior: >
+      `setTimeout` runs once after the delay and removes its ID before calling the closure.
+      `setInterval` runs until cleared. `clearTimeout(id)` and `clearInterval(id)` are
+      behaviorally identical: if the ID exists they stop and remove it; unknown/already-fired
+      IDs are no-ops.
+    status: covered
+    scenarios: []
+
+  - id: utils.LIB.callback-exceptions-propagate-normally-unless-a-current
+    section: "Lib.setTimeout / setInterval"
+    behavior: >
+      Callback exceptions propagate normally unless a current Stage has enabled uncaught-error
+      events, in which case they are routed through the stage error handler.
+    status: covered
+    scenarios: []
+
+  - id: utils.DICT.new-weakkeys-tostring
+    section: "Dictionary"
+    behavior: >
+      `new(weakKeys = false)` chooses a backing map from the compile-time key type: strings
+      and integers use value maps, object keys use identity maps, enums use enum
+      identity/value rules, floats use a sorted exact-equality map, and classes are keyed by
+      fully qualified class name. Object lookup therefore does not coerce through `toString`.
+    status: covered
+    scenarios:
+      - utils/dictionary:objectKeys
+
+  - id: utils.DICT.set-get
+    section: "Dictionary"
+    behavior: >
+      `set`/array assignment replaces an existing mapping and returns the assigned value;
+      `get`/array access returns its value or null; `exists` distinguishes absent from
+      present-null; `remove` (the Haxe equivalent of ActionScript `delete`) returns whether a
+      mapping existed.
+    status: covered
+    scenarios:
+      - utils/dictionary:basicUsage
+      - utils/dictionary:exists
+      - utils/dictionary:removeKey
+
+  - id: utils.DICT.iterator-each
+    section: "Dictionary"
+    behavior: >
+      `iterator()` yields keys, `each()` yields values, and `keyValueIterator()` yields pairs.
+      Order is unspecified (float keys happen to be sorted by the implementation and must not
+      be generalized to other key types); iterator mutation guarantees come from the backing
+      Haxe map.
+    status: covered
+    scenarios:
+      - utils/dictionary:iteration
+      - utils/dictionary:deleteDuringIteration
+
+  - id: utils.DICT.non-flash-openfl-9-5-2-ignores
+    section: "Dictionary"
+    behavior: >
+      Non-Flash OpenFL 9.5.2 ignores `weakKeys`; object keys are strongly held and are not
+      removed by GC. Only the Flash typedef supplies true weak-key semantics. The adapter
+      matches this target distinction.
+    status: covered
+    scenarios:
+      - utils/dictionary:objectKeys
+
+  - id: utils.ASSET.cache-iassetcache
+    section: "Assets"
+    behavior: >
+      `cache` is a replaceable global `IAssetCache`, initially an enabled `AssetCache`. On the
+      9.5.2 Lime tools path, synchronous bitmap/font/sound getters consult it only when
+      `useCache` and `cache.enabled` are true, reject invalid disposed cached bitmap data
+      where detectable, then cache a successfully resolved asset.
+    status: covered
+    scenarios:
+      - utils/assets:globalCache
+
+  - id: utils.ASSET.the-adapter-also-consults-a-manually-populated
+    section: "Assets"
+    behavior: >
+      The adapter also consults a manually populated bitmap/font/sound cache without Lime,
+      while stock 9.5.2 compiles those cache checks only into its Lime tools path and
+      otherwise returns its ordinary fallback.
+    status: missing
+    scenarios:
+      - utils/assets:globalCache
+
+  - id: utils.ASSET.exists-id-type-islocal
+    section: "Assets"
+    behavior: >
+      `exists(id,type = null)`, `isLocal(id,type = null,useCache = true)`, and `list(type =
+      null)` query the Lime registry on a Lime build.
+    status: covered
+    scenarios:
+      - utils/assets:globalCache
+      - utils/assets:registeredLibrary
+      - utils/assets:unregisteredLibrary
+
+  - id: utils.ASSET.without-lime-9-5-2-returns-false
+    section: "Assets"
+    behavior: >
+      Without Lime, 9.5.2 returns false from `exists`/`isLocal` and an empty list. The adapter
+      instead has a registered-library resolver supporting `library:symbol` IDs (and the
+      default library when unqualified).
+    status: deviation
+    notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
+    scenarios:
+      - utils/assets:registeredLibrary
+      - utils/assets:unregisteredLibrary
+
+  - id: utils.ASSET.getbitmapdata-getbytes
+    section: "Assets"
+    behavior: >
+      `getBitmapData` returns a cached/resolved BitmapData or null; platform-dependent
+      instances may share backing image data. `getBytes` returns the binary ByteArray or null.
+      `getText` and `getPath` return a string or null.
+    status: covered
+    scenarios:
+      - utils/assets:globalCache
+
+  - id: utils.ASSET.getfont-getsound
+    section: "Assets"
+    behavior: >
+      `getFont` returns cached/resolved font, but returns a newly constructed empty Font when
+      no font resolves. `getSound` returns cached/resolved Sound or null. `getMusic` attempts
+      a streaming-friendly Vorbis path where compiled, otherwise aliases `getSound`.
+    status: covered
+    scenarios:
+      - utils/assets:globalCache
+
+  - id: utils.ASSET.flight-has-no-progressively-buffered-music-source
+    section: "Assets"
+    behavior: >
+      Flight has no progressively buffered music source, so `getMusic` uses a decoded Sound.
+      See **OpenFL asset registry and streaming music**.
+    status: flight-gap
+    gap: "OpenFL asset registry and streaming music"
+    scenarios: []
+
+  - id: utils.ASSET.getmovieclip-movie-clip
+    section: "Assets"
+    behavior: >
+      `getMovieClip("library:symbol")` resolves an AssetLibrary, requires a local
+      `MOVIE_CLIP`, and returns the clip; missing library/symbol or an async-only symbol logs
+      and returns null.
+    status: covered
+    scenarios: []
+
+  - id: utils.ASSET.loadbitmapdata-loadbytes
+    section: "Assets"
+    behavior: >
+      `loadBitmapData`, `loadBytes`, `loadFont`, `loadLibrary`, `loadMusic`, `loadMovieClip`,
+      `loadSound`, and `loadText` return Futures. They complete from cache immediately where
+      applicable, otherwise forward backend complete, error, and progress; fallback targets
+      return an already completed sync getter (except unsupported library loading, which is an
+      error Future).
+    status: covered
+    scenarios:
+      - utils/assets:globalCache
+
+  - id: utils.ASSET.on-lime-registerlibrary-name-library-installs-replaces
+    section: "Assets"
+    behavior: >
+      On Lime, `registerLibrary(name,library)` installs/replaces a library;
+      `getLibrary`/`hasLibrary` inspect it; `unloadLibrary` unloads and removes it. Library
+      change propagation dispatches `Event.CHANGE`. `registerBinding` and `unregisterBinding`
+      map generated class names to an AssetLibrary; `initBinding` binds a current/future
+      Sprite constructor or logs when absent.
+    status: covered
+    scenarios:
+      - utils/assets:registeredLibrary
+      - utils/assets:unregisteredLibrary
+
+  - id: utils.ASSET.without-lime-9-5-2-s-library
+    section: "Assets"
+    behavior: >
+      Without Lime, 9.5.2's library register/get/has/unload paths are no-ops/null/false. The
+      adapter deliberately makes those operations functional with an in-process map, expanding
+      the executable no-Lime contract.
+    status: deviation
+    notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
+    scenarios:
+      - utils/assets:registeredLibrary
+      - utils/assets:unregisteredLibrary
+
+  - id: utils.ASSET.static-addeventlistener-removeeventlistener-haseventlistener-and-dispatchevent-delegate
+    section: "Assets"
+    behavior: >
+      Static `addEventListener`, `removeEventListener`, `hasEventListener`, and
+      `dispatchEvent` delegate to one private global EventDispatcher. Adding a listener also
+      hooks Lime's change signal once.
+    status: covered
+    scenarios:
+      - utils/assets:events
+
+  - id: utils.AC.a-new-cache-has-enabled-true-and
+    section: "AssetCache / IAssetCache"
+    behavior: >
+      A new cache has `enabled = true` and separate public maps for bitmap data, fonts, and
+      sounds. Toggling enabled does not clear or prevent direct cache method use; `Assets`
+      decides whether to consult it.
+    status: covered
+    scenarios:
+      - utils/assets:populatedCache
+      - utils/assets:clearedCache
+
+  - id: utils.AC.getbitmapdata-getfont
+    section: "AssetCache / IAssetCache"
+    behavior: >
+      `getBitmapData`/`getFont`/`getSound`, `hasBitmapData`/`hasFont`/`hasSound`,
+      `setBitmapData`/`setFont`/`setSound`, and `removeBitmapData`/`removeFont`/`removeSound`
+      are direct ID map operations; remove returns whether an item existed. `clear()` replaces
+      all three maps; `clear(prefix)` removes every key beginning with that exact
+      case-sensitive prefix. Cached objects are not cloned or disposed.
+    status: covered
+    scenarios:
+      - utils/assets:populatedCache
+      - utils/assets:clearedCache
+
+  - id: utils.AC.iassetcache
+    section: "AssetCache / IAssetCache"
+    behavior: >
+      `IAssetCache` is exactly this property/method contract and does not prescribe eviction,
+      ownership, or thread safety.
+    status: covered
+    scenarios:
+      - utils/assets:populatedCache
+      - utils/assets:clearedCache
+
+  - id: utils.AL.with-lime-assetlibrary-wraps-or-proxies-a
+    section: "AssetLibrary, AssetManifest, and AssetType"
+    behavior: >
+      With Lime, AssetLibrary wraps or proxies a Lime library.
+      `exists/getAsset/getAudioBuffer/getBytes/getFont/getImage/getPath/getText/
+      isLocal/list`, their async `load*` counterparts, `load()`, and `unload()` forward to the
+      proxy or superclass. `getMovieClip` returns null and `loadMovieClip` is an immediately
+      completed null Future unless a subclass provides authored symbols. `bind` returns false
+      in the base class.
+    status: covered
+    scenarios:
+      - utils/assets:registeredLibrary
+
+  - id: utils.AL.frombundle-frombytes
+    section: "AssetLibrary, AssetManifest, and AssetType"
+    behavior: >
+      `fromBundle`, `fromBytes`, `fromFile`, and `fromManifest` synchronously create/wrap a
+      library where Lime supports it, else return null. Matching `loadFromBytes`,
+      `loadFromFile`, and `loadFromManifest` return Futures; invalid manifest loading is an
+      error Future. On no-Lime builds these factories return null (or completed-null Futures),
+      `bind` returns false, and movie-clip access returns null.
+    status: covered
+    scenarios:
+      - utils/assets:registeredLibrary
+
+  - id: utils.AL.most-other-assetlibrary-query-load-unload-methods
+    section: "AssetLibrary, AssetManifest, and AssetType"
+    behavior: >
+      Most other AssetLibrary query/load/unload methods are not declared at all by no-Lime
+      9.5.2 because they are inherited from Lime inside compile guards. The adapter adds
+      `exists`, `getPath`, `isLocal`, `list`, and `unload` stubs so the no-Lime asset registry
+      has a usable surface.
+    status: deviation
+    notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
+    scenarios:
+      - utils/assets:registeredLibrary
+
+  - id: utils.AL.assetmanifest-addbitmapdata-addbytes-addfont-addsound-and-addtext
+    section: "AssetLibrary, AssetManifest, and AssetType"
+    behavior: >
+      AssetManifest `addBitmapData`, `addBytes`, `addFont`, `addSound`, and `addText` append
+      preload entries, defaulting ID to path/name or the first sound path. `fromBytes`,
+      `fromFile`, `parse`, and asynchronous load variants delegate to Lime and return null off
+      Lime. In stock no-Lime 9.5.2, the private asset array is never initialized, so calling
+      `add*` there fails; the unchanged adapter preserves that quirk.
+    status: covered
+    scenarios: []
+
+  - id: utils.AL.assettype-binary
+    section: "AssetLibrary, AssetManifest, and AssetType"
+    behavior: >
+      `AssetType` string values are `BINARY`, `FONT`, `IMAGE`, `MOVIE_CLIP`, `MUSIC`, `SOUND`,
+      `TEMPLATE`, and `TEXT`. MUSIC and SOUND currently behave alike. `AssetBundle` aliases
+      Lime's bundle when available and `Dynamic` otherwise.
+    status: covered
+    scenarios:
+      - utils/assets:assetTypes
+
+  - id: utils.AGAL.new-debugging-verbose
+    section: "AGALMiniAssembler"
+    behavior: >
+      `new(debugging = false)` initializes shared opcode/sampler maps once, records whether to
+      log detailed assembly, leaves `verbose` at false, and exposes the last `agalcode` and
+      `error`.
+    status: covered
+    scenarios: []
+
+  - id: utils.AGAL.assemble-mode-source
+    section: "AGALMiniAssembler"
+    behavior: >
+      `assemble(mode, source, version = 1, ignoreLimits = false)` accepts only exact lowercase
+      `"vertex"` or `"fragment"`; invalid mode records an error. It starts output with AGAL
+      version/program headers, strips `//` comments, ignores blank/unrecognized lines with
+      warnings, assembles recognized lines, and returns little-endian ByteArray bytecode.
+    status: covered
+    scenarios: []
+
+  - id: utils.AGAL.supported-opcodes-are-mov-add-sub-mul
+    section: "AGALMiniAssembler"
+    behavior: >
+      Supported opcodes are `mov add sub mul div rcp min max frc sqt rsq pow log exp nrm sin
+      cos crs dp3 dp4 abs neg sat m33 m44 m34 kil tex sge slt sgn seq sne`; version 2 adds
+      `ddx ddy ife ine ifg ifl els eif`. It validates operand count, stage restrictions,
+      nesting (maximum 4), register access and ranges, destination masks, source swizzles,
+      matrix operands, relative vertex addressing/offset 0..255, and a maximum 4096 opcodes.
+      Any fatal error appends source line context and clears `agalcode` to length zero.
+    status: covered
+    scenarios: []
+
+  - id: utils.AGAL.registers-are-va-vc-vt-vo-op
+    section: "AGALMiniAssembler"
+    behavior: >
+      Registers are `va`, `vc`, `vt`, `vo/op`, `vi/i/v/fi`, `fc`, `ft`, `fs`, `fo/oc`,
+      `fd/od`, and `iid`, with version-specific index limits. Fragment relative addressing and
+      relative destinations are rejected.
+    status: covered
+    scenarios: []
+
+  - id: utils.AGAL.texture-options-encode-type-rgba-compressed-dxt1
+    section: "AGALMiniAssembler"
+    behavior: >
+      Texture options encode type (`rgba`, `compressed/dxt1`, `compressedalpha/dxt5`,
+      `video`), dimension (`2d`, `3d`, `cube`), mip mode, nearest/linear/anisotropic filters,
+      centroid/single/ignoresampler, wrap/clamp variants, and numeric LOD bias (stored in
+      eighths). Unknown option text is parsed as a numeric bias.
+    status: covered
+    scenarios: []
+
+  - id: utils.AGAL.assemble2-context3d-version
+    section: "AGALMiniAssembler"
+    behavior: >
+      `assemble2(context3D,version,vertexSource,fragmentSource)` assembles both programs,
+      creates Program3D, calls upload, and returns it. The assembler and resource shell work,
+      but executing that program is blocked by **Raw Context3D command model**.
+    status: flight-gap
+    gap: "Raw Context3D command model"
+    scenarios: []
+
+  - id: utils.END.endian-big-little-endian
+    section: "Remaining public utility types"
+    behavior: >
+      `Endian.BIG_ENDIAN = "bigEndian"` means most-significant byte first; `LITTLE_ENDIAN =
+      "littleEndian"` means least-significant byte first (legacy integer values 0 and 1). The
+      constants do not themselves change host order.
+    status: covered
+    scenarios:
+      - utils/byte-array:endianness
+      - utils/byte-array:endianSwitch
+
+  - id: utils.FN.function-haxe-constraints
+    section: "Remaining public utility types"
+    behavior: >
+      `Function` aliases `haxe.Constraints.Function` (Dynamic on legacy Haxe). It adds no
+      invocation semantics.
+    status: covered
+    scenarios: []
+
+  - id: utils.NS.namespace-prefix
+    section: "Remaining public utility types"
+    behavior: >
+      `Namespace` exposes read-only `prefix` and `uri`. No args produces two empty strings;
+      one Namespace copies it; one QName produces null prefix and its URI; another single
+      value becomes URI with null prefix. With two args, prefix is stringified and becomes
+      null if nonempty/invalid XML name, while a QName second arg contributes its URI;
+      otherwise the URI is stringified.
+    status: covered
+    scenarios: []
+
+  - id: utils.NS.qname-uri
+    section: "Remaining public utility types"
+    behavior: >
+      `QName` exposes read-only `uri` and `localName`. No args produces empty strings; one
+      QName copies it; another single value becomes local name with an empty URI. With two
+      args, Namespace contributes URI (null stays null), QName contributes localName, and
+      other values stringify.
+    status: covered
+    scenarios: []
+
+  - id: utils.OBJ.object-new
+    section: "Remaining public utility types"
+    behavior: >
+      `Object` is a Dynamic-compatible abstract. `new()` creates `{}`; `hasOwnProperty` uses
+      Reflect fields; `isPrototypeOf(theClass)` walks the runtime class/superclass chain;
+      `propertyIsEnumerable` returns true only for an owned field whose value implements the
+      target Iterable marker; `toString/toLocaleString` return `Std.string` (null stays null);
+      and `valueOf` returns itself. Field/array access uses reflection and named children of a
+      DisplayObjectContainer as a fallback; iteration yields array values or reflected
+      field/named-child keys.
+    status: covered
+    scenarios: []
+
+  - id: utils.OP.objectpool-activeobjects
+    section: "Remaining public utility types"
+    behavior: >
+      `ObjectPool` (or its Lime alias) tracks `activeObjects`, `inactiveObjects`, and optional
+      maximum/preallocated `size`. `add` cleans and admits a unique inactive object; `get`
+      reuses inactive then calls dynamic `create` if below capacity; `release` decrements
+      active and cleans/caches or removes above capacity; `remove` forgets either state;
+      `clear` empties all. Setting size shrinks inactive objects first or calls `create` to
+      prefill.
+    status: covered
+    scenarios:
+      - utils/object-pool:initial
+      - utils/object-pool:afterFirstGet
+      - utils/object-pool:afterRelease
+      - utils/object-pool:afterResize
+
+  - id: utils.PM3D.perspectivematrix3d-new-v
+    section: "Remaining public utility types"
+    behavior: >
+      `PerspectiveMatrix3D` extends Matrix3D; `new(v = null)` forwards the optional 16-element
+      raw vector to `Matrix3D`. `lookAtLH` and `lookAtRH` overwrite it with the corresponding
+      normalized camera basis and eye dot products. `orthoLH`, `orthoRH`, `orthoOffCenterLH`,
+      `orthoOffCenterRH`, `perspectiveFieldOfViewLH`, `perspectiveFieldOfViewRH`,
+      `perspectiveLH`, `perspectiveRH`, `perspectiveOffCenterLH`, and `perspectiveOffCenterRH`
+      overwrite all 16 elements with their named projection formulas. The 9.5.2 `orthoRH`
+      implementation contains `1 / (zNear - zNear)`, producing an infinite depth coefficient;
+      the unchanged adapter preserves this observable defect.
+    status: covered
+    scenarios: []
+
+  - id: utils.PR.without-lime-stock-9-5-2-future
+    section: "Remaining public utility types"
+    behavior: >
+      Without Lime, stock 9.5.2 `Future` is a minimal shell: `withValue` and `withError` set
+      terminal fields; `onComplete`, `onError`, and `onProgress` do nothing; `ready` returns
+      itself; `result` returns value; and `then` returns a new unresolved Future. The adapter
+      improves immediate and queued listener delivery for Promise use but retains the
+      unresolved `then`; with Lime, both versions alias the full Lime Future.
+    status: deviation
+    notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
+    scenarios: []
+
+  - id: utils.PR.promise-complete
+    section: "Remaining public utility types"
+    behavior: >
+      `Promise` owns a read-only Future. `complete` wins unless already errored, `error` wins
+      unless already completed, both synchronously notify the appropriate listeners, and
+      `progress` notifies only while pending. `completeWith` forwards another Future's
+      complete/error/progress. Methods return the same Promise; `isComplete/isError` mirror
+      the Future.
+    status: covered
+    scenarios: []

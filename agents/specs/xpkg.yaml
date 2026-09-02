@@ -1,0 +1,308 @@
+package: xpkg
+
+entries:
+
+  - id: xpkg.DO-geom.x-y-scale-rotation-and-transform-matrix
+    section: "Display and geometry interactions"
+    behavior: >
+      x/y/scale/rotation and `Transform.matrix` mutations immediately update the OpenFL matrix
+      and Flight node. Matrix reads are clones, and `concatenatedMatrix` is freshly rebuilt
+      from the parent chain, so later parent and child mutations cannot leave a stale OpenFL
+      matrix cache.
+    status: covered
+    scenarios:
+      - integration/display-geom:matrixAssignment
+      - integration/display-geom:concatenatedMatrix
+
+  - id: xpkg.DO-geom.localtoglobal-globaltolocal
+    section: "Display and geometry interactions"
+    behavior: >
+      `localToGlobal` and `globalToLocal` delegate to Flight's scene graph and have coverage
+      for nested transforms and `scrollRect` origin changes.
+    status: covered
+    scenarios:
+      - integration/display-geom:coordinateRoundTrip
+
+  - id: xpkg.DO-geom.vector-local-bounds-are-transformed-through-all
+    section: "Display and geometry interactions"
+    behavior: >
+      Vector/local bounds are transformed through all four rectangle corners; container bounds
+      recursively union child geometry in the requested target coordinate space. Basic
+      translation/scale/rotation cases match the fixtures.
+    status: covered
+    scenarios:
+      - integration/display-geom:bounds
+      - display/bounds:stroke
+
+  - id: xpkg.DO-geom.getrect-getbounds
+    section: "Display and geometry interactions"
+    behavior: >
+      `getRect` delegates to `getBounds`, matching OpenFL 9.5.2's current source
+      implementation even though the API documentation distinguishes stroke handling.
+    status: covered
+    scenarios:
+      - integration/display-geom:bounds
+      - display/bounds:stroke
+
+  - id: xpkg.DO-geom.bounds-coverage-is-incomplete-for-masks-zero
+    section: "Display and geometry interactions"
+    behavior: >
+      Bounds coverage is incomplete for masks, zero-axis scales, empty/line-only children,
+      `scrollRect`, filters' render bounds, TextField, and disposed bitmaps. Current
+      `Rectangle.isEmpty` union gating can also discard degenerate geometry that the 9.5.2
+      `__expand` path retains.
+    status: missing
+    scenarios:
+      - integration/display-geom:bounds
+      - display/bounds:stroke
+
+  - id: xpkg.DO-geom.transform-colortransform-displayobject-alpha
+    section: "Display and geometry interactions"
+    behavior: >
+      `Transform.colorTransform` is clone-on-read and copy-on-write, and setting its alpha
+      multiplier updates `DisplayObject.alpha` as the current harness expects.
+    status: covered
+    scenarios:
+      - geom/transform:colorTransformAccess
+
+  - id: xpkg.DO-geom.rgb-color-multipliers-offsets-on-transform-colortransform
+    section: "Display and geometry interactions"
+    behavior: >
+      RGB color multipliers/offsets on `Transform.colorTransform` are not attached to the
+      Flight node, so they are state-only and do not affect normal rendering.
+    status: missing
+    scenarios:
+      - geom/transform:colorTransformAccess
+
+  - id: xpkg.DO-geom.concatenatedcolortransform-pixelbounds
+    section: "Display and geometry interactions"
+    behavior: >
+      `concatenatedColorTransform` and `pixelBounds` are constructed once and never refreshed.
+      The existing fixtures capture OpenFL's pre-render identity/ empty quirk, but after an
+      update/render pass OpenFL 9.5.2 populates these from world color state and stage pixel
+      bounds; the adapter cannot do so today.
+    status: missing
+    scenarios:
+      - geom/transform:concatenatedColorTransform
+      - geom/transform:pixelBoundsLifecycle
+
+  - id: xpkg.DO-geom.assigning-a-transform-whose-active-representation-is
+    section: "Display and geometry interactions"
+    behavior: >
+      Assigning a `Transform` whose active representation is `matrix3D` does not transfer the
+      3D/matrix mutual-exclusion state to the destination. The current setter reads only
+      `value.matrix` and its color transform.
+    status: missing
+    scenarios:
+      - geom/transform:matrixMutualExclusion
+
+  - id: xpkg.DO-filter.filter-assignment-clones-every-non-null-filter
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      Filter assignment clones every non-null filter and stores an independent array. Getter
+      calls return distinct arrays containing the stored filter objects, matching OpenFL
+      9.5.2: mutating the returned array is isolated, while mutating a returned filter changes
+      the stored filter.
+    status: covered
+    scenarios:
+      - integration/filters-display:assignmentClone
+
+  - id: xpkg.DO-filter.a-non-empty-filter-list-forces-the
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      A non-empty filter list forces the observable `cacheAsBitmap` getter to true regardless
+      of the explicitly assigned cache flag; clearing filters reveals the explicit flag again.
+    status: covered
+    scenarios:
+      - integration/filters-display:multipleFilters
+      - integration/filters-display:removal
+
+  - id: xpkg.DO-filter.filter-list-order-is-retained-and-filter
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      Filter list order is retained, and filter property setters keep their Flight effect
+      descriptors synchronized.
+    status: covered
+    scenarios:
+      - integration/filters-display:multipleFilters
+
+  - id: xpkg.DO-filter.colormatrixfilter
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      `ColorMatrixFilter` values are attached to the Flight node as ordered color adjustments,
+      so this filter family participates in normal rendering.
+    status: covered
+    scenarios:
+      - integration/filters-display:multipleFilters
+
+  - id: xpkg.DO-filter.flight-can-construct-blur-bevel-glow-shadow
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      Flight can construct blur, bevel, glow, shadow, convolution, and shader `RenderEffect`
+      descriptors, but exposes no public per-Node2D effect-list attachment. Those assigned
+      filters cannot participate in display rendering.
+    status: flight-gap
+    gap: "Per-node render-effect attachment"
+    scenarios: []
+
+  - id: xpkg.DO-filter.openfl-s-internal-filter-render-bounds-expand
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      OpenFL's internal filter/render bounds expand by each filter's left/top/ right/bottom
+      extensions. The adapter has no `__getFilterBounds` or equivalent expansion path, so
+      cached/offscreen allocation and clipping cannot honor the filters even though public
+      `getBounds` correctly remains unexpanded.
+    status: missing
+    scenarios:
+      - integration/filters-display:containerBounds
+
+  - id: xpkg.DO-filter.cacheasbitmap
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      `cacheAsBitmap` retains public state but has no general implementation. Flight exposes
+      no public portable operation that rasterizes an arbitrary Node2D subtree into a bitmap,
+      which is required for the cache surface and for cache invalidation on
+      child/transform/filter changes.
+    status: flight-gap
+    gap: "Portable display-object rasterization"
+    scenarios:
+      - integration/filters-display:multipleFilters
+      - integration/filters-display:removal
+
+  - id: xpkg.DO-filter.full-filter-render-order-contracts-are-not
+    section: "Display filters and cacheAsBitmap"
+    behavior: >
+      Full filter render-order contracts are not met: OpenFL applies the list in order to a
+      flattened object subtree, with color transform/blend/cache/mask composition around that
+      surface. Only the directly attached color adjustments currently execute; mixed and
+      repeated filters need the node-effect and offscreen seams above.
+    status: missing
+    scenarios: []
+
+  - id: xpkg.BMD-draw.bitmap-bitmapdata-smoothing
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      `Bitmap.bitmapData` retains the assigned reference, resets `smoothing` to false like
+      OpenFL 9.5.2, rebuilds the Flight texture, updates local bitmap bounds, invalidates node
+      appearance, and marks the Stage for OpenFL render events.
+    status: covered
+    scenarios:
+      - display/shape-bitmap:bitmap
+
+  - id: xpkg.BMD-draw.bitmap-pixel-changes-mutate-a-shared-versioned
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      Bitmap pixel changes mutate a shared versioned Flight bitmap source, so Bitmap instances
+      continue to share the same underlying BitmapData content.
+    status: covered
+    scenarios:
+      - display/bitmap-data:textureAlias
+
+  - id: xpkg.BMD-draw.bitmap-smoothing-selects-flight-s-clamp-linear
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      Bitmap smoothing selects Flight's clamp-linear sampler when true and the
+      pixel-art/nearest sampler when false.
+    status: covered
+    scenarios:
+      - display/shape-bitmap:bitmap
+
+  - id: xpkg.BMD-draw.smoothing-bitmap-enterframe
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      `smoothing` is a plain field with no setter; changing it rebuilds the sampler only
+      during `Bitmap.__enterFrame`. Immediate render invalidation and rendering without an
+      intervening frame are not guaranteed. This is a likely interaction point for the
+      observed bitmap smoothing discrepancy.
+    status: missing
+    scenarios: []
+
+  - id: xpkg.BMD-draw.bitmapdata-draw-bitmapdata-smoothing
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      `BitmapData.draw(BitmapData, ...)` applies the supplied matrix in destination
+      coordinates, uses nearest/bilinear sampling from `smoothing`, applies the explicit color
+      transform, clips in destination space, and composites with the mapped blend mode.
+    status: covered
+    scenarios:
+      - display/bitmap-data:drawBitmapData
+
+  - id: xpkg.BMD-draw.bitmapdata-draw-displayobject
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      `BitmapData.draw(DisplayObject, ...)` incorrectly includes the root source object's own
+      local transform. OpenFL 9.5.2 treats the source as library-local and applies only the
+      method's matrix to the root, while retaining descendant transforms.
+    status: missing
+    scenarios:
+      - display/bitmap-data:drawShape
+
+  - id: xpkg.BMD-draw.the-portable-bitmap-only-display-tree-flattener
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      The portable bitmap-only display-tree flattener handles nested Bitmaps, transforms,
+      alpha, visibility, and blend modes, but ignores masks, `scrollRect`, object color
+      transforms, filters, shaders, opaque backgrounds, and cache surfaces. Encountering
+      vector graphics abandons that path.
+    status: missing
+    scenarios:
+      - display/bitmap-data:drawShape
+
+  - id: xpkg.BMD-draw.native-cairo-can-rasterize-the-remaining-flight
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      Native Cairo can rasterize the remaining Flight scene subtree, but Flight has no
+      portable arbitrary-Node2D-to-bitmap operation. DisplayObject drawing on non-Cairo
+      targets and exact filtered/cached composition remain blocked on that offscreen bridge.
+    status: flight-gap
+    gap: "Portable display-object rasterization"
+    scenarios:
+      - display/bitmap-data:drawShape
+
+  - id: xpkg.BMD-draw.the-cairo-fallback-still-needs-coordinate-order
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      The Cairo fallback still needs coordinate/order parity checks for the source root
+      transform, supplied matrix, scroll rectangle, filters, and source visibility restoration
+      against the 9.5.2 software renderer.
+    status: missing
+    scenarios:
+      - display/bitmap-data:drawShape
+
+  - id: xpkg.BMD-draw.disposing-bitmapdata-clears-its-adapter-handle-dimensions
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      Disposing BitmapData clears its adapter handle, dimensions, rect, and readability, but
+      existing Bitmap instances retain their Flight texture and a copied pre-disposal local
+      bound. They are not notified or resynchronized, so stale pixels/bounds may continue to
+      render until `bitmapData` is reassigned.
+    status: missing
+    scenarios: []
+
+  - id: xpkg.BMD-draw.calls-made-directly-on-disposed-bitmapdata-generally
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      Calls made directly on disposed BitmapData generally return the same inert/null/zero
+      forms enforced by the current readable/handle guards; the outstanding defect is
+      propagation to display objects that already reference it.
+    status: covered
+    scenarios:
+      - display/bitmap-data:dispose
+
+  - id: xpkg.DO-filter.add-rendered-transform-filter-fixtures-after-an
+    section: "Highest-value follow-up coverage"
+    behavior: >
+      Add rendered transform/filter fixtures after an actual frame to cover concatenated
+      color, pixel bounds, filter order/expansion, and cache invalidation rather than only
+      public property storage.
+    status: missing
+    scenarios: []
+
+  - id: xpkg.BMD-draw.add-bitmapdata-draw-fixtures-with-a-transformed
+    section: "Highest-value follow-up coverage"
+    behavior: >
+      Add BitmapData draw fixtures with a transformed root source, nested children,
+      mask/scrollRect/color transform/filter/blend composition, smoothing changes, and
+      disposal while one or more Bitmaps retain the data.
+    status: missing
+    scenarios: []
