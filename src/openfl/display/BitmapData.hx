@@ -2,10 +2,15 @@ package openfl.display;
 
 #if !flash
 import flight.Bitmap as FlightBitmap;
+import flight.Sdk.*;
 import flight._internal._UInt8ClampedArray as FlightUInt8ClampedArray;
 import flight._internal._UInt8Array as FlightUInt8Array;
 import flight.types.Bitmap as FlightBitmapHandle;
+#if (lime_cairo && !js)
+import flight._internal.backend.NativeScratchCanvas;
+#end
 import openfl.Vector;
+import openfl.display.BlendMode as OpenFLBlendMode;
 import openfl.display3D.Context3D;
 import openfl.display3D.Context3DTextureFormat;
 import openfl.display3D.IndexBuffer3D;
@@ -46,6 +51,8 @@ private typedef CanvasElement = Dynamic;
 @:noDebug
 #end
 @:access(openfl.display3D.textures.TextureBase)
+@:access(openfl.display.DisplayObject)
+@:access(openfl.display.Window)
 class BitmapData implements IBitmapDrawable
 {
 	public var height(default, null):Int;
@@ -85,6 +92,7 @@ class BitmapData implements IBitmapDrawable
 		var color:Int = cast fillColor;
 		if (!transparent) color = 0xFF000000 | (color & 0xFFFFFF);
 		__bitmap = FlightBitmap.createBitmap(this.width, this.height, __argbToFlight(color, true));
+		__bitmap.alphaType = cast "premultiplied";
 	}
 
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, filter:BitmapFilter):Void
@@ -338,10 +346,24 @@ class BitmapData implements IBitmapDrawable
 	public function draw(source:IBitmapDrawable, matrix:Matrix = null, colorTransform:ColorTransform = null, blendMode:BlendMode = null,
 			clipRect:Rectangle = null, smoothing:Bool = false):Void
 	{
-		if (!readable || __bitmap == null || source == null || !Std.isOfType(source, BitmapData)) return;
-		var sourceBitmapData:BitmapData = cast source;
-		if (!sourceBitmapData.readable || sourceBitmapData.__bitmap == null) return;
-		var inverse = matrix == null ? new Matrix() : matrix.clone();
+		if (!readable || __bitmap == null || source == null) return;
+		var sourceBitmapData:BitmapData;
+		var bitmapMatrix = matrix;
+		if (Std.isOfType(source, BitmapData))
+		{
+			sourceBitmapData = cast source;
+		}
+		else if (Std.isOfType(source, DisplayObject))
+		{
+			sourceBitmapData = __drawDisplayObject(cast source, matrix, smoothing);
+			bitmapMatrix = null;
+		}
+		else
+		{
+			return;
+		}
+		if (sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null) return;
+		var inverse = bitmapMatrix == null ? new Matrix() : bitmapMatrix.clone();
 		inverse.invert();
 		var transformed = FlightBitmap.createBitmap(width, height, 0);
 		FlightBitmap.transformBitmap(FlightBitmap.createBitmapRegion(transformed), FlightBitmap.createBitmapRegion(__toStraightBitmap(sourceBitmapData)),
@@ -466,11 +488,13 @@ class BitmapData implements IBitmapDrawable
 		if (source == null) return null;
 
 		var result = new BitmapData(image.width, image.height, transparent, 0);
-		var pixels = new FlightUInt8ClampedArray(image.width * image.height * 4);
-		for (i in 0...pixels.length)
+		var straightPixels = new FlightUInt8ClampedArray(image.width * image.height * 4);
+		for (i in 0...straightPixels.length)
 		{
-			pixels[i] = (!transparent && (i & 3) == 3) ? 0xFF : source.get(i);
+			straightPixels[i] = (!transparent && (i & 3) == 3) ? 0xFF : source.get(i);
 		}
+		var pixels = new FlightUInt8ClampedArray(straightPixels.length);
+		FlightBitmap.premultiplyBitmapPixels(pixels, straightPixels, straightPixels.length);
 		FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(result.__bitmap), pixels);
 		result.image = image;
 		return result;
@@ -903,21 +927,21 @@ class BitmapData implements IBitmapDrawable
 		};
 	}
 
-	@:noCompletion private static function __flightBlendMode(blendMode:BlendMode):String
+	@:noCompletion private static function __flightBlendMode(blendMode:OpenFLBlendMode):String
 	{
 		return switch (blendMode)
 		{
-			case BlendMode.ADD: "Add";
-			case BlendMode.DARKEN: "Darken";
-			case BlendMode.DIFFERENCE: "Difference";
-			case BlendMode.ERASE: "DestinationOut";
-			case BlendMode.HARDLIGHT: "HardLight";
-			case BlendMode.INVERT: "Invert";
-			case BlendMode.LIGHTEN: "Lighten";
-			case BlendMode.MULTIPLY: "Multiply";
-			case BlendMode.OVERLAY: "Overlay";
-			case BlendMode.SCREEN: "Screen";
-			case BlendMode.SUBTRACT: "Subtract";
+			case OpenFLBlendMode.ADD: "Add";
+			case OpenFLBlendMode.DARKEN: "Darken";
+			case OpenFLBlendMode.DIFFERENCE: "Difference";
+			case OpenFLBlendMode.ERASE: "DestinationOut";
+			case OpenFLBlendMode.HARDLIGHT: "HardLight";
+			case OpenFLBlendMode.INVERT: "Invert";
+			case OpenFLBlendMode.LIGHTEN: "Lighten";
+			case OpenFLBlendMode.MULTIPLY: "Multiply";
+			case OpenFLBlendMode.OVERLAY: "Overlay";
+			case OpenFLBlendMode.SCREEN: "Screen";
+			case OpenFLBlendMode.SUBTRACT: "Subtract";
 			default: "Normal";
 		};
 	}
@@ -974,6 +998,109 @@ class BitmapData implements IBitmapDrawable
 		var result = new BitmapData(Std.int(bitmap.width), Std.int(bitmap.height), transparent, 0);
 		result.__bitmap = bitmap;
 		return result;
+	}
+
+	@:noCompletion private function __drawDisplayObject(source:DisplayObject, matrix:Matrix, smoothing:Bool):BitmapData
+	{
+		var flattened = FlightBitmap.createBitmap(width, height, 0);
+		if (__drawBitmapDisplayTree(flattened, source, matrix == null ? new Matrix() : matrix, 1, smoothing))
+		{
+			var premultiplied = new FlightUInt8ClampedArray(flattened.data.length);
+			FlightBitmap.premultiplyBitmapPixels(premultiplied, flattened.data, flattened.data.length);
+			var result = new BitmapData(width, height, true, 0);
+			FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(result.__bitmap), premultiplied);
+			return result;
+		}
+
+		#if (lime_cairo && !js)
+		if (source.__flightNode == null) return null;
+		source.__syncFlightNode();
+		var surfaceCreator = flight.Scene2DCairo.createCairoRenderSurfaceCreator();
+		var canvas = new NativeScratchCanvas();
+		canvas.width = width;
+		canvas.height = height;
+		var surface = createCanvasRenderSurface(surfaceCreator, cast canvas, {width: width, height: height});
+		var resolvers = createCanvasTextureResolvers(surfaceCreator);
+		var state = createCanvasRenderState(surface, scene2dCanvasPipeline, resolvers, {
+			backgroundColor: 0x00000000,
+			imageSmoothingEnabled: smoothing,
+			pixelRatio: 1,
+			renderTransform: cast (matrix == null ? new Matrix() : matrix),
+			sceneGraphSyncPolicy: "always"
+		});
+		registerRenderer(state, SpriteKind, defaultCanvasSpriteRenderer);
+		registerRenderer(state, ShapeKind, defaultCanvasShapeRenderer);
+		registerRenderer(state, TextLabelKind, defaultCanvasTextLabelRenderer);
+		registerRenderer(state, RichTextKind, defaultCanvasRichTextRenderer);
+		registerCanvasShapeCommands(state, defaultCanvasShapeCommands);
+		registerCanvasImageTextureResolver(resolvers);
+		Window.__registerFlightCanvasBitmapResolver(resolvers);
+		enableCanvasBlendMode(state);
+		prepareScene2DRender(state, source.__flightNode);
+		renderCanvasScene2D(state, source.__flightNode);
+
+		var imageData:Dynamic = canvas.nativeContext().getImageData(0, 0, width, height);
+		var premultiplied = new FlightUInt8ClampedArray(imageData.data.length);
+		FlightBitmap.premultiplyBitmapPixels(premultiplied, imageData.data, imageData.data.length);
+		var result = new BitmapData(width, height, true, 0);
+		FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(result.__bitmap), premultiplied);
+		destroyCanvasRenderState(state);
+		destroyCanvasRenderSurface(surface);
+		destroyCanvasTextureResolvers(resolvers);
+		return result;
+		#else
+		return null;
+		#end
+	}
+
+	@:noCompletion private function __drawBitmapDisplayTree(destination:FlightBitmapHandle, source:DisplayObject, parentMatrix:Matrix, parentAlpha:Float,
+			smoothing:Bool):Bool
+	{
+		if (source == null) return true;
+		if (source.__graphics != null) return false;
+		if (!source.__visible || source.__alpha <= 0) return true;
+		var transform = source.__transform.clone();
+		transform.concat(parentMatrix);
+		var alpha = parentAlpha * source.__alpha;
+
+		if (Std.isOfType(source, Bitmap))
+		{
+			var bitmap:Bitmap = cast source;
+			if (bitmap.__bitmapData == null || bitmap.__bitmapData.__bitmap == null) return true;
+			var inverse = transform.clone();
+			inverse.invert();
+			var transformed = FlightBitmap.createBitmap(width, height, 0);
+			FlightBitmap.transformBitmap(FlightBitmap.createBitmapRegion(transformed),
+				FlightBitmap.createBitmapRegion(__toStraightBitmap(bitmap.__bitmapData)),
+				[inverse.a, inverse.b, inverse.c, inverse.d, inverse.tx, inverse.ty], "transparent", smoothing ? "bilinear" : "nearest");
+			if (alpha < 1)
+			{
+				var faded = FlightBitmap.createBitmap(width, height, 0);
+				FlightBitmap.applyBitmapColorScaleBias(FlightBitmap.createBitmapRegion(faded), FlightBitmap.createBitmapRegion(transformed), {
+					redScale: 1,
+					greenScale: 1,
+					blueScale: 1,
+					alphaScale: alpha,
+					redBias: 0,
+					greenBias: 0,
+					blueBias: 0,
+					alphaBias: 0
+				});
+				transformed = faded;
+			}
+			FlightBitmap.compositeBitmapRegion(FlightBitmap.createBitmapRegion(destination), FlightBitmap.createBitmapRegion(transformed),
+				__flightBlendMode(source.__blendMode));
+			return true;
+		}
+
+		if (source.__children != null)
+		{
+			for (child in source.__children)
+			{
+				if (!__drawBitmapDisplayTree(destination, child, transform, alpha, smoothing)) return false;
+			}
+		}
+		return true;
 	}
 
 	@:noCompletion private static function __premultiplyComponent(component:Int, alpha:Int):Int
