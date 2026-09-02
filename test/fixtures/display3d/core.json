@@ -120,6 +120,54 @@
     "stencil": 4
   },
   "context": {
-    "supportsVideoTexture": false
+    "resources": {
+      "buffers": {
+        "vertexIsVertexBuffer3D": true,
+        "indexIsIndexBuffer3D": true
+      },
+      "textures": {
+        "textureIsTexture": true
+      },
+      "program": {
+        "isProgram3D": true,
+        "agalAttribute": 3,
+        "glslMissingAttribute": -1,
+        "agalFragmentConstant": 7,
+        "agalVertexConstant": 2,
+        "glslMissingConstant": -1
+      }
+    },
+    "supportsVideoTexture": false,
+    "defaults": {
+      "driverInfoIsOpenGL": true,
+      "backBufferWidth": 0,
+      "totalGPUMemory": 0,
+      "profile": "standard",
+      "enableErrorChecking": false,
+      "backBufferHeight": 0
+    },
+    "configured": {
+      "driverInfoIsOpenGL": true,
+      "backBufferWidth": 96,
+      "totalGPUMemory": 0,
+      "profile": "standard",
+      "enableErrorChecking": true,
+      "backBufferHeight": 48
+    }
+  },
+  "acquisition": {
+    "firstRequest": {
+      "events": [
+        "error:Context3D not available"
+      ],
+      "contextIsNull": true
+    },
+    "matchingProfiles": {
+      "events": [
+        "error:Context3D not available",
+        "error:Context3D not available"
+      ],
+      "contextIsNull": true
+    }
   }
 }

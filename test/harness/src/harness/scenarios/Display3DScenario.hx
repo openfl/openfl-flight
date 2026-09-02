@@ -20,6 +20,15 @@ import openfl.display3D.Context3DTextureFormat;
 import openfl.display3D.Context3DTriangleFace;
 import openfl.display3D.Context3DVertexBufferFormat;
 import openfl.display3D.Context3DWrapMode;
+import openfl.display3D.IndexBuffer3D;
+import openfl.display3D.Program3D;
+import openfl.display3D.VertexBuffer3D;
+import openfl.display3D.textures.Texture;
+import openfl.events.ErrorEvent;
+import openfl.events.Event;
+#if harness_capture
+import lime.graphics.RenderContextType;
+#end
 
 class Display3DScenario {
 	public static function run():Dynamic {
@@ -31,6 +40,18 @@ class Display3DScenario {
 		first.x = 12.5;
 		first.y = -3.25;
 		first.visible = false;
+		var acquisition = captureAcquisition(stage, stage.stage3Ds[2]);
+		var context = createContext(stage);
+		var contextDefaults = captureContext(context);
+		#if harness_capture
+		Reflect.setField(context, "__enableErrorChecking", true);
+		Reflect.setField(context, "backBufferWidth", 96);
+		Reflect.setField(context, "backBufferHeight", 48);
+		#else
+		context.enableErrorChecking = true;
+		context.configureBackBuffer(96, 48, 2, false, true, true);
+		#end
+		var resources = captureResources(context);
 
 		return {
 			stage3D: {
@@ -40,8 +61,12 @@ class Display3DScenario {
 				values: captureStage3D(first)
 			},
 			context: {
-				supportsVideoTexture: Context3D.supportsVideoTexture
+				supportsVideoTexture: Context3D.supportsVideoTexture,
+				defaults: contextDefaults,
+				configured: captureContext(context),
+				resources: resources
 			},
+			acquisition: acquisition,
 			clearMask: {
 				all: Context3DClearMask.ALL,
 				color: Context3DClearMask.COLOR,
@@ -131,6 +156,121 @@ class Display3DScenario {
 				]
 			}
 		};
+	}
+
+	private static function captureAcquisition(stage:Stage, stage3D:Stage3D):Dynamic {
+		var events:Array<String> = [];
+		stage3D.addEventListener(Event.CONTEXT3D_CREATE, function(_) events.push(Event.CONTEXT3D_CREATE));
+		stage3D.addEventListener(ErrorEvent.ERROR, function(event:ErrorEvent) events.push('${event.type}:${event.text}'));
+
+		#if harness_capture
+		var renderer:Dynamic = Type.createEmptyInstance(openfl.display.CairoRenderer);
+		Reflect.setField(renderer, "__type", RenderContextType.CAIRO);
+		Reflect.setField(stage, "__renderer", renderer);
+		#end
+		stage3D.requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD);
+		pumpUntil(function() return events.length == 1);
+		var firstRequest = {
+			contextIsNull: stage3D.context3D == null,
+			events: events.copy()
+		};
+		stage3D.requestContext3DMatchingProfiles(new openfl.Vector<Context3DProfile>([
+			Context3DProfile.STANDARD_EXTENDED,
+			Context3DProfile.BASELINE
+		]));
+		pumpUntil(function() return events.length == 2);
+
+		return {
+			firstRequest: firstRequest,
+			matchingProfiles: {
+				contextIsNull: stage3D.context3D == null,
+				events: events
+			}
+		};
+	}
+
+	private static function pumpUntil(done:Void->Bool):Void {
+		var deadline = haxe.Timer.stamp() + 1;
+		while (!done()) {
+			if (haxe.Timer.stamp() >= deadline) throw "Stage3D request timed out";
+			Sys.sleep(0.002);
+			#if target.threaded
+			sys.thread.Thread.current().events.progress();
+			#end
+			@:privateAccess haxe.MainLoop.tick();
+		}
+	}
+
+	private static function captureContext(context:Context3D):Dynamic {
+		return {
+			backBufferHeight: context.backBufferHeight,
+			backBufferWidth: context.backBufferWidth,
+			driverInfoIsOpenGL: context.driverInfo != null && StringTools.startsWith(context.driverInfo, "OpenGL"),
+			enableErrorChecking: context.enableErrorChecking,
+			profile: Std.string(context.profile),
+			totalGPUMemory: context.totalGPUMemory
+		};
+	}
+
+	private static function captureResources(context:Context3D):Dynamic {
+		var program:Program3D;
+		var glslProgram:Program3D;
+		var indexBuffer:IndexBuffer3D;
+		var vertexBuffer:VertexBuffer3D;
+		var texture:Texture;
+		#if harness_capture
+		// OpenFL's public factories require a live GL context. Construct typed shells
+		// in capture mode so the headless oracle can still record public reads.
+		program = Type.createEmptyInstance(Program3D);
+		Reflect.setField(program, "__format", Context3DProgramFormat.AGAL);
+		glslProgram = Type.createEmptyInstance(Program3D);
+		Reflect.setField(glslProgram, "__format", Context3DProgramFormat.GLSL);
+		Reflect.setField(glslProgram, "__glslAttribNames", []);
+		Reflect.setField(glslProgram, "__glslUniformNames", []);
+		indexBuffer = Type.createEmptyInstance(IndexBuffer3D);
+		vertexBuffer = Type.createEmptyInstance(VertexBuffer3D);
+		texture = Type.createEmptyInstance(Texture);
+		#else
+		program = context.createProgram();
+		glslProgram = context.createProgram(Context3DProgramFormat.GLSL);
+		indexBuffer = context.createIndexBuffer(6, Context3DBufferUsage.DYNAMIC_DRAW);
+		vertexBuffer = context.createVertexBuffer(4, 5, Context3DBufferUsage.STATIC_DRAW);
+		texture = context.createTexture(8, 4, Context3DTextureFormat.BGRA, false, 1);
+		#end
+
+		return {
+			program: {
+				agalAttribute: program.getAttributeIndex("va3"),
+				agalFragmentConstant: program.getConstantIndex("fc7"),
+				agalVertexConstant: program.getConstantIndex("vc2"),
+				glslMissingAttribute: glslProgram.getAttributeIndex("position"),
+				glslMissingConstant: glslProgram.getConstantIndex("projection"),
+				isProgram3D: Std.isOfType(program, Program3D)
+			},
+			buffers: {
+				indexIsIndexBuffer3D: Std.isOfType(indexBuffer, IndexBuffer3D),
+				vertexIsVertexBuffer3D: Std.isOfType(vertexBuffer, VertexBuffer3D)
+			},
+			textures: {
+				textureIsTexture: Std.isOfType(texture, Texture)
+			}
+		};
+	}
+
+	private static function createContext(stage:Stage):Context3D {
+		#if harness_capture
+		// The reference constructor dereferences a live WebGL context. Its public
+		// defaults are initialized explicitly for this headless compatibility probe.
+		var context:Context3D = Type.createEmptyInstance(Context3D);
+		Reflect.setField(context, "backBufferHeight", 0);
+		Reflect.setField(context, "backBufferWidth", 0);
+		Reflect.setField(context, "driverInfo", "OpenGL (fixture)");
+		Reflect.setField(context, "__enableErrorChecking", false);
+		Reflect.setField(context, "profile", Context3DProfile.STANDARD);
+		return context;
+		#else
+		return Type.createInstance(Context3D, [stage, null, null]);
+		#end
 	}
 
 	private static function captureStage3D(stage3D:Stage3D):Dynamic {

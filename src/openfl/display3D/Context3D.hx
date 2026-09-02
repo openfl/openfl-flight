@@ -49,6 +49,7 @@ import openfl.utils.ByteArray;
 	@:noCompletion private function new(stage:Dynamic, contextState:Dynamic = null, stage3D:Dynamic = null)
 	{
 		super();
+		__enableErrorChecking = false;
 		maxBackBufferHeight = 0;
 		maxBackBufferWidth = 0;
 	}

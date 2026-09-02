@@ -2,31 +2,31 @@
 
 Reconciliation was repeated after the filesystem round and the Context3D
 public-surface audit. The canonical sweep,
-`grep -rn "// TODO" src/openfl/ --include="*.hx"`, finds 41 entries. A broader
+`grep -rn "// TODO" src/openfl/ --include="*.hx"`, finds 39 entries. A broader
 `TODO` sweep finds three additional spellings, included here so the inventory
-covers all 44 remaining markers:
+covers all 42 remaining markers:
 
 - `src/openfl/geom/Matrix3D.hx:930` uses `TODO:` inside a block comment.
 - `src/openfl/net/DatagramSocket.hx:161` uses `//TODO` without a space.
 - `src/openfl/text/StyleSheet.hx:250` uses `TODO` in commented code.
 
 The 22 Context3D command markers are now classified directly in source and in
-`agents/flight-gaps.md`. The filesystem round removed another 20 resolved or
-explicitly classified markers. Neither set remains in this literal TODO
-inventory.
+`agents/flight-gaps.md`, and Stage3D's two request markers became an explicit
+asynchronous failure adapter. The filesystem round removed another 20 resolved
+or explicitly classified markers. None remain in this literal TODO inventory.
 
 ## Counts
 
 | Category | Count |
 | --- | ---: |
 | implemented | 1 |
-| blocked:GL-draw-seam | 7 |
+| blocked:GL-draw-seam | 5 |
 | blocked:binding-regen | 0 |
 | blocked:flight-gap | 14 |
 | adapter-todo | 11 |
 | optimization | 3 |
 | intentional-stub | 8 |
-| **Total** | **44** |
+| **Total** | **42** |
 
 ## implemented
 
@@ -45,7 +45,6 @@ bridge entries where noted.
 | Location | Count | Inventory |
 | --- | ---: | --- |
 | `src/openfl/display3D/textures/RectangleTexture.hx:35,40` | 2 | Byte and typed-array uploads have no public Context3D texture-upload seam. |
-| `src/openfl/display/Stage3D.hx:54,65` | 2 | Context creation and binding require a public Flight graphics-context seam. |
 | `src/openfl/display/OpenGLRenderer.hx:55` | 1 | The legacy renderer cannot translate into an active Context3D backend until the draw seam exists. |
 | `src/openfl/display/BitmapData.hx:495,522` | 2 | Index- and vertex-buffer cache exposure requires the Stage3D geometry bridge recorded under **BitmapData platform and Stage3D cache types**. |
 
