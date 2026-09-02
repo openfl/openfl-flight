@@ -340,7 +340,8 @@ class BitmapData implements IBitmapDrawable
 			[inverse.a, inverse.b, inverse.c, inverse.d, inverse.tx, inverse.ty], "transparent", smoothing ? "bilinear" : "nearest");
 		if (colorTransform != null)
 		{
-			var transformedBitmapData = __fromFlightBitmap(transformed, true);
+			var transformedBitmapData = new BitmapData(width, height, true, 0);
+			transformedBitmapData.__writeStraightRegion(transformed, 0, 0, width, height);
 			transformedBitmapData.colorTransform(transformedBitmapData.rect, colorTransform);
 			transformed = __toStraightBitmap(transformedBitmapData);
 		}
