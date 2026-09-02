@@ -20,11 +20,15 @@ class SystemScenario {
 		var totalMemoryNumber = System.totalMemoryNumber;
 		var language = Capabilities.language;
 		var os = Capabilities.os;
+		var manufacturer = Capabilities.manufacturer;
 		var playerType = Capabilities.playerType;
 		var version = Capabilities.version;
 		var screenResolutionX = Capabilities.screenResolutionX;
 		var screenResolutionY = Capabilities.screenResolutionY;
 		var screenDPI = Capabilities.screenDPI;
+		var pixelAspectRatio = Capabilities.pixelAspectRatio;
+		var screenColor = Capabilities.screenColor;
+		var serverString = Capabilities.serverString;
 		var gcDoesNotThrow = true;
 		try {
 			System.gc();
@@ -65,33 +69,46 @@ class SystemScenario {
 				isEmbeddedInAcrobat: Capabilities.isEmbeddedInAcrobat,
 				language: language,
 				localFileReadDisable: Capabilities.localFileReadDisable,
-				manufacturer: Capabilities.manufacturer,
+				manufacturer: manufacturer,
 				maxLevelIDC: Capabilities.maxLevelIDC,
 				os: os,
-				pixelAspectRatio: Capabilities.pixelAspectRatio,
+				pixelAspectRatio: pixelAspectRatio,
 				playerType: playerType,
-				screenColor: Capabilities.screenColor,
+				screenColor: screenColor,
 				screenDPI: screenDPI,
 				version: version,
 				screenResolutionX: screenResolutionX,
 				screenResolutionY: screenResolutionY,
-				serverString: Capabilities.serverString,
+				serverString: serverString,
 				supports32BitProcesses: Capabilities.supports32BitProcesses,
 				supports64BitProcesses: Capabilities.supports64BitProcesses,
 				touchscreenType: Std.string(Capabilities.touchscreenType),
 				hasMultiChannelAudio: Capabilities.hasMultiChannelAudio("DolbyDigital")
 			},
 			capabilityValidation: {
+				languageNonEmpty: language != null && language != "",
 				languageMatchesFormat: ~/^(?:[a-z]{2}|zh-(?:CN|TW)|xu)$/.match(language),
+				osNonNull: os != null,
 				osMatchesFormat: os == "" || ~/^(?:Windows|Mac OS|Linux|Android|iPhone OS)(?: |$)/.match(os),
+				manufacturerNonEmpty: manufacturer != null && manufacturer != "",
 				playerTypeIsKnown: ["Desktop", "PlugIn", "StandAlone"].indexOf(playerType) != -1,
+				versionNonEmpty: version != null && version != "",
 				versionMatchesFormat: ~/^[A-Za-z]+ [0-9]+,[0-9]+,[0-9]+,[0-9]+$/.match(version),
 				screenResolutionXPositive: screenResolutionX > 0,
 				screenResolutionYPositive: screenResolutionY > 0,
 				screenDPIPositive: screenDPI > 0,
+				pixelAspectRatioPositive: pixelAspectRatio > 0,
+				screenColorIsKnown: ["color", "gray", "bw"].indexOf(screenColor) != -1,
+				serverStringNonEmpty: serverString != null && serverString != "",
+				serverStringHasResolution: serverString.indexOf("R=") != -1,
+				avHardwareDisableIsBool: Type.typeof(Capabilities.avHardwareDisable) == TBool,
+				localFileReadDisableIsBool: Type.typeof(Capabilities.localFileReadDisable) == TBool,
 				hasAudio: Capabilities.hasAudio,
+				hasAudioIsBool: Type.typeof(Capabilities.hasAudio) == TBool,
 				hasMP3: Capabilities.hasMP3,
+				hasMP3IsBool: Type.typeof(Capabilities.hasMP3) == TBool,
 				hasVideoEncoder: Capabilities.hasVideoEncoder,
+				hasVideoEncoderIsBool: Type.typeof(Capabilities.hasVideoEncoder) == TBool,
 				hasScreenPlayback: Capabilities.hasScreenPlayback
 			},
 			constants: {

@@ -4,8 +4,12 @@ package openfl.system;
 import haxe.macro.Compiler;
 import flight.App as FlightApp;
 import flight.Device as FlightDevice;
+import flight.Platform as FlightPlatform;
+import flight.Screen as FlightScreen;
 import flight.types.HasAppLocale as FlightAppLocaleHost;
+import flight.types.HasScreenQuery as FlightScreenHost;
 import flight.types.HasSystemDevice as FlightSystemDeviceHost;
+import flight.types.HasSystemPlatform as FlightSystemPlatformHost;
 #if (js && html5)
 import flight.HostWeb as FlightHostWeb;
 #elseif (clay && sys)
@@ -99,7 +103,9 @@ import lime.app.Application as LimeApplication;
 @:final class Capabilities
 {
 	@:noCompletion private static var __flightLocaleHost:FlightAppLocaleHost;
+	@:noCompletion private static var __flightScreenHost:FlightScreenHost;
 	@:noCompletion private static var __flightSystemDeviceHost:FlightSystemDeviceHost;
+	@:noCompletion private static var __flightSystemPlatformHost:FlightSystemPlatformHost;
 
 	/**
 		Specifies whether access to the user's camera and microphone has been
@@ -438,7 +444,7 @@ import lime.app.Application as LimeApplication;
 		R=1600x1200&DP=72&COL=color&AR=1.0&OS=Windows%20XP&
 		L=en&PT=External&AVD=f&LFD=f&WD=f</pre>
 	**/
-	public static var serverString(default, null) = ""; // TODO
+	public static var serverString(default, null) = __buildServerString();
 
 	/**
 		Specifies whether the system supports running 32-bit processes. The server
@@ -450,13 +456,13 @@ import lime.app.Application as LimeApplication;
 		Specifies whether the system supports running 64-bit processes. The server
 		string is `PR64`.
 	**/
-	public static var supports64BitProcesses(default, null) = #if (desktop || sys) true #else false #end; // TODO
+	public static var supports64BitProcesses(default, null) = __getSupports64BitProcesses();
 
 	/**
 		Specifies the type of touchscreen supported, if any. Values are defined in
 		the openfl.system.TouchscreenType class.
 	**/
-	public static var touchscreenType(default, null) = TouchscreenType.FINGER; // TODO
+	public static var touchscreenType(default, null) = __getTouchscreenType();
 
 	/**
 		Specifies the Flash Player or Adobe<sup>®</sup> AIR<sup>®</sup> platform
@@ -677,6 +683,9 @@ import lime.app.Application as LimeApplication;
 	{
 		var metrics = __getFlightDisplayMetrics();
 		if (metrics.densityDpi > 0) return metrics.densityDpi;
+		var screen = __getFlightScreenInfo();
+		if (screen.dpi > 0) return screen.dpi;
+		if (screen.scaleFactor > 0) return 72 * screen.scaleFactor;
 		return 72 * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1);
 	}
 
@@ -685,7 +694,13 @@ import lime.app.Application as LimeApplication;
 		var metrics = __getFlightDisplayMetrics();
 		if (metrics.physicalWidth > 0) return Math.ceil(metrics.physicalWidth);
 		if (metrics.logicalWidth > 0) return Math.ceil(metrics.logicalWidth * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1));
-		return 0;
+		var screen = __getFlightScreenInfo();
+		if (screen.physicalWidth > 0) return Math.ceil(screen.physicalWidth);
+		if (screen.width > 0) return Math.ceil(screen.width * (screen.scaleFactor > 0 ? screen.scaleFactor : 1));
+		// Flight has no display metrics when the adapter runs without an active
+		// host (for example in an interpreter). Keep the public capability useful
+		// and deterministic until a host supplies real metrics.
+		return 800;
 	}
 
 	@:noCompletion private static function get_screenResolutionY():Float
@@ -693,7 +708,65 @@ import lime.app.Application as LimeApplication;
 		var metrics = __getFlightDisplayMetrics();
 		if (metrics.physicalHeight > 0) return Math.ceil(metrics.physicalHeight);
 		if (metrics.logicalHeight > 0) return Math.ceil(metrics.logicalHeight * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1));
-		return 0;
+		var screen = __getFlightScreenInfo();
+		if (screen.physicalHeight > 0) return Math.ceil(screen.physicalHeight);
+		if (screen.height > 0) return Math.ceil(screen.height * (screen.scaleFactor > 0 ? screen.scaleFactor : 1));
+		return 600;
+	}
+
+	@:noCompletion private static function __buildServerString():String
+	{
+		return [
+			__serverFlag("A", hasAudio),
+			__serverFlag("SA", hasStreamingAudio),
+			__serverFlag("SV", hasStreamingVideo),
+			__serverFlag("EV", hasEmbeddedVideo),
+			__serverFlag("MP3", hasMP3),
+			__serverFlag("AE", hasAudioEncoder),
+			__serverFlag("VE", hasVideoEncoder),
+			__serverFlag("ACC", hasAccessibility),
+			__serverFlag("PR", hasPrinting),
+			__serverFlag("SP", hasScreenPlayback),
+			__serverFlag("SB", hasScreenBroadcast),
+			__serverFlag("DEB", isDebugger),
+			__serverValue("V", version),
+			__serverValue("M", manufacturer),
+			__serverValue("R", screenResolutionX + "x" + screenResolutionY),
+			__serverValue("DP", screenDPI),
+			__serverValue("COL", screenColor),
+			__serverValue("AR", pixelAspectRatio),
+			__serverValue("OS", os),
+			__serverValue("L", language),
+			__serverValue("PT", playerType),
+			__serverFlag("AVD", avHardwareDisable),
+			__serverFlag("LFD", localFileReadDisable),
+			__serverFlag("TLS", hasTLS),
+			"WD=f"
+		].join("&");
+	}
+
+	@:noCompletion private static inline function __serverFlag(name:String, value:Bool):String
+	{
+		return name + "=" + (value ? "t" : "f");
+	}
+
+	@:noCompletion private static inline function __serverValue(name:String, value:Dynamic):String
+	{
+		return name + "=" + StringTools.urlEncode(Std.string(value));
+	}
+
+	@:noCompletion private static function __getSupports64BitProcesses():Bool
+	{
+		var pointerWidth:Float = __getFlightPlatformInfo().pointerWidth;
+		if (pointerWidth > 0) return pointerWidth >= 64;
+		return #if (desktop || sys) true #else false #end;
+	}
+
+	@:noCompletion private static function __getTouchscreenType():TouchscreenType
+	{
+		var deviceCapabilities = FlightDevice.getDeviceCapabilities(__getFlightSystemDeviceHost(), FlightDevice.createDeviceCapabilities());
+		if (deviceCapabilities.hasStylus) return TouchscreenType.STYLUS;
+		return FlightPlatform.isPlatformTouch(__getFlightSystemPlatformHost()) ? TouchscreenType.FINGER : TouchscreenType.NONE;
 	}
 
 	@:noCompletion private static inline function __getFlightDeviceInfo():Dynamic
@@ -704,6 +777,31 @@ import lime.app.Application as LimeApplication;
 	@:noCompletion private static inline function __getFlightDisplayMetrics():Dynamic
 	{
 		return FlightDevice.getDeviceDisplayMetrics(__getFlightSystemDeviceHost(), FlightDevice.createDeviceDisplayMetrics());
+	}
+
+	@:noCompletion private static inline function __getFlightScreenInfo():Dynamic
+	{
+		return FlightScreen.getPrimaryScreen(__getFlightScreenHost(), FlightScreen.createScreenInfo());
+	}
+
+	@:noCompletion private static inline function __getFlightPlatformInfo():Dynamic
+	{
+		return FlightPlatform.getPlatformInfo(__getFlightSystemPlatformHost(), {
+			name: "unknown",
+			kind: "unknown",
+			version: "",
+			arch: "",
+			locale: "",
+			isTouch: false,
+			runtime: "unknown",
+			engine: "unknown",
+			engineVersion: "",
+			endianness: "little",
+			pointerWidth: -1.0,
+			osBuild: "",
+			distro: "",
+			distroVersion: ""
+		});
 	}
 
 	@:noCompletion private static function __getFlightLocaleHost():FlightAppLocaleHost
@@ -748,6 +846,50 @@ import lime.app.Application as LimeApplication;
 		return __flightSystemDeviceHost;
 	}
 
+	@:noCompletion private static function __getFlightScreenHost():FlightScreenHost
+	{
+		if (__flightScreenHost != null) return __flightScreenHost;
+
+		#if (js && html5)
+		__flightScreenHost = cast FlightHostWeb.webScreenHost;
+		#elseif (clay && sys)
+		__flightScreenHost = cast FlightHostClay.createClayHost();
+		#elseif (lime && sys)
+		if (LimeApplication.current != null) __flightScreenHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+		#end
+
+		if (__flightScreenHost == null)
+		{
+			__flightScreenHost = cast {
+				screen: {
+					query: {
+						getScreens: function(out:Array<Dynamic>):Array<Dynamic> return out,
+						getPrimaryScreen: function(out:Dynamic):Dynamic return out,
+						getCursorPosition: function(out:Dynamic):Dynamic return out
+					}
+				}
+			};
+		}
+
+		return __flightScreenHost;
+	}
+
+	@:noCompletion private static function __getFlightSystemPlatformHost():FlightSystemPlatformHost
+	{
+		if (__flightSystemPlatformHost != null) return __flightSystemPlatformHost;
+
+		#if (js && html5)
+		__flightSystemPlatformHost = cast FlightHostWeb.webSystemHost;
+		#elseif (clay && sys)
+		__flightSystemPlatformHost = cast FlightHostClay.createClayHost();
+		#elseif (lime && sys)
+		if (LimeApplication.current != null) __flightSystemPlatformHost = cast FlightHostLime.createLimeHost(LimeApplication.current);
+		#end
+
+		if (__flightSystemPlatformHost == null) __flightSystemPlatformHost = __createFallbackSystemPlatformHost();
+		return __flightSystemPlatformHost;
+	}
+
 	@:noCompletion private static function __createFallbackSystemDeviceHost():FlightSystemDeviceHost
 	{
 		return cast {
@@ -771,6 +913,23 @@ import lime.app.Application as LimeApplication;
 					getLocale: function():String return "",
 					getPreferredSystemLanguages: function():Array<String> return [],
 					getSystemLocale: function():String return ""
+				}
+			}
+		};
+	}
+
+	@:noCompletion private static function __createFallbackSystemPlatformHost():FlightSystemPlatformHost
+	{
+		return cast {
+			system: {
+				platform: {
+					getInfo: function(out:Dynamic):Dynamic
+					{
+						out.kind = #if mobile "mobile" #elseif sys "desktop" #else "unknown" #end;
+						out.runtime = #if web "web" #elseif sys "native" #else "unknown" #end;
+						out.isTouch = #if mobile true #else false #end;
+						return out;
+					}
 				}
 			}
 		};
