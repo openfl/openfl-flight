@@ -19,6 +19,59 @@
       "width": 4
     }
   },
+  "autoSizeMutations": {
+    "left": {
+      "second": {
+        "x": 50,
+        "height": 19,
+        "width": 4
+      },
+      "first": {
+        "x": 50,
+        "height": 19,
+        "width": 4
+      },
+      "empty": {
+        "x": 50,
+        "height": 4,
+        "width": 4
+      }
+    },
+    "right": {
+      "second": {
+        "x": 166,
+        "height": 19,
+        "width": 4
+      },
+      "first": {
+        "x": 166,
+        "height": 19,
+        "width": 4
+      },
+      "empty": {
+        "x": 50,
+        "height": 4,
+        "width": 4
+      }
+    },
+    "center": {
+      "second": {
+        "x": 108,
+        "height": 19,
+        "width": 4
+      },
+      "first": {
+        "x": 108,
+        "height": 19,
+        "width": 4
+      },
+      "empty": {
+        "x": 50,
+        "height": 4,
+        "width": 4
+      }
+    }
+  },
   "defaults": {
     "autoSize": 2,
     "wordWrap": false,
@@ -40,12 +93,66 @@
     "height": 80,
     "width": 240
   },
+  "inputProperties": {
+    "passwordChar": "#",
+    "tabEnabled": true,
+    "restrict": "A-Z^Q",
+    "multiline": true,
+    "displayAsPassword": true,
+    "maxChars": 5,
+    "embedFonts": true,
+    "type": 1
+  },
+  "selection": {
+    "forward": {
+      "begin": 1,
+      "caret": 4,
+      "end": 4
+    },
+    "outside": {
+      "begin": -2,
+      "caret": 99,
+      "end": 99
+    },
+    "initial": {
+      "begin": 0,
+      "caret": 0,
+      "end": 0
+    },
+    "backward": {
+      "begin": 2,
+      "caret": 2,
+      "end": 5
+    }
+  },
   "layout": {
     "wordWrap": true,
     "multiline": true,
     "scrollV": 1,
     "numLines": 2,
     "maxScrollV": 2
+  },
+  "measurementLifecycle": {
+    "multiline": {
+      "textWidth": 0,
+      "numLines": 2,
+      "textHeight": 30
+    },
+    "first": {
+      "textWidth": 0,
+      "numLines": 1,
+      "textHeight": 15
+    },
+    "empty": {
+      "textWidth": 0,
+      "numLines": 1,
+      "textHeight": 0
+    },
+    "formatted": {
+      "textWidth": 0,
+      "numLines": 2,
+      "textHeight": 58
+    }
   },
   "htmlText": {
     "text": "Hello world",

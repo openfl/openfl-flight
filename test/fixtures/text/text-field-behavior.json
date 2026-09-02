@@ -9,6 +9,16 @@
       "length": 7
     }
   },
+  "formatMetrics": {
+    "after": {
+      "height": 35,
+      "width": 0
+    },
+    "before": {
+      "height": 15,
+      "width": 0
+    }
+  },
   "metrics": {
     "textWidth": 0,
     "textHeight": 15
@@ -22,11 +32,30 @@
     "bold": true
   },
   "inputConstraints": {
-    "maxCharsLength": 6,
+    "maxCharsLength": 8,
     "restrict": "A-Z",
     "maxChars": 4,
-    "restrictedText": "aB3C",
-    "maxCharsText": "abcdef"
+    "restrictedText": "az93C",
+    "maxCharsText": "abcdefgh"
+  },
+  "hitQueries": {
+    "invalidBoundary": null,
+    "secondLineAtPoint": 1,
+    "outsideLineAtPoint": -1,
+    "firstBoundary": {
+      "x": 2,
+      "y": 2,
+      "height": 14.2199999999999989,
+      "width": 0
+    },
+    "firstLineAtPoint": 0,
+    "secondLineBoundary": {
+      "x": 2,
+      "y": 17,
+      "height": 14.2199999999999989,
+      "width": 0
+    },
+    "firstCharAtPoint": -1
   },
   "singleLine": {
     "offset": 0,
@@ -36,9 +65,50 @@
     "multilineNumLines": 3,
     "caretIndex": 0
   },
+  "scrolling": {
+    "atBottom": {
+      "scrollV": 3,
+      "bottomScrollV": 3,
+      "maxScrollV": 3
+    },
+    "appended": {
+      "selectionEndIndex": 23,
+      "scrollV": 3,
+      "bottomScrollV": 5,
+      "maxScrollV": 5,
+      "caretIndex": 23,
+      "selectionBeginIndex": 23
+    },
+    "initial": {
+      "scrollV": 1,
+      "bottomScrollV": 1,
+      "maxScrollV": 3
+    }
+  },
   "appendText": {
     "text": "Hello world",
     "length": 11
+  },
+  "lineQueries": {
+    "firstCharLine": 0,
+    "lastCharLine": 1,
+    "pastLine": null,
+    "numLines": 2,
+    "middleCharLine": 0,
+    "lines": [
+      {
+        "offset": 0,
+        "text": "alpha beta gamma\n",
+        "length": 17,
+        "index": 0
+      },
+      {
+        "offset": 17,
+        "text": "delta epsilon",
+        "length": 13,
+        "index": 1
+      }
+    ]
   },
   "lines": {
     "line": {

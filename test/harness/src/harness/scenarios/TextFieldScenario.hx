@@ -10,12 +10,16 @@ class TextFieldScenario {
 		return {
 			defaults: testDefaults(),
 			text: testText(),
+			measurementLifecycle: testMeasurementLifecycle(),
 			htmlText: testHtmlText(),
 			dimensions: testDimensions(),
 			autoSize: testAutoSize(),
+			autoSizeMutations: testAutoSizeMutations(),
 			layout: testLayout(),
+			selection: testSelection(),
 			defaultTextFormat: testDefaultTextFormat(),
 			type: testType(),
+			inputProperties: testInputProperties(),
 			colors: testColors()
 		};
 	}
@@ -43,6 +47,32 @@ class TextFieldScenario {
 		return {
 			text: field.text,
 			length: field.length
+		};
+	}
+
+	private static function testMeasurementLifecycle():Dynamic {
+		var field = new TextField();
+		var empty = captureMeasurements(field);
+		field.text = "Hello";
+		var first = captureMeasurements(field);
+		field.multiline = true;
+		field.text = "Hello\nworld";
+		var multiline = captureMeasurements(field);
+		field.setTextFormat(new TextFormat(null, 24, null, true), 0, field.length);
+		var formatted = captureMeasurements(field);
+		return {
+			empty: empty,
+			first: first,
+			multiline: multiline,
+			formatted: formatted
+		};
+	}
+
+	private static function captureMeasurements(field:TextField):Dynamic {
+		return {
+			textWidth: field.textWidth,
+			textHeight: field.textHeight,
+			numLines: field.numLines
 		};
 	}
 
@@ -89,6 +119,27 @@ class TextFieldScenario {
 		};
 	}
 
+	private static function testAutoSizeMutations():Dynamic {
+		return {
+			left: captureAutoSizeMutations(TextFieldAutoSize.LEFT),
+			right: captureAutoSizeMutations(TextFieldAutoSize.RIGHT),
+			center: captureAutoSizeMutations(TextFieldAutoSize.CENTER)
+		};
+	}
+
+	private static function captureAutoSizeMutations(value:TextFieldAutoSize):Dynamic {
+		var field = new TextField();
+		field.x = 50;
+		field.width = 120;
+		field.autoSize = value;
+		var empty = {x: field.x, width: field.width, height: field.height};
+		field.text = "first";
+		var first = {x: field.x, width: field.width, height: field.height};
+		field.text = "a much longer value";
+		var second = {x: field.x, width: field.width, height: field.height};
+		return {empty: empty, first: first, second: second};
+	}
+
 	private static function testLayout():Dynamic {
 		var field = new TextField();
 		field.width = 60;
@@ -125,6 +176,27 @@ class TextFieldScenario {
 		};
 	}
 
+	private static function testSelection():Dynamic {
+		var field = new TextField();
+		field.text = "abcdef";
+		var initial = captureSelection(field);
+		field.setSelection(1, 4);
+		var forward = captureSelection(field);
+		field.setSelection(5, 2);
+		var backward = captureSelection(field);
+		field.setSelection(-2, 99);
+		var outside = captureSelection(field);
+		return {initial: initial, forward: forward, backward: backward, outside: outside};
+	}
+
+	private static function captureSelection(field:TextField):Dynamic {
+		return {
+			begin: field.selectionBeginIndex,
+			end: field.selectionEndIndex,
+			caret: field.caretIndex
+		};
+	}
+
 	private static function testType():Dynamic {
 		var field = new TextField();
 		field.type = TextFieldType.INPUT;
@@ -133,6 +205,27 @@ class TextFieldScenario {
 		return {
 			input: input,
 			dynamicValue: field.type
+		};
+	}
+
+	private static function testInputProperties():Dynamic {
+		var field = new TextField();
+		field.type = TextFieldType.INPUT;
+		field.maxChars = 5;
+		field.restrict = "A-Z^Q";
+		field.displayAsPassword = true;
+		field.passwordChar = "#";
+		field.embedFonts = true;
+		field.multiline = true;
+		return {
+			type: field.type,
+			maxChars: field.maxChars,
+			restrict: field.restrict,
+			displayAsPassword: field.displayAsPassword,
+			passwordChar: field.passwordChar,
+			embedFonts: field.embedFonts,
+			multiline: field.multiline,
+			tabEnabled: field.tabEnabled
 		};
 	}
 

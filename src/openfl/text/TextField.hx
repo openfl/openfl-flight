@@ -68,6 +68,7 @@ class TextField extends InteractiveObject
 
 	@:noCompletion private var __antiAliasType:AntiAliasType;
 	@:noCompletion private var __autoSize:TextFieldAutoSize;
+	@:noCompletion private var __autoSizeAnchor:Float;
 	@:noCompletion private var __background:Bool;
 	@:noCompletion private var __backgroundColor:Int;
 	@:noCompletion private var __border:Bool;
@@ -105,6 +106,7 @@ class TextField extends InteractiveObject
 
 		__antiAliasType = AntiAliasType.NORMAL;
 		__autoSize = TextFieldAutoSize.NONE;
+		__autoSizeAnchor = 0;
 		__background = false;
 		__backgroundColor = 0xFFFFFF;
 		__border = false;
@@ -155,6 +157,8 @@ class TextField extends InteractiveObject
 	public function appendText(text:String):Void
 	{
 		if (text == null || text == "") return;
+		var wasAtBottom = bottomScrollV == numLines;
+		var previousScrollV = __scrollV;
 		var value = __text + text;
 		var added = value.length - __text.length;
 		for (_ in 0...added) __formatByCharacter.push(__textFormat.clone());
@@ -163,6 +167,13 @@ class TextField extends InteractiveObject
 		__isHTML = false;
 		__selectionIndex = __caretIndex = __text.length;
 		__syncFlightContent();
+		if (wasAtBottom)
+		{
+			FlightText.setRichTextScrollV(__flightText, maxScrollV, __createTextLayout());
+			// OpenFL reports the assigned scrollV until it next changes, even though
+			// appending while pinned advances the rendered bottom line.
+			__scrollV = previousScrollV;
+		}
 		__updateAutoSize();
 	}
 
@@ -172,6 +183,11 @@ class TextField extends InteractiveObject
 		var layout = __createTextLayout();
 		var result = new Rectangle();
 		if (!FlightTextLayout.getRichTextCharBoundaries(cast result, layout, charIndex)) return null;
+		var lineIndex = Std.int(FlightTextLayout.getRichTextLineIndexOfChar(layout, charIndex));
+		if (lineIndex >= 0 && lineIndex < layout.lineAscents.length)
+		{
+			result.height = layout.lineAscents[lineIndex] + layout.lineDescents[lineIndex];
+		}
 		result.x -= __scrollH;
 		result.y -= __scrollYOffset(layout);
 		return result;
@@ -181,7 +197,10 @@ class TextField extends InteractiveObject
 	{
 		if (x <= 2 || y <= 0 || x > __fieldWidth + 4 || y > __fieldHeight + 4) return -1;
 		var layout = __createTextLayout();
-		return Std.int(FlightTextLayout.computeRichTextCharIndexAtPoint(layout, x + __scrollH, y + __scrollYOffset(layout)));
+		var index = Std.int(FlightTextLayout.computeRichTextCharIndexAtPoint(layout, x + __scrollH, y + __scrollYOffset(layout)));
+		var bounds = getCharBoundaries(index);
+		if (bounds == null || x < bounds.x || x > bounds.right || y < bounds.y || y > bounds.bottom) return -1;
+		return index;
 	}
 
 	public function getFirstCharInParagraph(charIndex:Int):Int
@@ -206,7 +225,10 @@ class TextField extends InteractiveObject
 	public function getLineLength(lineIndex:Int):Int
 	{
 		if (lineIndex < 0 || lineIndex >= numLines) return 0;
-		return Std.int(FlightTextLayout.getRichTextLineLength(__createTextLayout(), lineIndex));
+		var layout = __createTextLayout();
+		var start = Std.int(FlightTextLayout.getRichTextLineOffset(layout, lineIndex));
+		var end = lineIndex + 1 < numLines ? Std.int(FlightTextLayout.getRichTextLineOffset(layout, lineIndex + 1)) : __text.length;
+		return end - start;
 	}
 
 	public function getLineMetrics(lineIndex:Int):TextLineMetrics
@@ -228,7 +250,10 @@ class TextField extends InteractiveObject
 	{
 		if (lineIndex < 0) throw new RangeError();
 		if (lineIndex >= numLines) return null;
-		return FlightTextLayout.getRichTextLineText(__text, __createTextLayout(), lineIndex);
+		var layout = __createTextLayout();
+		var start = Std.int(FlightTextLayout.getRichTextLineOffset(layout, lineIndex));
+		var end = lineIndex + 1 < numLines ? Std.int(FlightTextLayout.getRichTextLineOffset(layout, lineIndex + 1)) : __text.length;
+		return __text.substring(start, end);
 	}
 
 	public function getParagraphLength(charIndex:Int):Int
@@ -277,8 +302,8 @@ class TextField extends InteractiveObject
 
 	public function setSelection(beginIndex:Int, endIndex:Int):Void
 	{
-		__selectionIndex = Std.int(Math.max(0, Math.min(beginIndex, __text.length)));
-		__caretIndex = Std.int(Math.max(0, Math.min(endIndex, __text.length)));
+		__selectionIndex = beginIndex;
+		__caretIndex = endIndex;
 		FlightTextInput.setTextInputSelection(__flightText, __selectionIndex, __caretIndex);
 	}
 
@@ -315,8 +340,12 @@ class TextField extends InteractiveObject
 			FlightText.getRichTextFormatRangeAt(flightFormat, __flightText, i);
 			__formatByCharacter.push(__fromFlightTextFormat(flightFormat));
 		}
-		__selectionIndex = Std.int(FlightTextInput.getTextInputSelectionBeginIndex(__flightText));
-		__caretIndex = Std.int(FlightTextInput.getTextInputSelectionEndIndex(__flightText));
+		var input = FlightTextInput.getTextInputState(__flightText);
+		if (input != null)
+		{
+			__selectionIndex = Std.int(input.selectionIndex);
+			__caretIndex = Std.int(input.caretIndex);
+		}
 		__updateAutoSize();
 		dispatchEvent(new Event(Event.CHANGE));
 	}
@@ -599,12 +628,11 @@ class TextField extends InteractiveObject
 	@:noCompletion private function __updateAutoSize():Void
 	{
 		if (__autoSize == TextFieldAutoSize.NONE) return;
-		var oldWidth = __fieldWidth;
 		var newWidth = textWidth + 4;
-		switch (__autoSize)
+		if (__text != "") switch (__autoSize)
 		{
-			case RIGHT: x += oldWidth - newWidth;
-			case CENTER: x += (oldWidth - newWidth) * 0.5;
+			case RIGHT: x = __autoSizeAnchor - newWidth;
+			case CENTER: x = __autoSizeAnchor - newWidth * 0.5;
 			default:
 		}
 		__fieldWidth = newWidth;
@@ -623,6 +651,15 @@ class TextField extends InteractiveObject
 	@:noCompletion private function get_autoSize():TextFieldAutoSize return __autoSize;
 	@:noCompletion private function set_autoSize(value:TextFieldAutoSize):TextFieldAutoSize
 	{
+		if (value != __autoSize)
+		{
+			__autoSizeAnchor = switch (value)
+			{
+				case RIGHT: x + __fieldWidth;
+				case CENTER: x + __fieldWidth * 0.5;
+				default: x;
+			};
+		}
 		__autoSize = value;
 		__updateAutoSize();
 		return value;
@@ -652,7 +689,7 @@ class TextField extends InteractiveObject
 		return __borderColor = value;
 	}
 	@:noCompletion private function get_bottomScrollV():Int return Std.int(FlightTextLayout.computeRichTextBottomScrollV(__flightText.data, __createTextLayout()));
-	@:noCompletion private function get_caretIndex():Int return Std.int(FlightTextInput.getTextInputCaretIndex(__flightText));
+	@:noCompletion private function get_caretIndex():Int return __caretIndex;
 	@:noCompletion private function get_defaultTextFormat():TextFormat return __textFormat.clone();
 	@:noCompletion private function set_defaultTextFormat(value:TextFormat):TextFormat
 	{
@@ -742,8 +779,8 @@ class TextField extends InteractiveObject
 		FlightText.setRichTextSelectable(__flightText, value);
 		return __selectable = value;
 	}
-	@:noCompletion private function get_selectionBeginIndex():Int return Std.int(FlightTextInput.getTextInputSelectionBeginIndex(__flightText));
-	@:noCompletion private function get_selectionEndIndex():Int return Std.int(FlightTextInput.getTextInputSelectionEndIndex(__flightText));
+	@:noCompletion private function get_selectionBeginIndex():Int return Std.int(Math.min(__caretIndex, __selectionIndex));
+	@:noCompletion private function get_selectionEndIndex():Int return Std.int(Math.max(__caretIndex, __selectionIndex));
 	@:noCompletion private function get_sharpness():Float return __sharpness;
 	@:noCompletion private function set_sharpness(value:Float):Float return __sharpness = value;
 	@:noCompletion private function get_styleSheet():StyleSheet return __styleSheet;
@@ -782,10 +819,14 @@ class TextField extends InteractiveObject
 	}
 	@:noCompletion private function get_textHeight():Float
 	{
-		return FlightTextLayout.computeRichTextTextHeight(__createTextLayout());
+		var layout = __createTextLayout();
+		var result = FlightTextLayout.computeRichTextTextHeight(layout);
+		if (layout.numLines == 1 && layout.lineLeadings.length > 0 && layout.lineLeadings[0] > 0) result += layout.lineLeadings[0];
+		return result;
 	}
 	@:noCompletion private function get_textWidth():Float
 	{
+		if (FlightTextLayout.getTextLayoutMeasureProvider() == null) return 0;
 		return FlightTextLayout.computeRichTextTextWidth(__createTextLayout());
 	}
 	@:noCompletion private function get_type():TextFieldType return __type;
