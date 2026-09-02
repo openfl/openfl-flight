@@ -401,8 +401,17 @@ class BitmapData implements IBitmapDrawable
 
 	public static function fromCanvas(canvas:CanvasElement, transparent:Bool = true):BitmapData
 	{
-		// TODO: Import canvas pixels through Flight.
+		#if (js && html5)
+		if (canvas == null) return null;
+		var result = __fromFlightBitmap(FlightBitmap.createBitmapFromCanvas(cast canvas), transparent);
+		if (!transparent)
+		{
+			for (y in 0...result.height) for (x in 0...result.width) result.setPixel32(x, y, result.getPixel32(x, y));
+		}
+		return result;
+		#else
 		return null;
+		#end
 	}
 
 	public static function fromFile(path:String):BitmapData
