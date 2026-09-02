@@ -1,4 +1,8 @@
 {
+  "persistedClear": {
+    "fieldCount": 0,
+    "size": 2
+  },
   "cleared": {
     "emptyFlush": true,
     "size": 2,
@@ -6,8 +10,11 @@
   },
   "mutations": {
     "clientAcceptsNull": true,
+    "sendDoesNotThrow": true,
     "remoteIsNull": true,
-    "objectEncoding": 0
+    "objectEncoding": 0,
+    "setDirtyDoesNotThrow": true,
+    "connectDoesNotThrow": true
   },
   "defaults": {
     "defaultObjectEncoding": 10,
@@ -26,6 +33,16 @@
     "value": null
   },
   "inheritedEncoding": 10,
+  "persistenceRoundTrip": {
+    "name": "Ada",
+    "fieldCount": 1,
+    "newReferenceAfterEviction": true,
+    "size": 75,
+    "score": 73,
+    "sizePreserved": true,
+    "flushSucceeded": true,
+    "tags": "flight,openfl"
+  },
   "invalidNamesRejected": [
     true,
     true,
@@ -45,8 +62,10 @@
     true
   ],
   "populated": {
-    "sizePositive": true,
     "fieldCount": 2,
+    "largeQuotaRequestFlushSucceeded": true,
+    "size": 30,
+    "sizeGrew": true,
     "score": 42,
     "flushSucceeded": true,
     "label": "flight"

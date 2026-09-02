@@ -75,7 +75,8 @@ class SharedObject extends EventDispatcher
 	#if !openfl_strict
 	public function connect(myConnection:NetConnection, params:String = null):Void
 	{
-		// TODO: Connect remote shared objects through Flight networking.
+		// Flight has no remote shared-state synchronization protocol. Its Socket
+		// transport cannot reproduce SharedObject connection semantics.
 	}
 	#end
 
@@ -146,13 +147,15 @@ class SharedObject extends EventDispatcher
 
 	public function send(args:Array<Dynamic>):Void
 	{
-		// TODO: Send remote shared-object messages through Flight networking.
+		// Remote SharedObject messaging requires the synchronization protocol
+		// that is absent from Flight, so this remains the OpenFL no-op stub.
 	}
 	#end
 
 	public function setDirty(propertyName:String):Void
 	{
-		// TODO: Track dirty fields for Flight persistence and synchronization.
+		// Local flushes serialize the complete data object. Dirty-field tracking
+		// matters only for remote synchronization, which Flight does not expose.
 	}
 
 	public function setProperty(propertyName:String, value:Object = null):Void
