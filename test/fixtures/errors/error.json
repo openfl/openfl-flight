@@ -1,9 +1,58 @@
 {
+  "subclasses": {
+    "security": {
+      "name": "SecurityError",
+      "errorID": 0,
+      "message": "security",
+      "className": "openfl.errors.SecurityError",
+      "isError": true,
+      "stringMatchesMessage": true,
+      "stringValue": "security"
+    },
+    "illegalOperation": {
+      "name": "IllegalOperationError",
+      "errorID": 0,
+      "message": "illegal",
+      "className": "openfl.errors.IllegalOperationError",
+      "isError": true,
+      "stringMatchesMessage": true,
+      "stringValue": "illegal"
+    },
+    "argument": {
+      "name": "ArgumentError",
+      "errorID": 0,
+      "message": "argument",
+      "className": "openfl.errors.ArgumentError",
+      "isError": true,
+      "stringMatchesMessage": true,
+      "stringValue": "argument"
+    },
+    "type": {
+      "name": "TypeError",
+      "errorID": 0,
+      "message": "type",
+      "className": "openfl.errors.TypeError",
+      "isError": true,
+      "stringMatchesMessage": true,
+      "stringValue": "type"
+    },
+    "range": {
+      "name": "RangeError",
+      "errorID": 0,
+      "message": "range",
+      "className": "openfl.errors.RangeError",
+      "isError": true,
+      "stringMatchesMessage": true,
+      "stringValue": "range"
+    }
+  },
   "nullMessage": {
     "name": "Error",
     "errorID": 9,
     "message": "",
     "className": "openfl.errors.Error",
+    "isError": true,
+    "stringMatchesMessage": true,
     "stringValue": ""
   },
   "empty": {
@@ -11,9 +60,12 @@
     "errorID": 0,
     "message": "",
     "className": "openfl.errors.Error",
+    "isError": true,
+    "stringMatchesMessage": true,
     "stringValue": ""
   },
   "stackTrace": {
+    "isStringOrNull": true,
     "isString": true,
     "isNull": false
   },
@@ -22,6 +74,8 @@
     "errorID": 37,
     "message": "message",
     "className": "openfl.errors.Error",
+    "isError": true,
+    "stringMatchesMessage": true,
     "stringValue": "message"
   }
 }
