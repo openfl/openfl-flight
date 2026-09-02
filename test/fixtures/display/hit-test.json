@@ -3,6 +3,11 @@
     "outside": false,
     "inside": true
   },
+  "mouseEnabled": {
+    "pointShape": false,
+    "objectOverlap": true,
+    "pointBounds": false
+  },
   "point": {
     "outsideShape": false,
     "cornerShape": false,
@@ -10,6 +15,16 @@
     "centerBounds": false,
     "centerShape": false,
     "cornerBounds": false
+  },
+  "visibility": {
+    "pointShape": false,
+    "objectOverlap": true,
+    "pointBounds": false
+  },
+  "nested": {
+    "targetOverlap": true,
+    "separated": false,
+    "nestedBoundsOverlap": true
   },
   "objects": {
     "separated": false,
