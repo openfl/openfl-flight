@@ -37,6 +37,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 {
 	@:noCompletion private static var __broadcastEvents:Map<String, Array<DisplayObject>> = new Map();
 	@:noCompletion private static var __initStage:Stage;
+	@:noCompletion private static var __initStageReference:Stage;
 	@:noCompletion private static var __instanceCount:Int = 0;
 
 	/**
@@ -723,6 +724,12 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		__flightNode = FlightScene2D.createSprite();
 		name = "instance" + (++__instanceCount);
 		__syncFlightNode();
+
+		if (__initStageReference != null)
+		{
+			stage = __initStageReference;
+			__initStageReference = null;
+		}
 
 		if (__initStage != null)
 		{

@@ -347,8 +347,7 @@ class DocumentClass
 
 				var method = macro
 				{
-					// TODO: Fix add child before super()
-					// current.addChild(this);
+					@:privateAccess openfl.display.DisplayObject.__initStageReference = current.stage;
 					super();
 					current.addChild(this);
 					dispatchEvent(new openfl.events.Event(openfl.events.Event.ADDED_TO_STAGE, false, false));
