@@ -34,7 +34,8 @@ import openfl.utils.ByteArray;
 
 	public function uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:UInt, async:Bool = false):Void
 	{
-		// TODO: Upload compressed cube texture data through Flight GPU services.
+		// Flight gap: texture bridge.
+		// The public cube-texture API exposes no ATF decoder or compressed-data upload.
 	}
 
 	public function uploadFromBitmapData(source:BitmapData, side:UInt, miplevel:UInt = 0, generateMipmap:Bool = false):Void
@@ -44,12 +45,16 @@ import openfl.utils.ByteArray;
 
 	public function uploadFromByteArray(data:ByteArray, byteArrayOffset:UInt, side:UInt, miplevel:UInt = 0):Void
 	{
-		// TODO: Upload cube texture bytes through Flight GPU services.
+		// Flight gap: texture bridge.
+		// Cube faces accept TextureSource objects publicly; raw bytes and
+		// arbitrary mip-level uploads are not exposed.
 	}
 
 	public function uploadFromTypedArray(data:ArrayBufferView, side:UInt, miplevel:UInt = 0):Void
 	{
-		// TODO: Upload typed cube texture data through Flight GPU services.
+		// Flight gap: texture bridge.
+		// Cube faces accept TextureSource objects publicly; typed pixels and
+		// arbitrary mip-level uploads are not exposed.
 	}
 }
 #else

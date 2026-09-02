@@ -22,7 +22,9 @@ import openfl.utils.ByteArray;
 
 	public function dispose():Void
 	{
-		// TODO: Release the Flight GPU shader program.
+		// Flight gap: GL draw seam.
+		// Program3D has no Flight program handle because raw program creation,
+		// binding, and disposal are not part of the public rendering API.
 	}
 
 	public function getAttributeIndex(name:String):Int
@@ -47,12 +49,15 @@ import openfl.utils.ByteArray;
 
 	public function upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):Void
 	{
-		// TODO: Compile and upload AGAL shaders through Flight GPU services.
+		// Flight gap: AGAL and GL draw seam.
+		// Flight has neither an AGAL compiler nor a public raw shader-program API.
 	}
 
 	public function uploadSources(vertexSource:String, fragmentSource:String):Void
 	{
-		// TODO: Compile and upload shader sources through Flight GPU services.
+		// Flight gap: GL draw seam.
+		// Custom Flight materials select registered shader keys; they cannot compile
+		// and bind the arbitrary vertex/fragment sources required by Program3D.
 	}
 }
 #else

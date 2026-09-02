@@ -32,7 +32,8 @@ import openfl.utils.ByteArray;
 
 	public function uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:UInt, async:Bool = false):Void
 	{
-		// TODO: Upload compressed texture data through Flight GPU services.
+		// Flight gap: texture bridge.
+		// The public texture API exposes no ATF decoder or compressed-data upload.
 	}
 
 	public function uploadFromBitmapData(source:BitmapData, miplevel:UInt = 0, generateMipmap:Bool = false):Void
@@ -42,12 +43,16 @@ import openfl.utils.ByteArray;
 
 	public function uploadFromByteArray(data:ByteArray, byteArrayOffset:UInt, miplevel:UInt = 0):Void
 	{
-		// TODO: Upload texture bytes through Flight GPU services.
+		// Flight gap: texture bridge.
+		// Only TextureSource objects can be attached publicly; raw bytes and
+		// arbitrary mip-level uploads are not exposed.
 	}
 
 	public function uploadFromTypedArray(data:ArrayBufferView, miplevel:UInt = 0):Void
 	{
-		// TODO: Upload typed texture data through Flight GPU services.
+		// Flight gap: texture bridge.
+		// Only TextureSource objects can be attached publicly; typed pixels and
+		// arbitrary mip-level uploads are not exposed.
 	}
 }
 #else
