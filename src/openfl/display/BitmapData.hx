@@ -11,6 +11,7 @@ import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.textures.TextureBase;
 import openfl.errors.Error;
 import openfl.filters.BitmapFilter;
+import openfl.filters.ColorMatrixFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -80,7 +81,55 @@ class BitmapData implements IBitmapDrawable
 
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, filter:BitmapFilter):Void
 	{
-		// TODO: Apply bitmap filters through Flight.
+		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
+			|| sourceRect == null || destPoint == null || filter == null) return;
+		var regionWidth = Std.int(Math.max(0, sourceRect.width));
+		var regionHeight = Std.int(Math.max(0, sourceRect.height));
+		if (regionWidth == 0 || regionHeight == 0) return;
+		var sourceBitmap = __toStraightBitmap(sourceBitmapData);
+		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceRect.x, sourceRect.y, regionWidth, regionHeight);
+		var output = new FlightUInt8ClampedArray(regionWidth * regionHeight * 4);
+
+		if (Std.isOfType(filter, ColorMatrixFilter))
+		{
+			var matrix = (cast filter : ColorMatrixFilter).matrix;
+			FlightBitmap.colorMatrixBitmap(output, source, matrix);
+			// Flight rounds matrix results while OpenFL truncates them. Retain the
+			// Flight pass, then normalize that adapter-level numeric difference.
+			for (offsetY in 0...regionHeight) for (offsetX in 0...regionWidth)
+			{
+				var sourceX = Std.int(sourceRect.x) + offsetX;
+				var sourceY = Std.int(sourceRect.y) + offsetY;
+				if (sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height) continue;
+				var sourceColor = Std.int(FlightBitmap.getBitmapPixel(sourceBitmap, sourceX, sourceY));
+				var red = (sourceColor >>> 24) & 0xFF;
+				var green = (sourceColor >>> 16) & 0xFF;
+				var blue = (sourceColor >>> 8) & 0xFF;
+				var alpha = sourceColor & 0xFF;
+				var outputOffset = (offsetY * regionWidth + offsetX) * 4;
+				if (alpha == 0)
+				{
+					for (channel in 0...4) output[outputOffset + channel] = 0;
+				}
+				else
+				{
+					output[outputOffset] = __colorMatrixComponent(matrix, 0, red, green, blue, alpha);
+					output[outputOffset + 1] = __colorMatrixComponent(matrix, 5, red, green, blue, alpha);
+					output[outputOffset + 2] = __colorMatrixComponent(matrix, 10, red, green, blue, alpha);
+					output[outputOffset + 3] = __colorMatrixComponent(matrix, 15, red, green, blue, alpha);
+				}
+			}
+		}
+		else
+		{
+			// Other OpenFL filter families require separate parameter/edge-mode
+			// adapters before their Flight bitmap primitives can be used safely.
+			return;
+		}
+
+		var destinationBitmap = __toStraightBitmap(this);
+		FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(destinationBitmap, destPoint.x, destPoint.y, regionWidth, regionHeight), output);
+		__writeStraightRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
 	}
 
 	public function clone():BitmapData
@@ -713,6 +762,12 @@ class BitmapData implements IBitmapDrawable
 	@:noCompletion private static inline function __mergeComponent(source:Int, destination:Int, multiplier:UInt):Int
 	{
 		return Std.int(((source * multiplier) + (destination * (256 - multiplier))) / 256);
+	}
+
+	@:noCompletion private static inline function __colorMatrixComponent(matrix:Array<Float>, offset:Int, red:Int, green:Int, blue:Int, alpha:Int):Int
+	{
+		return Std.int(Math.max(0, Math.min(255,
+			matrix[offset] * red + matrix[offset + 1] * green + matrix[offset + 2] * blue + matrix[offset + 3] * alpha + matrix[offset + 4])));
 	}
 
 	@:noCompletion private static function __premultiplyRgb(color:Int, alpha:Int):Int

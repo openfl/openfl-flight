@@ -3,6 +3,7 @@ package harness.scenarios;
 import openfl.display.BitmapData;
 import openfl.display.BitmapDataChannel;
 import openfl.display.Shape;
+import openfl.filters.ColorMatrixFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
@@ -32,6 +33,7 @@ class BitmapDataScenario {
 			threshold: testThreshold(),
 			merge: testMerge(),
 			paletteMap: testPaletteMap(),
+			applyColorMatrixFilter: testApplyColorMatrixFilter(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -318,6 +320,20 @@ class BitmapDataScenario {
 			height: destination.height,
 			outside: destination.getPixel32(0, 0)
 		};
+	}
+
+	private static function testApplyColorMatrixFilter():Dynamic {
+		var destination = new BitmapData(2, 1, true, 0);
+		destination.setPixel32(0, 0, 0x80402010);
+		destination.setPixel32(1, 0, 0xFF102030);
+		var filter = new ColorMatrixFilter([
+			2, 0, 0, 0, 5,
+			0, 0.5, 0, 0, 10,
+			0, 0, 1, 0, -8,
+			0, 0, 0, 0.5, 16
+		]);
+		destination.applyFilter(destination, destination.rect, new Point(), filter);
+		return pixels(destination);
 	}
 
 	private static function testDrawShape():Dynamic {
