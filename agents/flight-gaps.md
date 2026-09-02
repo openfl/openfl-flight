@@ -6,6 +6,8 @@ currently provides (or doesn't). An upstream Flight implementation is not
 treated as resolved here until the refreshed generated flight-hx facade exposes
 the capability that this adapter can compile against.
 
+Last updated: merged Flight team feedback with ByteArray/Timeline audit (2026-09-02).
+
 ## Confirmed Gaps
 
 - **Bitmap explicit dispose/release**: OpenFL's `BitmapData.dispose()` explicitly
@@ -13,29 +15,12 @@ the capability that this adapter can compile against.
   public explicit release API — disposal relies on GC collecting the handle.
   Workaround: drop the reference and let GC handle it. Impact: apps that allocate
   many large bitmaps and dispose them in a tight loop may see higher peak memory.
-  (Reported by builder2, BitmapData Flight-backing.)
 
 - **Synchronous image decode for Loader.loadBytes**: OpenFL's `Loader.loadBytes()`
   synchronously decodes image bytes into a Bitmap/BitmapData and makes them
   available as `contentLoaderInfo.content`. Flight's image decoding is promise-based
   and host-dependent — no synchronous Loader-to-DisplayObject adapter exists in
-  interp/headless mode. Workaround: returns a 0x0 Bitmap fallback while retaining
-  the Flight resource reference. Impact: `loadBytes` in non-async contexts produces
-  empty content. (Reported by builder, Loader Flight-backing.)
-
-- **SimpleButton menu tracking**: Flight has no menu-release interaction model
-  corresponding to OpenFL's `trackAsMenu` behavior.
-
-- **SimpleButton sounds**: Flight has no binding for the embedded button sounds
-  controlled by OpenFL button states and `soundTransform`.
-
-- **Detached button hit-state transforms**: A detached transformed
-  `hitTestState` node is evaluated in its own Flight world space, so it cannot
-  fully reproduce OpenFL's button-local hit-test coordinates.
-
-- **Immediate cursor-property synchronization**: Plain OpenFL cursor fields do
-  not expose a mutation hook; Flight cursor state can only be refreshed when
-  pointer activity is observed.
+  interp/headless mode.
 
 - **Application event-error boundary**: OpenFL routes listener failures through
   private Stage and application internals. Flight exposes no corresponding
@@ -52,15 +37,11 @@ the capability that this adapter can compile against.
 - **Touch maximums and gesture recognition**: Flight Platform reports whether
   a host is touch-capable and Flight Input exposes typed pointer contacts, but
   neither API publishes a hardware maximum-contact count or recognizes the
-  OpenFL gesture catalog. `Multitouch` retains OpenFL's default maximum and can
-  raise it from observed concurrent Flight contacts; gesture support and the
-  supported-gesture list remain unavailable.
+  OpenFL gesture catalog.
 
 - **Native gamepad attachment and sample history**: Flight Input exposes
   portable gamepad signals and browser attachment/polling, but no equivalent
-  native-host attachment helper or sampled-control history buffer. OpenFL
-  `GameInput` consumes Flight's signals and attaches them automatically on
-  HTML5; native hosts still need a Flight input bridge, while
+  native-host attachment helper or sampled-control history buffer.
   `GameInputDevice.startCachingSamples()` and `getCachedSamples()` remain
   deterministic no-ops.
 
@@ -146,28 +127,10 @@ adapter does not add a new method for it.
   below, full 32-bit cross-channel palette-map summation is not representable by
   Flight's independent channel maps, and JPEG XR has no Flight encoder.
 
-- **Per-node render-effect attachment**: Flight Effects creates typed bevel,
-  blur, convolution, shadow, and glow descriptors, but Flight Node exposes only
-  color-adjustment attachment and has no public way to associate a
-  `RenderEffect` list with an arbitrary Scene2D node. `ColorMatrixFilter` maps
-  through Flight color adjustments; the remaining OpenFL display-object filters
-  retain synchronized Flight descriptors until a node-level effect hook exists.
-
-- **Bitmap-map displacement as a render effect**: Flight Bitmap can displace a
-  pixel region from a bitmap map with selected channels, scales, and edge modes,
-  but Flight's render-pipeline `DisplacementEffect` is procedural and accepts no
-  bitmap map or channel selection. The adapter retains a Flight bitmap-region
-  handle for `DisplacementMapFilter`, but cannot attach that map-driven effect to
-  display objects without a corresponding render-effect descriptor.
-
-- **Byte compression encoders and LZMA**: OpenFL `ByteArray.compress`,
-  `uncompress`, `deflate`, and `inflate` require encoders and decoders for zlib,
-  raw deflate, and LZMA. The current generated `flight.Compression` facade
-  exposes the framing-aware `inflateDeflate` decoder, which now backs zlib and
-  raw-deflate decoding, but has no matching encoder or LZMA codec. The adapter
-  retains Haxe standard-library encoders for zlib and raw deflate while
-  preserving OpenFL's in-place length and position semantics; LZMA remains a
-  deterministic no-op.
+- **Object wire formats (AMF0/AMF3)**: OpenFL `ByteArray.readObject` and
+  `writeObject` support AMF0, AMF3, HXSF, and JSON encodings. Flight exposes no
+  public object serialization API. HXSF and JSON fall back to Haxe standard
+  serializers and round-trip correctly; AMF0 and AMF3 are explicit no-ops.
 
 - **Shareable ByteArray atomics**: OpenFL's Flash-only
   `atomicCompareAndSwapIntAt` and `atomicCompareAndSwapLength` require a
@@ -246,16 +209,12 @@ adapter does not add a new method for it.
   connection-oriented message channel. It has no UDP endpoint, local bind,
   `sendTo`/`readFrom`, peer-address metadata, or datagram delivery semantics.
   `DatagramSocket` therefore retains OpenFL's `sys.net.UdpSocket` transport on
-  native targets and remains unavailable on HTML5. A Flight implementation
-  requires a distinct host UDP capability rather than adaptation through the
-  existing WebSocket API.
+  native targets and remains unavailable on HTML5.
 
-- **XMLSocket servers on HTML5**: `XMLSocket` composes the Flight-backed OpenFL
-  `Socket`, and its adapter consistently appends and reassembles null-delimited
-  XML messages. Browsers can expose only Flight's framed WebSocket transport,
-  however, not the raw TCP stream required by a traditional XMLSocket daemon.
-  HTML5 therefore requires a WebSocket-capable endpoint or bridge; native
-  targets retain the Haxe system transport described above.
+- **XMLSocket servers on HTML5**: Browsers can expose only Flight's framed
+  WebSocket transport, not the raw TCP stream required by a traditional
+  XMLSocket daemon. HTML5 therefore requires a WebSocket-capable endpoint or
+  bridge; native targets use the Haxe system transport.
 
 - **Authored StaticText import**: Flight provides a renderable `TextLabel`, which
   now backs `StaticText` and can mirror its read-only string through the private
@@ -263,28 +222,6 @@ adapter does not add a new method for it.
   adapter has no SWF/authoring importer that supplies the source text, glyph
   layout, formatting, and authored bounds. Existing authored static-text assets
   therefore need an asset-import bridge before their full layout can appear.
-
-- **Arbitrary batched tile hierarchies**: Flight's native `Tilemap` is a regular
-  row/column grid. OpenFL tilemaps accept freely positioned, rotated, scaled,
-  nested `Tile`/`TileContainer` nodes with per-tile source rectangles. The
-  adapter can preserve those semantics with Flight sprites and display-object
-  nodes backed by a Flight texture atlas, but Flight has no equivalent batched
-  primitive for that arbitrary hierarchy.
-
-- **OpenFL per-tile shaders**: Flight materials can tint and adjust tile
-  appearance, but there is no adapter from an OpenFL `Shader` assigned to a
-  `Tile` into a Flight material. The public property is preserved while custom
-  shader rendering remains unsupported.
-
-- **OpenFL shader execution model**: Flight custom 2D effects accept a registered
-  fragment shader using Flight's full-screen effect ABI and scalar/vector float
-  uniforms. OpenFL `Shader` also accepts paired arbitrary GLSL vertex/fragment
-  sources, Pixel Bender bytecode, bitmap and sampler inputs, Boolean/integer and
-  matrix parameters, and synchronous or asynchronous `ShaderJob` execution over
-  bitmap or numeric buffers. The adapter reflects GLSL declarations into the
-  OpenFL data objects and retains a Flight custom-effect descriptor, but Flight
-  cannot execute the broader OpenFL shader model or register its source without
-  an active render-state bridge.
 
 - **Graphics shader paints**: Flight Shape supports solid, gradient, and bitmap
   texture fills and strokes, but its command registry has no custom-shader paint.
@@ -308,12 +245,9 @@ adapter does not add a new method for it.
   preserved as the headless compatibility fixture rather than treated as a
   completed rendering implementation.
 
-- **Per-channel audio pan binding and peak metering**: The upstream Flight
-  update reports an AudioChannel `pan` field and `setSourcePan`, but the refreshed
-  generated facade still exposes only `AudioBus.pan` and no AudioChannel/source
-  pan API. A flight-hx binding is still needed for OpenFL's independently
-  mutable `SoundChannel.soundTransform`. Flight also exposes no left/right peak
-  levels, so peak metering remains a separate capability gap after pan lands.
+- **Audio peak metering**: Flight exposes no left/right peak levels for
+  playing audio channels. `SoundChannel.leftPeak` and `rightPeak` remain
+  zero.
 
 - **Native Lime audio device backend**: `HostLime.enableHostLime()` does not
   install an `AudioDeviceBackend`, so Flight Media resolves its silent sentinel
@@ -331,10 +265,8 @@ adapter does not add a new method for it.
   reproduce OpenFL's synchronous `Sound.fromFile()` contract on every target.
 
 - **Dynamic PCM sample streaming**: Flight can create a complete audio resource
-  from PCM channel arrays, which backs `Sound.loadPCMFromByteArray()`, but it has
-  no callback-driven streaming channel corresponding to OpenFL's repeated
-  `sampleData` events. Empty `Sound` playback therefore cannot stream generated
-  samples until Flight exposes a public streaming PCM source.
+  from PCM channel arrays, but it has no callback-driven streaming channel
+  corresponding to OpenFL's repeated `sampleData` events.
 
 - **OpenFL asset registry and streaming music**: Flight Loader schedules
   caller-provided Promise jobs and reports queue progress, but it is not a
@@ -353,13 +285,10 @@ adapter does not add a new method for it.
   the Flight-backed `Video` surface remains empty there until a portable stream
   bridge exists.
 
-- **Synchronous desktop clipboard reads**: Flight clipboard reads are
-  asynchronous, while OpenFL's `Clipboard.getData()` and `hasFormat()` return
-  synchronously. Flight also clears the whole clipboard rather than one format
-  at a time and does not expose OpenFL-style deferred data handlers. The adapter
-  synchronously shadows its own text, HTML, and RTF writes, but cannot reflect
-  external clipboard changes until Flight provides synchronous inspection (or
-  OpenFL adopts an asynchronous boundary).
+- **Sensor cadence and mobile location policy**: Flight Sensors cannot receive
+  update-frequency options, always-versus-when-in-use permission choice, or
+  background pause policy. `permissionStatus` updates only from prompt
+  outcomes and geolocation watch errors.
 
 - **FileReference network transfers and cancellation**: Flight Dialog and
   FileSystem back single- and multi-file selection, metadata, loading, and
@@ -402,34 +331,24 @@ adapter does not add a new method for it.
   can report only one completed progress chunk and `readAhead` cannot control
   incremental loading until Flight supplies a native streaming backend.
 
-- **Native child-process flight-hx binding**: The upstream Flight update reports
-  process spawn, standard streams, and exit status in `@flighthq/shell`, but the
-  refreshed generated `flight.Shell` facade still contains only external/path,
-  trash, shortcut, and beep operations. `NativeProcess.start()` and its
-  asynchronous IO events need the new shell process surface generated into
-  flight-hx before the adapter can consume it.
+- **StageText host input ownership**: OpenFL's Stage surface does not yet
+  retain or expose the host-local Flight `InputManager`, so StageText cannot
+  autonomously connect native keyboard/text ingress. The display bridge needs
+  to own one host input source per Stage and make it available to StageText.
 
-- **Sensor cadence and mobile location policy**: Flight Sensors exposes sensor
-  readings and capability queries, but its public `attachSensors` entry point
-  cannot receive the update-frequency options supported by its backends, so
-  OpenFL `DeviceRotation.setRequestedUpdateInterval()` remains a compatibility
-  hint. Flight Geolocation can forward accuracy and cached-position age, but it
-  has no requested update cadence, always-versus-when-in-use permission choice,
-  or background pause policy corresponding to OpenFL's geolocation fields. Its
-  public API can prompt for access and report that prompt's outcome, but cannot
-  query the current permission state or subscribe to later permission changes;
-  OpenFL's `permissionStatus` therefore updates only from prompt outcomes and
-  geolocation watch errors.
+- **StyleSheet CSS parsing**: Flight TextMarkup has no CSS text parser or
+  mutable stylesheet abstraction. OpenFL's limited CSS1 parsing remains in
+  the Haxe adapter.
 
-- **Desktop application metadata and shell capabilities**: Flight exposes the
-  authoritative application and window handles needed for lifecycle and window
-  operations, but it has no AIR runtime-version or runtime-patch metadata,
-  application-identifier getter, default-file-association API, focused editing
-  command router, or adapter from OpenFL `NativeMenu` objects to Flight menu
-  templates. It also has no definitive capability queries for OpenFL's
-  dock-icon, system-tray-icon, and native-menu support flags. Flight App login
-  items and Power keep-awake operations back `startAtLogin` and
-  `systemIdleMode`; the remaining surfaces stay deterministic stubs.
+- **Screen display modes and safe-area geometry**: Flight Screen has no query
+  for the complete supported-mode list required by OpenFL `Screen.modes`, and
+  no safe-area inset or rectangle for notches/cutouts/corners.
+
+- **OpenFL shader execution model**: Flight cannot execute the broader OpenFL
+  shader model (Pixel Bender, bitmap/sampler inputs, Boolean/integer/matrix
+  parameters, synchronous/asynchronous `ShaderJob` execution). The adapter
+  reflects GLSL declarations into OpenFL data objects and retains a Flight
+  custom-effect descriptor.
 
 - **TextField and StageText host input ownership**: Flight TextInput provides
   the RichText editor, selection, restrictions, focus manager, and a connector
@@ -456,27 +375,117 @@ adapter does not add a new method for it.
   small adapter parser until the generated facade uses a portable string/regex
   operation; StyleSheet CSS parsing remains the separate gap below.
 
-- **StyleSheet CSS parsing**: Flight TextMarkup parses and formats markup and
-  can register normalized class-to-text-format records, but it has no CSS text
-  parser or mutable stylesheet abstraction. OpenFL's limited CSS1 parsing,
-  case-insensitive style registry, merge behavior, and `TextFormat` transform
-  therefore remain in the Haxe adapter. A future Flight CSS parser could
-  replace this code while feeding TextMarkup's existing class-style registry.
+## Pending flight-hx Binding Regeneration
 
-- **Screen display modes and safe-area geometry**: Flight Screen exposes display
-  bounds, work areas, the current mode, and scale information, but its current
-  public facade has no query for the complete supported-mode list required by
-  OpenFL `Screen.modes`. The adapter returns the current mode as a singleton
-  until Flight restores that query. `ScreenInfo` also has no safe-area inset or
-  rectangle for notches, cutouts, and rounded corners, so the adapter uses
-  OpenFL's documented fallback of returning `visibleBounds` until Flight can
-  expose host safe-area geometry.
+These capabilities have landed upstream in Flight source but are NOT yet visible
+in the generated flight-hx Haxe facade. The adapter cannot compile against them
+until bindings are regenerated. Recorded as landed pending exposure.
+
+- **Public UTF-8 byte codec**: `encodeUTF8` / `decodeUTF8` in
+  `@flighthq/encoding`. ByteArray continues to use `haxe.io.Bytes` until
+  the binding appears.
+
+- **Raw TCP sockets on native hosts**: `SocketBackend` byte-stream TCP types
+  in `@flighthq/socket`. Socket adapter retains Haxe system transport.
+
+- **Native child processes**: Process spawn, stdio, exit status in
+  `@flighthq/shell`. NativeProcess adapter retains no-op stubs.
+
+- **Per-channel audio pan**: `AudioChannel.pan` and `setSourcePan` on
+  `AudioDeviceBackend`. SoundChannel pan remains a no-op.
+
+## In Progress (upstream)
+
+These are actively being implemented in Flight:
+
+- **Byte compression encoders**: Named compress functions (`compressDeflate`,
+  etc.) alongside the existing decompress registry. Will address zlib and
+  raw-deflate encoding; LZMA remains unaddressed.
+
+- **Interaction dispatch layers**: Composable layer registration between
+  hit-test resolution and bubble dispatch via
+  `connectInteractionDispatchLayer(manager, layer, { priority })`. This is the
+  seam openfl-flight needs to intercept resolved interactions and run its own
+  three-phase capture/target/bubble router while suppressing Flight's bubble
+  traversal.
+
+- **Double-click interaction signal**: `onPointerDoubleClick` with opt-in per
+  node. Addresses the `doubleClickEnabled` part of the per-object interaction
+  metadata gap.
+
+- **Bitmap displacement effect**: New `BitmapDisplacementEffect` kind accepting
+  a texture source, channel selection, and scale factors. Distinct from the
+  existing procedural `DisplacementEffect`. Will resolve the bitmap-map
+  displacement gap.
+
+- **Effect capture geometry helper**: `computeRenderEffectCaptureGeometry`
+  collapses bounds/padding/size/transform computation for the per-node effect
+  lane. Reduces boilerplate for the filter-to-effect adapter.
+
+- **GL draw seam**: Promoting existing internal draw primitives
+  (`withGlRenderState`, `drawGlFullscreenPass`, `beginGlRenderPass`/
+  `endGlRenderPass`, etc.) to the public surface. Provides the "set state +
+  draw triangles" primitive that Context3D adapter needs (AGAL is not worth
+  supporting — this is the right level).
+
+- **File operation cancellation**: AbortSignal on filesystem/dialog operations.
+  Will address `FileReference.cancel()`.
+
+- **Signal dispatch safety**: Tombstone discipline for mutation-safe iteration,
+  tracked connections, and bulk lifecycle teardown via signal scopes.
+
+## Adapter-Level (not Flight gaps)
+
+These are the adapter's responsibility by design — Flight has the primitives,
+the mapping work belongs in openfl-flight:
+
+- **Inverse matrix determinant threshold** (1e-6 vs 1e-11): Flight's stricter
+  threshold is correct; adapter pre-checks before calling Flight.
+
+- **Negative-scale decomposition axis** (X vs Z): Arbitrary convention;
+  adapter remaps in a few lines.
+
+- **Perspective projection from focalLength**: One-line conversion:
+  `fovY = 2 * atan(aperture / (2 * focalLength))`. Flight's
+  `createPerspectiveProjection` takes fovY.
+
+- **Synchronous clipboard reads**: Web Clipboard API is async by spec.
+  Flight's async reads are correct. The adapter reconciles OpenFL's sync API
+  with Flight's async one by shadowing writes.
+
+- **Synchronous audio loading**: Async decode is the correct modern pattern.
+  The adapter bridges OpenFL's sync constructor.
+
+- **Three-phase event routing** (capture/target/bubble): The interaction
+  dispatch layer seam (in progress above) gives openfl-flight the hook it
+  needs. The actual routing logic belongs in the adapter.
+
+- **SWF-specific loader metadata and sandboxes**: SWF-specific, not
+  general-purpose. The adapter uses OpenFL-compatible defaults.
+
+- **SharedObject quota dialogs and remote synchronization**: Flash
+  Player-specific features. Flight Storage provides the underlying storage
+  primitive; quota dialogs and remote sync are compatibility stubs.
+
+- **AGAL / Context3D command model**: AGAL is not worth supporting. The GL
+  draw seam (in progress) provides the underlying primitive.
+
+- **SimpleButton menu tracking / sounds**: Flash-specific interaction idioms.
+  The adapter retains the properties as no-ops.
+
+- **OpenFL per-tile shaders**: Shader-to-Flight-material bridge is adapter
+  work. Flight materials can tint and adjust tile appearance.
+
+- **Desktop/AIR metadata**: AIR-platform-specific. Adapter uses stubs.
+
+- **Per-node render effects**: Flight handles per-node blur/glow/shadow/bevel
+  through an explicit capture-and-compose lane, not through
+  `displayObject.filters`. `ColorMatrixFilter` maps through Flight's
+  `addNodeColorAdjustment`. The new `computeRenderEffectCaptureGeometry`
+  helper (in progress) reduces boilerplate. The adapter maps OpenFL's filter
+  array to Flight's explicit lane.
 
 ## Suspected Gaps
-
-- **Event system bridging**: OpenFL's capture/target/bubble event model is kept
-  as-is (not bridged to Flight signals). If Flight's interaction model should
-  eventually replace this, the signal-to-event adapter needs design work.
 
 - **Text metrics in interp/headless mode**: OpenFL's TextField.textWidth/textHeight
   depend on font measurement. Flight's TextLayout may require a renderer context.
@@ -491,20 +500,23 @@ misunderstanding of the API.)
   API can route pause and resume through Flight without constructing a second
   application.
 
+- **Immediate cursor-property synchronization**: `setNodeCursor` now triggers
+  an immediate cursor update when the pointer is hovering over the affected
+  node. No more waiting for the next rollover event.
+
+- **Net request cancellation**: AbortSignal support on `sendNetRequest`.
+  URLLoader/URLStream can now cancel active transport via the abort signal.
+
 - **ByteArray zlib/raw-deflate decoding and portable object fallbacks**: The
   public `flight.Compression.inflateDeflate` decoder now handles both RFC 1950
   zlib and raw-deflate frames while preserving ByteArray position semantics.
-  The ByteArray audit also confirmed that HXSF, large HXSF, JSON, and large JSON
-  round-trip through the Haxe standard serializers; only LZMA and AMF0/AMF3
-  remain upstream codec gaps.
+  HXSF and JSON round-trip through the Haxe standard serializers; only LZMA
+  and AMF0/AMF3 remain upstream codec gaps.
 
 - **BitmapData CPU operations and encoding primitives**: The refreshed public
   `flight.Bitmap` facade exposes scroll, noise, Perlin noise, threshold, merge,
   channel copy, color-bounds, histogram, palette-map, image encoding, and pixel
-  dissolve operations. Region-taking methods use explicit `BitmapRegion`
-  inputs, while the generated scroll and encode signatures operate on the
-  owning Bitmap. These primitives no longer need to be reported as missing
-  Flight capabilities; wiring OpenFL methods to them is adapter work.
+  dissolve operations. These are now adapter work, not Flight gaps.
 
 - **Timeline scene navigation and labels**: The Timeline audit found no missing
   Flight primitive. The adapter now keeps a global internal playhead while
@@ -518,3 +530,17 @@ misunderstanding of the API.)
   retains a RichText child and synchronizes these surfaces through the public
   Flight facades; host input ownership, embedded-font policy, and non-JavaScript
   TextMarkup portability remain the narrower gaps above.
+
+- **Arbitrary batched tile hierarchies**: Flight's `@flighthq/quadbatch`
+  already provides this. `QuadBatch` is a scene graph node with per-instance
+  atlas region IDs and full matrix3x2 affine transforms. Use
+  `setQuadBatchInstanceMatrix` with `transformType: 'matrix3x2'` for freely
+  positioned/rotated/scaled quads. OpenFL's nested Tile/TileContainer maps
+  directly to quadbatch instances.
+
+- **Per-object doubleClickEnabled**: `onPointerDoubleClick` landing in Flight
+  (in progress section). Context-menu metadata and soft-keyboard input area
+  remain adapter-level concerns.
+
+- **FileReference cancellation**: File operation cancellation via AbortSignal
+  landing in Flight (in progress section).
