@@ -43,8 +43,11 @@ class NativeProcess extends EventDispatcher
 		as an `.air` file. You must package an AIR application using the ADT
 		`-target native` flag or the `-target bundle` flag in order to use the
 		NativeProcess class in AIR.
+
+		The Flight adapter currently returns `false` because the generated Haxe
+		bindings do not yet expose Flight's process-spawn and stream APIs.
 	**/
-	public static var isSupported(default, never):Bool = true;
+	public static var isSupported(default, never):Bool = false;
 
 	/**
 		Constructs an uninitialized NativeProcess object. Call the `start()`
@@ -225,10 +228,14 @@ class NativeProcess extends EventDispatcher
 		object throws an exception. The message property of the Error object
 		contains the string "Error #3219: The NativeProcess could not be
 		started."
+
+		_OpenFL Flight adapter:_ This method is a no-op while `isSupported` is
+		`false`. Process spawning remains blocked until flight-hx generates the
+		Flight shell process bindings.
 	**/
 	public function start(info:NativeProcessStartupInfo):Void
 	{
-		// TODO: Start and monitor the process through the Flight application/process API.
+		// Intentionally unsupported until Flight's process API is present in Haxe.
 	}
 }
 

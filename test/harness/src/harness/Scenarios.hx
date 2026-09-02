@@ -47,6 +47,7 @@ import harness.scenarios.MouseScenario;
 import harness.scenarios.MovieClipScenario;
 import harness.scenarios.MultitouchScenario;
 import harness.scenarios.NativeApplicationScenario;
+import harness.scenarios.NativeProcessScenario;
 import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
@@ -390,6 +391,10 @@ class Scenarios {
 			{
 				name: "desktop/native-application",
 				run: NativeApplicationScenario.run
+			},
+			{
+				name: "desktop/native-process",
+				run: NativeProcessScenario.run
 			},
 			{
 				name: "desktop/clipboard",

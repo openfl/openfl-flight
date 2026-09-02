@@ -135,7 +135,7 @@
     "argumentsAreNull": true,
     "standardOutputPresent": true,
     "executableIsNull": true,
-    "isSupported": true,
+    "isSupported": false,
     "running": false
   }
 }

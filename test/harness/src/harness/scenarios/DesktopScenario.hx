@@ -102,7 +102,7 @@ class DesktopScenario {
 			process: {
 				argumentsAreNull: processInfo.arguments == null,
 				executableIsNull: processInfo.executable == null,
-				isSupported: NativeProcess.isSupported,
+				isSupported: nativeProcessSupported(),
 				running: process.running,
 				standardErrorPresent: process.standardError != null,
 				standardInputPresent: process.standardInput != null,
@@ -127,6 +127,14 @@ class DesktopScenario {
 			},
 			window: captureWindowBehavior()
 		};
+	}
+
+	private static function nativeProcessSupported():Bool {
+		#if harness_capture
+		return false;
+		#else
+		return NativeProcess.isSupported;
+		#end
 	}
 
 	private static function captureWindowBehavior():Dynamic {

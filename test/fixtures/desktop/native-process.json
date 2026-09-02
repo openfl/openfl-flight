@@ -1,0 +1,32 @@
+{
+  "startupInfo": {
+    "defaults": {
+      "argumentsIsNull": true,
+      "executableIsNull": true,
+      "workingDirectoryIsNull": true
+    },
+    "arguments": [
+      "--flight",
+      "value with spaces"
+    ],
+    "argumentsSameReference": true,
+    "executableSameReference": true,
+    "workingDirectorySameReference": true
+  },
+  "process": {
+    "closeInputDidNotThrow": true,
+    "constructionType": "openfl.desktop.NativeProcess",
+    "exitDidNotThrow": true,
+    "isSupported": false,
+    "isSupportedIsBool": true,
+    "runningBeforeStart": false,
+    "standardErrorAvailable": true,
+    "standardInputAvailable": true,
+    "standardOutputAvailable": true,
+    "startBehavior": {
+      "didNotThrow": true,
+      "runningAfterStart": false,
+      "unsupportedNoOp": true
+    }
+  }
+}
