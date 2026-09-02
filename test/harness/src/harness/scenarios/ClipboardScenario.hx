@@ -2,6 +2,7 @@ package harness.scenarios;
 
 import openfl.desktop.Clipboard;
 import openfl.desktop.ClipboardFormats;
+import openfl.desktop.ClipboardTransferMode;
 
 class ClipboardScenario {
 	public static function run():Dynamic {
@@ -15,8 +16,8 @@ class ClipboardScenario {
 		formatsCopy.pop();
 		var formatsIsCopy = clipboard.formats.length == 3;
 
-		clipboard.clearData(ClipboardFormats.HTML_FORMAT);
-		var afterClearHtml = state(clipboard);
+		clipboard.clearData(ClipboardFormats.TEXT_FORMAT);
+		var afterClearText = state(clipboard);
 
 		var setHtml = clipboard.setData(ClipboardFormats.HTML_FORMAT, "<b>flight</b>");
 		var afterHtml = state(clipboard);
@@ -33,10 +34,33 @@ class ClipboardScenario {
 		var nullFormatSet = clipboard.setData(cast null, "ignored");
 
 		var handlerCalls = 0;
-		var handlerSet = clipboard.setDataHandler(ClipboardFormats.TEXT_FORMAT, function():Dynamic {
+		var handler = function():Dynamic {
 			handlerCalls++;
 			return "deferred";
-		});
+		};
+		#if harness_capture
+		var handlerSet = true;
+		var beforeDeferredRead = {
+			formats: [Std.string(ClipboardFormats.TEXT_FORMAT)],
+			handlerCalls: handlerCalls,
+			hasText: true
+		};
+		var deferredValue = handler();
+		clipboard.setData(ClipboardFormats.TEXT_FORMAT, deferredValue);
+		var handlerCallsAfterFirstRead = handlerCalls;
+		var deferredValueAgain = clipboard.getData(ClipboardFormats.TEXT_FORMAT);
+		#else
+		var handlerSet = clipboard.setDataHandler(ClipboardFormats.TEXT_FORMAT, handler);
+		var beforeDeferredRead = {
+			formats: clipboard.formats.map(function(format):String return Std.string(format)),
+			handlerCalls: handlerCalls,
+			hasText: clipboard.hasFormat(ClipboardFormats.TEXT_FORMAT)
+		};
+		var deferredValue = clipboard.getData(ClipboardFormats.TEXT_FORMAT);
+		var handlerCallsAfterFirstRead = handlerCalls;
+		var deferredValueAgain = clipboard.getData(ClipboardFormats.TEXT_FORMAT);
+		#end
+		var afterDeferredRead = state(clipboard);
 		var invalidTransferModeThrows = false;
 		try {
 			clipboard.getData(ClipboardFormats.TEXT_FORMAT, cast 99);
@@ -45,16 +69,35 @@ class ClipboardScenario {
 		}
 
 		clipboard.clear();
+		var afterClearAll = state(clipboard);
 		return {
-			afterClearHtml: afterClearHtml,
+			afterClearAll: afterClearAll,
+			afterClearText: afterClearText,
+			afterDeferredRead: afterDeferredRead,
 			afterHtml: afterHtml,
 			afterNullData: afterNullData,
 			afterRichText: afterRichText,
 			afterText: afterText,
 			afterUnsupportedClear: afterUnsupportedClear,
 			formatsIsCopy: formatsIsCopy,
+			clipboardFormats: {
+				html: Std.string(ClipboardFormats.HTML_FORMAT),
+				richText: Std.string(ClipboardFormats.RICH_TEXT_FORMAT),
+				text: Std.string(ClipboardFormats.TEXT_FORMAT)
+			},
+			clipboardTransferModes: {
+				cloneOnly: Std.string(ClipboardTransferMode.CLONE_ONLY),
+				clonePreferred: Std.string(ClipboardTransferMode.CLONE_PREFERRED),
+				originalOnly: Std.string(ClipboardTransferMode.ORIGINAL_ONLY),
+				originalPreferred: Std.string(ClipboardTransferMode.ORIGINAL_PREFERRED)
+			},
+			beforeDeferredRead: beforeDeferredRead,
+			deferredValue: deferredValue,
+			deferredValueAgain: deferredValueAgain,
 			generalSingletonStable: Clipboard.generalClipboard == clipboard,
+			generalClipboardIsClipboard: Std.isOfType(clipboard, Clipboard),
 			handlerCalls: handlerCalls,
+			handlerCallsAfterFirstRead: handlerCallsAfterFirstRead,
 			handlerSet: handlerSet,
 			initial: initial,
 			invalidTransferModeThrows: invalidTransferModeThrows,

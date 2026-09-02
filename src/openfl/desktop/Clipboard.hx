@@ -134,9 +134,12 @@ class Clipboard
 	public var supportsFilePromise(get, never):Bool;
 
 	@:noCompletion private var __htmlText:String;
+	@:noCompletion private var __htmlTextHandler:Void->Dynamic;
 	@:noCompletion private var __richText:String;
+	@:noCompletion private var __richTextHandler:Void->Dynamic;
 	@:noCompletion private var __systemClipboard:Bool;
 	@:noCompletion private var __text:String;
+	@:noCompletion private var __textHandler:Void->Dynamic;
 
 	#if openfljs
 	@:noCompletion private static function __init__()
@@ -178,8 +181,11 @@ class Clipboard
 		}
 
 		__htmlText = null;
+		__htmlTextHandler = null;
 		__richText = null;
+		__richTextHandler = null;
 		__text = null;
+		__textHandler = null;
 	}
 
 	/**
@@ -204,8 +210,11 @@ class Clipboard
 				case HTML_FORMAT, RICH_TEXT_FORMAT, TEXT_FORMAT:
 					if (host != null) FlightClipboard.clearClipboard(host);
 					__htmlText = null;
+					__htmlTextHandler = null;
 					__richText = null;
+					__richTextHandler = null;
 					__text = null;
+					__textHandler = null;
 					return;
 
 				default:
@@ -216,12 +225,15 @@ class Clipboard
 		{
 			case HTML_FORMAT:
 				__htmlText = null;
+				__htmlTextHandler = null;
 
 			case RICH_TEXT_FORMAT:
 				__richText = null;
+				__richTextHandler = null;
 
 			case TEXT_FORMAT:
 				__text = null;
+				__textHandler = null;
 
 			default:
 		}
@@ -279,9 +291,33 @@ class Clipboard
 
 		return switch (format)
 		{
-			case HTML_FORMAT: __htmlText;
-			case RICH_TEXT_FORMAT: __richText;
-			case TEXT_FORMAT: __text;
+			case HTML_FORMAT:
+				if (__htmlText == null && __htmlTextHandler != null)
+				{
+					var handler = __htmlTextHandler;
+					__htmlTextHandler = null;
+					setData(HTML_FORMAT, handler());
+				}
+				__htmlText;
+
+			case RICH_TEXT_FORMAT:
+				if (__richText == null && __richTextHandler != null)
+				{
+					var handler = __richTextHandler;
+					__richTextHandler = null;
+					setData(RICH_TEXT_FORMAT, handler());
+				}
+				__richText;
+
+			case TEXT_FORMAT:
+				if (__text == null && __textHandler != null)
+				{
+					var handler = __textHandler;
+					__textHandler = null;
+					setData(TEXT_FORMAT, handler());
+				}
+				__text;
+
 			default: null;
 		}
 	}
@@ -303,9 +339,9 @@ class Clipboard
 	{
 		return switch (format)
 		{
-			case HTML_FORMAT: __htmlText != null;
-			case RICH_TEXT_FORMAT: __richText != null;
-			case TEXT_FORMAT: __text != null;
+			case HTML_FORMAT: __htmlText != null || __htmlTextHandler != null;
+			case RICH_TEXT_FORMAT: __richText != null || __richTextHandler != null;
+			case TEXT_FORMAT: __text != null || __textHandler != null;
 			default: false;
 		}
 	}
@@ -420,8 +456,11 @@ class Clipboard
 			// OpenFL exposes the platform clipboard's single text value through
 			// each of its supported text formats on non-AIR targets.
 			__htmlText = data;
+			__htmlTextHandler = null;
 			__richText = data;
+			__richTextHandler = null;
 			__text = data;
+			__textHandler = null;
 			return true;
 		}
 
@@ -429,14 +468,17 @@ class Clipboard
 		{
 			case HTML_FORMAT:
 				__htmlText = data;
+				__htmlTextHandler = null;
 				return true;
 
 			case RICH_TEXT_FORMAT:
 				__richText = data;
+				__richTextHandler = null;
 				return true;
 
 			case TEXT_FORMAT:
 				__text = data;
+				__textHandler = null;
 				return true;
 
 			default:
@@ -520,8 +562,27 @@ class Clipboard
 	@SuppressWarnings("checkstyle:Dynamic")
 	public function setDataHandler(format:ClipboardFormats, handler:Void->Dynamic, serializable:Bool = true):Bool
 	{
-		// TODO: Register deferred clipboard data through Flight's host API.
-		return false;
+		if (handler == null) return false;
+
+		// Flight cannot register an OpenFL-style deferred provider with the host.
+		// Retain it in the synchronous adapter shadow and resolve it on first read.
+		switch (format)
+		{
+			case HTML_FORMAT:
+				__htmlTextHandler = handler;
+				return true;
+
+			case RICH_TEXT_FORMAT:
+				__richTextHandler = handler;
+				return true;
+
+			case TEXT_FORMAT:
+				__textHandler = handler;
+				return true;
+
+			default:
+				return false;
+		}
 	}
 	#end
 

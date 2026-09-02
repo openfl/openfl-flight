@@ -13,11 +13,34 @@
     "richText": "{\\rtf1 flight}",
     "html": "{\\rtf1 flight}"
   },
-  "handlerCalls": 0,
+  "handlerCalls": 1,
+  "handlerCallsAfterFirstRead": 1,
   "supportsFilePromise": false,
   "invalidTransferModeThrows": false,
   "setRichText": true,
-  "handlerSet": false,
+  "handlerSet": true,
+  "beforeDeferredRead": {
+    "formats": [
+      "air:text"
+    ],
+    "handlerCalls": 0,
+    "hasText": true
+  },
+  "deferredValue": "deferred",
+  "deferredValueAgain": "deferred",
+  "afterDeferredRead": {
+    "text": "deferred",
+    "hasHtml": true,
+    "hasText": true,
+    "formats": [
+      "air:html",
+      "air:rtf",
+      "air:text"
+    ],
+    "hasRichText": true,
+    "richText": "deferred",
+    "html": "deferred"
+  },
   "afterRichText": {
     "text": "{\\rtf1 flight}",
     "hasHtml": true,
@@ -54,6 +77,18 @@
     "html": "plain text"
   },
   "generalSingletonStable": true,
+  "generalClipboardIsClipboard": true,
+  "clipboardFormats": {
+    "html": "air:html",
+    "richText": "air:rtf",
+    "text": "air:text"
+  },
+  "clipboardTransferModes": {
+    "cloneOnly": "cloneOnly",
+    "clonePreferred": "clonePreferred",
+    "originalOnly": "originalOnly",
+    "originalPreferred": "originalPreferred"
+  },
   "setHtml": true,
   "nullFormatSet": false,
   "setText": true,
@@ -79,7 +114,16 @@
     "richText": "<b>flight</b>",
     "html": "<b>flight</b>"
   },
-  "afterClearHtml": {
+  "afterClearText": {
+    "text": null,
+    "hasHtml": false,
+    "hasText": false,
+    "formats": [],
+    "hasRichText": false,
+    "richText": null,
+    "html": null
+  },
+  "afterClearAll": {
     "text": null,
     "hasHtml": false,
     "hasText": false,
