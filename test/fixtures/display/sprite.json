@@ -1,12 +1,21 @@
 {
   "defaults": {
     "graphicsIsNonNull": true,
+    "tabEnabled": false,
     "hitAreaIsNull": true,
     "graphicsIsStable": true,
     "useHandCursor": true,
     "buttonMode": false,
     "dropTargetIsNull": true
   },
+  "tabEnabled": {
+    "explicitFalseWithButtonMode": false,
+    "implicitWithButtonMode": true,
+    "explicitFalseWithoutButtonMode": false,
+    "explicitFalseAfterButtonToggle": false,
+    "explicitTrueWithoutButtonMode": true
+  },
+  "hitAreaClearedIsNull": true,
   "values": {
     "hitAreaMatches": true,
     "useHandCursor": false,
@@ -16,9 +25,17 @@
     "spriteWidth": 30,
     "x": 10,
     "y": 20,
+    "graphicsAfterDrawIsSame": true,
     "height": 40,
     "spriteHeight": 40,
     "width": 30
   },
-  "detachedDragThrew": false
+  "detachedDrag": {
+    "stageIsNull": true,
+    "stopDefaultDoesNotThrow": true,
+    "startDefaultDoesNotThrow": true,
+    "startConstrainedDoesNotThrow": true,
+    "dropTargetRemainsNull": true,
+    "stopConstrainedDoesNotThrow": true
+  }
 }
