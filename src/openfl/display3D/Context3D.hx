@@ -56,7 +56,8 @@ import openfl.utils.ByteArray;
 	public function clear(red:Float = 0, green:Float = 0, blue:Float = 0, alpha:Float = 1, depth:Float = 1, stencil:UInt = 0,
 			mask:UInt = Context3DClearMask.ALL):Void
 	{
-		// TODO: Clear Flight GPU render targets.
+		// Flight audit — blocked on GL draw seam: public render-pass lifecycle
+		// calls do not expose the active render state needed to clear attachments.
 	}
 
 	public function configureBackBuffer(width:Int, height:Int, antiAlias:Int, enableDepthAndStencil:Bool = true, wantsBestResolution:Bool = false,
@@ -64,7 +65,8 @@ import openfl.utils.ByteArray;
 	{
 		backBufferWidth = width;
 		backBufferHeight = height;
-		// TODO: Configure the Flight GPU back buffer.
+		// Flight audit — implementable now: retain OpenFL's observable dimensions.
+		// Allocating/configuring the GPU attachment remains blocked on the GL draw seam.
 	}
 
 	public function createCubeTexture(size:Int, format:Context3DTextureFormat, optimizeForRenderToTexture:Bool, streamingLevels:Int = 0):CubeTexture
@@ -104,105 +106,126 @@ import openfl.utils.ByteArray;
 
 	public function dispose(recreate:Bool = true):Void
 	{
-		// TODO: Release all Flight GPU resources owned by this context.
+		// Flight audit — adapter stub: no public Flight render-state handle or
+		// per-context resource ownership exists yet, so only local bridge state clears.
+		gl = null;
 	}
 
 	public function drawToBitmapData(destination:BitmapData, srcRect:Rectangle = null, destPoint:Point = null):Void
 	{
-		// TODO: Read pixels from the Flight GPU render target.
+		// Flight audit — blocked on texture bridges: Flight exposes no public
+		// render-target readback conversion into an OpenFL BitmapData.
 	}
 
 	public function drawTriangles(indexBuffer:IndexBuffer3D, firstIndex:Int = 0, numTriangles:Int = -1):Void
 	{
-		// TODO: Submit indexed geometry to Flight GPU rendering.
+		// Flight audit — blocked on GL draw seam: indexed Context3D geometry needs
+		// arbitrary program and buffer binding, not only a fullscreen-pass helper.
 	}
 
 	public function present():Void
 	{
-		// TODO: Present the Flight GPU back buffer.
+		// Flight audit — blocked on GL draw seam: Flight can present a render target,
+		// but Context3D cannot publicly acquire or retain the corresponding target.
 	}
 
 	public function setBlendFactors(sourceFactor:Context3DBlendFactor, destinationFactor:Context3DBlendFactor):Void
 	{
-		// TODO: Configure Flight GPU blend state.
+		// Flight audit — blocked on GL draw seam: no public Context3D-compatible
+		// blend-state mutation is available for the active render state.
 	}
 
 	public function setColorMask(red:Bool, green:Bool, blue:Bool, alpha:Bool):Void
 	{
-		// TODO: Configure the Flight GPU color mask.
+		// Flight audit — blocked on GL draw seam: no public color-write-mask command
+		// is available for the active render state.
 	}
 
 	public function setCulling(triangleFaceToCull:Context3DTriangleFace):Void
 	{
-		// TODO: Configure Flight GPU culling.
+		// Flight audit — blocked on GL draw seam: no public face-culling command is
+		// available for the active render state.
 	}
 
 	public function setDepthTest(depthMask:Bool, passCompareMode:Context3DCompareMode):Void
 	{
-		// TODO: Configure Flight GPU depth testing.
+		// Flight audit — blocked on GL draw seam: no public depth-write or
+		// comparison-state command is available for the active render state.
 	}
 
 	public function setProgram(program:Program3D):Void
 	{
-		// TODO: Bind a Flight GPU shader program.
+		// Flight audit — blocked on GL draw seam: Program3D has no public Flight
+		// shader-program bridge that can be bound to an active render state.
 	}
 
 	public function setProgramConstantsFromByteArray(programType:Context3DProgramType, firstRegister:Int, numRegisters:Int, data:ByteArray,
 			byteArrayOffset:UInt):Void
 	{
-		// TODO: Upload shader constants through Flight GPU buffers.
+		// Flight audit — blocked on GL draw seam: AGAL register buffers cannot be
+		// uploaded or bound through the public Flight rendering surface.
 	}
 
 	public function setProgramConstantsFromMatrix(programType:Context3DProgramType, firstRegister:Int, matrix:Matrix3D, transposedMatrix:Bool = false):Void
 	{
-		// TODO: Upload matrix constants through Flight GPU buffers.
+		// Flight audit — blocked on GL draw seam: matrix register data cannot be
+		// uploaded or bound through the public Flight rendering surface.
 	}
 
 	public function setProgramConstantsFromVector(programType:Context3DProgramType, firstRegister:Int, data:Vector<Float>, numRegisters:Int = -1):Void
 	{
-		// TODO: Upload vector constants through Flight GPU buffers.
+		// Flight audit — blocked on GL draw seam: vector register data cannot be
+		// uploaded or bound through the public Flight rendering surface.
 	}
 
 	public function setRenderToBackBuffer():Void
 	{
-		// TODO: Bind the Flight GPU back buffer.
+		// Flight audit — blocked on GL draw seam: Context3D has no public Flight
+		// render-state/back-buffer binding bridge.
 	}
 
 	public function setRenderToTexture(texture:TextureBase, enableDepthAndStencil:Bool = false, antiAlias:Int = 0, surfaceSelector:Int = 0):Void
 	{
-		// TODO: Bind a Flight GPU texture render target.
+		// Flight audit — blocked on texture bridges: Context3D textures are Flight
+		// sampled textures, with no public conversion to a Flight render target.
 	}
 
 	public function setSamplerStateAt(sampler:Int, wrap:Context3DWrapMode, filter:Context3DTextureFilter, mipfilter:Context3DMipFilter):Void
 	{
-		// TODO: Configure a Flight GPU sampler.
+		// Flight audit — blocked on GL draw seam: Flight can create typed samplers,
+		// but exposes no per-slot sampler binding on the active render state.
 	}
 
 	public function setScissorRectangle(rectangle:Rectangle):Void
 	{
-		// TODO: Configure the Flight GPU scissor rectangle.
+		// Flight audit — blocked on GL draw seam: no public scissor-state command is
+		// available for the active render state.
 	}
 
 	public function setStencilActions(triangleFace:Context3DTriangleFace = FRONT_AND_BACK, compareMode:Context3DCompareMode = ALWAYS,
 			actionOnBothPass:Context3DStencilAction = KEEP, actionOnDepthFail:Context3DStencilAction = KEEP,
 			actionOnDepthPassStencilFail:Context3DStencilAction = KEEP):Void
 	{
-		// TODO: Configure Flight GPU stencil actions.
+		// Flight audit — blocked on GL draw seam: no public per-face stencil-action
+		// command is available for the active render state.
 	}
 
 	public function setStencilReferenceValue(referenceValue:UInt, readMask:UInt = 0xFF, writeMask:UInt = 0xFF):Void
 	{
-		// TODO: Configure the Flight GPU stencil reference.
+		// Flight audit — blocked on GL draw seam: no public stencil reference/mask
+		// command is available for the active render state.
 	}
 
 	public function setTextureAt(sampler:Int, texture:TextureBase):Void
 	{
-		// TODO: Bind a Flight GPU texture.
+		// Flight audit — blocked on GL draw seam: Flight textures can be resolved
+		// only after an active state is available, and no texture-slot binding exists.
 	}
 
 	public function setVertexBufferAt(index:Int, buffer:VertexBuffer3D, bufferOffset:Int = 0, format:Context3DVertexBufferFormat = FLOAT_4):Void
 	{
-		// TODO: Bind a Flight GPU vertex buffer.
+		// Flight audit — blocked on GL draw seam: VertexBuffer3D has no public Flight
+		// buffer/layout bridge that can be bound to an active render state.
 	}
 
 	@:noCompletion private function get_enableErrorChecking():Bool

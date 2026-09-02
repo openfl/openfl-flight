@@ -53,15 +53,55 @@ the capability that this adapter can compile against.
   equivalents for OpenFL's `doubleClickEnabled`, context-menu metadata, or
   soft-keyboard input area.
 
-- **Raw Context3D command model**: Flight has no public immediate-mode API that
-  maps OpenFL's AGAL programs and registers, separate vertex/index buffers, GPU
-  state setters, draw calls, and `present()` lifecycle.
+- **Raw Context3D command model**: Flight's public GL surface exposes
+  `beginGlRenderPass()` and `endGlRenderPass()`, but no active-state callback or
+  immediate-mode API that maps OpenFL's AGAL programs and registers, separate
+  vertex/index buffers, GPU state setters, arbitrary indexed draw calls, and
+  `present()` lifecycle. `withGlRenderState()` and `drawGlFullscreenPass()` are
+  not available on the public generated facade; even if exposed, the fullscreen
+  helper would not represent `drawTriangles()`.
 
 - **Context3D texture bridges**: Flight has no adapter for compressed ATF,
   `ByteArray`/typed-array uploads, arbitrary mip levels, render-target textures,
   or `VideoTexture`. BitmapData uploads at the base mip and hardware-only
   `BitmapData.fromTexture()` aliases are supported; cross-context readback is
   not.
+
+### Context3D public-surface audit
+
+The 22 command TODOs were audited against the current generated Flight facade.
+`configureBackBuffer()` can preserve its observable OpenFL dimensions now, and
+`dispose()` can clear adapter-local bridge state. The other commands stay
+deterministic stubs until the named public seam exists; they are classified
+explicitly in source rather than being left as unqualified TODOs.
+
+| Context3D method | Classification | Public Flight seam verdict |
+| --- | --- | --- |
+| `clear` | blocked on GL draw seam | `beginGlRenderPass()`/`endGlRenderPass()` do not expose attachment-clear commands; an active-state seam with clear operations is required. |
+| `configureBackBuffer` | implementable now (metadata); GPU work blocked on GL draw seam | Width and height are retained now. The render-state/target attachment still cannot be acquired or configured publicly. |
+| `dispose` | adapter stub | Local bridge state can be cleared, but Flight exposes no Context3D-owned render-state/resource lifetime to release or recreate. |
+| `drawToBitmapData` | blocked on texture bridges | No public render-target readback converts the active GL target into an OpenFL `BitmapData`. |
+| `drawTriangles` | blocked on GL draw seam | An active-state callback is necessary but not sufficient: arbitrary indexed program/buffer drawing is required; a fullscreen-pass helper does not cover it. |
+| `present` | blocked on GL draw seam | Flight can present a known render target, but Context3D cannot publicly acquire or retain that target. |
+| `setBlendFactors` | blocked on GL draw seam | Requires public active-state blend mutation. |
+| `setColorMask` | blocked on GL draw seam | Requires public active-state color-write-mask mutation. |
+| `setCulling` | blocked on GL draw seam | Requires public active-state culling mutation. |
+| `setDepthTest` | blocked on GL draw seam | Requires public active-state depth-write and comparison mutation. |
+| `setProgram` | blocked on GL draw seam | Requires both a Program3D-to-Flight shader bridge and public active-state binding. |
+| `setProgramConstantsFromByteArray` | blocked on GL draw seam | Requires an AGAL register-buffer bridge and active-state binding. |
+| `setProgramConstantsFromMatrix` | blocked on GL draw seam | Requires an AGAL register-buffer bridge and active-state binding. |
+| `setProgramConstantsFromVector` | blocked on GL draw seam | Requires an AGAL register-buffer bridge and active-state binding. |
+| `setRenderToBackBuffer` | blocked on GL draw seam | Requires a public Context3D render-state/back-buffer binding. |
+| `setRenderToTexture` | blocked on texture bridges | Flight sampled textures have no public conversion to a render target compatible with this command. |
+| `setSamplerStateAt` | blocked on GL draw seam | Flight can create typed samplers, but cannot bind them by Context3D sampler slot on an active state. |
+| `setScissorRectangle` | blocked on GL draw seam | Requires public active-state scissor mutation. |
+| `setStencilActions` | blocked on GL draw seam | Requires public per-face stencil-action mutation. |
+| `setStencilReferenceValue` | blocked on GL draw seam | Requires public stencil reference/read-mask/write-mask mutation. |
+| `setTextureAt` | blocked on GL draw seam | Flight textures can be resolved only with an active state; public texture-slot binding is also absent. |
+| `setVertexBufferAt` | blocked on GL draw seam | Requires a VertexBuffer3D-to-Flight buffer/layout bridge and public active-state binding. |
+
+`setFillMode` is not part of the OpenFL 9.5.2 `Context3D` public surface, so the
+adapter does not add a new method for it.
 
 - **Synchronous BitmapData image construction**: Flight's public `ImageCodec`
   decodes encoded bytes through Promises, while `BitmapData.fromBase64()`,
