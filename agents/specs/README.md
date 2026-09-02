@@ -55,6 +55,9 @@ Class abbreviations:
 - V3D = Vector3D
 - TFM = Transform
 - CT = ColorTransform
+- PP = PerspectiveProjection
+- O3D = Orientation3D
+- U3D = Utils3D
 - BA = ByteArray
 - TMR = Timer
 - SND = Sound
@@ -73,6 +76,25 @@ Class abbreviations:
 - CB = Clipboard
 - FL = File
 - FS = FileStream
+- BF = BevelFilter
+- Bevel = BevelFilter (alt)
+- Blur = BlurFilter
+- CM = ColorMatrixFilter
+- Conv = ConvolutionFilter
+- DM = DisplacementMapFilter
+- DS = DropShadowFilter
+- Glow = GlowFilter
+- Gradient = GradientBevelFilter / GradientGlowFilter
+- Shader = ShaderFilter
+- Const = FilterConstant (enums)
+- Keyboard = Keyboard
+- KeyLocation = KeyLocation
+- Mouse = Mouse
+- GI = GameInput
+- GID = GameInputDevice
+- GIC = GameInputControl
+- Multitouch = Multitouch
+- MTMode = MultitouchInputMode
 
 Slugs are lowercase-kebab-case, descriptive of the specific behavior.
 
