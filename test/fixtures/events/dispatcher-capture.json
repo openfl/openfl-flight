@@ -2,6 +2,10 @@
   "hasEventListenerCapture": {
     "hasTest": true
   },
+  "capturePriority": {
+    "count": 3,
+    "log": "high,middle,low"
+  },
   "captureVsNormal": {
     "count": 1,
     "log": "normal"
@@ -9,8 +13,17 @@
   "nullListener": {
     "hasListener": false
   },
+  "multipleCaptures": {
+    "count": 3,
+    "log": "first,second,third"
+  },
   "stopImmediatePropagation": {
     "log": "first"
+  },
+  "removeCaptureFlagMatch": {
+    "stillHasListener": false,
+    "afterMatchingRemove": 1,
+    "afterMismatchedRemove": 1
   },
   "willTrigger": {
     "after": true,
@@ -20,8 +33,44 @@
     "callCount": 1,
     "hasNormal": true
   },
+  "eventPhases": [
+    {
+      "listener": "root-capture",
+      "currentTarget": "root",
+      "phase": 1,
+      "target": "target"
+    },
+    {
+      "listener": "parent-capture",
+      "currentTarget": "parent",
+      "phase": 1,
+      "target": "target"
+    },
+    {
+      "listener": "target",
+      "currentTarget": "target",
+      "phase": 2,
+      "target": "target"
+    },
+    {
+      "listener": "parent-bubble",
+      "currentTarget": "parent",
+      "phase": 3,
+      "target": "target"
+    },
+    {
+      "listener": "root-bubble",
+      "currentTarget": "root",
+      "phase": 3,
+      "target": "target"
+    }
+  ],
   "removeCaptureOnly": {
     "stillHasListener": true,
     "callCount": 1
+  },
+  "stopPropagationDuringCapture": {
+    "count": 4,
+    "log": "root-first,root-second,parent-capture,target"
   }
 }
