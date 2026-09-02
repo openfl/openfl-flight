@@ -3,6 +3,7 @@ package harness.scenarios;
 import openfl.text.TextField;
 import openfl.text.TextFieldAutoSize;
 import openfl.text.TextFieldType;
+import openfl.text.TextFormat;
 
 class TextFieldScenario {
 	public static function run():Dynamic {
@@ -11,6 +12,9 @@ class TextFieldScenario {
 			text: testText(),
 			htmlText: testHtmlText(),
 			dimensions: testDimensions(),
+			autoSize: testAutoSize(),
+			layout: testLayout(),
+			defaultTextFormat: testDefaultTextFormat(),
 			type: testType(),
 			colors: testColors()
 		};
@@ -26,7 +30,10 @@ class TextFieldScenario {
 			autoSize: field.autoSize,
 			multiline: field.multiline,
 			wordWrap: field.wordWrap,
-			selectable: field.selectable
+			selectable: field.selectable,
+			scrollV: field.scrollV,
+			maxScrollV: field.maxScrollV,
+			numLines: field.numLines
 		};
 	}
 
@@ -55,6 +62,66 @@ class TextFieldScenario {
 		return {
 			width: field.width,
 			height: field.height
+		};
+	}
+
+	private static function testAutoSize():Dynamic {
+		return {
+			left: captureAutoSize(TextFieldAutoSize.LEFT),
+			right: captureAutoSize(TextFieldAutoSize.RIGHT),
+			center: captureAutoSize(TextFieldAutoSize.CENTER)
+		};
+	}
+
+	private static function captureAutoSize(value:TextFieldAutoSize):Dynamic {
+		var field = new TextField();
+		field.x = 40;
+		field.width = 100;
+		field.text = "autosize";
+		field.autoSize = value;
+		var width = field.width;
+		var height = field.height;
+		return {
+			autoSize: field.autoSize,
+			x: field.x,
+			width: width,
+			height: height
+		};
+	}
+
+	private static function testLayout():Dynamic {
+		var field = new TextField();
+		field.width = 60;
+		field.height = 24;
+		field.multiline = true;
+		field.wordWrap = true;
+		field.text = "one two three four\nfive six";
+		return {
+			multiline: field.multiline,
+			wordWrap: field.wordWrap,
+			numLines: field.numLines,
+			scrollV: field.scrollV,
+			maxScrollV: field.maxScrollV
+		};
+	}
+
+	private static function testDefaultTextFormat():Dynamic {
+		var field = new TextField();
+		field.defaultTextFormat = new TextFormat("Verdana", 18, 0x336699, true, true);
+		field.text = "formatted";
+		var defaultFormat = field.defaultTextFormat;
+		var appliedFormat = field.getTextFormat(0, field.length);
+		return {
+			font: defaultFormat.font,
+			size: defaultFormat.size,
+			color: defaultFormat.color,
+			bold: defaultFormat.bold,
+			italic: defaultFormat.italic,
+			appliedFont: appliedFormat.font,
+			appliedSize: appliedFormat.size,
+			appliedColor: appliedFormat.color,
+			appliedBold: appliedFormat.bold,
+			appliedItalic: appliedFormat.italic
 		};
 	}
 

@@ -1,10 +1,33 @@
 {
+  "autoSize": {
+    "left": {
+      "autoSize": 1,
+      "x": 40,
+      "height": 19,
+      "width": 4
+    },
+    "right": {
+      "autoSize": 3,
+      "x": 136,
+      "height": 19,
+      "width": 4
+    },
+    "center": {
+      "autoSize": 0,
+      "x": 88,
+      "height": 19,
+      "width": 4
+    }
+  },
   "defaults": {
     "autoSize": 2,
     "wordWrap": false,
     "text": "",
     "multiline": false,
+    "scrollV": 1,
     "selectable": true,
+    "numLines": 1,
+    "maxScrollV": 1,
     "type": 0,
     "height": 100,
     "width": 100
@@ -16,6 +39,13 @@
   "dimensions": {
     "height": 80,
     "width": 240
+  },
+  "layout": {
+    "wordWrap": true,
+    "multiline": true,
+    "scrollV": 1,
+    "numLines": 2,
+    "maxScrollV": 2
   },
   "htmlText": {
     "text": "Hello world",
@@ -31,5 +61,17 @@
     "textColor": 1193046,
     "borderColor": 6636321,
     "border": true
+  },
+  "defaultTextFormat": {
+    "appliedColor": 3368601,
+    "color": 3368601,
+    "size": 18,
+    "appliedItalic": true,
+    "appliedSize": 18,
+    "font": "Verdana",
+    "appliedBold": true,
+    "italic": true,
+    "appliedFont": "Verdana",
+    "bold": true
   }
 }
