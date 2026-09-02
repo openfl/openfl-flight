@@ -8,7 +8,21 @@
     "focusRect": null,
     "doubleClickEnabled": false
   },
+  "spriteTabEnabled": {
+    "defaultValue": false,
+    "explicitFalseWithButtonMode": false,
+    "explicitFalseAfterButtonMode": false,
+    "buttonModeValue": true,
+    "afterButtonModeCleared": false,
+    "explicitTrue": true
+  },
   "requestSoftKeyboard": false,
+  "mouseEnabledEvents": {
+    "programmaticDispatchWhileDisabled": true,
+    "enabledCount": 1,
+    "disabledCount": 2,
+    "reenabledCount": 3
+  },
   "values": {
     "needsSoftKeyboard": true,
     "tabEnabled": true,
@@ -23,7 +37,10 @@
     "focusRect": false,
     "doubleClickEnabled": true
   },
-  "contextMenuProperty": false,
+  "contextMenu": {
+    "available": false,
+    "defaultIsNull": true
+  },
   "restored": {
     "needsSoftKeyboard": false,
     "tabEnabled": false,

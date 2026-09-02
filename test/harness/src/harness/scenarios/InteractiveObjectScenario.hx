@@ -1,11 +1,13 @@
 package harness.scenarios;
 
+import openfl.display.InteractiveObject;
 import openfl.display.Sprite;
+import openfl.events.MouseEvent;
 import openfl.geom.Rectangle;
 
 class InteractiveObjectScenario {
 	public static function run():Dynamic {
-		var object = new Sprite();
+		var object = new InteractiveObject();
 		var defaults = capture(object);
 
 		object.doubleClickEnabled = true;
@@ -30,11 +32,16 @@ class InteractiveObjectScenario {
 			values: values,
 			restored: capture(object),
 			requestSoftKeyboard: object.requestSoftKeyboard(),
-			contextMenuProperty: Reflect.hasField(object, "contextMenu")
+			contextMenu: {
+				available: Reflect.hasField(object, "contextMenu"),
+				defaultIsNull: Reflect.field(object, "contextMenu") == null
+			},
+			spriteTabEnabled: testSpriteTabEnabled(),
+			mouseEnabledEvents: testMouseEnabledEvents()
 		};
 	}
 
-	private static function capture(object:Sprite):Dynamic {
+	private static function capture(object:InteractiveObject):Dynamic {
 		var area = object.softKeyboardInputAreaOfInterest;
 		return {
 			doubleClickEnabled: object.doubleClickEnabled,
@@ -49,6 +56,52 @@ class InteractiveObjectScenario {
 			},
 			tabEnabled: object.tabEnabled,
 			tabIndex: object.tabIndex
+		};
+	}
+
+	private static function testSpriteTabEnabled():Dynamic {
+		var implicit = new Sprite();
+		var defaultValue = implicit.tabEnabled;
+		implicit.buttonMode = true;
+		var buttonModeValue = implicit.tabEnabled;
+		implicit.buttonMode = false;
+
+		var explicit = new Sprite();
+		explicit.buttonMode = true;
+		explicit.tabEnabled = false;
+		var explicitFalse = explicit.tabEnabled;
+		explicit.buttonMode = false;
+		var explicitFalseAfterButtonMode = explicit.tabEnabled;
+		explicit.tabEnabled = true;
+
+		return {
+			defaultValue: defaultValue,
+			buttonModeValue: buttonModeValue,
+			afterButtonModeCleared: implicit.tabEnabled,
+			explicitFalseWithButtonMode: explicitFalse,
+			explicitFalseAfterButtonMode: explicitFalseAfterButtonMode,
+			explicitTrue: explicit.tabEnabled
+		};
+	}
+
+	private static function testMouseEnabledEvents():Dynamic {
+		var object = new Sprite();
+		var received = 0;
+		object.addEventListener(MouseEvent.CLICK, function(_) received++);
+
+		object.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+		var enabledCount = received;
+		object.mouseEnabled = false;
+		object.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+		var disabledCount = received;
+		object.mouseEnabled = true;
+		object.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+
+		return {
+			enabledCount: enabledCount,
+			disabledCount: disabledCount,
+			reenabledCount: received,
+			programmaticDispatchWhileDisabled: disabledCount > enabledCount
 		};
 	}
 }
