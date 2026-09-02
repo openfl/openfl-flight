@@ -197,6 +197,11 @@
     "outputLength": 12,
     "outputPosition": 0
   },
+  "paletteMap": {
+    "outside": -16711165,
+    "height": 1,
+    "width": 3
+  },
   "rect": {
     "matchesDimensions": true,
     "x": 0,

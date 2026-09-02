@@ -490,7 +490,23 @@ class BitmapData implements IBitmapDrawable
 	public function paletteMap(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redArray:Array<Int> = null,
 			greenArray:Array<Int> = null, blueArray:Array<Int> = null, alphaArray:Array<Int> = null):Void
 	{
-		// TODO: Apply bitmap palettes through Flight.
+		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
+			|| sourceRect == null || destPoint == null) return;
+		var regionWidth = Std.int(Math.max(0, sourceRect.width));
+		var regionHeight = Std.int(Math.max(0, sourceRect.height));
+		if (regionWidth == 0 || regionHeight == 0) return;
+		var sourceBitmap = __toStraightBitmap(sourceBitmapData);
+		var destinationBitmap = __toStraightBitmap(this);
+		var redMap:Array<Float> = redArray == null ? null : [for (value in redArray) (value >>> 16) & 0xFF];
+		var greenMap:Array<Float> = greenArray == null ? null : [for (value in greenArray) (value >>> 8) & 0xFF];
+		var blueMap:Array<Float> = blueArray == null ? null : [for (value in blueArray) value & 0xFF];
+		var alphaMap:Array<Float> = alphaArray == null ? null : [for (value in alphaArray) (value >>> 24) & 0xFF];
+		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceRect.x, sourceRect.y, regionWidth, regionHeight);
+		var destination = FlightBitmap.createBitmapRegion(destinationBitmap, destPoint.x, destPoint.y, regionWidth, regionHeight);
+		FlightBitmap.applyBitmapPaletteMap(destination, source, redMap, greenMap, blueMap, alphaMap);
+		__writeStraightRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
+		// Flight maps channels independently. OpenFL's additional cross-channel
+		// effects from summing full 32-bit table entries cannot be represented.
 	}
 
 	public function perlinNoise(baseX:Float, baseY:Float, numOctaves:UInt, randomSeed:Int, stitch:Bool, fractalNoise:Bool,

@@ -31,6 +31,7 @@ class BitmapDataScenario {
 			pixelsBytes: testPixelsBytes(),
 			threshold: testThreshold(),
 			merge: testMerge(),
+			paletteMap: testPaletteMap(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -298,6 +299,24 @@ class BitmapDataScenario {
 		return {
 			mixed: pixels(destination),
 			endpoints: pixels(endpoints)
+		};
+	}
+
+	private static function testPaletteMap():Dynamic {
+		var source = new BitmapData(2, 1, true, 0);
+		source.setPixel32(0, 0, 0x80204060);
+		source.setPixel32(1, 0, 0xFF102030);
+		var destination = new BitmapData(3, 1, true, 0xFF010203);
+		var red = [for (value in 0...256) (255 - value) << 16];
+		var green = [for (value in 0...256) Std.int(value / 2) << 8];
+		var blue = [for (value in 0...256) (value + 1) & 0xFF];
+		var alpha = [for (value in 0...256) (255 - value) << 24];
+		destination.paletteMap(source, source.rect, new Point(1, 0), red, green, blue, alpha);
+
+		return {
+			width: destination.width,
+			height: destination.height,
+			outside: destination.getPixel32(0, 0)
 		};
 	}
 
