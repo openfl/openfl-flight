@@ -9,7 +9,9 @@ class TextFormatScenario {
 		return {
 			defaults: capture(new TextFormat()),
 			values: capture(createFormat()),
-			defaultTextFormat: testDefaultTextFormat()
+			defaultTextFormat: testDefaultTextFormat(),
+			partialRange: testPartialRange(),
+			nullMerge: testNullMerge()
 		};
 	}
 
@@ -28,6 +30,49 @@ class TextFormatScenario {
 	private static function testDefaultTextFormat():Dynamic {
 		var field = new TextField();
 		field.defaultTextFormat = createFormat();
+		var readBack = field.defaultTextFormat;
+		var assigned = capture(readBack);
+		field.text = "round trip";
+		var textRange = capture(field.getTextFormat(0, field.length));
+		readBack.font = "mutated";
+		readBack.color = 0xFFFFFF;
+		return {
+			assigned: assigned,
+			textRange: textRange,
+			afterReadBackMutation: capture(field.defaultTextFormat)
+		};
+	}
+
+	private static function testPartialRange():Dynamic {
+		var field = new TextField();
+		field.defaultTextFormat = createFormat();
+		field.text = "abcdef";
+
+		var patch = new TextFormat(null, 24, 0xAA5500, false, null, false, null, null, TextFormatAlign.RIGHT);
+		patch.bullet = false;
+		patch.kerning = false;
+		patch.leading = 9;
+		patch.letterSpacing = 2.5;
+		patch.strikethrough = false;
+		patch.tabStops = [15, 45];
+		field.setTextFormat(patch, 1, 4);
+
+		return {
+			before: capture(field.getTextFormat(0, 1)),
+			range: capture(field.getTextFormat(1, 4)),
+			after: capture(field.getTextFormat(4, 6)),
+			mixed: capture(field.getTextFormat(0, field.length))
+		};
+	}
+
+	private static function testNullMerge():Dynamic {
+		var field = new TextField();
+		field.defaultTextFormat = createFormat();
+		var partial = new TextFormat();
+		partial.bold = false;
+		partial.leading = 0;
+		partial.url = "";
+		field.defaultTextFormat = partial;
 		return capture(field.defaultTextFormat);
 	}
 

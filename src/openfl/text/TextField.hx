@@ -269,9 +269,9 @@ class TextField extends InteractiveObject
 		if (endIndex == -1) endIndex = __text.length;
 		if (beginIndex >= endIndex || __formatByCharacter.length == 0) return new TextFormat();
 
-		var result = __formatByCharacter[beginIndex].clone();
-		for (i in beginIndex + 1...endIndex) __retainCommonFormat(result, __formatByCharacter[i]);
-		return result;
+		var format:FlightTextFormat = {};
+		FlightText.getRichTextFormatRangeAt(format, __flightText, beginIndex);
+		return __fromFlightTextFormat(format);
 	}
 
 	public function replaceSelectedText(value:String):Void
@@ -529,29 +529,6 @@ class TextField extends InteractiveObject
 		if (Reflect.hasField(value, "underline")) result.underline = Reflect.field(value, "underline");
 		if (Reflect.hasField(value, "url")) result.url = Reflect.field(value, "url");
 		return result;
-	}
-
-	@:noCompletion private function __retainCommonFormat(result:TextFormat, other:TextFormat):Void
-	{
-		if (result.align != other.align) result.align = null;
-		if (result.blockIndent != other.blockIndent) result.blockIndent = null;
-		if (result.bold != other.bold) result.bold = null;
-		if (result.bullet != other.bullet) result.bullet = null;
-		if (result.color != other.color) result.color = null;
-		if (result.font != other.font) result.font = null;
-		if (result.indent != other.indent) result.indent = null;
-		if (result.italic != other.italic) result.italic = null;
-		if (result.kerning != other.kerning) result.kerning = null;
-		if (result.leading != other.leading) result.leading = null;
-		if (result.leftMargin != other.leftMargin) result.leftMargin = null;
-		if (result.letterSpacing != other.letterSpacing) result.letterSpacing = null;
-		if (result.rightMargin != other.rightMargin) result.rightMargin = null;
-		if (result.size != other.size) result.size = null;
-		if (result.strikethrough != other.strikethrough) result.strikethrough = null;
-		if (result.tabStops != other.tabStops) result.tabStops = null;
-		if (result.target != other.target) result.target = null;
-		if (result.underline != other.underline) result.underline = null;
-		if (result.url != other.url) result.url = null;
 	}
 
 	@:noCompletion private function __decodeEntities(value:String):String
