@@ -24,6 +24,7 @@ class BitmapDataScenario {
 			copyChannel: testCopyChannel(),
 			colorTransformPixels: testColorTransformPixels(),
 			scroll: testScroll(),
+			colorBounds: testColorBounds(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -201,6 +202,21 @@ class BitmapDataScenario {
 		};
 	}
 
+	private static function testColorBounds():Dynamic {
+		var bmd = new BitmapData(5, 4, true, 0);
+		bmd.fillRect(new Rectangle(1, 1, 3, 2), 0xFF336699);
+		bmd.setPixel32(4, 0, 0x80336699);
+		var exact = bmd.getColorBoundsRect(0xFFFFFFFF, 0xFF336699);
+		var alpha = bmd.getColorBoundsRect(0xFF000000, 0, false);
+		var absent = bmd.getColorBoundsRect(0xFFFFFFFF, 0xFFABCDEF);
+
+		return {
+			exact: rectangle(exact),
+			alpha: rectangle(alpha),
+			absent: rectangle(absent)
+		};
+	}
+
 	private static function testDrawShape():Dynamic {
 		var shape = new Shape();
 		shape.graphics.beginFill(0x336699);
@@ -262,5 +278,14 @@ class BitmapDataScenario {
 			}
 		}
 		return result;
+	}
+
+	private static function rectangle(value:Rectangle):Dynamic {
+		return {
+			x: value.x,
+			y: value.y,
+			width: value.width,
+			height: value.height
+		};
 	}
 }

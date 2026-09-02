@@ -324,8 +324,11 @@ class BitmapData implements IBitmapDrawable
 
 	public function getColorBoundsRect(mask:Int, color:Int, findColor:Bool = true):Rectangle
 	{
-		// TODO: Query color bounds through Flight bitmap services.
-		return new Rectangle();
+		if (!readable || __bitmap == null) return new Rectangle(0, 0, width, height);
+		var bitmap = __toStraightBitmap(this);
+		var bounds = FlightBitmap.getBitmapColorBoundsRectangle(FlightBitmap.createBitmapRegion(bitmap), __argbToFlight(mask, false),
+			__argbToFlight(color, false), findColor);
+		return bounds == null ? new Rectangle() : new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height);
 	}
 
 	@:dox(hide) public function getIndexBuffer(context:Context3D, scale9Grid:Rectangle = null):IndexBuffer3D

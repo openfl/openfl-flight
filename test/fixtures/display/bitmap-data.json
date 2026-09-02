@@ -1,4 +1,24 @@
 {
+  "colorBounds": {
+    "absent": {
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    },
+    "alpha": {
+      "x": 1,
+      "y": 0,
+      "height": 3,
+      "width": 4
+    },
+    "exact": {
+      "x": 1,
+      "y": 1,
+      "height": 2,
+      "width": 3
+    }
+  },
   "clone": {
     "cloneHeight": 10,
     "cloneWidth": 10,
