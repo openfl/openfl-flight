@@ -2,6 +2,7 @@ package openfl.display;
 
 #if !flash
 import openfl.geom.Rectangle;
+import openfl.utils.AssetLibrary;
 
 #if !openfl_debug
 @:fileXml('tags="haxe,release"')
@@ -91,6 +92,7 @@ class Sprite extends DisplayObjectContainer
 	**/
 	public var useHandCursor:Bool;
 
+	@:noCompletion private static var __constructor:Sprite->Void;
 	@:noCompletion private var __buttonMode:Bool;
 
 	/**
@@ -102,6 +104,14 @@ class Sprite extends DisplayObjectContainer
 	public function new()
 	{
 		super();
+
+		if (__constructor != null)
+		{
+			var method = __constructor;
+			__constructor = null;
+			method(this);
+		}
+
 		__buttonMode = false;
 		useHandCursor = true;
 	}
@@ -155,6 +165,8 @@ class Sprite extends DisplayObjectContainer
 	{
 		if (stage != null) stage.__stopDrag(this);
 	}
+
+	@:noCompletion private function __bind(library:AssetLibrary, className:String):Void {}
 
 	@:noCompletion private function get_graphics():Graphics
 	{
