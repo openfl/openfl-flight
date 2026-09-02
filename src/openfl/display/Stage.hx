@@ -637,6 +637,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private var __color:Null<Int>;
 	@:noCompletion private var __contentsScaleFactor:Float;
 	@:noCompletion private var __displayState:StageDisplayState;
+	@:noCompletion private var __deltaTime:Int;
 	@:noCompletion private var __dragBounds:Rectangle;
 	@:noCompletion private var __dragObject:Sprite;
 	@:noCompletion private var __focus:InteractiveObject;
@@ -794,6 +795,26 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 	@:noCompletion private function __renderAfterEvent():Void {}
 
+	@:noCompletion private function __advanceFrame():Void
+	{
+		__broadcastEvent(new Event(Event.ENTER_FRAME));
+		__broadcastEvent(new Event(Event.FRAME_CONSTRUCTED));
+		__broadcastEvent(new Event(Event.EXIT_FRAME));
+		__enterFrame(__deltaTime);
+		__deltaTime = 0;
+		if (__invalidated)
+		{
+			__invalidated = false;
+			__broadcastEvent(new Event(Event.RENDER));
+		}
+	}
+
+	@:noCompletion private function __getFlightBackgroundColor():Float
+	{
+		var color = __color == null ? 0xFF000000 : __color;
+		return (color & 0xFFFFFF) * 256.0 + ((color >>> 24) & 0xFF);
+	}
+
 	@:noCompletion private function __startDrag(sprite:Sprite, lockCenter:Bool, bounds:Rectangle):Void
 	{
 		__dragObject = sprite;
@@ -810,8 +831,21 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	}
 
 	#if lime
-	@:noCompletion private function __registerLimeModule(application:Application):Void this.application = application;
-	@:noCompletion private function __unregisterLimeModule(application:Application):Void {}
+	@:noCompletion private function __registerLimeModule(application:Application):Void
+	{
+		this.application = application;
+		application.onUpdate.add(__onLimeUpdate);
+	}
+
+	@:noCompletion private function __unregisterLimeModule(application:Application):Void
+	{
+		application.onUpdate.remove(__onLimeUpdate);
+	}
+
+	@:noCompletion private function __onLimeUpdate(deltaTime:Int):Void
+	{
+		__deltaTime = deltaTime;
+	}
 	#end
 
 	@:noCompletion private static function get_supportsOrientationChange():Bool return false;

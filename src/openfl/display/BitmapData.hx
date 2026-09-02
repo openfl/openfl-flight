@@ -460,9 +460,23 @@ class BitmapData implements IBitmapDrawable
 
 	public static function fromImage(image:Image, transparent:Bool = true):BitmapData
 	{
-		// TODO (blocked: image-handle type bridge): Lime Image cannot be converted
-		// to Flight's Image resource through a public cross-target API.
+		#if lime
+		if (image == null || image.buffer == null || image.width <= 0 || image.height <= 0) return null;
+		var source = image.getPixels(new lime.math.Rectangle(0, 0, image.width, image.height), lime.graphics.PixelFormat.RGBA32);
+		if (source == null) return null;
+
+		var result = new BitmapData(image.width, image.height, transparent, 0);
+		var pixels = new FlightUInt8ClampedArray(image.width * image.height * 4);
+		for (i in 0...pixels.length)
+		{
+			pixels[i] = (!transparent && (i & 3) == 3) ? 0xFF : source.get(i);
+		}
+		FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(result.__bitmap), pixels);
+		result.image = image;
+		return result;
+		#else
 		return null;
+		#end
 	}
 
 	public static function fromTexture(texture:TextureBase):BitmapData

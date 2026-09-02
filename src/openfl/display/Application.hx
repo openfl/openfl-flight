@@ -14,6 +14,7 @@ import flight.hostLime.HostLime as FlightHostLime;
 import openfl.events.Event;
 #if lime
 import lime.app.Application as LimeApplication;
+import lime.graphics.RenderContext;
 import lime.ui.WindowAttributes;
 #end
 #if ((sys || air) && (!flash_doc_gen || air_doc_gen))
@@ -139,6 +140,11 @@ class Application #if lime extends LimeApplication #end
 		{
 			__window = window;
 
+			#if (sys && !flash)
+			FlightHostLime.enableHostLime(this);
+			window.__attachFlightWindow();
+			#end
+
 			window.onActivate.add(onWindowActivate);
 			window.onRenderContextLost.add(onRenderContextLost);
 			window.onRenderContextRestored.add(onRenderContextRestored);
@@ -177,6 +183,11 @@ class Application #if lime extends LimeApplication #end
 		onCreateWindow.dispatch(window);
 
 		return window;
+	}
+
+	public override function render(context:RenderContext):Void
+	{
+		if (__window != null) cast(__window, Window).__renderFlight(context);
 	}
 
 	@:noCompletion override public function exec():Int

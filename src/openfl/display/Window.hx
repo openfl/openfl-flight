@@ -2,12 +2,15 @@ package openfl.display;
 
 #if !flash
 import flight.Application as FlightApplication;
+import flight.Sdk.*;
 import flight.Signals as FlightSignals;
 import flight.types.ApplicationWindow as FlightApplicationWindow;
 import flight.types.Host as FlightHost;
 #end
 #if lime
 import lime.app.Application;
+import lime.graphics.RenderContext;
+import lime.graphics.RenderContextType;
 import lime.ui.Window as LimeWindow;
 import lime.ui.WindowAttributes;
 #end
@@ -91,7 +94,9 @@ class Window #if lime extends LimeWindow #end
 
 	#if !flash
 	@:noCompletion private var __flightHost:FlightHost;
+	@:noCompletion private var __flightRenderState:Dynamic;
 	@:noCompletion private var __flightWindow:FlightApplicationWindow;
+	@:noCompletion private var __usingCairo:Bool;
 	#end
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -225,13 +230,101 @@ class Window #if lime extends LimeWindow #end
 		#end
 	}
 
+	#if (lime && !flash)
+	@:noCompletion private function __attachFlightWindow():Void
+	{
+		if (__flightWindow == null) return;
+		FlightApplication.attachWindow(cast __flightHost, __flightWindow, cast this, cast "host");
+	}
+
+	@:noCompletion private function __createFlightRenderState():Void
+	{
+		if (__flightRenderState != null || stage == null || context == null) return;
+
+		__usingCairo = context.type == RenderContextType.CAIRO;
+		var backgroundColor = stage.__getFlightBackgroundColor();
+
+		if (__usingCairo)
+		{
+			#if lime_cairo
+			var surfaceCreator = flight.Scene2DCairo.createCairoRenderSurfaceCreator();
+			var surface = flight.Scene2DCairo.createCairoSurface(this);
+			__flightRenderState = createCanvasRenderState(createCanvasRenderSurface(surfaceCreator, surface, {pixelRatio: scale}),
+				scene2dCanvasPipeline, createCanvasTextureResolvers(surfaceCreator), {
+					pixelRatio: scale,
+					backgroundColor: backgroundColor,
+					sceneGraphSyncPolicy: "requiresInvalidation"
+				});
+			registerRenderer(__flightRenderState, SpriteKind, defaultCanvasSpriteRenderer);
+			registerRenderer(__flightRenderState, ShapeKind, defaultCanvasShapeRenderer);
+			registerRenderer(__flightRenderState, TextLabelKind, defaultCanvasTextLabelRenderer);
+			registerRenderer(__flightRenderState, RichTextKind, defaultCanvasRichTextRenderer);
+			registerCanvasShapeCommands(__flightRenderState, defaultCanvasShapeCommands);
+			registerCanvasImageTextureResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
+			registerCanvasBitmapTextureResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
+			enableCanvasBlendMode(__flightRenderState);
+			#else
+			throw "This Lime build does not include Cairo support.";
+			#end
+		}
+		else
+		{
+			var surface = flight.hostLime.GlSurface.createGlSurface(this);
+			__flightRenderState = createGlRenderState(createGlContextState(createGlContextFromCanvasElement(surface,
+				{contextAttributes: {alpha: false, preserveDrawingBuffer: true}})), scene2dGlPipeline, {
+				pixelRatio: scale,
+				backgroundColor: backgroundColor,
+				sceneGraphSyncPolicy: "requiresInvalidation"
+			});
+			registerGlStandardMaterial(__flightRenderState);
+			registerStandardGlTextureResolvers(__flightRenderState);
+			registerRenderer(__flightRenderState, SpriteKind, defaultGlSpriteRenderer);
+			registerRenderer(__flightRenderState, ShapeKind, defaultGlShapeRenderer);
+			registerRenderer(__flightRenderState, TextLabelKind, defaultGlTextLabelRenderer);
+			registerRenderer(__flightRenderState, RichTextKind, defaultGlRichTextRenderer);
+			#if lime_cairo
+			var surfaceCreator = flight.Scene2DCairo.createCairoRenderSurfaceCreator();
+			var shapeResolvers = createCanvasTextureResolvers(surfaceCreator);
+			connectCanvasTextureResolverMisses(shapeResolvers, __flightRenderState);
+			registerCanvasBitmapTextureResolver(shapeResolvers);
+			registerCanvasImageTextureResolver(shapeResolvers);
+			registerGlShapeRasterizer(__flightRenderState, createCanvasShapeRasterizer(shapeResolvers));
+			#end
+			registerGlShapeCommands(__flightRenderState, defaultGlShapeCommands);
+			enableGlBlendModeSupport(__flightRenderState);
+		}
+	}
+
+	@:noCompletion private function __renderFlight(context:RenderContext):Void
+	{
+		if (stage == null) return;
+		stage.__advanceFrame();
+		__createFlightRenderState();
+		if (__flightRenderState == null || !prepareScene2DRender(__flightRenderState, stage.__scene.root))
+		{
+			onRender.cancel();
+			return;
+		}
+
+		if (__usingCairo)
+		{
+			renderCanvasBackground(__flightRenderState);
+			renderCanvasScene2D(__flightRenderState, stage.__scene.root);
+		}
+		else
+		{
+			renderGlBackground(__flightRenderState);
+			renderGlScene2D(__flightRenderState, stage.__scene.root);
+		}
+	}
+	#end
+
 	#if lime override #end
 	public function focus():Void
 	{
 		#if lime
 		super.focus();
-		#end
-		#if !flash
+		#elseif !flash
 		if (__flightWindow != null) FlightApplication.focusWindow(cast __flightHost, __flightWindow);
 		#end
 	}
@@ -241,8 +334,7 @@ class Window #if lime extends LimeWindow #end
 	{
 		#if lime
 		super.move(x, y);
-		#end
-		#if !flash
+		#elseif !flash
 		if (__flightWindow != null) FlightApplication.setWindowPosition(cast __flightHost, __flightWindow, x, y);
 		#end
 		#if !lime
@@ -256,8 +348,7 @@ class Window #if lime extends LimeWindow #end
 	{
 		#if lime
 		super.resize(width, height);
-		#end
-		#if !flash
+		#elseif !flash
 		if (__flightWindow != null) FlightApplication.setWindowSize(cast __flightHost, __flightWindow, width, height);
 		#end
 		#if !lime
