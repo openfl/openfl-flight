@@ -17,6 +17,7 @@ import harness.scenarios.DisplayCompositionScenario;
 import harness.scenarios.DisplayHitTestScenario;
 import harness.scenarios.DisplayObjectScenario;
 import harness.scenarios.DisplayObjectPropertyEdgesScenario;
+import harness.scenarios.DisplayRenderingCompositionScenario;
 import harness.scenarios.DisplayTransformScenario;
 import harness.scenarios.ErrorScenario;
 import harness.scenarios.ErrorSubclassesScenario;
@@ -129,6 +130,10 @@ class Scenarios {
 			{
 				name: "display/composition",
 				run: DisplayCompositionScenario.run
+			},
+			{
+				name: "display/rendering-composition",
+				run: DisplayRenderingCompositionScenario.run
 			},
 			{
 				name: "display/hit-test",

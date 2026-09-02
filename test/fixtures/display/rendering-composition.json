@@ -1,0 +1,155 @@
+{
+  "bitmapDraw": {
+    "direct": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "cached": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "cacheAsBitmap": {
+    "filterForced": true,
+    "explicitFalseWithFilter": true,
+    "afterFilterClear": false,
+    "manual": true,
+    "initial": false,
+    "filteredBounds": {
+      "x": 5,
+      "y": 7,
+      "height": 20,
+      "width": 40
+    },
+    "initialBounds": {
+      "x": 5,
+      "y": 7,
+      "height": 20,
+      "width": 40
+    }
+  },
+  "filters": {
+    "colorMatrix0": 9,
+    "cacheForcedBeforeClear": true,
+    "inputCountAfterMutation": 1,
+    "secondReadCount": 2,
+    "afterClearCache": false,
+    "firstColorMatrix0": 9,
+    "blurY": 77,
+    "afterClearCount": 0,
+    "firstReadCountAfterMutation": 1,
+    "blurX": 4
+  },
+  "opaqueBackground": {
+    "clearedIsNull": true,
+    "cacheAsBitmap": true,
+    "assigned": 1193046,
+    "initialIsNull": true,
+    "black": 0
+  },
+  "scrollRect": {
+    "clearedNames": [
+      "content"
+    ],
+    "cleared": true,
+    "clearedOrigin": {
+      "x": 100,
+      "y": 50
+    },
+    "beforeBounds": {
+      "x": 100,
+      "y": 50,
+      "height": 40,
+      "width": 80
+    },
+    "beforeOrigin": {
+      "x": 100,
+      "y": 50
+    },
+    "assignedClone": {
+      "x": 20,
+      "y": 10,
+      "height": 20,
+      "width": 30
+    },
+    "clipped": {
+      "bounds": {
+        "x": 100,
+        "y": 50,
+        "height": 40,
+        "width": 80
+      },
+      "outsideNames": [],
+      "scrollOrigin": {
+        "x": 100,
+        "y": 50
+      },
+      "origin": {
+        "x": 80,
+        "y": 40
+      },
+      "outsideHit": false,
+      "insideHit": true,
+      "insideNames": [
+        "content"
+      ],
+      "beforeWindowNames": []
+    }
+  }
+}

@@ -51,16 +51,24 @@ node state. Pixel-visible behavior remains absent where it depends on the
 legacy renderer path, notably custom render events, display-object
 `BitmapData.draw()`, renderer-generated `cacheAsBitmap`, and mask-stack output.
 
+The `display/rendering-composition` fixture captures these boundaries against
+OpenFL 9.5.2. `scrollRect` keeps public bounds unchanged while translating the
+render coordinate system and clipping visible hit collection; the adapter maps
+that behavior to Flight's node transform and `ClipRegion`. `cacheAsBitmap`,
+`opaqueBackground`, and filter assignment/readback preserve their public state
+semantics. OpenFL's interpreter capture produces no pixels for
+`BitmapData.draw(displayObject)`, so the fixture deliberately records the same
+empty result without claiming that offscreen rendering is implemented.
+
 ## Direction
 
 Rendering work should continue at the Flight scene-graph boundary instead of
 reviving the legacy renderer walk:
 
-1. map `scrollRect` and compatible masks to Flight node clip regions;
+1. map shape masks to Flight node clip regions (`scrollRect` is already mapped);
 2. attach supported filters through Flight node effects or adjustments;
 3. use Flight render caches for `cacheAsBitmap` when a public scene render state
    is available;
 4. add an explicit Flight offscreen rasterization bridge for `BitmapData.draw()`;
 5. define custom-render event behavior separately, because those events expose
    OpenFL backend-specific renderer objects rather than a scene node.
-

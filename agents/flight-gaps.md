@@ -196,6 +196,15 @@ the capability that this adapter can compile against.
   lighten, multiply, overlay, and screen; OpenFL's alpha, erase, invert, layer,
   and subtract modes fall back to normal.
 
+- **Portable display-object rasterization**: Flight exposes backend render
+  states, render targets, raster surfaces, and render caches, but no portable
+  public operation that draws an arbitrary `Node2D` into a Flight bitmap.
+  `BitmapData.draw(displayObject)` and the pixel-generating portion of
+  `cacheAsBitmap` need that offscreen bridge. The OpenFL 9.5.2 interpreter
+  reference itself produces an empty bitmap for this operation, which is
+  preserved as the headless compatibility fixture rather than treated as a
+  completed rendering implementation.
+
 - **Per-channel audio pan binding and peak metering**: The upstream Flight
   update reports an AudioChannel `pan` field and `setSourcePan`, but the refreshed
   generated facade still exposes only `AudioBus.pan` and no AudioChannel/source

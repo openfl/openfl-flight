@@ -1,6 +1,7 @@
 package openfl.display;
 
 #if !flash
+import flight.Clip as FlightClip;
 import flight.Geometry as FlightGeometry;
 import flight.Interaction as FlightInteraction;
 import flight.Node as FlightNode;
@@ -892,8 +893,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	public function hitTestPoint(x:Float, y:Float, shapeFlag:Bool = false):Bool
 	{
 		if (stage == null) return false;
-		if (!shapeFlag) return getBounds(null).contains(x, y);
-		return __hitTest(x, y, true);
+		return __hitTest(x, y, shapeFlag);
 	}
 
 	/**
@@ -1013,11 +1013,6 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 			if (hasBounds) rect.copyFrom(rect.union(transformed)); else rect.copyFrom(transformed);
 			hasBounds = true;
 		}
-		if (__scrollRect != null)
-		{
-			var clipped = __transformRectangle(__scrollRect, matrix);
-			if (hasBounds) rect.copyFrom(rect.intersection(clipped)); else rect.copyFrom(clipped);
-		}
 	}
 
 	@:noCompletion private function __getLocalBounds(rect:Rectangle):Void
@@ -1039,13 +1034,20 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function __getWorldTransform():Matrix
 	{
-		var matrix = FlightNode.getNodeWorldMatrix(__flightNode);
-		return new Matrix(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
+		var matrix = __transform.clone();
+		var current = parent;
+		while (current != null)
+		{
+			matrix.concat(current.__transform);
+			current = current.parent;
+		}
+		return matrix;
 	}
 
 	@:noCompletion private function __getRenderTransform():Matrix
 	{
-		return __getWorldTransform();
+		var matrix = FlightNode.getNodeWorldMatrix(__flightNode);
+		return new Matrix(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
 	}
 
 	@:noCompletion private function __globalToLocal(global:Point, local:Point):Point
@@ -1056,9 +1058,20 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
+		if (!__isPointInScrollRect(x, y)) return false;
 		if (__graphics != null && __graphics.__hitTest(x, y, shapeFlag)) return true;
-		if (!__localBounds.isEmpty()) return getBounds(null).contains(x, y);
+		if (!__localBounds.isEmpty()) return __transformRectangle(__localBounds, __getRenderTransform()).contains(x, y);
 		return false;
+	}
+
+	@:noCompletion private function __isPointInScrollRect(x:Float, y:Float):Bool
+	{
+		if (__scrollRect == null) return true;
+		var point = new Point(x, y);
+		var matrix = __getRenderTransform();
+		matrix.invert();
+		point = matrix.transformPoint(point);
+		return __scrollRect.containsPoint(point);
 	}
 
 	@:noCompletion private function __setLocalBounds(bounds:Rectangle):Void
@@ -1102,7 +1115,13 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		__flightNode.blendMode = cast __blendMode;
 		__flightNode.name = __name;
 		__flightNode.visible = __visible;
-		FlightNode.setNodeLocalMatrix(__flightNode, cast __transform);
+		var renderTransform = __transform.clone();
+		if (__scrollRect != null)
+		{
+			renderTransform.tx -= __scrollRect.x * renderTransform.a + __scrollRect.y * renderTransform.c;
+			renderTransform.ty -= __scrollRect.x * renderTransform.b + __scrollRect.y * renderTransform.d;
+		}
+		FlightNode.setNodeLocalMatrix(__flightNode, cast renderTransform);
 		FlightNode.invalidateNodeAppearance(__flightNode);
 	}
 
@@ -1270,6 +1289,10 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 			if (__scrollRect.width < 0) __scrollRect.width = 0;
 			if (__scrollRect.height < 0) __scrollRect.height = 0;
 		}
+		var previousClip = __flightNode.clip;
+		__flightNode.clip = __scrollRect == null ? null : FlightClip.createClipRegionFromRectangle(cast __scrollRect);
+		if (previousClip != null) FlightClip.releaseClipRegion(previousClip);
+		__syncFlightNode();
 		return value;
 	}
 

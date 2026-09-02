@@ -485,13 +485,14 @@ class DisplayObjectContainer extends InteractiveObject
 
 	@:noCompletion private function __collectObjectsUnderPoint(point:Point, result:Array<DisplayObject>):Void
 	{
+		if (!__isPointInScrollRect(point.x, point.y)) return;
 		var i = __children.length;
 		while (--i >= 0)
 		{
 			var child = __children[i];
 			if (!child.visible) continue;
 			if ((child is DisplayObjectContainer)) cast(child, DisplayObjectContainer).__collectObjectsUnderPoint(point, result);
-			var ownHit = child.__graphics != null
+			var ownHit = child.__isPointInScrollRect(point.x, point.y) && child.__graphics != null
 				? child.__graphics.__hitTest(point.x, point.y, false)
 				: !(child is DisplayObjectContainer) && child.__hitTest(point.x, point.y, false);
 			if (ownHit) result.push(child);
@@ -547,6 +548,7 @@ class DisplayObjectContainer extends InteractiveObject
 
 	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
+		if (!__isPointInScrollRect(x, y)) return false;
 		if (super.__hitTest(x, y, shapeFlag)) return true;
 		var i = __children.length;
 		while (--i >= 0) if (__children[i].__hitTest(x, y, shapeFlag)) return true;
