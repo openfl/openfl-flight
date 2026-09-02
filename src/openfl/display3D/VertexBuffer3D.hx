@@ -22,27 +22,33 @@ class VertexBuffer3D
 		__context = context3D;
 		__numVertices = numVertices;
 		__vertexSize = dataPerVertex;
-		// TODO: Allocate a Flight GPU vertex buffer.
+		// Flight gap: GL draw seam.
+		// Flight's public API owns buffers as part of a managed MeshGeometry and
+		// cannot allocate the independently bindable buffer required by Context3D.
 	}
 
 	public function dispose():Void
 	{
-		// TODO: Release the Flight GPU vertex buffer.
+		// Flight gap: GL draw seam.
+		// There is no public raw GPU buffer to release until allocation is exposed.
 	}
 
 	public function uploadFromByteArray(data:ByteArray, byteArrayOffset:Int, startVertex:Int, numVertices:Int):Void
 	{
-		// TODO: Upload vertex bytes through Flight GPU buffers.
+		// Flight gap: GL draw seam.
+		// Flight exposes no public raw vertex-buffer byte upload or partial update.
 	}
 
 	public function uploadFromTypedArray(data:ArrayBufferView, byteLength:Int = -1):Void
 	{
-		// TODO: Upload typed vertex data through Flight GPU buffers.
+		// Flight gap: GL draw seam.
+		// Flight exposes no public raw vertex-buffer typed upload or partial update.
 	}
 
 	public function uploadFromVector(data:Vector<Float>, startVertex:Int, numVertices:Int):Void
 	{
-		// TODO: Upload vector vertex data through Flight GPU buffers.
+		// Flight gap: GL draw seam.
+		// Flight exposes no public raw vertex-buffer vector upload or partial update.
 	}
 }
 #else

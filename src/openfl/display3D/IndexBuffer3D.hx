@@ -20,27 +20,33 @@ import openfl.utils.ByteArray;
 	{
 		__context = context3D;
 		__numIndices = numIndices;
-		// TODO: Allocate a Flight GPU index buffer.
+		// Flight gap: GL draw seam.
+		// Flight's public API owns indices as part of a managed MeshGeometry and
+		// cannot allocate the independently bindable buffer required by Context3D.
 	}
 
 	public function dispose():Void
 	{
-		// TODO: Release the Flight GPU index buffer.
+		// Flight gap: GL draw seam.
+		// There is no public raw GPU buffer to release until allocation is exposed.
 	}
 
 	public function uploadFromByteArray(data:ByteArray, byteArrayOffset:Int, startOffset:Int, count:Int):Void
 	{
-		// TODO: Upload index bytes through Flight GPU buffers.
+		// Flight gap: GL draw seam.
+		// Flight exposes no public raw index-buffer byte upload or partial update.
 	}
 
 	public function uploadFromTypedArray(data:ArrayBufferView, byteLength:Int = -1):Void
 	{
-		// TODO: Upload typed index data through Flight GPU buffers.
+		// Flight gap: GL draw seam.
+		// Flight exposes no public raw index-buffer typed upload or partial update.
 	}
 
 	public function uploadFromVector(data:Vector<UInt>, startOffset:Int, count:Int):Void
 	{
-		// TODO: Upload vector index data through Flight GPU buffers.
+		// Flight gap: GL draw seam.
+		// Flight exposes no public raw index-buffer vector upload or partial update.
 	}
 }
 #else
