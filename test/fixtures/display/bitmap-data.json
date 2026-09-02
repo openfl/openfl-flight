@@ -80,6 +80,38 @@
     "height": 100,
     "width": 200
   },
+  "histogram": {
+    "full": {
+      "channels": 4,
+      "totals": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "lengths": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    "region": {
+      "channels": 4,
+      "totals": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "lengths": [
+        256,
+        256,
+        256,
+        256
+      ]
+    }
+  },
   "getSetPixel": {
     "pixel": 16746496
   },

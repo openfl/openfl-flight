@@ -390,9 +390,16 @@ class BitmapData implements IBitmapDrawable
 
 	public function histogram(hRect:Rectangle = null):Array<Array<Int>>
 	{
-		var result = [for (_ in 0...4) [for (_ in 0...256) 0]];
-		// TODO: Compute bitmap histograms through Flight.
-		return result;
+		if (!readable || __bitmap == null) return [for (_ in 0...4) [for (_ in 0...256) 0]];
+		var source = hRect == null ? rect : hRect;
+		var histogram = FlightBitmap.getBitmapHistogram(FlightBitmap.createBitmapRegion(__toStraightBitmap(this), source.x, source.y,
+			source.width, source.height));
+		return [
+			[for (value in histogram.red) Std.int(value)],
+			[for (value in histogram.green) Std.int(value)],
+			[for (value in histogram.blue) Std.int(value)],
+			[for (value in histogram.alpha) Std.int(value)]
+		];
 	}
 
 	public function hitTest(firstPoint:Point, firstAlphaThreshold:Int, secondObject:Object, secondBitmapDataPoint:Point = null,

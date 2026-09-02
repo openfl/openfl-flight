@@ -25,6 +25,7 @@ class BitmapDataScenario {
 			colorTransformPixels: testColorTransformPixels(),
 			scroll: testScroll(),
 			colorBounds: testColorBounds(),
+			histogram: testHistogram(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -217,6 +218,19 @@ class BitmapDataScenario {
 		};
 	}
 
+	private static function testHistogram():Dynamic {
+		var bmd = new BitmapData(3, 2, true, 0xFF102030);
+		bmd.setPixel32(1, 0, 0x80405060);
+		bmd.setPixel32(2, 1, 0xFF1020AA);
+		var full = bmd.histogram();
+		var region = bmd.histogram(new Rectangle(1, 0, 2, 1));
+
+		return {
+			full: histogramSummary(full),
+			region: histogramSummary(region)
+		};
+	}
+
 	private static function testDrawShape():Dynamic {
 		var shape = new Shape();
 		shape.graphics.beginFill(0x336699);
@@ -286,6 +300,18 @@ class BitmapDataScenario {
 			y: value.y,
 			width: value.width,
 			height: value.height
+		};
+	}
+
+	private static function histogramSummary(value:Array<Array<Int>>):Dynamic {
+		return {
+			channels: value.length,
+			lengths: [for (channel in value) channel.length],
+			totals: [for (channel in value) {
+				var total = 0;
+				for (count in channel) total += count;
+				total;
+			}]
 		};
 	}
 }
