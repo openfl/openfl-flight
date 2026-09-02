@@ -57,7 +57,9 @@ import lime.utils.DataPointer;
 **/
 @:access(haxe.io.Bytes)
 @:access(openfl.utils.ByteArrayData)
-// TODO: Remove if bug that breaks `byteArray.endian = BIG_ENDIAN` is fixed
+// Explicit forwarding is required because assignment through the transitive
+// abstract does not reliably reach these ByteArrayData fields on all Haxe
+// targets (notably eval).
 #if !openfl_doc_gen
 @:forward(endian, objectEncoding)
 #end
@@ -1231,6 +1233,8 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 		var bytes = switch (algorithm)
 		{
 			case CompressionAlgorithm.DEFLATE: __compressDeflate(source);
+			// Flight exposes no LZMA codec and Haxe's standard library only
+			// provides zlib/deflate compression.
 			case CompressionAlgorithm.LZMA: null;
 			default: haxe.zip.Compress.run(source, 9);
 		}
@@ -1415,11 +1419,11 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 		switch (objectEncoding)
 		{
 			case AMF0:
-				// TODO: Decode AMF0 through Flight's serialization API.
+				// Flight and the Haxe standard library expose no AMF0 decoder.
 				return null;
 
 			case AMF3:
-				// TODO: Decode AMF3 through Flight's serialization API.
+				// Flight and the Haxe standard library expose no AMF3 decoder.
 				return null;
 
 			case HXSF:
@@ -1544,6 +1548,8 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 		var bytes = switch (algorithm)
 		{
 			case CompressionAlgorithm.DEFLATE: __inflateWithFlight(source, cast FlightTypes.CompressionFraming.Raw);
+			// Flight exposes no LZMA codec and Haxe's standard library only
+			// provides zlib/deflate decompression.
 			case CompressionAlgorithm.LZMA: null;
 			default: __inflateWithFlight(source, cast FlightTypes.CompressionFraming.Rfc1950);
 		}
@@ -1653,10 +1659,10 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 		switch (objectEncoding)
 		{
 			case AMF0:
-				// TODO: Encode AMF0 through Flight's serialization API.
+				// Flight and the Haxe standard library expose no AMF0 encoder.
 
 			case AMF3:
-				// TODO: Encode AMF3 through Flight's serialization API.
+				// Flight and the Haxe standard library expose no AMF3 encoder.
 
 			case HXSF:
 				var value:String = Serializer.run(object);
@@ -1804,8 +1810,9 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 	@:noCompletion private inline function __setData(bytes:Bytes):Void
 	{
 		#if eval
-		// TODO: Not quite correct, but this will probably
-		// not be called while in a macro
+		// Eval's native Bytes backing cannot be replaced through `bytes.b`.
+		// Preserve the overlapping data; changing the backing allocation itself
+		// remains an interpreter limitation rather than a Flight operation.
 		var count:Int = bytes.length < __length ? bytes.length : __length;
 		for (i in 0...count)
 			set(i, bytes.get(i));
@@ -1956,6 +1963,9 @@ abstract ByteArray(ByteArrayData) from ByteArrayData to ByteArrayData
 	#if flash
 	@:noCompletion @:dox(hide) @:require(flash11_4) public function atomicCompareAndSwapIntAt(byteIndex:Int, expectedValue:Int, newValue:Int):Int;
 	@:noCompletion @:dox(hide) @:require(flash11_4) public function atomicCompareAndSwapLength(expectedLength:Int, newLength:Int):Int;
+	#else
+	// Deliberately Flash-only: Flight and haxe.io.Bytes expose no shareable
+	// atomic byte storage on which these operations could be implemented.
 	#end
 
 	/**
