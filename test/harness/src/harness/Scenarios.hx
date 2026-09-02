@@ -31,6 +31,7 @@ import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FileReferenceScenario;
 import harness.scenarios.FileScenario;
+import harness.scenarios.FileStreamScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.FontAndStyleScenario;
 import harness.scenarios.GameInputScenario;
@@ -301,6 +302,10 @@ class Scenarios {
 			{
 				name: "filesystem/file",
 				run: FileScenario.run
+			},
+			{
+				name: "filesystem/file-stream",
+				run: FileStreamScenario.run
 			},
 			{
 				name: "net/file-reference",

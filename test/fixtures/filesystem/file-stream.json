@@ -1,0 +1,47 @@
+{
+  "defaults": {
+    "readAheadInfinite": true,
+    "isWriting": false,
+    "position": 0,
+    "objectEncoding": 10
+  },
+  "littleEndianShort": 4660,
+  "bulkBytes": {
+    "streamPosition": 2,
+    "length": 2
+  },
+  "write": {
+    "start": {
+      "endian": 0,
+      "bytesAvailable": 0,
+      "position": 0
+    },
+    "bytesAvailable": 0,
+    "position": 14
+  },
+  "read": {
+    "byte": 254,
+    "position": 14,
+    "availableAtEnd": 0,
+    "utfBytes": "é",
+    "intValue": 16909060,
+    "availableAtStart": 14,
+    "boolean": true,
+    "utf": "hi",
+    "short": 4660
+  },
+  "modes": {
+    "updateReadRejected": true,
+    "truncatePosition": 4,
+    "updatePosition": 2,
+    "finalSize": 4,
+    "sizeAfterAppend": 15
+  },
+  "positionAfterClose": 0,
+  "objectRoundTrip": {
+    "label": "ok",
+    "answer": 42
+  },
+  "missingReadRejected": true,
+  "cleaned": true
+}

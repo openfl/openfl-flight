@@ -317,6 +317,15 @@ the capability that this adapter can compile against.
   contract should expose those options and make the native host return the
   declared result records.
 
+- **Native filesystem streaming and read-ahead**: Flight exposes file read and
+  write stream factories plus ranged binary reads, but its maintained Lime host
+  currently returns no stream handles and the public stream contract has no
+  seek, truncate, or random-access operation. `FileStream` therefore uses
+  whole-file Flight reads and serialized whole-buffer write snapshots. Its
+  asynchronous open still preserves the promise and event boundary, but a read
+  can report only one completed progress chunk and `readAhead` cannot control
+  incremental loading until Flight supplies a native streaming backend.
+
 - **Native child-process flight-hx binding**: The upstream Flight update reports
   process spawn, standard streams, and exit status in `@flighthq/shell`, but the
   refreshed generated `flight.Shell` facade still contains only external/path,

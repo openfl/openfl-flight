@@ -1,13 +1,12 @@
 package openfl.filesystem;
 
 #if (haxe4 && !flash && sys && (!flash_doc_gen || air_doc_gen))
+import flight.FileSystem as FlightFileSystem;
+import flight._internal._UInt8Array as FlightUInt8Array;
 import haxe.Json;
 import haxe.Serializer;
-import haxe.Timer;
 import haxe.Unserializer;
-import haxe.io.Encoding;
 import haxe.io.Bytes;
-import haxe.io.Path;
 import openfl.errors.Error;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
@@ -22,14 +21,6 @@ import openfl.utils.Endian;
 import openfl.utils.IDataInput;
 import openfl.utils.IDataOutput;
 import openfl.utils.Object;
-import sys.FileSystem;
-import sys.io.FileInput;
-import sys.io.FileOutput;
-import sys.io.FileSeek;
-import sys.thread.Mutex;
-import lime.system.BackgroundWorker;
-
-@:noCompletion private typedef HaxeFile = sys.io.File;
 
 /**
 	A FileStream object is used to read and write files. Files can be opened synchronously
@@ -150,22 +141,20 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	**/
 	public var isWriting(default, null):Bool = false;
 
-	@:noCompletion private var __input:FileInput;
-	@:noCompletion private var __output:FileOutput;
+	@:noCompletion private var __input:FlightFileStreamInput;
+	@:noCompletion private var __output:FlightFileStreamOutput;
 	@:noCompletion private var __fileMode:FileMode;
 	@:noCompletion private var __file:File;
-	@:noCompletion private var __fileStreamWorker:BackgroundWorker;
 	@:noCompletion private var __isOpen:Bool;
 	@:noCompletion private var __isWrite:Bool;
-	@:noCompletion private var __isAsync:Bool;
+	@:noCompletion private var __openedAsync:Bool;
 	@:noCompletion private var __pendingClose:Bool;
-	// TODO:
-	// Find another way to handle the situation where writeBytes has zero length during WRITE async mode.
-	@:noCompletion private var __isZeroLength:Bool = false;
 	@:noCompletion private var __positionDirty:Bool = false;
 	@:noCompletion private var __buffer:ByteArray;
-	@:noCompletion private var __fileStreamMutex:Mutex;
-	@:noCompletion private var __pageSize:Int = 4096000;
+	@:noCompletion private var __openGeneration:Int = 0;
+	@:noCompletion private var __openPending:Bool = false;
+	@:noCompletion private var __writeInFlight:Bool = false;
+	@:noCompletion private var __writeQueued:Bool = false;
 
 	/**
 		Creates a FileStream object. Use the open() or openAsync() method to open a file.
@@ -174,6 +163,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		super();
 		__isOpen = false;
+		__openedAsync = false;
 		isWriting = false;
 		__pendingClose = false;
 
@@ -213,52 +203,24 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	**/
 	public function close():Void
 	{
-		if (!__isOpen || __pendingClose)
+		if (!__isOpen)
 		{
+			if (__openPending)
+			{
+				__openPending = false;
+				__openGeneration++;
+			}
 			return;
 		}
-
-		var async = __isAsync;
-		if (async)
+		if (__pendingClose) return;
+		if (__openedAsync && (__writeInFlight || __writeQueued))
 		{
-			__fileStreamMutex.acquire();
-			if (__fileStreamWorker != null && !__fileStreamWorker.canceled)
-			{
-				__pendingClose = true;
-				__fileStreamMutex.release();
-				return;
-			}
+			__pendingClose = true;
+			__startAsyncWrite();
+			return;
 		}
-
-		__isOpen = false;
-		__isAsync = false;
-		__pendingClose = false;
-		__buffer = null;
-
-		if (__isWrite)
-		{
-			__output.close();
-			__output = null;
-		}
-		else
-		{
-			__input.close();
-			__input = null;
-		}
-
-		if (async)
-		{
-			__fileStreamMutex.release();
-		}
-
-		position = 0;
-		__positionDirty = false;
-
-		if (__fileStreamWorker != null)
-		{
-			__disposeFileStreamWorker();
-			dispatchEvent(new Event(Event.CLOSE));
-		}
+		__openGeneration++;
+		__finishClose(__openedAsync);
 	}
 
 	/**
@@ -290,23 +252,14 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	 */
 	public function open(file:File, fileMode:FileMode):Void
 	{
+		if (file == null) throw new IOError("Invalid parameters.");
+		__openPending = false;
+		__openGeneration++;
+		if (__isOpen) __finishClose(false);
 		__file = file;
 		__fileMode = fileMode;
-
+		__openedAsync = false;
 		__openFile();
-	}
-
-	@:noCompletion private function __disposeFileStreamWorker():Void
-	{
-		if (__fileStreamWorker == null)
-		{
-			return;
-		}
-		__fileStreamWorker.cancel();
-		__fileStreamWorker.doWork.cancel();
-		__fileStreamWorker.onProgress.cancel();
-		__fileStreamWorker.onComplete.cancel();
-		__fileStreamWorker = null;
 	}
 
 	/**
@@ -344,138 +297,77 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	 */
 	public function openAsync(file:File, fileMode:FileMode):Void
 	{
-		__isAsync = true;
-
-		__fileStreamMutex = new Mutex();
-
-		__fileStreamWorker = new BackgroundWorker();
-
-		__fileStreamWorker.onProgress.add(function(e:Event)
+		if (file == null)
 		{
-			dispatchEvent(e);
-		});
-
-		__fileStreamWorker.onComplete.add(function(e:Event)
-		{
-			// close() checks the canceled property to determine if it should
-			// actually close or wait for the worker to finish
-			__fileStreamWorker.cancel();
-			if (e != null)
-			{
-				dispatchEvent(e);
-			}
-			if (__pendingClose)
-			{
-				__pendingClose = false;
-				close();
-			}
-		});
-
-		open(file, fileMode);
-
-		if (fileMode == READ)
-		{
-			__buffer = new ByteArray(Std.int(file.size));
-			__fileStreamWorker.doWork.add(function(m:Dynamic)
-			{
-				var inputBytesAvailable:Int = 0;
-				var tempPos:Int = 0;
-				var bytesLoaded:Int = 0;
-
-				while ((inputBytesAvailable = __getStreamBytesAvailable()) > 0)
-				{
-					if (__pendingClose)
-					{
-						// close() was called
-						__fileStreamWorker.sendComplete();
-						return;
-					}
-
-					var oldBytesLoaded = bytesLoaded;
-					__fileStreamMutex.acquire();
-					if (__buffer.bytesAvailable < readAhead)
-					{
-						try
-						{
-							var maxBytes:Int = Std.int(Math.min(__pageSize, inputBytesAvailable));
-
-							var chunkBytes:Bytes = Bytes.alloc(maxBytes);
-							tempPos = __buffer.position;
-							__buffer.position = __input.tell();
-							__input.readBytes(chunkBytes, 0, maxBytes);
-							__buffer.writeBytes(ByteArray.fromBytes(chunkBytes), 0, chunkBytes.length);
-							__buffer.position = tempPos;
-							bytesLoaded += maxBytes;
-						}
-						catch (e:Dynamic)
-						{
-							__fileStreamMutex.release();
-							__fileStreamWorker.sendComplete(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, "Index is out of bounds."));
-							return;
-						}
-					}
-					__fileStreamMutex.release();
-
-					if (oldBytesLoaded != bytesLoaded)
-					{
-						__fileStreamWorker.sendProgress(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bytesLoaded, __file.size));
-					}
-				}
-
-				__fileStreamWorker.sendComplete(new Event(Event.COMPLETE));
-			});
+			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, "Invalid parameters."));
+			return;
 		}
-		else
+		if (__isOpen) __finishClose(false);
+		__file = file;
+		__fileMode = fileMode;
+		__openedAsync = true;
+		__pendingClose = false;
+		var generation = ++__openGeneration;
+		__openPending = true;
+		if (fileMode != FileMode.READ)
 		{
-			__buffer = new ByteArray();
-
-			__fileStreamWorker.doWork.add(function(m:Dynamic)
+			try file.__ensureWritable() catch (error:Dynamic)
 			{
-				var bytesLoaded:Int = 0;
-
-				while (__fileStreamWorker != null)
-				{
-					Sys.sleep(.001);
-
-					__fileStreamMutex.acquire();
-					while (isWriting)
-					{
-						while (__buffer.length > bytesLoaded || __isZeroLength)
-						{
-							try
-							{
-								var maxBytes:Int = Std.int(Math.min(__pageSize, __buffer.length - bytesLoaded));
-
-								__output.writeBytes(__buffer, bytesLoaded, maxBytes);
-								bytesLoaded += maxBytes;
-
-								__file.__fileStatsDirty = true;
-								__isZeroLength = false;
-
-								__fileStreamWorker.sendProgress(new OutputProgressEvent(OutputProgressEvent.OUTPUT_PROGRESS, false, false,
-									__buffer.length - bytesLoaded, __buffer.length));
-							}
-							catch (e:Dynamic)
-							{
-								__fileStreamWorker.sendComplete(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, "Index is out of bounds."));
-								break;
-							}
-						}
-
-						isWriting = false;
-					}
-					__fileStreamMutex.release();
-					if (__pendingClose)
-					{
-						// close() was called
-						__fileStreamWorker.sendComplete();
-						return;
-					}
-				}
-			});
+				__dispatchAsyncError(error, generation);
+				return;
+			}
 		}
 
-		__fileStreamWorker.run();
+		if (fileMode == FileMode.WRITE)
+		{
+			__prepareAsyncParent(generation, function():Void
+			{
+				var empty = new FlightUInt8Array(0);
+				FlightFileSystem.writeBinaryFile(File.__getFlightFileSystemHost(), file.nativePath, empty).then(function(success:Bool):Bool
+				{
+					if (generation != __openGeneration) return success;
+					if (!success) __dispatchAsyncError("Invalid parameters.", generation);
+					else __finishAsyncOpen(empty, generation);
+					return success;
+				}, function(error:Dynamic):Bool
+				{
+					__dispatchAsyncError(error, generation);
+					return false;
+				});
+			});
+			return;
+		}
+
+		FlightFileSystem.readBinaryFile(File.__getFlightFileSystemHost(), file.nativePath).then(function(bytes:FlightUInt8Array):FlightUInt8Array
+		{
+			if (generation != __openGeneration) return bytes;
+			if (bytes == null && fileMode == FileMode.READ)
+			{
+				__dispatchAsyncError("Invalid parameters.", generation);
+			}
+			else if (bytes == null)
+			{
+				__prepareAsyncParent(generation, function():Void
+				{
+					var empty = new FlightUInt8Array(0);
+					FlightFileSystem.writeBinaryFile(File.__getFlightFileSystemHost(), file.nativePath, empty).then(function(success:Bool):Bool
+					{
+						if (success) __finishAsyncOpen(empty, generation); else __dispatchAsyncError("Invalid parameters.", generation);
+						return success;
+					}, function(error:Dynamic):Bool
+					{
+						__dispatchAsyncError(error, generation);
+						return false;
+					});
+				});
+			}
+			else __finishAsyncOpen(bytes, generation);
+			return bytes;
+		}, function(error:Dynamic):FlightUInt8Array
+		{
+			__dispatchAsyncError(error, generation);
+			return null;
+		});
 	}
 
 	/**
@@ -495,13 +387,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readBoolean();
-			__fileStreamMutex.release();
-			return result;
-		}
 		return __input.readByte() == 1;
 	}
 
@@ -521,15 +406,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readByte();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readByte();
 	}
 
@@ -552,29 +428,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function readBytes(bytes:ByteArray, offset:UInt = 0, length:UInt = 0):Void
 	{
 		__checkIfReadable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.readBytes(bytes, offset, length);
-			__fileStreamMutex.release();
-			__positionDirty = true;
-			return;
-		}
-
-		if (length == 0)
-		{
-			__input.seek(0, FileSeek.SeekEnd);
-			length = __input.tell();
-			__input.seek(position, FileSeek.SeekBegin);
-		}
-
-		var hxBytes = Bytes.alloc(length - offset);
-
-		__input.readBytes(hxBytes, offset, length);
-
-		bytes.writeBytes(hxBytes);
-
+		__buffer.readBytes(bytes, offset, length);
 		__positionDirty = true;
 	}
 
@@ -595,15 +449,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readDouble();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readDouble();
 	}
 
@@ -623,15 +468,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readFloat();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readFloat();
 	}
 
@@ -651,15 +487,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readInt();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readInt32();
 	}
 
@@ -683,15 +510,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readMultiByte(length, charSet);
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return readUTFBytes(length);
 	}
 
@@ -711,20 +529,10 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 
-		if (__isAsync)
-		{
-			__positionDirty = true;
-			__fileStreamMutex.acquire();
-			var result = __buffer.readObject();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		switch (objectEncoding)
 		{
 			case AMF0, AMF3:
-				// TODO(Flight): Decode AMF through Flight's public serialization
-				// service once that bridge is exposed.
+				// Flight has no public AMF codec; see agents/flight-gaps.md.
 				throw new Error("AMF object decoding is not available");
 
 			case HXSF:
@@ -759,15 +567,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readShort();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readInt16();
 	}
 
@@ -787,15 +586,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readUnsignedByte();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return ByteArray.fromBytes(__input.read(1)).readUnsignedByte();
 	}
 
@@ -815,15 +605,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readUnsignedInt();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readInt32();
 	}
 
@@ -842,15 +623,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readUnsignedShort();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readUInt16();
 	}
 
@@ -873,15 +645,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readUTF();
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		var length:Int = __input.readUInt16();
 		return __input.readString(length);
 	}
@@ -902,15 +665,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	{
 		__checkIfReadable();
 		__positionDirty = true;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			var result = __buffer.readUTFBytes(length);
-			__fileStreamMutex.release();
-			return result;
-		}
-
 		return __input.readString(length);
 	}
 
@@ -924,31 +678,11 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function truncate():Void
 	{
 		__checkIfOpen();
-
-		var fileMode:FileMode = __fileMode;
-
-		var isAsync:Bool = __isAsync;
-
-		var fileBytes:ByteArray = ByteArray.fromBytes(HaxeFile.getBytes(__file.nativePath));
-
-		var truncatedBytes:ByteArray = new ByteArray(position);
-		truncatedBytes.writeBytes(fileBytes, 0, truncatedBytes.length);
-		close();
-
-		HaxeFile.saveBytes(__file.nativePath, truncatedBytes);
-		var pos:Int = truncatedBytes.length;
-		fileBytes = null;
-
-		if (isAsync)
-		{
-			openAsync(__file, fileMode);
-		}
-		else
-		{
-			open(__file, fileMode);
-		}
-		position = pos;
-
+		var targetPosition = position;
+		__buffer.length = targetPosition;
+		__buffer.position = targetPosition;
+		__onOutputChanged();
+		position = targetPosition;
 		__file.__fileStatsDirty = true;
 	}
 
@@ -968,17 +702,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeBoolean(value:Bool):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeBoolean(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeByte(value ? 1 : 0);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -998,17 +721,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeByte(value:Int):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeByte(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeByte(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1037,28 +749,8 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeBytes(bytes:ByteArray, offset:Int = 0, length:Int = 0):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeBytes(bytes, offset, length);
-
-			if (length == 0) __isZeroLength = true;
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
-		if (length == 0)
-		{
-			length = bytes.length - offset;
-		}
-
-		__output.writeBytes(bytes, offset, length);
-
-		__file.__fileStatsDirty = true;
-		__positionDirty = true;
+		__buffer.writeBytes(bytes, offset, length);
+		__onOutputChanged();
 	}
 
 	/**
@@ -1075,17 +767,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeDouble(value:Float):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeDouble(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeDouble(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1105,17 +786,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeFloat(value:Float):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeFloat(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeFloat(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1135,17 +805,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeInt(value:Int):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeInt(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeInt32(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1168,17 +827,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeMultiByte(value:String, charSet:String):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeMultiByte(value, charSet);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		writeUTFBytes(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1199,17 +847,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeObject(object:Dynamic):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeObject(object);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__writeObject(object);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1229,17 +866,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeShort(value:Int):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeShort(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeInt16(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1259,17 +885,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeUnsignedInt(value:UInt):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeUnsignedInt(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeInt32(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1291,17 +906,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeUTF(value:String):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeUTF(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeInt16(value.length);
 		__output.writeString(value);
 		__file.__fileStatsDirty = true;
@@ -1323,17 +927,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	public function writeUTFBytes(value:String):Void
 	{
 		__checkIfWritable();
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			__buffer.writeUTFBytes(value);
-			isWriting = true;
-			__fileStreamMutex.release();
-
-			return;
-		}
-
 		__output.writeString(value);
 		__file.__fileStatsDirty = true;
 		__positionDirty = true;
@@ -1369,120 +962,203 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 
 	@:noCompletion private function __getStreamBytesAvailable():Int
 	{
-		if (__isWrite)
-		{
-			var pos:Int = position;
-
-			if (__isAsync)
-			{
-				__fileStreamMutex.acquire();
-				pos = __output.tell();
-			}
-
-			__output.seek(0, FileSeek.SeekEnd);
-			var length = __output.tell();
-			__output.seek(pos, FileSeek.SeekBegin);
-
-			if (__isAsync)
-			{
-				__fileStreamMutex.release();
-			}
-
-			return length - pos;
-		}
-
-		var pos:Int = position;
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.acquire();
-			pos = __input.tell();
-		}
-
-		__input.seek(0, FileSeek.SeekEnd);
-		var length = __input.tell();
-		__input.seek(pos, FileSeek.SeekBegin);
-
-		if (__isAsync)
-		{
-			__fileStreamMutex.release();
-		}
-
-		return length - pos;
+		return __buffer == null ? 0 : __buffer.length - __buffer.position;
 	}
 
 	@:noCompletion private function __openFile():Void
 	{
-		if (__isOpen)
+		try
 		{
-			if (__fileStreamWorker != null)
+			var bytes:FlightUInt8Array = null;
+			var existed = __file.exists;
+			if (__fileMode != FileMode.WRITE)
 			{
-				// when opening a new file, if an existing file is already open,
-				// we should not dispatch Event.CLOSE, so dispose the worker
-				// right away
-				__disposeFileStreamWorker();
+				bytes = File.__resolveFlight(FlightFileSystem.readBinaryFile(File.__getFlightFileSystemHost(), __file.nativePath), null);
 			}
-			close();
-		}
+			if (__fileMode == FileMode.READ && bytes == null) throw new IOError("Invalid parameters.");
+			if (__fileMode != FileMode.READ && __fileMode != FileMode.WRITE && existed && bytes == null)
+			{
+				throw new IOError("Invalid parameters.");
+			}
 
+			if (__fileMode != FileMode.READ)
+			{
+				__file.__ensureWritable();
+				__ensureParentSync();
+			}
+
+			if (bytes == null) bytes = new FlightUInt8Array(0);
+			__initializeBuffer(bytes);
+			if (__fileMode == FileMode.WRITE || ((__fileMode == FileMode.APPEND || __fileMode == FileMode.UPDATE) && !existed))
+			{
+				__flushSync();
+			}
+		}
+		catch (error:Dynamic)
+		{
+			__isOpen = false;
+			__buffer = null;
+			throw Std.isOfType(error, IOError) ? error : new IOError("Invalid parameters.");
+		}
+	}
+
+	@:noCompletion private function __dispatchAsyncError(error:Dynamic, generation:Int):Void
+	{
+		if (generation != __openGeneration) return;
+		__openPending = false;
+		__isOpen = false;
+		__writeInFlight = false;
+		__writeQueued = false;
+		isWriting = false;
+		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, Std.string(error)));
+	}
+
+	@:noCompletion private function __ensureParentSync():Void
+	{
+		var parent = __file.parent;
+		if (parent != null && !parent.exists) parent.createDirectory();
+	}
+
+	@:noCompletion private function __finishAsyncOpen(bytes:FlightUInt8Array, generation:Int):Void
+	{
+		if (generation != __openGeneration) return;
+		__openPending = false;
+		__initializeBuffer(bytes);
+		__openedAsync = true;
+		dispatchEvent(new Event(Event.OPEN));
+		if (generation != __openGeneration || !__isOpen) return;
+		if (__fileMode == FileMode.READ)
+		{
+			var length = __buffer.length;
+			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, length, length));
+			if (generation == __openGeneration && __isOpen) dispatchEvent(new Event(Event.COMPLETE));
+		}
+	}
+
+	@:noCompletion private function __finishClose(dispatchClose:Bool):Void
+	{
+		var wasOpen = __isOpen;
+		__isOpen = false;
+		__openedAsync = false;
+		__pendingClose = false;
+		__openPending = false;
+		__writeInFlight = false;
+		__writeQueued = false;
+		isWriting = false;
+		if (__input != null) __input.close();
+		if (__output != null) __output.close();
+		__input = null;
+		__output = null;
+		__buffer = null;
+		position = 0;
+		__positionDirty = false;
+		if (wasOpen && dispatchClose) dispatchEvent(new Event(Event.CLOSE));
+	}
+
+	@:noCompletion private function __flightBufferBytes():FlightUInt8Array
+	{
+		var bytes = new FlightUInt8Array(__buffer == null ? 0 : __buffer.length);
+		if (__buffer != null) for (index in 0...__buffer.length) bytes[index] = __buffer[index];
+		return bytes;
+	}
+
+	@:noCompletion private function __flushSync():Void
+	{
+		if (!File.__resolveFlight(FlightFileSystem.writeBinaryFile(File.__getFlightFileSystemHost(), __file.nativePath, __flightBufferBytes()), false))
+		{
+			throw new IOError("Invalid parameters.");
+		}
+	}
+
+	@:noCompletion private function __initializeBuffer(bytes:FlightUInt8Array):Void
+	{
+		var source = Bytes.alloc(bytes.length);
+		for (index in 0...bytes.length) source.set(index, bytes[index]);
+		__buffer = ByteArray.fromBytes(source);
+		__buffer.endian = BIG_ENDIAN;
+		__isWrite = __fileMode != FileMode.READ;
 		__isOpen = true;
+		__positionDirty = false;
+		__input = __isWrite ? null : new FlightFileStreamInput(__buffer);
+		__output = __isWrite ? new FlightFileStreamOutput(__buffer, __onOutputChanged) : null;
+		var initialPosition = __fileMode == FileMode.APPEND ? __buffer.length : 0;
+		position = __fileMode == FileMode.APPEND ? 0 : initialPosition;
+		__buffer.position = initialPosition;
+	}
 
-		switch (__fileMode)
+	@:noCompletion private function __onOutputChanged():Void
+	{
+		__file.__fileStatsDirty = true;
+		__positionDirty = true;
+		if (__openedAsync)
 		{
-			case READ:
-				try
-				{
-					__input = HaxeFile.read(__file.nativePath, true);
-					__input.seek(0, FileSeek.SeekBegin);
-					__isWrite = false;
-				}
-				catch (e:Dynamic)
-				{
-					throw new IOError("Invalid parameters.");
-				}
-			case WRITE:
-				try
-				{
-					var dirPath:String = Path.directory(__file.nativePath);
-					if (!FileSystem.exists(dirPath)) FileSystem.createDirectory(dirPath);
-					__output = HaxeFile.write(__file.nativePath, true);
-					__isWrite = true;
-				}
-				catch (e:Dynamic)
-				{
-					throw new IOError("Invalid parameters.");
-				}
-			case APPEND:
-				try
-				{
-					__output = HaxeFile.append(__file.nativePath, true);
-					__isWrite = true;
-				}
-				catch (d:Dynamic)
-				{
-					throw new openfl.errors.IOError("Invalid parameters.");
-				}
-			case UPDATE:
-				try
-				{
-					__output = HaxeFile.update(__file.nativePath, true);
-					__output.seek(0, sys.io.FileSeek.SeekBegin);
-					__isWrite = true;
-				}
-				catch (d:Dynamic)
-				{
-					throw new openfl.errors.IOError("Invalid parameters.");
-				}
+			__writeQueued = true;
+			isWriting = true;
+			__startAsyncWrite();
 		}
+		else __flushSync();
+	}
 
-		if (__isWrite)
+	@:noCompletion private function __prepareAsyncParent(generation:Int, complete:Void->Void):Void
+	{
+		var parent = __file.parent;
+		if (parent == null)
 		{
-			__output.bigEndian = true;
+			complete();
+			return;
 		}
-		else
+		FlightFileSystem.makeDirectory(File.__getFlightFileSystemHost(), parent.nativePath).then(function(success:Bool):Bool
 		{
-			__input.bigEndian = true;
-		}
+			if (generation != __openGeneration) return success;
+			if (success) complete(); else __dispatchAsyncError("Invalid parameters.", generation);
+			return success;
+		}, function(error:Dynamic):Bool
+		{
+			__dispatchAsyncError(error, generation);
+			return false;
+		});
+	}
+
+	@:noCompletion private function __startAsyncWrite():Void
+	{
+		if (!__openedAsync || __writeInFlight || !__writeQueued) return;
+		var generation = __openGeneration;
+		var bytes = __flightBufferBytes();
+		__writeQueued = false;
+		__writeInFlight = true;
+		FlightFileSystem.writeBinaryFile(File.__getFlightFileSystemHost(), __file.nativePath, bytes).then(function(success:Bool):Bool
+		{
+			if (generation != __openGeneration) return success;
+			__writeInFlight = false;
+			if (!success)
+			{
+				__dispatchAsyncWriteError("Invalid parameters.", generation);
+				return false;
+			}
+			dispatchEvent(new OutputProgressEvent(OutputProgressEvent.OUTPUT_PROGRESS, false, false, 0, bytes.length));
+			if (__writeQueued) __startAsyncWrite();
+			else if (!__writeInFlight)
+			{
+				isWriting = false;
+				if (__pendingClose) __finishClose(true);
+			}
+			return true;
+		}, function(error:Dynamic):Bool
+		{
+			__writeInFlight = false;
+			__dispatchAsyncWriteError(error, generation);
+			return false;
+		});
+	}
+
+	@:noCompletion private function __dispatchAsyncWriteError(error:Dynamic, generation:Int):Void
+	{
+		if (generation != __openGeneration) return;
+		__writeInFlight = false;
+		__writeQueued = false;
+		isWriting = false;
+		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, Std.string(error)));
+		if (generation == __openGeneration && __pendingClose && !__writeInFlight && !__writeQueued) __finishClose(true);
 	}
 
 	@:noCompletion private function __writeObject(object:Dynamic):Void
@@ -1490,8 +1166,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		switch (objectEncoding)
 		{
 			case AMF0, AMF3:
-				// TODO(Flight): Encode AMF through Flight's public serialization
-				// service once that bridge is exposed.
+				// Flight has no public AMF codec; see agents/flight-gaps.md.
 				throw new Error("AMF object encoding is not available");
 
 			case HXSF:
@@ -1531,80 +1206,115 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 
 	@:noCompletion private function get_bytesAvailable():Int
 	{
-		if (__isOpen)
-		{
-			if (!__isAsync)
-			{
-				return __getStreamBytesAvailable();
-			}
-
-			if (__fileMode == READ)
-			{
-				__fileStreamMutex.acquire();
-				var result = 0;
-				if (__buffer != null)
-				{
-					result = __buffer.bytesAvailable;
-				}
-				__fileStreamMutex.release();
-				return result;
-			}
-		}
-
-		return 0;
+		return __isOpen ? __getStreamBytesAvailable() : 0;
 	}
 
 	@:noCompletion private function get_position():UInt
 	{
-		if (__positionDirty)
+		if (__positionDirty && __buffer != null)
 		{
-			if (!__isAsync)
-			{
-				__positionDirty = false;
-				if (__isWrite)
-				{
-					return position = __output.tell();
-				}
-
-				return position = __input.tell();
-			}
-			if (__fileMode == READ)
-			{
-				__fileStreamMutex.acquire();
-				position = __buffer.position;
-				__fileStreamMutex.release();
-				return position;
-			}
+			__positionDirty = false;
+			position = __buffer.position;
 		}
 		return position;
 	}
 
 	@:noCompletion private function set_position(value:UInt):UInt
 	{
-		if (__isOpen)
-		{
-			if (!__isAsync)
-			{
-				if (__isWrite)
-				{
-					__output.seek(value, FileSeek.SeekBegin);
-				}
-				else
-				{
-					__input.seek(value, FileSeek.SeekBegin);
-				}
-			}
-			else
-			{
-				__fileStreamMutex.acquire();
-				__buffer.position = value;
-				__fileStreamMutex.release();
-			}
-		}
+		if (__isOpen && __buffer != null) __buffer.position = value;
 
 		return position = value;
 	}
 }
+
+@:noCompletion private class FlightFileStreamInput
+{
+	public var bigEndian(get, set):Bool;
+	private var buffer:ByteArray;
+
+	public function new(buffer:ByteArray)
+	{
+		this.buffer = buffer;
+	}
+
+	public function close():Void {}
+	public function read(length:Int):Bytes
+	{
+		var result = Bytes.alloc(length);
+		readBytes(result, 0, length);
+		return result;
+	}
+	public function readByte():Int return buffer.readUnsignedByte();
+	public function readBytes(bytes:Bytes, offset:Int, length:Int):Int
+	{
+		for (index in 0...length) bytes.set(offset + index, buffer.readUnsignedByte());
+		return length;
+	}
+	public function readDouble():Float return buffer.readDouble();
+	public function readFloat():Float return buffer.readFloat();
+	public function readInt16():Int return buffer.readShort();
+	public function readInt32():Int return buffer.readInt();
+	public function readString(length:Int):String return buffer.readUTFBytes(length);
+	public function readUInt16():Int return buffer.readUnsignedShort();
+	private function get_bigEndian():Bool return buffer.endian == BIG_ENDIAN;
+	private function set_bigEndian(value:Bool):Bool
+	{
+		buffer.endian = value ? BIG_ENDIAN : LITTLE_ENDIAN;
+		return value;
+	}
+}
+
+@:noCompletion private class FlightFileStreamOutput
+{
+	public var bigEndian(get, set):Bool;
+	private var buffer:ByteArray;
+	private var changed:Void->Void;
+
+	public function new(buffer:ByteArray, changed:Void->Void)
+	{
+		this.buffer = buffer;
+		this.changed = changed;
+	}
+
+	public function close():Void {}
+	public function writeByte(value:Int):Void
+	{
+		buffer.writeByte(value);
+		changed();
+	}
+	public function writeDouble(value:Float):Void
+	{
+		buffer.writeDouble(value);
+		changed();
+	}
+	public function writeFloat(value:Float):Void
+	{
+		buffer.writeFloat(value);
+		changed();
+	}
+	public function writeInt16(value:Int):Void
+	{
+		buffer.writeShort(value);
+		changed();
+	}
+	public function writeInt32(value:Int):Void
+	{
+		buffer.writeInt(value);
+		changed();
+	}
+	public function writeString(value:String):Void
+	{
+		buffer.writeUTFBytes(value);
+		changed();
+	}
+	private function get_bigEndian():Bool return buffer.endian == BIG_ENDIAN;
+	private function set_bigEndian(value:Bool):Bool
+	{
+		buffer.endian = value ? BIG_ENDIAN : LITTLE_ENDIAN;
+		return value;
+	}
+}
+
 #elseif flash
 #if air
 typedef FileStream = flash.filesystem.FileStream;
