@@ -23,7 +23,10 @@ import openfl.display3D.Context3DWrapMode;
 import openfl.display3D.IndexBuffer3D;
 import openfl.display3D.Program3D;
 import openfl.display3D.VertexBuffer3D;
+import openfl.display3D.textures.CubeTexture;
+import openfl.display3D.textures.RectangleTexture;
 import openfl.display3D.textures.Texture;
+import openfl.display3D.textures.VideoTexture;
 import openfl.events.ErrorEvent;
 import openfl.events.Event;
 #if harness_capture
@@ -218,6 +221,9 @@ class Display3DScenario {
 		var indexBuffer:IndexBuffer3D;
 		var vertexBuffer:VertexBuffer3D;
 		var texture:Texture;
+		var cubeTexture:CubeTexture;
+		var rectangleTexture:RectangleTexture;
+		var videoTexture:VideoTexture;
 		#if harness_capture
 		// OpenFL's public factories require a live GL context. Construct typed shells
 		// in capture mode so the headless oracle can still record public reads.
@@ -230,12 +236,20 @@ class Display3DScenario {
 		indexBuffer = Type.createEmptyInstance(IndexBuffer3D);
 		vertexBuffer = Type.createEmptyInstance(VertexBuffer3D);
 		texture = Type.createEmptyInstance(Texture);
+		cubeTexture = Type.createEmptyInstance(CubeTexture);
+		rectangleTexture = Type.createEmptyInstance(RectangleTexture);
+		videoTexture = Type.createEmptyInstance(VideoTexture);
+		Reflect.setField(videoTexture, "videoHeight", 0);
+		Reflect.setField(videoTexture, "videoWidth", 0);
 		#else
 		program = context.createProgram();
 		glslProgram = context.createProgram(Context3DProgramFormat.GLSL);
 		indexBuffer = context.createIndexBuffer(6, Context3DBufferUsage.DYNAMIC_DRAW);
 		vertexBuffer = context.createVertexBuffer(4, 5, Context3DBufferUsage.STATIC_DRAW);
 		texture = context.createTexture(8, 4, Context3DTextureFormat.BGRA, false, 1);
+		cubeTexture = context.createCubeTexture(4, Context3DTextureFormat.BGRA, false, 0);
+		rectangleTexture = context.createRectangleTexture(7, 3, Context3DTextureFormat.BGRA, false);
+		videoTexture = context.createVideoTexture();
 		#end
 
 		return {
@@ -252,7 +266,12 @@ class Display3DScenario {
 				vertexIsVertexBuffer3D: Std.isOfType(vertexBuffer, VertexBuffer3D)
 			},
 			textures: {
-				textureIsTexture: Std.isOfType(texture, Texture)
+				cubeIsCubeTexture: Std.isOfType(cubeTexture, CubeTexture),
+				rectangleIsRectangleTexture: Std.isOfType(rectangleTexture, RectangleTexture),
+				textureIsTexture: Std.isOfType(texture, Texture),
+				videoHeight: videoTexture.videoHeight,
+				videoIsVideoTexture: Std.isOfType(videoTexture, VideoTexture),
+				videoWidth: videoTexture.videoWidth
 			}
 		};
 	}

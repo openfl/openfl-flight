@@ -27,8 +27,13 @@ import openfl.utils.ByteArray;
 		__height = size;
 		__optimizeForRenderToTexture = optimizeForRenderToTexture;
 		__streamingLevels = streamingLevels;
-		__flightTexture = FlightTexture.createCubeTexture({
-			sampler: FlightTexture.createSampler({mipmaps: streamingLevels > 0})
+		// createCubeTexture() copies its default face array through JavaScript-style
+		// Array.slice dispatch, which is unavailable on Flight's pure-eval runtime.
+		// The generic public factory produces the same cube entity without that copy.
+		__flightTexture = cast FlightTexture.createTexture(cast {
+			dimension: "cube",
+			sampler: FlightTexture.createSampler({mipmaps: streamingLevels > 0}),
+			sources: null
 		});
 	}
 

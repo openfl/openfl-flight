@@ -100,6 +100,15 @@ explicitly in source rather than being left as unqualified TODOs.
 | `setTextureAt` | blocked on GL draw seam | Flight textures can be resolved only with an active state; public texture-slot binding is also absent. |
 | `setVertexBufferAt` | blocked on GL draw seam | Requires a VertexBuffer3D-to-Flight buffer/layout bridge and public active-state binding. |
 
+The creation methods were audited alongside the command TODOs. `createTexture`,
+`createCubeTexture`, `createRectangleTexture`, and `createVideoTexture` all
+produce Flight-owned texture entities. Cube creation uses Flight's generic
+public texture factory because the convenience `createCubeTexture()` helper's
+JavaScript-style face-array copy is not portable to Flight's pure-eval runtime.
+`createProgram`, `createIndexBuffer`, and `createVertexBuffer` construct the
+OpenFL resource shells, but remain adapter stubs until Flight exposes the
+program and independently bindable buffer bridges described above.
+
 `setFillMode` is not part of the OpenFL 9.5.2 `Context3D` public surface, so the
 adapter does not add a new method for it.
 

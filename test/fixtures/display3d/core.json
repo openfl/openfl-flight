@@ -126,7 +126,12 @@
         "indexIsIndexBuffer3D": true
       },
       "textures": {
-        "textureIsTexture": true
+        "videoIsVideoTexture": true,
+        "textureIsTexture": true,
+        "videoHeight": 0,
+        "videoWidth": 0,
+        "rectangleIsRectangleTexture": true,
+        "cubeIsCubeTexture": true
       },
       "program": {
         "isProgram3D": true,
