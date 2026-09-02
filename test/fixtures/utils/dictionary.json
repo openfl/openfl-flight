@@ -1,7 +1,31 @@
 {
+  "toStringCollision": {
+    "count": 2,
+    "second": "second",
+    "first": "first",
+    "sameString": true
+  },
+  "deleteDuringIteration": {
+    "remaining": 0,
+    "visited": 3,
+    "removed": 3
+  },
+  "nullKey": {
+    "count": 0,
+    "exists": true,
+    "removed": true,
+    "value": "null-value",
+    "error": null
+  },
   "objectKeys": {
+    "countAfterRemove": 1,
+    "countAfterAdditions": 2,
+    "countAfterOverwrite": 2,
     "getKey1": "replaced",
-    "getKey2": "second",
+    "existsBeforeRemove": true,
+    "getKey2": null,
+    "existsAfterRemove": false,
+    "removed": true,
     "overwritten": true
   },
   "basicUsage": {
@@ -16,6 +40,7 @@
   },
   "iteration": {
     "sortedValues": "1,2,3",
+    "directForInValues": "1,2,3",
     "keyCount": 3,
     "sortedKeys": "a,b,c"
   },
