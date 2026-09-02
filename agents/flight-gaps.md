@@ -2,7 +2,9 @@
 
 Upstream flight-hx capabilities needed for OpenFL parity that are missing,
 incomplete, or unclear. Each entry describes what OpenFL needs and what Flight
-currently provides (or doesn't).
+currently provides (or doesn't). An upstream Flight implementation is not
+treated as resolved here until the refreshed generated flight-hx facade exposes
+the capability that this adapter can compile against.
 
 ## Confirmed Gaps
 
@@ -63,18 +65,27 @@ currently provides (or doesn't).
 
 - **Byte compression encoders and LZMA**: OpenFL `ByteArray.compress`,
   `uncompress`, `deflate`, and `inflate` require encoders and decoders for zlib,
-  raw deflate, and LZMA. Flight 0.4.0 publicly exposes a framing-aware deflate
-  inflater, which now backs zlib and raw-deflate decoding, but has no matching
-  encoder or LZMA codec. The adapter retains Haxe standard-library encoders for
-  zlib and raw deflate while preserving OpenFL's in-place length and position
-  semantics; LZMA remains a deterministic no-op.
+  raw deflate, and LZMA. The current generated `flight.Compression` facade
+  exposes the framing-aware `inflateDeflate` decoder, which now backs zlib and
+  raw-deflate decoding, but has no matching encoder or LZMA codec. The adapter
+  retains Haxe standard-library encoders for zlib and raw deflate while
+  preserving OpenFL's in-place length and position semantics; LZMA remains a
+  deterministic no-op.
 
-- **Public UTF-8 byte codec**: OpenFL `ByteArray.readUTFBytes` and
-  `writeUTFBytes` require conversion between UTF-8 and raw bytes. Flight 0.4.0
-  has portable `_TextEncoder` and `_TextDecoder` helpers only in
-  `flight._internal`, with no supported public equivalent. The current
-  ByteArray implementation must use `haxe.io.Bytes` instead of Flight for this
-  behavior.
+- **Shareable ByteArray atomics**: OpenFL's Flash-only
+  `atomicCompareAndSwapIntAt` and `atomicCompareAndSwapLength` require a
+  shareable byte buffer with atomic integer and length mutation. The generated
+  Flight facade and `haxe.io.Bytes` expose no shareable atomic byte-storage
+  primitive, so these APIs remain Flash-only rather than pretending that an
+  ordinary resize or read/write is atomic.
+
+- **Public flight-hx UTF-8 byte codec binding**: OpenFL
+  `ByteArray.readUTFBytes` and `writeUTFBytes` require conversion between UTF-8
+  and raw bytes. The upstream `@flighthq/encoding` update reports public
+  `encodeUTF8` and `decodeUTF8` functions, but after `haxelib update flight git`
+  the generated facade still has no Encoding module or either function. The
+  codec implementation has landed upstream; exposing the refreshed pin through
+  flight-hx remains the gap, and ByteArray continues to use `haxe.io.Bytes`.
 
 - **Object wire formats**: OpenFL `ByteArray.readObject` and `writeObject`
   support AMF0, AMF3, HXSF, and JSON encodings. Flight 0.4.0 exposes no public
@@ -93,9 +104,10 @@ currently provides (or doesn't).
   definition registry for those SWF-only surfaces.
 
 - **URLLoader/URLStream cancellation, chunks, and early response metadata**:
-  Flight Net requests use Flight's configured network backend and accept an
-  abort signal, but Flight has no public abort-controller factory that an
-  OpenFL network loader can own.
+  Flight Net requests use Flight's configured network backend, and the refreshed
+  generated `NetRequestOptions` accepts a
+  `flight._internal.dom.AbortSignal`. Flight still exposes no public,
+  cross-target abort-controller factory that an OpenFL network loader can own.
   `URLLoader.close()` and `URLStream.close()` can suppress stale callbacks but
   cannot cancel the active transport. Flight internally reads response streams
   and emits byte counts, but progress signals contain no downloaded chunk and
@@ -119,13 +131,13 @@ currently provides (or doesn't).
   synchronization; those methods remain compatibility stubs and `getRemote`
   returns `null` like OpenFL 9.5.2's unsupported implementation.
 
-- **Raw TCP sockets on native hosts**: Flight Socket models framed WebSocket
-  connections, and Flight's Web host provides that backend. Its maintained
-  Lime and Clay hosts expose HTTP but no `net.socket` provider, while OpenFL
-  `Socket` requires a raw TCP byte stream on native targets. HTML5 sockets now
-  route through Flight Socket; native sockets retain the Haxe system transport
-  with timer-driven polling until Flight exposes a raw-stream socket capability
-  or native socket host.
+- **Raw TCP flight-hx binding on native hosts**: The upstream Flight update
+  reports a raw TCP `SocketBackend` in `@flighthq/socket`, but the refreshed
+  generated `flight.Socket` facade still exposes the WebSocket-shaped
+  `SocketOptions` (`url`, protocols, and binary type) and no raw TCP factory or
+  endpoint options. OpenFL `Socket` therefore retains its Haxe system transport
+  with timer-driven polling on native targets until flight-hx exposes the new
+  backend and a maintained native host installs it.
 
 - **UDP datagram sockets**: Flight Socket accepts a WebSocket URL and exposes a
   connection-oriented message channel. It has no UDP endpoint, local bind,
@@ -171,11 +183,12 @@ currently provides (or doesn't).
   cannot execute the broader OpenFL shader model or register its source without
   an active render-state bridge.
 
-- **Per-channel audio pan and peak metering**: Flight audio channels expose
-  gain, time, playback rate, and lifecycle controls, but no direct pan control
-  or left/right peak levels. Flight audio buses can pan only through a mixer and
-  audio context, which does not map to OpenFL's independently mutable
-  `SoundChannel.soundTransform` without additional routing infrastructure.
+- **Per-channel audio pan binding and peak metering**: The upstream Flight
+  update reports an AudioChannel `pan` field and `setSourcePan`, but the refreshed
+  generated facade still exposes only `AudioBus.pan` and no AudioChannel/source
+  pan API. A flight-hx binding is still needed for OpenFL's independently
+  mutable `SoundChannel.soundTransform`. Flight also exposes no left/right peak
+  levels, so peak metering remains a separate capability gap after pan lands.
 
 - **Synchronous audio file factories**: Flight audio decoding and URL resolution
   return promises. The adapter uses Flight's public Lime audio-context factory
@@ -210,9 +223,12 @@ currently provides (or doesn't).
   and the combined download/save and multipart upload workflows still require
   Flight primitives that compose dialog, filesystem, and network operations.
 
-- **Native child processes**: Flight 0.4.0's public shell API has no process
-  spawn, standard-stream, or exit-status primitive that can back
-  `NativeProcess.start()` and its asynchronous IO events.
+- **Native child-process flight-hx binding**: The upstream Flight update reports
+  process spawn, standard streams, and exit status in `@flighthq/shell`, but the
+  refreshed generated `flight.Shell` facade still contains only external/path,
+  trash, shortcut, and beep operations. `NativeProcess.start()` and its
+  asynchronous IO events need the new shell process surface generated into
+  flight-hx before the adapter can consume it.
 
 - **Sensor cadence and mobile location policy**: Flight Sensors exposes sensor
   readings and capability queries, but its public `attachSensors` entry point
@@ -280,3 +296,23 @@ misunderstanding of the API.)
   authoritative Flight `Application` handle internally, so the static `System`
   API can route pause and resume through Flight without constructing a second
   application.
+
+- **ByteArray zlib/raw-deflate decoding and portable object fallbacks**: The
+  public `flight.Compression.inflateDeflate` decoder now handles both RFC 1950
+  zlib and raw-deflate frames while preserving ByteArray position semantics.
+  The ByteArray audit also confirmed that HXSF, large HXSF, JSON, and large JSON
+  round-trip through the Haxe standard serializers; only LZMA and AMF0/AMF3
+  remain upstream codec gaps.
+
+- **BitmapData CPU operations and encoding primitives**: The refreshed public
+  `flight.Bitmap` facade exposes scroll, noise, Perlin noise, threshold, merge,
+  channel copy, color-bounds, histogram, palette-map, image encoding, and pixel
+  dissolve operations. Region-taking methods use explicit `BitmapRegion`
+  inputs, while the generated scroll and encode signatures operate on the
+  owning Bitmap. These primitives no longer need to be reported as missing
+  Flight capabilities; wiring OpenFL methods to them is adapter work.
+
+- **Timeline scene navigation and labels**: The Timeline audit found no missing
+  Flight primitive. The adapter now keeps a global internal playhead while
+  exposing scene-relative frames, labels, and scene transitions, and it merges
+  multiple scripts on one frame in declaration order.
