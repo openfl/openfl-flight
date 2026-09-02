@@ -6,11 +6,22 @@ import flight.Interaction as FlightInteraction;
 import flight.Node as FlightNode;
 import flight.Path as FlightPath;
 import flight.Shape as FlightShape;
+import flight.Texture as FlightTexture;
 import flight.types.Path as FlightPathData;
 import flight.types.Shape as FlightShapeData;
+import flight.types.Texture2D as FlightTextureData;
+import haxe.ds.ObjectMap;
 import openfl.Vector;
 import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
+
+private typedef GraphicsBitmapPaint =
+{
+	var bitmapData:BitmapData;
+	var matrix:Matrix;
+	var repeat:Bool;
+	var smooth:Bool;
+}
 
 /**
 	Records the OpenFL vector drawing API. Command tessellation and rendering
@@ -21,9 +32,11 @@ import openfl.geom.Rectangle;
 @:noDebug
 #end
 @:access(openfl.display.DisplayObject)
+@:access(openfl.display.BitmapData)
 @:access(openfl.display.GraphicsPath)
 @:final class Graphics
 {
+	@:noCompletion private var __bitmapPaints:ObjectMap<{}, GraphicsBitmapPaint>;
 	@:noCompletion private var __owner:DisplayObject;
 	@:noCompletion private var __positionX:Float;
 	@:noCompletion private var __positionY:Float;
@@ -40,6 +53,7 @@ import openfl.geom.Rectangle;
 		__positionY = 0;
 		__fillActive = false;
 		__strokePadding = 0;
+		__bitmapPaints = new ObjectMap();
 		FlightShape.registerDefaultShapeBoundsCommands();
 		FlightInteraction.registerDefaultHitTests();
 		FlightInteraction.registerShapeHitTest();
@@ -48,7 +62,16 @@ import openfl.geom.Rectangle;
 		FlightNode.addNodeChildAt(owner.__flightNode, __flightShape, 0);
 	}
 
-	public function beginBitmapFill(bitmap:BitmapData, matrix:Matrix = null, repeat:Bool = true, smooth:Bool = false):Void {}
+	public function beginBitmapFill(bitmap:BitmapData, matrix:Matrix = null, repeat:Bool = true, smooth:Bool = false):Void
+	{
+		var texture = __createBitmapTexture(bitmap, matrix, repeat, smooth);
+		if (texture == null) return;
+		if (__fillActive) FlightPath.appendPathClose(__flightPath);
+		__fillActive = true;
+		var paint = __bitmapPaints.get(cast texture);
+		FlightShape.appendShapeBeginTextureFill(__flightShape, texture, cast paint.matrix);
+		__invalidate();
+	}
 
 	public function beginFill(color:Int = 0, alpha:Float = 1):Void
 	{
@@ -71,7 +94,7 @@ import openfl.geom.Rectangle;
 
 	public function beginShaderFill(shader:Shader, matrix:Matrix = null):Void
 	{
-		// TODO: Record Flight shader fill state.
+		// Flight custom shaders are render effects, not Shape paint commands.
 	}
 
 	public function clear():Void
@@ -82,6 +105,7 @@ import openfl.geom.Rectangle;
 		__flightPath = FlightPath.createPath();
 		__lineBounds = null;
 		__strokePadding = 0;
+		__bitmapPaints = new ObjectMap();
 		FlightShape.clearShapeCommands(__flightShape);
 		__invalidate();
 	}
@@ -91,6 +115,17 @@ import openfl.geom.Rectangle;
 		if (sourceGraphics == null) return;
 		FlightPath.copyPath(sourceGraphics.__flightPath, __flightPath);
 		FlightShape.copyShapeCommands(__flightShape, sourceGraphics.__flightShape);
+		__bitmapPaints = new ObjectMap();
+		for (texture in sourceGraphics.__bitmapPaints.keys())
+		{
+			var paint = sourceGraphics.__bitmapPaints.get(texture);
+			__bitmapPaints.set(texture, {
+				bitmapData: paint.bitmapData,
+				matrix: paint.matrix == null ? null : paint.matrix.clone(),
+				repeat: paint.repeat,
+				smooth: paint.smooth
+			});
+		}
 		__positionX = sourceGraphics.__positionX;
 		__positionY = sourceGraphics.__positionY;
 		__fillActive = sourceGraphics.__fillActive;
@@ -224,7 +259,61 @@ import openfl.geom.Rectangle;
 
 	public function drawQuads(rects:Vector<Float>, indices:Vector<Int> = null, transforms:Vector<Float> = null):Void
 	{
-		// TODO: Record Flight quadrilateral commands.
+		if (rects == null) return;
+		var hasIndices = indices != null;
+		var length = hasIndices ? indices.length : Math.floor(rects.length / 4);
+		if (length == 0) return;
+		var transformABCD = transforms != null && transforms.length >= length * 4;
+		var transformXY = transforms != null && (transforms.length >= length * 6 || (!transformABCD && transforms.length >= length * 2));
+
+		for (i in 0...length)
+		{
+			var rectIndex = (hasIndices ? indices[i] : i) * 4;
+			if (rectIndex < 0 || rectIndex + 3 >= rects.length) continue;
+			var width = rects[rectIndex + 2];
+			var height = rects[rectIndex + 3];
+			if (width <= 0 || height <= 0) continue;
+
+			var a = 1.0;
+			var b = 0.0;
+			var c = 0.0;
+			var d = 1.0;
+			var tx = 0.0;
+			var ty = 0.0;
+			if (transformABCD)
+			{
+				var transformIndex = i * (transformXY ? 6 : 4);
+				a = transforms[transformIndex];
+				b = transforms[transformIndex + 1];
+				c = transforms[transformIndex + 2];
+				d = transforms[transformIndex + 3];
+				if (transformXY)
+				{
+					tx = transforms[transformIndex + 4];
+					ty = transforms[transformIndex + 5];
+				}
+			}
+			else if (transformXY)
+			{
+				var transformIndex = i * 2;
+				tx = transforms[transformIndex];
+				ty = transforms[transformIndex + 1];
+			}
+
+			var points = [tx, ty, a * width + tx, b * width + ty, a * width + c * height + tx, b * width + d * height + ty,
+				c * height + tx, d * height + ty];
+			FlightPath.appendPathMoveTo(__flightPath, points[0], points[1]);
+			FlightShape.appendShapeMoveTo(__flightShape, points[0], points[1]);
+			for (point in 1...4)
+			{
+				FlightPath.appendPathLineTo(__flightPath, points[point * 2], points[point * 2 + 1]);
+				FlightShape.appendShapeLineTo(__flightShape, points[point * 2], points[point * 2 + 1]);
+			}
+			FlightPath.appendPathLineTo(__flightPath, points[0], points[1]);
+			FlightPath.appendPathClose(__flightPath);
+			FlightShape.appendShapeLineTo(__flightShape, points[0], points[1]);
+		}
+		__invalidate();
 	}
 
 	public function drawRect(x:Float, y:Float, width:Float, height:Float):Void
@@ -270,7 +359,11 @@ import openfl.geom.Rectangle;
 
 	public function lineBitmapStyle(bitmap:BitmapData, matrix:Matrix = null, repeat:Bool = true, smooth:Bool = false):Void
 	{
-		// TODO: Record Flight bitmap stroke state.
+		var texture = __createBitmapTexture(bitmap, matrix, repeat, smooth);
+		if (texture == null) return;
+		var paint = __bitmapPaints.get(cast texture);
+		FlightShape.appendShapeLineTextureStyle(__flightShape, texture, cast paint.matrix);
+		__invalidate();
 	}
 
 	public function lineGradientStyle(type:GradientType, colors:Array<Int>, alphas:Array<Float>, ratios:Array<Int>, matrix:Matrix = null,
@@ -325,7 +418,20 @@ import openfl.geom.Rectangle;
 	@SuppressWarnings("checkstyle:FieldDocComment")
 	@:dox(hide) @:noCompletion public function overrideBlendMode(blendMode:BlendMode):Void
 	{
-		// TODO (Flight): override the active vector blend mode.
+		if (blendMode == null) blendMode = BlendMode.NORMAL;
+		__flightShape.blendMode = switch (blendMode)
+		{
+			case BlendMode.ADD: "Add";
+			case BlendMode.DARKEN: "Darken";
+			case BlendMode.DIFFERENCE: "Difference";
+			case BlendMode.HARDLIGHT: "HardLight";
+			case BlendMode.LIGHTEN: "Lighten";
+			case BlendMode.MULTIPLY: "Multiply";
+			case BlendMode.OVERLAY: "Overlay";
+			case BlendMode.SCREEN: "Screen";
+			default: "Normal";
+		};
+		FlightNode.invalidateNodeAppearance(__flightShape);
 	}
 
 	public function readGraphicsData(recurse:Bool = true):Vector<IGraphicsData>
@@ -369,6 +475,12 @@ import openfl.geom.Rectangle;
 					var ratios:Array<Float> = cast values[3];
 					result.push(new GraphicsGradientFill(cast values[0], [for (value in colors) Std.int(value)], cast values[2],
 						[for (value in ratios) Std.int(value)], __matrix(values[4]), cast values[5], cast values[6], values[7]));
+				case "beginTextureFill":
+					var paint = __bitmapPaints.get(cast values[0]);
+					if (paint != null)
+					{
+						result.push(new GraphicsBitmapFill(paint.bitmapData, paint.matrix == null ? null : paint.matrix.clone(), paint.repeat, paint.smooth));
+					}
 				case "lineStyle":
 					var stroke = new GraphicsStroke(values[0], values[3], cast values[4], cast values[5], cast values[6], values[7]);
 					stroke.fill = new GraphicsSolidFill(Std.int(values[1]), values[2]);
@@ -401,6 +513,26 @@ import openfl.geom.Rectangle;
 	@:noCompletion private static function __matrix(value:Dynamic):Matrix
 	{
 		return value == null ? null : new Matrix(value.a, value.b, value.c, value.d, value.tx, value.ty);
+	}
+
+	@:noCompletion private function __createBitmapTexture(bitmap:BitmapData, matrix:Matrix, repeat:Bool, smooth:Bool):FlightTextureData
+	{
+		if (bitmap == null || bitmap.__flightBitmap == null) return null;
+		var sampler = FlightTexture.createSampler({
+			magFilter: smooth ? cast "linear" : cast "nearest",
+			minFilter: smooth ? cast "linear" : cast "nearest",
+			mipmaps: false,
+			wrapU: repeat ? cast "repeat" : cast "clamp-to-edge",
+			wrapV: repeat ? cast "repeat" : cast "clamp-to-edge"
+		});
+		var texture = FlightTexture.createTexture2D({source: bitmap.__flightBitmap, sampler: sampler});
+		__bitmapPaints.set(cast texture, {
+			bitmapData: bitmap,
+			matrix: matrix == null ? null : matrix.clone(),
+			repeat: repeat,
+			smooth: smooth
+		});
+		return texture;
 	}
 
 	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix, includeStroke:Bool = true):Void

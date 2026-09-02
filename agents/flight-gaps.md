@@ -183,6 +183,19 @@ the capability that this adapter can compile against.
   cannot execute the broader OpenFL shader model or register its source without
   an active render-state bridge.
 
+- **Graphics shader paints**: Flight Shape supports solid, gradient, and bitmap
+  texture fills and strokes, but its command registry has no custom-shader paint.
+  Flight custom shaders are render effects over an already-rendered surface and
+  therefore cannot back `Graphics.beginShaderFill()` without a shape-material
+  shader command and an OpenFL-to-Flight shader-input bridge.
+
+- **Graphics command-level blend modes**: Flight stores blending on the whole
+  Shape node, so `Graphics.overrideBlendMode()` can apply the last supported
+  mode to the shape but cannot preserve different modes between recorded
+  commands. Flight supports normal, add, darken, difference, hard-light,
+  lighten, multiply, overlay, and screen; OpenFL's alpha, erase, invert, layer,
+  and subtract modes fall back to normal.
+
 - **Per-channel audio pan binding and peak metering**: The upstream Flight
   update reports an AudioChannel `pan` field and `setSourcePan`, but the refreshed
   generated facade still exposes only `AudioBus.pan` and no AudioChannel/source

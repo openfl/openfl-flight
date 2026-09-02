@@ -1,8 +1,14 @@
 package harness.scenarios;
 
+import openfl.Vector;
+import openfl.display.BitmapData;
+import openfl.display.BlendMode;
 import openfl.display.GradientType;
+import openfl.display.GraphicsBitmapFill;
 import openfl.display.GraphicsPath;
+import openfl.display.GraphicsStroke;
 import openfl.display.Sprite;
+import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
 
 class GraphicsScenario {
@@ -15,7 +21,11 @@ class GraphicsScenario {
 			shapes: testShapes(),
 			clear: testClear(),
 			multipleShapes: testMultipleShapes(),
-			graphicsData: testGraphicsData()
+			graphicsData: testGraphicsData(),
+			bitmapFill: testBitmapFill(),
+			bitmapStroke: testBitmapStroke(),
+			quads: testQuads(),
+			blendOverride: testBlendOverride()
 		};
 	}
 
@@ -121,6 +131,118 @@ class GraphicsScenario {
 			pathData: pathData,
 			sourceBounds: rect(source.getBounds(source)),
 			targetBounds: rect(target.getBounds(target))
+		};
+	}
+
+	private static function testBitmapFill():Dynamic {
+		var bitmap = new BitmapData(3, 2, true, 0xFF336699);
+		var matrix = new Matrix(2, 0, 0, 3, 4, 5);
+		var sprite = new Sprite();
+		sprite.graphics.beginBitmapFill(bitmap, matrix, false, true);
+		sprite.graphics.drawRect(2, 3, 20, 10);
+		sprite.graphics.endFill();
+
+		return {
+			bounds: rect(sprite.getBounds(sprite)),
+			insideHit: sprite.hitTestPoint(10, 8, true),
+			outsideHit: sprite.hitTestPoint(30, 8, true),
+			data: captureBitmapGraphicsData(sprite)
+		};
+	}
+
+	private static function testBitmapStroke():Dynamic {
+		var bitmap = new BitmapData(4, 5, true, 0xFFCC8844);
+		var matrix = new Matrix(1, 0, 0, 1, 6, 7);
+		var sprite = new Sprite();
+		sprite.graphics.lineStyle(6);
+		sprite.graphics.lineBitmapStyle(bitmap, matrix, true, false);
+		sprite.graphics.moveTo(2, 10);
+		sprite.graphics.lineTo(42, 10);
+
+		return {
+			bounds: rect(sprite.getBounds(sprite)),
+			insideHit: sprite.hitTestPoint(20, 10, true),
+			outsideHit: sprite.hitTestPoint(20, 20, true),
+			data: captureBitmapGraphicsData(sprite)
+		};
+	}
+
+	private static function testQuads():Dynamic {
+		var rects = Vector.ofArray([10.0, 20, 30, 40, -5, 6, 10, 12]);
+		var plain = new Sprite();
+		plain.graphics.beginFill(0x336699);
+		plain.graphics.drawQuads(rects);
+		plain.graphics.endFill();
+
+		var transformed = new Sprite();
+		transformed.graphics.beginFill(0x993366);
+		transformed.graphics.drawQuads(rects, Vector.ofArray([1, 0]), Vector.ofArray([100.0, 200, -20, 30]));
+		transformed.graphics.endFill();
+
+		var matrix = new Sprite();
+		matrix.graphics.beginFill(0x669933);
+		matrix.graphics.drawQuads(Vector.ofArray([5.0, 7, 8, 6]), null, Vector.ofArray([2.0, 0, 0, 3, -4, 10]));
+		matrix.graphics.endFill();
+
+		return {
+			plainBounds: rect(plain.getBounds(plain)),
+			plainFirstHit: plain.hitTestPoint(20, 30, true),
+			plainSecondHit: plain.hitTestPoint(0, 10, true),
+			transformedBounds: rect(transformed.getBounds(transformed)),
+			transformedFirstHit: transformed.hitTestPoint(105, 205, true),
+			transformedSecondHit: transformed.hitTestPoint(-10, 40, true),
+			matrixBounds: rect(matrix.getBounds(matrix)),
+			matrixHit: matrix.hitTestPoint(0, 20, true)
+		};
+	}
+
+	private static function testBlendOverride():Dynamic {
+		var sprite = new Sprite();
+		sprite.graphics.beginFill(0x336699);
+		sprite.graphics.overrideBlendMode(BlendMode.ADD);
+		sprite.graphics.drawRect(1, 2, 3, 4);
+		sprite.graphics.overrideBlendMode(BlendMode.NORMAL);
+		sprite.graphics.endFill();
+		return {
+			bounds: rect(sprite.getBounds(sprite)),
+			displayBlendMode: sprite.blendMode
+		};
+	}
+
+	private static function captureBitmapGraphicsData(sprite:Sprite):Dynamic {
+		var data = sprite.graphics.readGraphicsData();
+		var bitmapFills:Array<Dynamic> = [];
+		var strokeFills:Array<String> = [];
+		for (item in data) {
+			if ((item is GraphicsBitmapFill)) {
+				bitmapFills.push(captureBitmapFill(cast item));
+			} else if ((item is GraphicsStroke)) {
+				var stroke:GraphicsStroke = cast item;
+				strokeFills.push(className(stroke.fill));
+				if ((stroke.fill is GraphicsBitmapFill)) bitmapFills.push(captureBitmapFill(cast stroke.fill));
+			}
+		}
+		return {
+			types: [for (item in data) className(item)],
+			bitmapFills: bitmapFills,
+			strokeFills: strokeFills
+		};
+	}
+
+	private static function captureBitmapFill(fill:GraphicsBitmapFill):Dynamic {
+		return {
+			width: fill.bitmapData == null ? null : fill.bitmapData.width,
+			height: fill.bitmapData == null ? null : fill.bitmapData.height,
+			repeat: fill.repeat,
+			smooth: fill.smooth,
+			matrix: fill.matrix == null ? null : {
+				a: fill.matrix.a,
+				b: fill.matrix.b,
+				c: fill.matrix.c,
+				d: fill.matrix.d,
+				tx: fill.matrix.tx,
+				ty: fill.matrix.ty
+			}
 		};
 	}
 

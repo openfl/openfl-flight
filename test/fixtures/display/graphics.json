@@ -25,6 +25,31 @@
     "height": 24,
     "width": 46
   },
+  "quads": {
+    "plainSecondHit": false,
+    "matrixBounds": {
+      "x": -4,
+      "y": 10,
+      "height": 18,
+      "width": 16
+    },
+    "plainBounds": {
+      "x": 0,
+      "y": 0,
+      "height": 40,
+      "width": 30
+    },
+    "transformedFirstHit": false,
+    "transformedBounds": {
+      "x": -20,
+      "y": 30,
+      "height": 182,
+      "width": 130
+    },
+    "matrixHit": false,
+    "transformedSecondHit": false,
+    "plainFirstHit": false
+  },
   "multipleShapes": {
     "x": -10,
     "y": -5,
@@ -34,6 +59,26 @@
   "identity": {
     "stable": true,
     "notNull": true
+  },
+  "bitmapStroke": {
+    "bounds": {
+      "x": -1,
+      "y": 7,
+      "height": 6,
+      "width": 49
+    },
+    "outsideHit": false,
+    "insideHit": false,
+    "data": {
+      "types": [
+        "GraphicsStroke",
+        "GraphicsPath"
+      ],
+      "bitmapFills": [],
+      "strokeFills": [
+        "GraphicsSolidFill"
+      ]
+    }
   },
   "gradientRectangle": {
     "x": 5,
@@ -81,6 +126,49 @@
       "y": 20,
       "height": 40,
       "width": 30
+    }
+  },
+  "blendOverride": {
+    "bounds": {
+      "x": 1,
+      "y": 2,
+      "height": 4,
+      "width": 3
+    },
+    "displayBlendMode": 10
+  },
+  "bitmapFill": {
+    "bounds": {
+      "x": 2,
+      "y": 3,
+      "height": 10,
+      "width": 20
+    },
+    "outsideHit": false,
+    "insideHit": false,
+    "data": {
+      "types": [
+        "GraphicsBitmapFill",
+        "GraphicsPath",
+        "GraphicsEndFill"
+      ],
+      "bitmapFills": [
+        {
+          "repeat": false,
+          "smooth": true,
+          "height": 2,
+          "matrix": {
+            "tx": 4,
+            "d": 3,
+            "c": 0,
+            "a": 2,
+            "b": 0,
+            "ty": 5
+          },
+          "width": 3
+        }
+      ],
+      "strokeFills": []
     }
   }
 }
