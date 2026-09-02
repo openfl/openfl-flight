@@ -21,6 +21,14 @@
     "startAtLogin": false
   },
   "activateThrows": false,
+  "applicationIdentity": {
+    "applicationDescriptorIsNull": true,
+    "applicationDescriptorReadable": true,
+    "applicationID": null,
+    "applicationIDReadable": true,
+    "publisherID": null,
+    "publisherIDReadable": true
+  },
   "idleBelowMinimumThrows": true,
   "commands": {
     "copy": false,
@@ -31,7 +39,15 @@
   },
   "defaultApplication": {
     "getIsNull": true,
-    "isSet": false
+    "isSet": false,
+    "removeDidNotThrow": true,
+    "setDidNotThrow": true
+  },
+  "flightApplicationHandle": {
+    "available": true,
+    "sameForSingleton": true,
+    "systemPauseDidNotThrow": true,
+    "systemResumeDidNotThrow": true
   },
   "supports": {
     "systemTrayIcon": false,

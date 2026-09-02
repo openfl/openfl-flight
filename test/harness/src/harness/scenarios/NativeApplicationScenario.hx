@@ -2,7 +2,9 @@ package harness.scenarios;
 
 import openfl.desktop.NativeApplication;
 import openfl.desktop.SystemIdleMode;
+import openfl.system.System;
 
+@:access(openfl.desktop.NativeApplication)
 class NativeApplicationScenario {
 	public static function run():Dynamic {
 		#if harness_capture
@@ -40,6 +42,28 @@ class NativeApplicationScenario {
 			activateThrows = true;
 		}
 
+		var applicationDescriptor:Xml = null;
+		var applicationDescriptorReadable = succeeds(function() {
+			applicationDescriptor = application.applicationDescriptor;
+		});
+		var applicationID:String = null;
+		var applicationIDReadable = succeeds(function() {
+			applicationID = application.applicationID;
+		});
+		var publisherID:String = null;
+		var publisherIDReadable = succeeds(function() {
+			publisherID = application.publisherID;
+		});
+		var removeAsDefaultApplicationDidNotThrow = succeeds(function() {
+			application.removeAsDefaultApplication("flight");
+		});
+		var setAsDefaultApplicationDidNotThrow = succeeds(function() {
+			application.setAsDefaultApplication("flight");
+		});
+		var systemPauseDidNotThrow = succeeds(System.pause);
+		var flightApplicationHandle = application.__flightApplication;
+		var systemResumeDidNotThrow = succeeds(System.resume);
+
 		var defaults = {
 			activeWindowIsNull: application.activeWindow == null,
 			autoExit: application.autoExit,
@@ -61,6 +85,14 @@ class NativeApplicationScenario {
 
 		var result = {
 			activateThrows: activateThrows,
+			applicationIdentity: {
+				applicationDescriptorIsNull: applicationDescriptor == null,
+				applicationDescriptorReadable: applicationDescriptorReadable,
+				applicationID: applicationID,
+				applicationIDReadable: applicationIDReadable,
+				publisherID: publisherID,
+				publisherIDReadable: publisherIDReadable
+			},
 			commands: {
 				clear: application.clear(),
 				copy: application.copy(),
@@ -71,7 +103,15 @@ class NativeApplicationScenario {
 			defaults: defaults,
 			defaultApplication: {
 				getIsNull: application.getDefaultApplication("flight") == null,
-				isSet: application.isSetAsDefaultApplication("flight")
+				isSet: application.isSetAsDefaultApplication("flight"),
+				removeDidNotThrow: removeAsDefaultApplicationDidNotThrow,
+				setDidNotThrow: setAsDefaultApplicationDidNotThrow
+			},
+			flightApplicationHandle: {
+				available: flightApplicationHandle != null,
+				sameForSingleton: NativeApplication.nativeApplication.__flightApplication == flightApplicationHandle,
+				systemPauseDidNotThrow: systemPauseDidNotThrow,
+				systemResumeDidNotThrow: systemResumeDidNotThrow
 			},
 			idleAboveMaximumThrows: idleAboveMaximumThrows,
 			idleBelowMinimumThrows: idleBelowMinimumThrows,
@@ -100,9 +140,26 @@ class NativeApplicationScenario {
 		#end
 	}
 
+	private static function succeeds(operation:Void->Void):Bool {
+		try {
+			operation();
+			return true;
+		} catch (_:Dynamic) {
+			return false;
+		}
+	}
+
 	private static function expected():Dynamic {
 		return {
 			activateThrows: false,
+			applicationIdentity: {
+				applicationDescriptorIsNull: true,
+				applicationDescriptorReadable: true,
+				applicationID: null,
+				applicationIDReadable: true,
+				publisherID: null,
+				publisherIDReadable: true
+			},
 			commands: {
 				clear: false,
 				copy: false,
@@ -125,7 +182,15 @@ class NativeApplicationScenario {
 			},
 			defaultApplication: {
 				getIsNull: true,
-				isSet: false
+				isSet: false,
+				removeDidNotThrow: true,
+				setDidNotThrow: true
+			},
+			flightApplicationHandle: {
+				available: true,
+				sameForSingleton: true,
+				systemPauseDidNotThrow: true,
+				systemResumeDidNotThrow: true
 			},
 			idleAboveMaximumThrows: true,
 			idleBelowMinimumThrows: true,

@@ -192,6 +192,17 @@ class NativeApplication extends EventDispatcher
 	}
 
 	/**
+		The application descriptor for this application. Flight does not expose
+		the AIR application descriptor, so this value is `null` on OpenFL targets.
+	**/
+	public var applicationDescriptor(get, never):Xml;
+
+	@:noCompletion private function get_applicationDescriptor():Xml
+	{
+		return null;
+	}
+
+	/**
 		The application ID of this application.
 
 		The value of this ID is set in the application descriptor file.
@@ -200,7 +211,7 @@ class NativeApplication extends EventDispatcher
 
 	@:noCompletion private function get_applicationID():String
 	{
-		// TODO: Read the application ID through Flight's application API.
+		// Flight exposes application name and version, but no application ID.
 		return null;
 	}
 
@@ -292,6 +303,17 @@ class NativeApplication extends EventDispatcher
 	{
 		// don't allow the original value to be edited externally
 		return __openedWindows.copy();
+	}
+
+	/**
+		The publisher ID for this application. Flight does not expose AIR
+		publisher metadata, so this value is `null` on OpenFL targets.
+	**/
+	public var publisherID(get, never):String;
+
+	@:noCompletion private function get_publisherID():String
+	{
+		return null;
 	}
 
 	/**
