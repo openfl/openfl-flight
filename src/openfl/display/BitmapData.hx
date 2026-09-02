@@ -449,7 +449,37 @@ class BitmapData implements IBitmapDrawable
 	public function merge(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redMultiplier:UInt, greenMultiplier:UInt,
 			blueMultiplier:UInt, alphaMultiplier:UInt):Void
 	{
-		// TODO: Merge bitmap regions through Flight.
+		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
+			|| sourceRect == null || destPoint == null) return;
+		var regionWidth = Std.int(Math.max(0, sourceRect.width));
+		var regionHeight = Std.int(Math.max(0, sourceRect.height));
+		if (regionWidth == 0 || regionHeight == 0) return;
+		var sourceBitmap = __toStraightBitmap(sourceBitmapData);
+		var destinationBitmap = __toStraightBitmap(this);
+		var originalDestination = FlightBitmap.cloneBitmap(destinationBitmap);
+		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceRect.x, sourceRect.y, regionWidth, regionHeight);
+		var destination = FlightBitmap.createBitmapRegion(destinationBitmap, destPoint.x, destPoint.y, regionWidth, regionHeight);
+		FlightBitmap.mergeBitmap(destination, source, redMultiplier / 256, greenMultiplier / 256, blueMultiplier / 256, alphaMultiplier / 256);
+
+		// Flight rounds blended channels; OpenFL truncates the 8.8 fixed-point
+		// result. Correct that adapter-level difference before storing the pixels.
+		for (offsetY in 0...regionHeight) for (offsetX in 0...regionWidth)
+		{
+			var sourceX = Std.int(sourceRect.x) + offsetX;
+			var sourceY = Std.int(sourceRect.y) + offsetY;
+			var destinationX = Std.int(destPoint.x) + offsetX;
+			var destinationY = Std.int(destPoint.y) + offsetY;
+			if (sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height
+				|| destinationX < 0 || destinationY < 0 || destinationX >= width || destinationY >= height) continue;
+			var sourceColor = Std.int(FlightBitmap.getBitmapPixel(sourceBitmap, sourceX, sourceY));
+			var destinationColor = Std.int(FlightBitmap.getBitmapPixel(originalDestination, destinationX, destinationY));
+			var mergedColor = (__mergeComponent((sourceColor >>> 24) & 0xFF, (destinationColor >>> 24) & 0xFF, redMultiplier) << 24)
+				| (__mergeComponent((sourceColor >>> 16) & 0xFF, (destinationColor >>> 16) & 0xFF, greenMultiplier) << 16)
+				| (__mergeComponent((sourceColor >>> 8) & 0xFF, (destinationColor >>> 8) & 0xFF, blueMultiplier) << 8)
+				| __mergeComponent(sourceColor & 0xFF, destinationColor & 0xFF, alphaMultiplier);
+			FlightBitmap.setBitmapPixel(destinationBitmap, destinationX, destinationY, mergedColor);
+		}
+		__writeStraightRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
 	}
 
 	public function noise(randomSeed:Int, low:Int = 0, high:Int = 255, channelOptions:Int = 7, grayScale:Bool = false):Void
@@ -662,6 +692,11 @@ class BitmapData implements IBitmapDrawable
 		if (alpha == 0xFF) return component;
 		var alpha16 = Std.int(Math.ceil(alpha * (65536 / 255)));
 		return (component * alpha16) >> 16;
+	}
+
+	@:noCompletion private static inline function __mergeComponent(source:Int, destination:Int, multiplier:UInt):Int
+	{
+		return Std.int(((source * multiplier) + (destination * (256 - multiplier))) / 256);
 	}
 
 	@:noCompletion private static function __premultiplyRgb(color:Int, alpha:Int):Int

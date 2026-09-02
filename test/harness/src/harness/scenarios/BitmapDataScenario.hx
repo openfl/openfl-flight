@@ -30,6 +30,7 @@ class BitmapDataScenario {
 			histogram: testHistogram(),
 			pixelsBytes: testPixelsBytes(),
 			threshold: testThreshold(),
+			merge: testMerge(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -282,6 +283,21 @@ class BitmapDataScenario {
 			pixels: pixels(destination),
 			equalChanged: equalChanged,
 			equalPixels: pixels(equalDestination)
+		};
+	}
+
+	private static function testMerge():Dynamic {
+		var source = new BitmapData(2, 1, true, 0);
+		source.setPixel32(0, 0, 0x80412305);
+		source.setPixel32(1, 0, 0xFF112233);
+		var destination = new BitmapData(3, 1, true, 0x407080FF);
+		destination.merge(source, source.rect, new Point(1, 0), 128, 64, 192, 128);
+
+		var endpoints = new BitmapData(2, 1, true, 0xFFABCDEF);
+		endpoints.merge(source, source.rect, new Point(), 0, 256, 0, 256);
+		return {
+			mixed: pixels(destination),
+			endpoints: pixels(endpoints)
 		};
 	}
 
