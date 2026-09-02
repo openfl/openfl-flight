@@ -294,6 +294,29 @@ the capability that this adapter can compile against.
   and the combined download/save and multipart upload workflows still require
   Flight primitives that compose dialog, filesystem, and network operations.
 
+- **Filesystem metadata, locations, and synchronous contracts**: Flight
+  FileSystem backs text/binary reads and writes, copies, moves, deletion,
+  directory creation/listing, file statistics, access checks, and optional disk
+  usage. Its generated facade still hardcodes empty well-known filesystem paths
+  plus unsupported real-path, permissions, symlink mutation/read, and watch
+  operations; maintained native hosts also cannot currently report disk usage
+  or portable symlink state. Flight has no equivalents for AIR's downloaded,
+  package/bundle, backup-exclusion, static permission-status, hidden-attribute,
+  or filesystem-charset metadata. All Flight filesystem IO returns promises,
+  so OpenFL's synchronous `File` methods can only be satisfied by a host whose
+  promise settles immediately; truly asynchronous hosts must use the OpenFL
+  asynchronous methods. Flight promises also expose no operation cancellation,
+  leaving `File.cancel()` able to suppress stale events but not stop host IO.
+
+- **Native file-dialog option and result contract skew**: Flight's generated
+  open/save option records omit OpenFL's dialog title and starting path, while
+  its maintained Lime host reads those fields reflectively. The generated
+  facade declares outcome-wrapped result records, but the same host currently
+  resolves raw handles or handle arrays. The adapter tolerates both result
+  shapes and forwards the extra native options reflectively; the Flight dialog
+  contract should expose those options and make the native host return the
+  declared result records.
+
 - **Native child-process flight-hx binding**: The upstream Flight update reports
   process spawn, standard streams, and exit status in `@flighthq/shell`, but the
   refreshed generated `flight.Shell` facade still contains only external/path,

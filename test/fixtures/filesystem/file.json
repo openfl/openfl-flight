@@ -1,0 +1,37 @@
+{
+  "tempExistsInitially": false,
+  "deletedFileExists": false,
+  "source": {
+    "name": "alpha.txt",
+    "creationDateIsNull": true,
+    "isDirectory": false,
+    "text": "flight",
+    "size": 0,
+    "urlIsFile": true,
+    "extension": "txt",
+    "parentResolvesSource": true,
+    "modificationDateIsNull": true,
+    "urlEndsWithName": true,
+    "exists": true,
+    "isHidden": false,
+    "type": "txt"
+  },
+  "operationsCompleted": true,
+  "listing": {
+    "names": [
+      "alpha.txt",
+      "moved.txt",
+      "nested"
+    ],
+    "binaryLength": 3,
+    "nestedIsDirectory": true
+  },
+  "cleaned": true,
+  "copyMove": {
+    "copyNameAfterMove": "copy.txt",
+    "movedExists": true,
+    "movedText": "flight",
+    "overwriteRejected": true,
+    "copyExists": false
+  }
+}

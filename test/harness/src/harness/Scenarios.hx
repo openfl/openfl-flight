@@ -30,6 +30,7 @@ import harness.scenarios.EventPropagationScenario;
 import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FileReferenceScenario;
+import harness.scenarios.FileScenario;
 import harness.scenarios.FilterScenario;
 import harness.scenarios.FontAndStyleScenario;
 import harness.scenarios.GameInputScenario;
@@ -296,6 +297,10 @@ class Scenarios {
 			{
 				name: "net/url-types",
 				run: URLTypesScenario.run
+			},
+			{
+				name: "filesystem/file",
+				run: FileScenario.run
 			},
 			{
 				name: "net/file-reference",
