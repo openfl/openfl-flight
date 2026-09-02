@@ -26,6 +26,7 @@ class TileContainer extends Tile implements ITileContainer
 	**/
 	public var numTiles(get, never):Int;
 
+	@:noCompletion private var __boundsScratch:Rectangle;
 	@:noCompletion private var __tiles:Array<Tile>;
 
 	#if openfljs
@@ -41,6 +42,7 @@ class TileContainer extends Tile implements ITileContainer
 	{
 		super(-1, x, y, scaleX, scaleY, rotation, originX, originY);
 
+		__boundsScratch = new Rectangle();
 		__tiles = new Array();
 		__length = 0;
 		#if !flash
@@ -175,21 +177,24 @@ class TileContainer extends Tile implements ITileContainer
 	public override function getBounds(targetCoordinateSpace:Tile):Rectangle
 	{
 		var result = new Rectangle();
-		var rect:Rectangle = null;
+		__getBoundsIn(targetCoordinateSpace, result);
+		return result;
+	}
 
+	@:noCompletion public override function __getBoundsIn(targetCoordinateSpace:Tile, result:Rectangle):Void
+	{
+		result.setTo(0, 0, 0, 0);
 		for (tile in __tiles)
 		{
-			// TODO: Generate less Rectangle objects? Could be done with __getBounds but need a initial rectangle and the stack of transformations
-			rect = tile.getBounds(targetCoordinateSpace);
+			tile.__getBoundsIn(targetCoordinateSpace, __boundsScratch);
 
 			#if flash
-			result = result.union(rect);
+			var union = result.union(__boundsScratch);
+			result.setTo(union.x, union.y, union.width, union.height);
 			#else
-			result.__expand(rect.x, rect.y, rect.width, rect.height);
+			result.__expand(__boundsScratch.x, __boundsScratch.y, __boundsScratch.width, __boundsScratch.height);
 			#end
 		}
-
-		return result;
 	}
 
 	/**
@@ -419,19 +424,7 @@ class TileContainer extends Tile implements ITileContainer
 	override function get_height():Float
 	{
 		var result = new Rectangle();
-		var rect:Rectangle = null;
-
-		for (tile in __tiles)
-		{
-			// TODO: Generate less Rectangle objects? Could be done with __getBounds but need a initial rectangle and the stack of transformations
-			rect = tile.getBounds(this);
-
-			#if flash
-			result = result.union(rect);
-			#else
-			result.__expand(rect.x, rect.y, rect.width, rect.height);
-			#end
-		}
+		__getBoundsIn(this, result);
 
 		__getBounds(result, matrix);
 
@@ -442,19 +435,7 @@ class TileContainer extends Tile implements ITileContainer
 	override function set_height(value:Float):Float
 	{
 		var result = new Rectangle();
-		var rect:Rectangle = null;
-
-		for (tile in __tiles)
-		{
-			// TODO: Generate less Rectangle objects? Could be done with __getBounds but need a initial rectangle and the stack of transformations
-			rect = tile.getBounds(this);
-
-			#if flash
-			result = result.union(rect);
-			#else
-			result.__expand(rect.x, rect.y, rect.width, rect.height);
-			#end
-		}
+		__getBoundsIn(this, result);
 
 		if (result.height != 0)
 		{
@@ -467,19 +448,7 @@ class TileContainer extends Tile implements ITileContainer
 	override function get_width():Float
 	{
 		var result = new Rectangle();
-		var rect:Rectangle = null;
-
-		for (tile in __tiles)
-		{
-			// TODO: Generate less Rectangle objects? Could be done with __getBounds but need a initial rectangle and the stack of transformations
-			rect = tile.getBounds(this);
-
-			#if flash
-			result = result.union(rect);
-			#else
-			result.__expand(rect.x, rect.y, rect.width, rect.height);
-			#end
-		}
+		__getBoundsIn(this, result);
 
 		__getBounds(result, matrix);
 
@@ -490,19 +459,7 @@ class TileContainer extends Tile implements ITileContainer
 	override function set_width(value:Float):Float
 	{
 		var result = new Rectangle();
-		var rect:Rectangle = null;
-
-		for (tile in __tiles)
-		{
-			// TODO: Generate less Rectangle objects? Could be done with __getBounds but need a initial rectangle and the stack of transformations
-			rect = tile.getBounds(this);
-
-			#if flash
-			result = result.union(rect);
-			#else
-			result.__expand(rect.x, rect.y, rect.width, rect.height);
-			#end
-		}
+		__getBoundsIn(this, result);
 
 		if (result.width != 0)
 		{

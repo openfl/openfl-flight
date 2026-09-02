@@ -371,7 +371,13 @@ class Tile
 	public function getBounds(targetCoordinateSpace:Tile):Rectangle
 	{
 		var result:Rectangle = new Rectangle();
+		__getBoundsIn(targetCoordinateSpace, result);
+		return result;
+	}
 
+	@:noCompletion public function __getBoundsIn(targetCoordinateSpace:Tile, result:Rectangle):Void
+	{
+		result.setTo(0, 0, 0, 0);
 		__findTileRect(result);
 
 		// Copied from DisplayObject. Create the translation matrix.
@@ -394,8 +400,6 @@ class Tile
 		}
 
 		__getBounds(result, matrix);
-
-		return result;
 	}
 
 	@:noCompletion private function __getBounds(result:Rectangle, matrix:Matrix):Void
