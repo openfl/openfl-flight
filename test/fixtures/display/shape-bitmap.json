@@ -1,14 +1,46 @@
 {
   "shape": {
     "graphicsStable": true,
-    "bounds": {
-      "x": -4,
-      "y": 6,
+    "cleared": {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "height": 0,
+        "width": 0
+      },
+      "height": 0,
+      "width": 0
+    },
+    "empty": {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "height": 0,
+        "width": 0
+      },
+      "height": 0,
+      "width": 0
+    },
+    "rectangle": {
+      "bounds": {
+        "x": -4,
+        "y": 6,
+        "height": 9,
+        "width": 18
+      },
       "height": 9,
       "width": 18
     },
-    "height": 9,
-    "width": 18
+    "circle": {
+      "bounds": {
+        "x": 2,
+        "y": -5,
+        "height": 6,
+        "width": 6
+      },
+      "height": 6,
+      "width": 6
+    }
   },
   "bitmap": {
     "cleared": {

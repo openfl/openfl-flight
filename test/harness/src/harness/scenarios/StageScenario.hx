@@ -29,6 +29,8 @@ class StageScenario {
 			height: stage.height,
 			color: stage.color,
 			contentsScaleFactor: stage.contentsScaleFactor,
+			displayState: Std.string(stage.displayState),
+			frameRate: captureFrameRate(stage),
 			align: Std.string(stage.align),
 			scaleMode: Std.string(stage.scaleMode),
 			quality: Std.string(stage.quality),
@@ -68,7 +70,14 @@ class StageScenario {
 		stage.align = StageAlign.BOTTOM_RIGHT;
 		stage.scaleMode = StageScaleMode.SHOW_ALL;
 		stage.quality = StageQuality.LOW;
+		#if harness_capture
+		var mutatedFrameRate = 24.0;
+		#else
+		stage.frameRate = 24;
+		var mutatedFrameRate = stage.frameRate;
+		#end
 		stage.autoOrients = true;
+		stage.showDefaultContextMenu = false;
 		stage.color = 0xABCDEF;
 		var colorAfterRgb = stage.color;
 		stage.color = null;
@@ -98,7 +107,10 @@ class StageScenario {
 				align: Std.string(stage.align),
 				scaleMode: Std.string(stage.scaleMode),
 				quality: Std.string(stage.quality),
+				displayState: Std.string(stage.displayState),
+				frameRate: mutatedFrameRate,
 				autoOrients: stage.autoOrients,
+				showDefaultContextMenu: stage.showDefaultContextMenu,
 				colorAfterRgb: colorAfterRgb,
 				colorAfterNull: colorAfterNull,
 				storedRectX: secondRect.x,
@@ -125,6 +137,16 @@ class StageScenario {
 		window.fullscreen = false;
 		#end
 		return new Stage(cast window, color);
+	}
+
+	private static function captureFrameRate(stage:Stage):Float {
+		#if harness_capture
+		// The headless reference Window has no backend, whose frame rate Stage
+		// normally proxies. Record OpenFL's documented runtime default instead.
+		return 60;
+		#else
+		return stage.frameRate;
+		#end
 	}
 
 	private static function testImmutableProperties(stage:Stage):Dynamic {

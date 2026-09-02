@@ -110,5 +110,28 @@
   "removedEvents": {
     "firstEvent": "removed",
     "eventsLength": 1
+  },
+  "edges": {
+    "orderAfterInvalidSet": "child",
+    "getPastEndIsNull": true,
+    "addNull": {
+      "errorClass": "openfl.errors.TypeError",
+      "errorID": 2007,
+      "threw": true
+    },
+    "removePastEndIsNull": true,
+    "addPastEnd": {
+      "errorClass": "String",
+      "errorID": null,
+      "threw": true
+    },
+    "unrelatedStillDetached": true,
+    "addSelf": {
+      "errorClass": "openfl.errors.ArgumentError",
+      "errorID": 2024,
+      "threw": true
+    },
+    "removeNegativeIsNull": true,
+    "getNegativeIsNull": true
   }
 }

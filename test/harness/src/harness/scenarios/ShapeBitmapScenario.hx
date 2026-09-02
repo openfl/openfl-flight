@@ -9,9 +9,18 @@ import openfl.geom.Rectangle;
 class ShapeBitmapScenario {
 	public static function run():Dynamic {
 		var shape = new Shape();
-		shape.graphics.beginFill(0x336699);
-		shape.graphics.drawRect(-4, 6, 18, 9);
-		shape.graphics.endFill();
+		var graphics = shape.graphics;
+		var emptyShape = shapeState(shape);
+		graphics.beginFill(0x336699);
+		graphics.drawRect(-4, 6, 18, 9);
+		graphics.endFill();
+		var rectangleShape = shapeState(shape);
+		graphics.clear();
+		var clearedShape = shapeState(shape);
+		graphics.beginFill(0x993366, 0.5);
+		graphics.drawCircle(5, -2, 3);
+		graphics.endFill();
+		var circleShape = shapeState(shape);
 
 		var initialData = new BitmapData(13, 7, true, 0x80402010);
 		var bitmap = new Bitmap(initialData, PixelSnapping.ALWAYS, true);
@@ -46,10 +55,11 @@ class ShapeBitmapScenario {
 
 		return {
 			shape: {
-				graphicsStable: shape.graphics == shape.graphics,
-				bounds: rect(shape.getBounds(shape)),
-				width: number(shape.width),
-				height: number(shape.height)
+				graphicsStable: shape.graphics == graphics,
+				empty: emptyShape,
+				rectangle: rectangleShape,
+				cleared: clearedShape,
+				circle: circleShape
 			},
 			bitmap: {
 				initial: initial,
@@ -58,6 +68,14 @@ class ShapeBitmapScenario {
 				defaultPixelSnappingAuto: defaultBitmap.pixelSnapping == PixelSnapping.AUTO,
 				defaultSmoothing: defaultBitmap.smoothing
 			}
+		};
+	}
+
+	private static function shapeState(shape:Shape):Dynamic {
+		return {
+			bounds: rect(shape.getBounds(shape)),
+			height: number(shape.height),
+			width: number(shape.width)
 		};
 	}
 

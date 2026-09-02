@@ -28,6 +28,7 @@
     "autoOrients": false,
     "stageHeight": 240,
     "stageWidth": 320,
+    "displayState": "normal",
     "scaleMode": "noScale",
     "align": "TL",
     "nameIsNull": true,
@@ -39,6 +40,7 @@
     "tabIndex": -1,
     "stage3DCount": 4,
     "fullScreenSourceRectIsNull": true,
+    "frameRate": 60,
     "width": 0,
     "showDefaultContextMenu": true
   },
@@ -50,10 +52,13 @@
     "autoOrients": false,
     "storedRectY": 2,
     "colorAfterNull": -16777216,
+    "displayState": "normal",
     "scaleMode": "showAll",
     "align": "BR",
     "colorAfterRgb": -5517841,
-    "storedRectX": 1
+    "storedRectX": 1,
+    "frameRate": 24,
+    "showDefaultContextMenu": false
   },
   "focus": {
     "endsNull": true,

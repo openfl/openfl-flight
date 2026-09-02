@@ -2,7 +2,9 @@ package openfl.display;
 
 #if !flash
 import flight.Node as FlightNode;
+import openfl.errors.ArgumentError;
 import openfl.errors.RangeError;
+import openfl.errors.TypeError;
 import openfl.events.Event;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -14,6 +16,7 @@ import openfl.geom.Rectangle;
 #end
 @:access(openfl.display.DisplayObject)
 @:access(openfl.display.Graphics)
+@:access(openfl.errors.Error)
 @:access(openfl.events.Event)
 class DisplayObjectContainer extends InteractiveObject
 {
@@ -144,11 +147,30 @@ class DisplayObjectContainer extends InteractiveObject
 	**/
 	public function addChildAt(child:DisplayObject, index:Int):DisplayObject
 	{
-		if (child == null) throw "Error #2007: Parameter child must be non-null.";
-		if (child == this) throw "Error #2024: An object cannot be added as a child of itself.";
-		if ((child is Stage)) throw "Error #3783: A Stage object cannot be added as the child of another object.";
+		if (child == null)
+		{
+			var error = new TypeError("Error #2007: Parameter child must be non-null.");
+			error.errorID = 2007;
+			throw error;
+		}
+		if (child == this)
+		{
+			var error = new ArgumentError("Error #2024: An object cannot be added as a child of itself.");
+			error.errorID = 2024;
+			throw error;
+		}
+		if ((child is Stage))
+		{
+			var error = new ArgumentError("Error #3783: A Stage object cannot be added as the child of another object.");
+			error.errorID = 3783;
+			throw error;
+		}
 		if ((child is DisplayObjectContainer) && cast(child, DisplayObjectContainer).contains(this))
-			throw "Error #2024: An object cannot be added as a child of one of its children.";
+		{
+			var error = new ArgumentError("Error #2024: An object cannot be added as a child of one of its children.");
+			error.errorID = 2024;
+			throw error;
+		}
 		if (index < 0 || index > __children.length) throw "Invalid index position " + index;
 
 		if (child.parent == this)

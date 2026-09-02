@@ -25,7 +25,34 @@ class DisplayContainerScenario {
 			objectsUnderPoint: testObjectsUnderPoint(),
 			removeChildAt: testRemoveChildAt(),
 			numChildren: testNumChildren(),
-			addChildReindex: testAddChildReindex()
+			addChildReindex: testAddChildReindex(),
+			edges: testEdges()
+		};
+	}
+
+	private static function testEdges():Dynamic {
+		var parent = new Sprite();
+		var child = new Sprite();
+		child.name = "child";
+		var unrelated = new Sprite();
+		parent.addChild(child);
+
+		var addNull = captureError(function() parent.addChild(null));
+		var addSelf = captureError(function() parent.addChild(parent));
+		var addPastEnd = captureError(function() parent.addChildAt(new Sprite(), 2));
+		parent.setChildIndex(child, 1);
+		parent.setChildIndex(unrelated, 0);
+
+		return {
+			addNull: addNull,
+			addSelf: addSelf,
+			addPastEnd: addPastEnd,
+			getNegativeIsNull: parent.getChildAt(-1) == null,
+			getPastEndIsNull: parent.getChildAt(parent.numChildren) == null,
+			removeNegativeIsNull: parent.removeChildAt(-1) == null,
+			removePastEndIsNull: parent.removeChildAt(parent.numChildren) == null,
+			orderAfterInvalidSet: childOrder(parent),
+			unrelatedStillDetached: unrelated.parent == null
 		};
 	}
 
@@ -411,6 +438,17 @@ class DisplayContainerScenario {
 
 	private static function childOrder(parent:Sprite):String {
 		return [for (i in 0...parent.numChildren) parent.getChildAt(i).name].join(",");
+	}
+
+	private static function captureError(callback:Void->Void):Dynamic {
+		var error:Dynamic = null;
+		try callback() catch (caught:Dynamic) error = caught;
+		var type = error == null ? null : Type.getClass(error);
+		return {
+			threw: error != null,
+			errorClass: type == null ? (error == null ? null : Std.string(Type.typeof(error))) : Type.getClassName(type),
+			errorID: error == null ? null : Reflect.field(error, "errorID")
+		};
 	}
 
 	private static function filledSprite(name:String, x:Float, y:Float, width:Float, height:Float):Sprite {
