@@ -19,10 +19,12 @@ class URLStreamScenario
 	public static function run():Dynamic
 	{
 		return {
+			close: testClose(),
 			defaults: testDefaults(),
 			dataInput: testDataInput(),
 			loadStart: testLoadStart(),
 			completedBody: testCompletedBody(),
+			primitiveReads: testPrimitiveReads(),
 			requestMapping: testRequestMapping()
 		};
 	}
@@ -66,6 +68,52 @@ class URLStreamScenario
 		};
 	}
 
+	private static function testPrimitiveReads():Dynamic
+	{
+		var stream = new URLStream();
+		var data = new ByteArray();
+		data.endian = Endian.BIG_ENDIAN;
+		for (value in [102, 108, 105, 103, 104, 116])
+		{
+			data.writeByte(value);
+		}
+		data.writeFloat(12.5);
+		data.writeInt(-123456789);
+		data.position = 0;
+		@:privateAccess stream.__data = data;
+		stream.endian = Endian.BIG_ENDIAN;
+		var utf8 = stream.readUTFBytes(6);
+		var float = stream.readFloat();
+		var int = stream.readInt();
+
+		return {
+			availableAtEnd: stream.bytesAvailable,
+			float: float,
+			int: int,
+			utf8: utf8
+		};
+	}
+
+	private static function testClose():Dynamic
+	{
+		var stream = new URLStream();
+		var data = new ByteArray();
+		data.writeByte(7);
+		data.position = 0;
+		@:privateAccess stream.__data = data;
+		var availableBeforeClose = stream.bytesAvailable;
+		stream.close();
+		var secondCloseError = errorClass(function():Void stream.close());
+
+		return {
+			availableAfterClose: stream.bytesAvailable,
+			availableBeforeClose: availableBeforeClose,
+			connectedAfterClose: stream.connected,
+			readAfterCloseError: errorClass(function():Void stream.readByte()),
+			secondCloseError: secondCloseError
+		};
+	}
+
 	private static function testLoadStart():Dynamic
 	{
 		var stream = new URLStream();
@@ -92,22 +140,36 @@ class URLStreamScenario
 	{
 		var stream = new URLStream();
 		var events:Array<String> = [];
-		var types:Array<String> = [HTTPStatusEvent.HTTP_RESPONSE_STATUS, HTTPStatusEvent.HTTP_STATUS, ProgressEvent.PROGRESS, Event.COMPLETE];
+		var responseStatus:Dynamic = null;
+		var types:Array<String> = [Event.OPEN, HTTPStatusEvent.HTTP_RESPONSE_STATUS, HTTPStatusEvent.HTTP_STATUS, ProgressEvent.PROGRESS, Event.COMPLETE];
 		for (type in types)
 		{
-			stream.addEventListener(type, function(event:Event):Void events.push(event.type));
+			stream.addEventListener(type, function(event:Event):Void
+			{
+				events.push(event.type);
+				if (event.type == HTTPStatusEvent.HTTP_RESPONSE_STATUS)
+				{
+					var status:HTTPStatusEvent = cast event;
+					responseStatus = {
+						responseHeaderCount: status.responseHeaders.length,
+						responseURL: status.responseURL,
+						status: status.status
+					};
+				}
+			});
 		}
+		var request = new URLRequest("data:application/octet-stream;base64,AQL/");
+		stream.load(request);
 
 		#if harness_compare
-		@:privateAccess stream.__loading = true;
-		@:privateAccess stream.__loadGeneration = 1;
-		@:privateAccess stream.__complete(1, new URLRequest("https://example.invalid/data"), {
+		var generation = @:privateAccess stream.__loadGeneration;
+		@:privateAccess stream.__complete(generation, request, {
 			body: Bytes.ofHex("0102ff"),
 			headers: {},
 			ok: true,
 			status: 200,
 			statusText: "OK",
-			url: "https://example.invalid/data"
+			url: request.url
 		});
 		#else
 		var data = new ByteArray();
@@ -126,7 +188,8 @@ class URLStreamScenario
 			bytesAvailable: stream.bytesAvailable,
 			connected: stream.connected,
 			events: events,
-			readBack: [stream.readUnsignedByte(), stream.readUnsignedByte(), stream.readUnsignedByte()]
+			readBack: [stream.readUnsignedByte(), stream.readUnsignedByte(), stream.readUnsignedByte()],
+			responseStatus: responseStatus
 		};
 	}
 

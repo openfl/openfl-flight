@@ -10,13 +10,21 @@
     "events": [
       "progress",
       "complete"
-    ]
+    ],
+    "responseStatus": null
   },
   "defaults": {
     "connected": false,
     "bytesAvailable": 0,
     "endianError": "String",
     "objectEncoding": null
+  },
+  "close": {
+    "availableBeforeClose": 1,
+    "connectedAfterClose": false,
+    "availableAfterClose": 0,
+    "readAfterCloseError": "String",
+    "secondCloseError": null
   },
   "requestMapping": {
     "header": "stream",
@@ -35,6 +43,12 @@
     "bytesAvailableAfterClose": 0,
     "connectedAfterClose": false,
     "events": []
+  },
+  "primitiveReads": {
+    "availableAtEnd": 0,
+    "float": 12.5,
+    "int": -123456789,
+    "utf8": "flight"
   },
   "dataInput": {
     "endian": 0,

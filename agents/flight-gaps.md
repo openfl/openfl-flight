@@ -127,9 +127,12 @@ the capability that this adapter can compile against.
   `NetResponse.body` is available only after completion; `URLStream` therefore
   cannot expose bytes incrementally during progress. Flight also exposes status
   and headers only with the completed body, so OpenFL's earlier
-  `httpResponseStatus` timing cannot be reproduced. The adapters preserve final
-  status/event ordering through `flight.Net`. Flight 0.4.0 also exposes only its
-  fetch-backed default through the public `flight.Net` facade; non-JavaScript
+  `httpResponseStatus` timing cannot be reproduced. `URLLoader` preserves the
+  final status/event ordering through `flight.Net`; OpenFL 9.5.2 `URLStream`
+  itself forwards only progress, completion, and error events from its internal
+  loader, so the adapter deliberately retains its lack of `open`, `httpStatus`,
+  and `httpResponseStatus` events and properties. Flight 0.4.0 also exposes only
+  its fetch-backed default through the public `flight.Net` facade; non-JavaScript
   hosts need a public backend installation hook before URLLoader can perform
   native requests instead of reporting a transport failure.
 
