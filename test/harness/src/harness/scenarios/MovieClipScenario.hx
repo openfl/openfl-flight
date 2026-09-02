@@ -8,6 +8,16 @@ class MovieClipScenario {
 		var firstScene = clip.currentScene;
 		var firstLabels = clip.currentLabels;
 		var firstScenes = clip.scenes;
+		var initial = captureFrameState(clip);
+
+		clip.gotoAndStop(1);
+		var afterGotoAndStop = captureFrameState(clip);
+		clip.gotoAndPlay(1);
+		var afterGotoAndPlay = captureFrameState(clip);
+		clip.nextFrame();
+		var afterNextAtEnd = captureFrameState(clip);
+		clip.prevFrame();
+		var afterPreviousAtStart = captureFrameState(clip);
 
 		clip.play();
 		var playingAfterPlay = clip.isPlaying;
@@ -27,6 +37,13 @@ class MovieClipScenario {
 		clip.enabled = true;
 
 		return {
+			initial: initial,
+			navigation: {
+				afterGotoAndStop: afterGotoAndStop,
+				afterGotoAndPlay: afterGotoAndPlay,
+				afterNextAtEnd: afterNextAtEnd,
+				afterPreviousAtStart: afterPreviousAtStart
+			},
 			defaults: {
 				currentFrame: clip.currentFrame,
 				currentFrameLabel: clip.currentFrameLabel,
@@ -52,6 +69,17 @@ class MovieClipScenario {
 				scenesAreDistinct: firstScenes != clip.scenes,
 				currentSceneIsStable: firstScene == clip.currentScene
 			}
+		};
+	}
+
+	private static function captureFrameState(clip:MovieClip):Dynamic {
+		return {
+			currentFrame: clip.currentFrame,
+			currentFrameLabel: clip.currentFrameLabel,
+			currentLabel: clip.currentLabel,
+			framesLoaded: clip.framesLoaded,
+			isPlaying: clip.isPlaying,
+			totalFrames: clip.totalFrames
 		};
 	}
 }

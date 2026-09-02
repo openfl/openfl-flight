@@ -23,5 +23,47 @@
     "labelsAreDistinct": true,
     "currentSceneIsStable": true,
     "scenesAreDistinct": true
+  },
+  "navigation": {
+    "afterNextAtEnd": {
+      "currentLabel": null,
+      "framesLoaded": 1,
+      "isPlaying": false,
+      "currentFrame": 1,
+      "currentFrameLabel": null,
+      "totalFrames": 1
+    },
+    "afterGotoAndStop": {
+      "currentLabel": null,
+      "framesLoaded": 1,
+      "isPlaying": false,
+      "currentFrame": 1,
+      "currentFrameLabel": null,
+      "totalFrames": 1
+    },
+    "afterGotoAndPlay": {
+      "currentLabel": null,
+      "framesLoaded": 1,
+      "isPlaying": false,
+      "currentFrame": 1,
+      "currentFrameLabel": null,
+      "totalFrames": 1
+    },
+    "afterPreviousAtStart": {
+      "currentLabel": null,
+      "framesLoaded": 1,
+      "isPlaying": false,
+      "currentFrame": 1,
+      "currentFrameLabel": null,
+      "totalFrames": 1
+    }
+  },
+  "initial": {
+    "currentLabel": null,
+    "framesLoaded": 1,
+    "isPlaying": false,
+    "currentFrame": 1,
+    "currentFrameLabel": null,
+    "totalFrames": 1
   }
 }
