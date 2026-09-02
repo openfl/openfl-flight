@@ -55,6 +55,7 @@ import harness.scenarios.ShapeBitmapScenario;
 import harness.scenarios.SharedObjectScenario;
 import harness.scenarios.SoundStateScenario;
 import harness.scenarios.SoundLifecycleScenario;
+import harness.scenarios.SoundScenario;
 import harness.scenarios.SocketScenario;
 import harness.scenarios.SpriteScenario;
 import harness.scenarios.StageScenario;
@@ -179,6 +180,10 @@ class Scenarios {
 			{
 				name: "display/tiles",
 				run: TilesScenario.run
+			},
+			{
+				name: "media/sound",
+				run: SoundScenario.run
 			},
 			{
 				name: "media/sound-state",

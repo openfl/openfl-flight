@@ -1,0 +1,50 @@
+{
+  "transform": {
+    "defaults": {
+      "leftToLeft": 0,
+      "rightToRight": 0,
+      "rightToLeft": 0,
+      "volume": 1,
+      "pan": 0,
+      "leftToRight": 0
+    },
+    "assigned": {
+      "leftToLeft": 0.1,
+      "rightToRight": 0.4,
+      "rightToLeft": 0.3,
+      "volume": 0.75,
+      "pan": -0.25,
+      "leftToRight": 0.2
+    }
+  },
+  "mixer": {
+    "stored": {
+      "leftToLeft": 0,
+      "rightToRight": 0,
+      "rightToLeft": 0,
+      "volume": 0.65,
+      "pan": 0.35,
+      "leftToRight": 0
+    },
+    "getterReturnsCopy": false,
+    "setterCopiesInput": true
+  },
+  "soundDefaults": {
+    "bytesTotal": 0,
+    "url": null,
+    "length": 0,
+    "isBuffering": false,
+    "id3IsNull": false,
+    "bytesLoaded": 0
+  },
+  "loaderContext": {
+    "defaults": {
+      "bufferTime": 1000,
+      "checkPolicyFile": false
+    },
+    "assigned": {
+      "bufferTime": 1750,
+      "checkPolicyFile": false
+    }
+  }
+}
