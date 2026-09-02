@@ -14,7 +14,15 @@ class TextFormatScenario {
 	}
 
 	private static function createFormat():TextFormat {
-		return new TextFormat("Verdana", 18, 0x336699, true, true, true, null, null, TextFormatAlign.CENTER, 12, 14, 3, 5);
+		var format = new TextFormat("Verdana", 18, 0x336699, true, true, true, "https://example.test", "_blank", TextFormatAlign.CENTER, 12, 14, 3,
+			5);
+		format.blockIndent = 7;
+		format.bullet = true;
+		format.kerning = true;
+		format.letterSpacing = 1.75;
+		format.tabStops = [20, 40, 80];
+		format.strikethrough = true;
+		return format;
 	}
 
 	private static function testDefaultTextFormat():Dynamic {
@@ -25,17 +33,25 @@ class TextFormatScenario {
 
 	private static function capture(format:TextFormat):Dynamic {
 		return {
-			font: format.font,
-			size: format.size,
-			color: format.color,
-			bold: format.bold,
-			italic: format.italic,
-			underline: format.underline,
 			align: format.align,
-			leftMargin: format.leftMargin,
-			rightMargin: format.rightMargin,
+			blockIndent: format.blockIndent,
+			bold: format.bold,
+			bullet: format.bullet,
+			color: format.color,
+			font: format.font,
 			indent: format.indent,
-			leading: format.leading
+			italic: format.italic,
+			kerning: format.kerning,
+			leading: format.leading,
+			leftMargin: format.leftMargin,
+			letterSpacing: format.letterSpacing,
+			rightMargin: format.rightMargin,
+			size: format.size,
+			strikethrough: format.strikethrough,
+			tabStops: format.tabStops,
+			target: format.target,
+			underline: format.underline,
+			url: format.url
 		};
 	}
 }
