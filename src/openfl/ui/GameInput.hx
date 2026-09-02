@@ -20,6 +20,7 @@ import clay.Clay;
 import flight.hostClay.HostClay as FlightHostClay;
 #elseif lime
 import flight.hostLime.HostLime as FlightHostLime;
+import flight.hostLime.LimeInput as FlightLimeInput;
 import lime.app.Application as LimeApplication;
 #end
 
@@ -93,13 +94,9 @@ import lime.app.Application as LimeApplication;
 	@:noCompletion private static var __instances:Array<GameInput> = [];
 	@:noCompletion private static var __devices:Map<Int, GameInputDevice> = new Map();
 	@:noCompletion private static var __flightInputManager:FlightInputManager;
+	@:noCompletion private static var __flightInputRelease:Void->Void;
 	@:noCompletion private static var __flightInputSource:FlightInputSource;
 	@:noCompletion private static var __flightInputSourceResolved:Bool;
-
-	private static function __init__():Void
-	{
-		__initializeFlightInput();
-	}
 
 	public function new()
 	{
@@ -177,8 +174,12 @@ import lime.app.Application as LimeApplication;
 		FlightSignals.connectSignal(__flightInputManager.onGamepadConnect, __onGamepadConnect);
 		FlightSignals.connectSignal(__flightInputManager.onGamepadDisconnect, __onGamepadDisconnect);
 
+		#if lime
+		__flightInputRelease = FlightLimeInput.attachLimeGamepadInput(__flightInputManager);
+		#else
 		var source = __getFlightInputSource();
 		if (source != null) FlightInput.attachGamepadInput(__flightInputManager, source);
+		#end
 	}
 
 	@:noCompletion private static function __getFlightInputSource():FlightInputSource
