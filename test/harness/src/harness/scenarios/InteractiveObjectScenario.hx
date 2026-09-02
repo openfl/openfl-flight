@@ -15,10 +15,20 @@ class InteractiveObjectScenario {
 		object.softKeyboardInputAreaOfInterest = new Rectangle(1.5, 2.5, 30.5, 40.5);
 		object.tabEnabled = true;
 		object.tabIndex = 7;
+		var values = capture(object);
+
+		object.doubleClickEnabled = false;
+		object.focusRect = null;
+		object.mouseEnabled = true;
+		object.needsSoftKeyboard = false;
+		object.softKeyboardInputAreaOfInterest = null;
+		object.tabEnabled = false;
+		object.tabIndex = -1;
 
 		return {
 			defaults: defaults,
-			values: capture(object),
+			values: values,
+			restored: capture(object),
 			requestSoftKeyboard: object.requestSoftKeyboard(),
 			contextMenuProperty: Reflect.hasField(object, "contextMenu")
 		};

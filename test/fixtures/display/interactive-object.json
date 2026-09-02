@@ -23,5 +23,14 @@
     "focusRect": false,
     "doubleClickEnabled": true
   },
-  "contextMenuProperty": false
+  "contextMenuProperty": false,
+  "restored": {
+    "needsSoftKeyboard": false,
+    "tabEnabled": false,
+    "mouseEnabled": true,
+    "tabIndex": -1,
+    "softKeyboardInputAreaOfInterest": null,
+    "focusRect": null,
+    "doubleClickEnabled": false
+  }
 }
