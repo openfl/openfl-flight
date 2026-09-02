@@ -12,6 +12,7 @@ import harness.scenarios.DesktopScenario;
 import harness.scenarios.Display3DScenario;
 import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
+import harness.scenarios.DisplayCompositionScenario;
 import harness.scenarios.DisplayHitTestScenario;
 import harness.scenarios.DisplayObjectScenario;
 import harness.scenarios.DisplayObjectPropertyEdgesScenario;
@@ -118,6 +119,10 @@ class Scenarios {
 			{
 				name: "display/graphics",
 				run: GraphicsScenario.run
+			},
+			{
+				name: "display/composition",
+				run: DisplayCompositionScenario.run
 			},
 			{
 				name: "display/hit-test",

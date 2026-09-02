@@ -1,0 +1,67 @@
+{
+  "stageTransformChain": {
+    "roundTrip": {
+      "x": 3,
+      "y": 4
+    },
+    "containerStageMatches": true,
+    "boundsOnStage": {
+      "x": 120,
+      "y": 65,
+      "height": 30,
+      "width": 40
+    },
+    "childStageMatches": true,
+    "global": {
+      "x": 126,
+      "y": 77
+    }
+  },
+  "graphicsInContainer": {
+    "containerSelf": {
+      "x": 15,
+      "y": 27,
+      "height": 40,
+      "width": 30
+    },
+    "childSelf": {
+      "x": 10,
+      "y": 20,
+      "height": 40,
+      "width": 30
+    },
+    "childInContainer": {
+      "x": 15,
+      "y": 27,
+      "height": 40,
+      "width": 30
+    },
+    "childParentMatches": true
+  },
+  "bubbling": [
+    {
+      "listener": "child",
+      "currentTarget": "child",
+      "target": "child"
+    },
+    {
+      "listener": "parent",
+      "currentTarget": "parent",
+      "target": "child"
+    }
+  ],
+  "mask": {
+    "cleared": true,
+    "assigned": true
+  },
+  "overlappingObjects": {
+    "overlap": [
+      "bottom",
+      "top"
+    ],
+    "bottomOnly": [
+      "bottom"
+    ],
+    "outsideCount": 0
+  }
+}
