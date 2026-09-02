@@ -1,0 +1,29 @@
+{
+  "constructionDidNotThrow": true,
+  "constructionType": "openfl.printing.PrintJob",
+  "defaults": {
+    "orientationIsNull": true,
+    "pageHeight": null,
+    "pageWidth": null,
+    "paperHeight": null,
+    "paperWidth": null
+  },
+  "isSupported": false,
+  "isSupportedIsBool": true,
+  "lifecycle": {
+    "addPageDidNotThrow": true,
+    "sendDidNotThrow": true,
+    "startDidNotThrow": true,
+    "startResult": false,
+    "unsupportedNoOp": true
+  },
+  "options": {
+    "bitmapConstructor": true,
+    "defaultConstructor": false,
+    "mutableRoundTrip": true
+  },
+  "orientations": {
+    "landscape": "landscape",
+    "portrait": "portrait"
+  }
+}

@@ -57,9 +57,10 @@ class PrintJob
 {
 	/**
 		Indicates whether the PrintJob class is supported on the current
-		platform (`true`) or not (`false`).
+		platform (`true`) or not (`false`). Flight does not currently expose a
+		printing host API, so this is `false` on OpenFL targets.
 	**/
-	public static var isSupported(default, null) = #if (js && html5) true #else false #end;
+	public static var isSupported(default, null) = false;
 
 	/**
 		The image orientation for printing. The acceptable values are defined
@@ -270,7 +271,7 @@ class PrintJob
 	**/
 	public function addPage(sprite:Sprite, printArea:Rectangle = null, options:PrintJobOptions = null, frameNum:Int = 0):Void
 	{
-		// TODO: Capture the display content through Flight's printing/host API.
+		// Flight has no display-content capture or printing host API yet.
 	}
 
 	/**
@@ -297,7 +298,7 @@ class PrintJob
 	**/
 	public function send():Void
 	{
-		// TODO: Send the captured pages through Flight's printing/host API.
+		// Intentionally a no-op while printing is unsupported.
 	}
 
 	/**
@@ -353,7 +354,7 @@ class PrintJob
 	**/
 	public function start():Bool
 	{
-		// TODO: Start a print job through Flight's printing/host API.
+		// Flight has no print dialog or spooler API, so no job can be started.
 		return false;
 	}
 }

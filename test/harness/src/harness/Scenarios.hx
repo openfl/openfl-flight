@@ -51,6 +51,7 @@ import harness.scenarios.NativeProcessScenario;
 import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
+import harness.scenarios.PrintJobScenario;
 import harness.scenarios.RectangleScenario;
 import harness.scenarios.ScreenWindowScenario;
 import harness.scenarios.SensorScenario;
@@ -399,6 +400,10 @@ class Scenarios {
 			{
 				name: "desktop/clipboard",
 				run: ClipboardScenario.run
+			},
+			{
+				name: "printing/print-job",
+				run: PrintJobScenario.run
 			},
 			{
 				name: "ui/keyboard",
