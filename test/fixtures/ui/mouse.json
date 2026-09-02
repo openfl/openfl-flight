@@ -1,6 +1,8 @@
 {
   "cursorRestored": true,
+  "updateAfterEventDoesNotThrow": true,
   "hideDoesNotThrow": true,
+  "nullCursorReadBack": "auto",
   "mouseEvent": {
     "shiftKey": true,
     "cancelable": true,
@@ -17,6 +19,7 @@
     "type": "mouseWheel",
     "stageX": 121,
     "localY": -4.25,
+    "isRelatedObjectInaccessible": false,
     "controlKey": true,
     "altKey": true
   },
@@ -27,11 +30,42 @@
     "hand": "hand",
     "button": "button"
   },
+  "repeatedVisibilityDoesNotThrow": true,
+  "mouseEventClone": {
+    "buttonDown": true,
+    "localX": 10.5,
+    "targetMatches": true,
+    "clickCount": 2,
+    "relatedObjectMatches": true,
+    "commandKey": true,
+    "type": "mouseWheel",
+    "localY": -4.25,
+    "controlKey": true
+  },
   "showDoesNotThrow": true,
   "capabilities": {
     "supportsCursor": true,
     "supportsNativeCursor": true,
     "readable": true
+  },
+  "eventConstants": {
+    "mouseDown": "mouseDown",
+    "rightMouseDown": "rightMouseDown",
+    "mouseOver": "mouseOver",
+    "doubleClick": "doubleClick",
+    "releaseOutside": "releaseOutside",
+    "mouseUp": "mouseUp",
+    "mouseMove": "mouseMove",
+    "mouseOut": "mouseOut",
+    "rightMouseUp": "rightMouseUp",
+    "rightClick": "rightClick",
+    "middleMouseDown": "middleMouseDown",
+    "rollOver": "rollOver",
+    "rollOut": "rollOut",
+    "middleClick": "middleClick",
+    "click": "click",
+    "middleMouseUp": "middleMouseUp",
+    "mouseWheel": "mouseWheel"
   },
   "cursorReadBack": {
     "auto": "auto",

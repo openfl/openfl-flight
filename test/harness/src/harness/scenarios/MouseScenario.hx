@@ -17,6 +17,8 @@ class MouseScenario
 			hand: setAndReadCursor(MouseCursor.HAND),
 			ibeam: setAndReadCursor(MouseCursor.IBEAM)
 		};
+		Mouse.cursor = null;
+		var nullCursorReadBack = Std.string(Mouse.cursor);
 		Mouse.cursor = originalCursor;
 
 		var hideDoesNotThrow = doesNotThrow(function() {
@@ -24,6 +26,13 @@ class MouseScenario
 			return null;
 		});
 		var showDoesNotThrow = doesNotThrow(function() {
+			Mouse.show();
+			return null;
+		});
+		var repeatedVisibilityDoesNotThrow = doesNotThrow(function() {
+			Mouse.hide();
+			Mouse.hide();
+			Mouse.show();
 			Mouse.show();
 			return null;
 		});
@@ -36,8 +45,32 @@ class MouseScenario
 		var mouseEvent = new MouseEvent(MouseEvent.MOUSE_WHEEL, true, true, 10.5, -4.25, related, true, true, true, true, -3, true, true, 2);
 		var stageInitiallyNaN = Math.isNaN(mouseEvent.stageX) && Math.isNaN(mouseEvent.stageY);
 		target.dispatchEvent(mouseEvent);
+		var clone = mouseEvent.clone();
+		var updateAfterEventDoesNotThrow = doesNotThrow(function() {
+			mouseEvent.updateAfterEvent();
+			return null;
+		});
 
 		return {
+			eventConstants: {
+				click: Std.string(MouseEvent.CLICK),
+				doubleClick: Std.string(MouseEvent.DOUBLE_CLICK),
+				middleClick: Std.string(MouseEvent.MIDDLE_CLICK),
+				middleMouseDown: Std.string(MouseEvent.MIDDLE_MOUSE_DOWN),
+				middleMouseUp: Std.string(MouseEvent.MIDDLE_MOUSE_UP),
+				mouseDown: Std.string(MouseEvent.MOUSE_DOWN),
+				mouseMove: Std.string(MouseEvent.MOUSE_MOVE),
+				mouseOut: Std.string(MouseEvent.MOUSE_OUT),
+				mouseOver: Std.string(MouseEvent.MOUSE_OVER),
+				mouseUp: Std.string(MouseEvent.MOUSE_UP),
+				mouseWheel: Std.string(MouseEvent.MOUSE_WHEEL),
+				releaseOutside: Std.string(MouseEvent.RELEASE_OUTSIDE),
+				rightClick: Std.string(MouseEvent.RIGHT_CLICK),
+				rightMouseDown: Std.string(MouseEvent.RIGHT_MOUSE_DOWN),
+				rightMouseUp: Std.string(MouseEvent.RIGHT_MOUSE_UP),
+				rollOut: Std.string(MouseEvent.ROLL_OUT),
+				rollOver: Std.string(MouseEvent.ROLL_OVER)
+			},
 			cursorValues: {
 				auto: Std.string(MouseCursor.AUTO),
 				arrow: Std.string(MouseCursor.ARROW),
@@ -46,6 +79,7 @@ class MouseScenario
 				ibeam: Std.string(MouseCursor.IBEAM)
 			},
 			cursorReadBack: cursorReadBack,
+			nullCursorReadBack: nullCursorReadBack,
 			cursorRestored: Mouse.cursor == originalCursor,
 			capabilities: {
 				supportsCursor: Mouse.supportsCursor,
@@ -53,7 +87,9 @@ class MouseScenario
 				readable: doesNotThrow(function() return Mouse.supportsCursor) && doesNotThrow(function() return Mouse.supportsNativeCursor)
 			},
 			hideDoesNotThrow: hideDoesNotThrow,
+			repeatedVisibilityDoesNotThrow: repeatedVisibilityDoesNotThrow,
 			showDoesNotThrow: showDoesNotThrow,
+			updateAfterEventDoesNotThrow: updateAfterEventDoesNotThrow,
 			mouseEvent: {
 				type: mouseEvent.type,
 				bubbles: mouseEvent.bubbles,
@@ -71,7 +107,19 @@ class MouseScenario
 				delta: mouseEvent.delta,
 				commandKey: mouseEvent.commandKey,
 				controlKey: mouseEvent.controlKey,
-				clickCount: mouseEvent.clickCount
+				clickCount: mouseEvent.clickCount,
+				isRelatedObjectInaccessible: mouseEvent.isRelatedObjectInaccessible
+			},
+			mouseEventClone: {
+				buttonDown: clone.buttonDown,
+				clickCount: clone.clickCount,
+				commandKey: clone.commandKey,
+				controlKey: clone.controlKey,
+				localX: clone.localX,
+				localY: clone.localY,
+				relatedObjectMatches: clone.relatedObject == related,
+				targetMatches: clone.target == target,
+				type: clone.type
 			}
 		};
 	}

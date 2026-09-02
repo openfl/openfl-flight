@@ -1,30 +1,44 @@
 {
   "device": {
     "axisID": "AXIS_0",
+    "cachingDoesNotThrow": true,
     "name": "Harness Gamepad",
-    "replayedAddedCount": 1,
-    "addedCount": 1,
+    "replayedAddedCount": 2,
+    "addedCount": 2,
+    "addedSecondMatches": true,
+    "sampleIntervalBefore": null,
     "outOfRangeControlIsNull": true,
     "axisChanges": 1,
-    "addedDeviceMatches": true,
+    "negativeControlIsNull": true,
     "buttonRange": [
       0,
       1
     ],
+    "cachedSamplesAppend": 0,
+    "axisDeviceMatches": true,
     "axisValue": 0.5,
     "buttonID": "BUTTON_0",
     "buttonChanges": 2,
+    "buttonDeviceMatches": true,
     "numControls": 21,
     "id": "Harness Gamepad",
-    "numDevicesWhileConnected": 1,
+    "numDevicesWhileConnected": 2,
     "cachedSamples": 0,
+    "addedFirstMatches": true,
     "enabledBefore": null,
-    "sampleInterval": null,
+    "enabledAfter": true,
     "buttonValue": 0,
     "axisRange": [
       -1,
       1
-    ]
+    ],
+    "sampleIntervalAfter": 16
+  },
+  "constants": {
+    "deviceAdded": "deviceAdded",
+    "deviceUnusable": "deviceUnusable",
+    "maxBufferSize": 32000,
+    "deviceRemoved": "deviceRemoved"
   },
   "initial": {
     "missingDeviceIsNull": true,
@@ -32,11 +46,24 @@
     "numDevices": 0,
     "isSupported": true
   },
+  "enumeration": {
+    "missingDeviceIsNull": true,
+    "firstName": "Harness Gamepad",
+    "firstDeviceMatches": true,
+    "numDevices": 2,
+    "secondDeviceMatches": true,
+    "secondName": "Second Gamepad"
+  },
   "disconnect": {
+    "afterFirst": {
+      "numDevices": 1,
+      "remainingDeviceMatches": true,
+      "firstRemoved": true
+    },
     "numDevices": 0,
     "deviceIsGone": true,
-    "removedDeviceMatches": true,
-    "removedCount": 1
+    "removedCount": 2,
+    "removedSecondMatches": true
   },
   "event": {
     "bubbles": true,

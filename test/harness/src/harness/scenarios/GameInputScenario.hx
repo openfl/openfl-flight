@@ -17,17 +17,17 @@ class GameInputScenario
 		var input = new GameInput();
 		var addedCount = 0;
 		var removedCount = 0;
-		var addedDevice:GameInputDevice = null;
-		var removedDevice:GameInputDevice = null;
+		var addedDevices:Array<GameInputDevice> = [];
+		var removedDevices:Array<GameInputDevice> = [];
 		input.addEventListener(GameInputEvent.DEVICE_ADDED, function(event:GameInputEvent):Void
 		{
 			addedCount++;
-			addedDevice = event.device;
+			addedDevices.push(event.device);
 		});
 		input.addEventListener(GameInputEvent.DEVICE_REMOVED, function(event:GameInputEvent):Void
 		{
 			removedCount++;
-			removedDevice = event.device;
+			removedDevices.push(event.device);
 		});
 
 		var initial = {
@@ -52,8 +52,24 @@ class GameInputScenario
 		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device));
 		#end
 
+		#if harness_compare
+		FlightSignals.emitSignal(manager.onGamepadConnect, {
+			gamepad: 5,
+			id: "Second Gamepad",
+			mapping: "standard"
+		});
+		var secondDevice = GameInput.getDeviceAt(1);
+		#else
+		var secondDevice = @:privateAccess new GameInputDevice("Second Gamepad", "Second Gamepad");
+		@:privateAccess GameInput.__deviceList.push(secondDevice);
+		@:privateAccess GameInput.numDevices = 2;
+		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, secondDevice));
+		#end
+
 		var enabledBefore = device.enabled;
+		var sampleIntervalBefore = device.sampleInterval;
 		device.enabled = true;
+		device.sampleInterval = 16;
 		var axis = device.getControlAt(0);
 		var button = device.getControlAt(6);
 		var axisChanges = 0;
@@ -78,6 +94,20 @@ class GameInputScenario
 		var replayInput = new GameInput();
 		replayInput.addEventListener(GameInputEvent.DEVICE_ADDED, function(_:GameInputEvent):Void replayedAddedCount++);
 		var numDevicesWhileConnected = GameInput.numDevices;
+		var enumeration = {
+			firstDeviceMatches: GameInput.getDeviceAt(0) == device,
+			firstName: device.name,
+			missingDeviceIsNull: GameInput.getDeviceAt(2) == null,
+			numDevices: numDevicesWhileConnected,
+			secondDeviceMatches: GameInput.getDeviceAt(1) == secondDevice,
+			secondName: secondDevice.name
+		};
+		var cachingDoesNotThrow = doesNotThrow(function()
+		{
+			device.startCachingSamples(2, null);
+			device.stopCachingSamples();
+			return null;
+		});
 
 		#if harness_compare
 		FlightSignals.emitSignal(manager.onGamepadDisconnect, {
@@ -87,8 +117,25 @@ class GameInputScenario
 		});
 		#else
 		@:privateAccess GameInput.__deviceList.remove(device);
-		@:privateAccess GameInput.numDevices = 0;
+		@:privateAccess GameInput.numDevices = 1;
 		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_REMOVED, true, false, device));
+		#end
+		var afterFirstDisconnect = {
+			firstRemoved: removedDevices[0] == device,
+			numDevices: GameInput.numDevices,
+			remainingDeviceMatches: GameInput.getDeviceAt(0) == secondDevice
+		};
+
+		#if harness_compare
+		FlightSignals.emitSignal(manager.onGamepadDisconnect, {
+			gamepad: 5,
+			id: "Second Gamepad",
+			mapping: "standard"
+		});
+		#else
+		@:privateAccess GameInput.__deviceList.remove(secondDevice);
+		@:privateAccess GameInput.numDevices = 0;
+		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_REMOVED, true, false, secondDevice));
 		#end
 
 		var event = new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device);
@@ -96,33 +143,49 @@ class GameInputScenario
 		var samples = new ByteArray();
 
 		return {
+			constants: {
+				deviceAdded: Std.string(GameInputEvent.DEVICE_ADDED),
+				deviceRemoved: Std.string(GameInputEvent.DEVICE_REMOVED),
+				deviceUnusable: Std.string(GameInputEvent.DEVICE_UNUSABLE),
+				maxBufferSize: GameInputDevice.MAX_BUFFER_SIZE
+			},
 			initial: initial,
+			enumeration: enumeration,
 			device: {
 				addedCount: addedCount,
-				addedDeviceMatches: addedDevice == device,
+				addedFirstMatches: addedDevices[0] == device,
+				addedSecondMatches: addedDevices[1] == secondDevice,
 				axisChanges: axisChanges,
+				axisDeviceMatches: axis.device == device,
 				axisID: axis.id,
 				axisRange: [axis.minValue, axis.maxValue],
 				axisValue: axis.value,
 				buttonChanges: buttonChanges,
+				buttonDeviceMatches: button.device == device,
 				buttonID: button.id,
 				buttonRange: [button.minValue, button.maxValue],
 				buttonValue: button.value,
 				cachedSamples: device.getCachedSamples(samples),
+				cachedSamplesAppend: device.getCachedSamples(samples, true),
+				cachingDoesNotThrow: cachingDoesNotThrow,
+				enabledAfter: device.enabled,
 				enabledBefore: enabledBefore,
 				id: device.id,
 				name: device.name,
+				negativeControlIsNull: device.getControlAt(-1) == null,
 				numControls: device.numControls,
 				numDevicesWhileConnected: numDevicesWhileConnected,
 				outOfRangeControlIsNull: device.getControlAt(device.numControls) == null,
 				replayedAddedCount: replayedAddedCount,
-				sampleInterval: device.sampleInterval
+				sampleIntervalAfter: device.sampleInterval,
+				sampleIntervalBefore: sampleIntervalBefore
 			},
 			disconnect: {
+				afterFirst: afterFirstDisconnect,
 				deviceIsGone: GameInput.getDeviceAt(0) == null,
 				numDevices: GameInput.numDevices,
 				removedCount: removedCount,
-				removedDeviceMatches: removedDevice == device
+				removedSecondMatches: removedDevices[1] == secondDevice
 			},
 			event: {
 				bubbles: event.bubbles,
@@ -131,5 +194,18 @@ class GameInputScenario
 				type: event.type
 			}
 		};
+	}
+
+	private static function doesNotThrow(operation:Void->Dynamic):Bool
+	{
+		try
+		{
+			operation();
+			return true;
+		}
+		catch (_:Dynamic)
+		{
+			return false;
+		}
 	}
 }
