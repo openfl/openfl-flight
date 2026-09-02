@@ -50,6 +50,7 @@ class Tileset
 	@:noCompletion private var __data:Array<TileData>;
 	#if !flash
 	@:noCompletion private var __flightAtlas:FlightTextureAtlasData;
+	@:noCompletion private var __flightNearestAtlas:FlightTextureAtlasData;
 	#end
 
 	#if openfljs
@@ -112,6 +113,7 @@ class Tileset
 		__data.push(tileData);
 		#if !flash
 		FlightTextureAtlas.addTextureAtlasRegion(__flightAtlas, tileData.x, tileData.y, tileData.width, tileData.height);
+		FlightTextureAtlas.addTextureAtlasRegion(__flightNearestAtlas, tileData.x, tileData.y, tileData.width, tileData.height);
 		#end
 
 		return __data.length - 1;
@@ -231,11 +233,15 @@ class Tileset
 	#if !flash
 	@:noCompletion private function __rebuildFlightAtlas():Void
 	{
-		var texture = __bitmapData == null || __bitmapData.__flightBitmap == null ? null : FlightTexture.createTexture2D({source: __bitmapData.__flightBitmap});
+		var source = __bitmapData == null ? null : __bitmapData.__flightBitmap;
+		var texture = source == null ? null : FlightTexture.createTexture2D({source: source, sampler: FlightTexture.createClampLinearSampler()});
+		var nearestTexture = source == null ? null : FlightTexture.createTexture2D({source: source, sampler: FlightTexture.createPixelArtSampler()});
 		__flightAtlas = FlightTextureAtlas.createTextureAtlas({texture: texture});
+		__flightNearestAtlas = FlightTextureAtlas.createTextureAtlas({texture: nearestTexture});
 		for (data in __data)
 		{
 			FlightTextureAtlas.addTextureAtlasRegion(__flightAtlas, data.x, data.y, data.width, data.height);
+			FlightTextureAtlas.addTextureAtlasRegion(__flightNearestAtlas, data.x, data.y, data.width, data.height);
 		}
 	}
 	#end

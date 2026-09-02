@@ -218,6 +218,7 @@ class Tile
 	@:noCompletion private var __scaleX:Null<Float>;
 	@:noCompletion private var __scaleY:Null<Float>;
 	@:noCompletion private var __shader:Shader;
+	@:noCompletion private var __smoothing:Bool;
 	@:noCompletion private var __tileset:Tileset;
 	@:noCompletion private var __visible:Bool;
 	#if !flash
@@ -319,6 +320,7 @@ class Tile
 		__originY = originY;
 		__alpha = 1;
 		__blendMode = null;
+		__smoothing = true;
 		__visible = true;
 		#if !flash
 		__flightSprite = FlightScene2D.createSprite();
@@ -344,6 +346,7 @@ class Tile
 
 		tile.matrix = __matrix.clone();
 		tile.__shader = __shader;
+		tile.__smoothing = __smoothing;
 		tile.tileset = __tileset;
 
 		if (__colorTransform != null)
@@ -558,6 +561,13 @@ class Tile
 		#end
 	}
 
+	@:noCompletion public function __setSmoothing(value:Bool):Void
+	{
+		if (value == __smoothing) return;
+		__smoothing = value;
+		__setRenderDirty();
+	}
+
 	#if !flash
 	@:noCompletion private function __syncFlightNode():Void
 	{
@@ -580,11 +590,15 @@ class Tile
 			}
 			else if (__rect == null)
 			{
-				__flightTexture = FlightTextureAtlas.getTextureAtlasRegionTexture(sourceTileset.__flightAtlas, __id);
+				__flightTexture = FlightTextureAtlas.getTextureAtlasRegionTexture(__smoothing ? sourceTileset.__flightAtlas : sourceTileset.__flightNearestAtlas,
+					__id);
 			}
 			else
 			{
-				__flightTexture = FlightTexture.createTexture2D({source: sourceTileset.bitmapData.__flightBitmap});
+				__flightTexture = FlightTexture.createTexture2D({
+					source: sourceTileset.bitmapData.__flightBitmap,
+					sampler: __smoothing ? FlightTexture.createClampLinearSampler() : FlightTexture.createPixelArtSampler()
+				});
 				FlightTexture.setTextureUvFromPixelRect(__flightTexture, sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height);
 			}
 			__flightSprite.data.texture = __flightTexture;

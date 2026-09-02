@@ -43,6 +43,7 @@ class Tilemap extends #if !flash DisplayObject #else Bitmap implements IDisplayO
 		__group = new TileContainer();
 		__group.tileset = tileset;
 		#if !flash
+		__group.__setSmoothing(smoothing);
 		FlightNode.addNodeChild(__flightNode, __group.__flightNode);
 		__width = width;
 		__height = height;
@@ -82,6 +83,7 @@ class Tilemap extends #if !flash DisplayObject #else Bitmap implements IDisplayO
 	#if !flash
 	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
 	{
+		__group.__setSmoothing(smoothing);
 		__group.__syncFlightTree();
 		if (__group.__dirty) __setRenderDirty();
 		super.__enterFrame(deltaTime);

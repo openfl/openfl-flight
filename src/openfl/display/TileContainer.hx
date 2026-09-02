@@ -76,6 +76,7 @@ class TileContainer extends Tile implements ITileContainer
 		__length++;
 		#if !flash
 		FlightNode.addNodeChild(__flightNode, tile.__flightNode);
+		tile.__setSmoothing(__smoothing);
 		tile.__syncFlightNode();
 		#end
 
@@ -116,6 +117,7 @@ class TileContainer extends Tile implements ITileContainer
 		__length++;
 		#if !flash
 		FlightNode.addNodeChildAt(__flightNode, tile.__flightNode, index);
+		tile.__setSmoothing(__smoothing);
 		tile.__syncFlightNode();
 		#end
 
@@ -414,6 +416,13 @@ class TileContainer extends Tile implements ITileContainer
 	}
 
 	#if !flash
+	@:noCompletion public override function __setSmoothing(value:Bool):Void
+	{
+		if (value == __smoothing) return;
+		super.__setSmoothing(value);
+		for (tile in __tiles) tile.__setSmoothing(value);
+	}
+
 	@:noCompletion private override function __syncFlightTree():Void
 	{
 		__syncFlightNode();
