@@ -7,14 +7,19 @@ import openfl.display3D.Context3D;
 import openfl.errors.IllegalOperationError;
 import openfl.events.Event;
 import openfl.events.FocusEvent;
+import openfl.events.KeyboardEvent;
+import openfl.events.MouseEvent;
 import openfl.events.StageOrientationEvent;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.geom.Transform;
+import openfl.ui.Keyboard;
 import openfl.Vector;
 #if lime
 import lime.app.Application;
 import lime.app.IModule;
+import lime.ui.KeyCode;
+import lime.ui.KeyModifier;
 import lime.ui.Window;
 #end
 #if (js && html5)
@@ -29,6 +34,7 @@ typedef Element = Dynamic;
 #end
 @:access(openfl.display.DisplayObject)
 @:access(openfl.events.Event)
+@:access(openfl.ui.Keyboard)
 class Stage extends DisplayObjectContainer #if lime implements IModule #end
 {
 	/**
@@ -646,6 +652,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private var __invalidated:Bool;
 	@:noCompletion private var __mouseX:Float;
 	@:noCompletion private var __mouseY:Float;
+	@:noCompletion private var __primaryMouseButtonDown:Bool;
 	@:noCompletion private var __orientation:StageOrientation;
 	@:noCompletion private var __quality:StageQuality;
 	@:noCompletion private var __scaleMode:StageScaleMode;
@@ -664,6 +671,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__frameRate = 60;
 		__mouseX = 0;
 		__mouseY = 0;
+		__primaryMouseButtonDown = false;
 		__orientation = StageOrientation.UNKNOWN;
 		__quality = StageQuality.HIGH;
 		__scaleMode = StageScaleMode.NO_SCALE;
@@ -835,16 +843,115 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	{
 		this.application = application;
 		application.onUpdate.add(__onLimeUpdate);
+		if (window != null)
+		{
+			window.onKeyDown.add(__onLimeKeyDown);
+			window.onKeyUp.add(__onLimeKeyUp);
+			window.onMouseDown.add(__onLimeMouseDown);
+			window.onMouseMove.add(__onLimeMouseMove);
+			window.onMouseUp.add(__onLimeMouseUp);
+		}
 	}
 
 	@:noCompletion private function __unregisterLimeModule(application:Application):Void
 	{
 		application.onUpdate.remove(__onLimeUpdate);
+		if (window != null)
+		{
+			window.onKeyDown.remove(__onLimeKeyDown);
+			window.onKeyUp.remove(__onLimeKeyUp);
+			window.onMouseDown.remove(__onLimeMouseDown);
+			window.onMouseMove.remove(__onLimeMouseMove);
+			window.onMouseUp.remove(__onLimeMouseUp);
+		}
 	}
 
 	@:noCompletion private function __onLimeUpdate(deltaTime:Int):Void
 	{
 		__deltaTime = deltaTime;
+	}
+
+	@:noCompletion private function __dispatchKeyboardEvent(type:String, key:KeyCode, modifier:KeyModifier):Void
+	{
+		var keyCode = Keyboard.__convertKeyCode(key);
+		var event = new KeyboardEvent(type, true, true, Keyboard.__getCharCode(keyCode, modifier.shiftKey, modifier.capsLock), keyCode,
+			Keyboard.__getKeyLocation(key), modifier.ctrlKey, modifier.altKey, modifier.shiftKey, modifier.ctrlKey, modifier.metaKey);
+		var target:InteractiveObject = __focus == null ? this : __focus;
+		target.dispatchEvent(event);
+	}
+
+	@:noCompletion private function __onLimeKeyDown(key:KeyCode, modifier:KeyModifier):Void
+	{
+		__dispatchKeyboardEvent(KeyboardEvent.KEY_DOWN, key, modifier);
+	}
+
+	@:noCompletion private function __onLimeKeyUp(key:KeyCode, modifier:KeyModifier):Void
+	{
+		__dispatchKeyboardEvent(KeyboardEvent.KEY_UP, key, modifier);
+	}
+
+	@:noCompletion private function __getMouseTarget(stageX:Float, stageY:Float):InteractiveObject
+	{
+		var hits = getObjectsUnderPoint(new Point(stageX, stageY));
+		for (hit in hits)
+		{
+			var current:DisplayObject = hit;
+			var target:InteractiveObject = null;
+			while (current != null && current != this)
+			{
+				if ((current is InteractiveObject))
+				{
+					var interactive:InteractiveObject = cast current;
+					if (target == null && interactive.mouseEnabled) target = interactive;
+				}
+				var parent = current.parent;
+				if (parent != null && !parent.mouseChildren)
+				{
+					target = parent.mouseEnabled ? parent : null;
+				}
+				current = parent;
+			}
+			if (target != null) return target;
+		}
+		return this;
+	}
+
+	@:noCompletion private function __dispatchMouseEvent(type:String, x:Float, y:Float, buttonDown:Bool):Void
+	{
+		__mouseX = x * window.scale;
+		__mouseY = y * window.scale;
+		var target = __getMouseTarget(__mouseX, __mouseY);
+		var local = target.globalToLocal(new Point(__mouseX, __mouseY));
+		target.dispatchEvent(new MouseEvent(type, true, false, local.x, local.y, null, false, false, false, buttonDown));
+	}
+
+	@:noCompletion private function __onLimeMouseDown(x:Float, y:Float, button:Int):Void
+	{
+		if (button == 0) __primaryMouseButtonDown = true;
+		var type = switch (button)
+		{
+			case 1: MouseEvent.MIDDLE_MOUSE_DOWN;
+			case 2: MouseEvent.RIGHT_MOUSE_DOWN;
+			default: MouseEvent.MOUSE_DOWN;
+		};
+		__dispatchMouseEvent(type, x, y, __primaryMouseButtonDown);
+	}
+
+	@:noCompletion private function __onLimeMouseMove(x:Float, y:Float):Void
+	{
+		__dispatchMouseEvent(MouseEvent.MOUSE_MOVE, x, y, __primaryMouseButtonDown);
+	}
+
+	@:noCompletion private function __onLimeMouseUp(x:Float, y:Float, button:Int):Void
+	{
+		if (button == 0) __primaryMouseButtonDown = false;
+		var type = switch (button)
+		{
+			case 1: MouseEvent.MIDDLE_MOUSE_UP;
+			case 2: MouseEvent.RIGHT_MOUSE_UP;
+			default: MouseEvent.MOUSE_UP;
+		};
+		__dispatchMouseEvent(type, x, y, __primaryMouseButtonDown);
 	}
 	#end
 
