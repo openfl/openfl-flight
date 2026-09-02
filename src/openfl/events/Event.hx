@@ -926,7 +926,7 @@ class Event
 
 	@:noCompletion private function __formatToString(className:String, parameters:Array<String>):String
 	{
-		// TODO: Make this a macro function, and handle at compile-time, with rest parameters?
+		// Keep this reflective because subclasses supply their property lists at runtime.
 
 		var output = '[$className';
 		var arg:Dynamic = null;

@@ -1,6 +1,7 @@
 package openfl.events;
 
 #if !flash
+import openfl.display.DisplayObject;
 /**
 	The EventDispatcher class is the base class for all classes that dispatch
 	events. The EventDispatcher class implements the IEventDispatcher interface
@@ -362,7 +363,29 @@ class EventDispatcher implements IEventDispatcher
 	**/
 	public function willTrigger(type:String):Bool
 	{
-		return hasEventListener(type);
+		if (hasEventListener(type)) return true;
+
+		var displayObject:DisplayObject = null;
+		if ((this is DisplayObject))
+		{
+			displayObject = cast this;
+		}
+		else if (__targetDispatcher != null && (__targetDispatcher is DisplayObject))
+		{
+			displayObject = cast __targetDispatcher;
+		}
+
+		if (displayObject != null)
+		{
+			var ancestor = displayObject.parent;
+			while (ancestor != null)
+			{
+				if (ancestor.hasEventListener(type)) return true;
+				ancestor = ancestor.parent;
+			}
+		}
+
+		return false;
 	}
 
 	@:noCompletion private function __dispatchEvent(event:Event):Bool
@@ -407,9 +430,8 @@ class EventDispatcher implements IEventDispatcher
 
 			if (listener.useCapture == capture)
 			{
-				// TODO(Flight): Route listener failures through the Flight application
-				// error boundary once the event bridge is available. The OpenFL handler
-				// reaches private Stage internals that are deliberately absent here.
+				// Listener failures propagate until Flight exposes a public application
+				// error boundary; OpenFL's handler reaches private Stage internals.
 				#if (js && html5)
 				if (listener.useWeakReference && listener.weakRefCallback != null)
 				{

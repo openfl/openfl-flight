@@ -75,15 +75,14 @@ class FullScreenEvent extends ActivityEvent
 		@param cancelable Determines whether the Event object can be canceled.
 						  Event listeners can access this information through
 						  the inherited `cancelable` property.
-		@param fullScreen Indicates whether the device is activating (`true`)
-						  or deactivating (`false`). Event listeners can
-						  access this information through the `activating`
-						  property.
+		@param fullScreen Indicates whether the Stage is entering (`true`) or
+						  leaving (`false`) full-screen mode. Event listeners can
+						  access this information through the `fullScreen` property.
+		@param interactive Indicates whether the Stage is entering full-screen
+						  interactive mode.
 	**/
 	public function new(type:String, bubbles:Bool = false, cancelable:Bool = false, fullScreen:Bool = false, interactive:Bool = false)
 	{
-		// TODO: What is the "activating" value supposed to be?
-
 		super(type, bubbles, cancelable);
 
 		this.fullScreen = fullScreen;

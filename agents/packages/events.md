@@ -96,6 +96,11 @@ The exact 9.5.2 source appears to disagree with its documentation in several pla
 
 Do not silently implement the documented behavior in these cases. First capture native OpenFL 9.5.2 results and record whether the project follows source parity or deliberately fixes the discrepancy.
 
+The adapter deliberately follows the documented `willTrigger()` behavior: for
+a display object, it searches the object and its ancestors even though the
+9.5.2 implementation only checks the receiver. The compatibility scenario
+records this as an explicit project decision rather than claiming source parity.
+
 ## What Flight currently provides
 
 ### Signals

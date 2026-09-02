@@ -1,16 +1,21 @@
 package harness.scenarios;
 
+import openfl.display.CanvasRenderer;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.ErrorEvent;
 import openfl.events.FocusEvent;
+import openfl.events.FullScreenEvent;
 import openfl.events.IOErrorEvent;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.events.ProgressEvent;
+import openfl.events.RenderEvent;
 import openfl.events.SecurityErrorEvent;
 import openfl.events.TextEvent;
 import openfl.events.TimerEvent;
+import openfl.geom.ColorTransform;
+import openfl.geom.Matrix;
 import openfl.ui.KeyLocation;
 
 class EventSubclassesScenario {
@@ -25,6 +30,8 @@ class EventSubclassesScenario {
 			securityErrorEvent: testSecurityErrorEvent(),
 			textEvent: testTextEvent(),
 			timerEvent: testTimerEvent(),
+			fullScreenEvent: testFullScreenEvent(),
+			renderEvent: testRenderEvent(),
 			cloneBehavior: testCloneBehavior()
 		};
 	}
@@ -195,6 +202,92 @@ class EventSubclassesScenario {
 			type: e.type,
 			isEvent: Std.isOfType(e, Event),
 			className: Type.getClassName(Type.getClass(e))
+		};
+	}
+
+	private static function testFullScreenEvent():Dynamic {
+		var event = new FullScreenEvent(FullScreenEvent.FULL_SCREEN_INTERACTIVE_ACCEPTED, true, true, true, true);
+		var clone = event.clone();
+
+		return {
+			type: event.type,
+			bubbles: event.bubbles,
+			cancelable: event.cancelable,
+			fullScreen: event.fullScreen,
+			interactive: event.interactive,
+			activating: event.activating,
+			cloneFullScreen: clone.fullScreen,
+			cloneInteractive: clone.interactive
+		};
+	}
+
+	private static function testRenderEvent():Dynamic {
+		var matrix = new Matrix(2, 3, 4, 5, 6, 7);
+		var color = new ColorTransform(0.1, 0.2, 0.3, 0.4, 10, 20, 30, 40);
+		var constructed = new RenderEvent(RenderEvent.RENDER_CANVAS, true, true, matrix, color, false);
+		var clone = constructed.clone();
+
+		var target = new Sprite();
+		target.x = 12;
+		target.y = -8;
+		target.scaleX = 2;
+		target.scaleY = 3;
+		target.transform.colorTransform = color;
+		var renderer = @:privateAccess new CanvasRenderer(null);
+		var rendererMatches = false;
+		var dispatchedType:String = null;
+		var dispatchedMatrix:Dynamic = null;
+		var dispatchedColor:Dynamic = null;
+		var dispatchedSmoothing = false;
+		target.addEventListener(RenderEvent.RENDER_CANVAS, function(event:RenderEvent):Void {
+			rendererMatches = event.renderer == renderer;
+			dispatchedType = event.type;
+			dispatchedMatrix = describeMatrix(event.objectMatrix);
+			dispatchedColor = describeColor(event.objectColorTransform);
+			dispatchedSmoothing = event.allowSmoothing;
+		});
+		#if harness_capture
+		@:privateAccess target.__update(false, false);
+		#end
+		@:privateAccess renderer.__renderEvent(target);
+
+		return {
+			constructed: {
+				type: constructed.type,
+				bubbles: constructed.bubbles,
+				cancelable: constructed.cancelable,
+				matrixMatches: constructed.objectMatrix == matrix,
+				colorMatches: constructed.objectColorTransform == color,
+				allowSmoothing: constructed.allowSmoothing,
+				rendererIsNull: constructed.renderer == null,
+				cloneMatrix: describeMatrix(clone.objectMatrix),
+				cloneColor: describeColor(clone.objectColorTransform),
+				cloneRendererIsNull: clone.renderer == null
+			},
+			binding: {
+				rendererMatches: rendererMatches,
+				type: dispatchedType,
+				matrix: dispatchedMatrix,
+				color: dispatchedColor,
+				allowSmoothing: dispatchedSmoothing
+			}
+		};
+	}
+
+	private static function describeMatrix(value:Matrix):Dynamic {
+		return {a: value.a, b: value.b, c: value.c, d: value.d, tx: value.tx, ty: value.ty};
+	}
+
+	private static function describeColor(value:ColorTransform):Dynamic {
+		return {
+			redMultiplier: value.redMultiplier,
+			greenMultiplier: value.greenMultiplier,
+			blueMultiplier: value.blueMultiplier,
+			alphaMultiplier: value.alphaMultiplier,
+			redOffset: value.redOffset,
+			greenOffset: value.greenOffset,
+			blueOffset: value.blueOffset,
+			alphaOffset: value.alphaOffset
 		};
 	}
 

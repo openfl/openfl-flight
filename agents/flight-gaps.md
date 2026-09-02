@@ -22,6 +22,18 @@ the capability that this adapter can compile against.
   not expose a mutation hook; Flight cursor state can only be refreshed when
   pointer activity is observed.
 
+- **Application event-error boundary**: OpenFL routes listener failures through
+  private Stage and application internals. Flight exposes no corresponding
+  public application-level error handler, so adapter event listeners currently
+  propagate thrown errors to their caller.
+
+- **Custom render-event lifecycle**: The adapter can populate and dispatch an
+  OpenFL `RenderEvent` from its internal `DisplayObjectRenderer` hook, including
+  the active renderer binding, transform, color transform, and smoothing state.
+  Flight owns the actual scene renderer and exposes no per-node pre-render
+  callback that invokes this compatibility hook, so automatic host-driven
+  custom render events still require a Flight render-lifecycle bridge.
+
 - **Touch maximums and gesture recognition**: Flight Platform reports whether
   a host is touch-capable and Flight Input exposes typed pointer contacts, but
   neither API publishes a hardware maximum-contact count or recognizes the

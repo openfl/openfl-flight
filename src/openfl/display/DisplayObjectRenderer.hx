@@ -2,6 +2,7 @@ package openfl.display;
 
 #if !flash
 import openfl.events.EventDispatcher;
+import openfl.events.RenderEvent;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
@@ -16,6 +17,9 @@ import lime.graphics.RenderContextType;
 #end
 @:allow(openfl.display)
 @:allow(openfl.text)
+@:access(openfl.display.DisplayObject)
+@:access(openfl.events.RenderEvent)
+@:access(openfl.geom.ColorTransform)
 class DisplayObjectRenderer extends EventDispatcher
 {
 	@:noCompletion private var __allowSmoothing:Bool;
@@ -71,7 +75,36 @@ class DisplayObjectRenderer extends EventDispatcher
 
 	@:noCompletion private function __renderEvent(displayObject:DisplayObject):Void
 	{
-		// TODO (Flight): dispatch custom render events.
+		if (displayObject == null || displayObject.__customRenderEvent == null || !displayObject.visible) return;
+
+		var event = displayObject.__customRenderEvent;
+		event.allowSmoothing = __allowSmoothing;
+		event.objectMatrix.copyFrom(displayObject.__getRenderTransform());
+		event.objectColorTransform.__copyFrom(displayObject.transform.colorTransform);
+		event.renderer = this;
+
+		if ((this is OpenGLRenderer))
+		{
+			event.type = RenderEvent.RENDER_OPENGL;
+		}
+		else if ((this is CairoRenderer))
+		{
+			event.type = RenderEvent.RENDER_CAIRO;
+		}
+		else if ((this is DOMRenderer))
+		{
+			event.type = displayObject.stage != null ? RenderEvent.RENDER_DOM : RenderEvent.CLEAR_DOM;
+		}
+		else if ((this is CanvasRenderer))
+		{
+			event.type = RenderEvent.RENDER_CANVAS;
+		}
+		else
+		{
+			return;
+		}
+
+		displayObject.dispatchEvent(event);
 	}
 
 	@:noCompletion private function __resize(width:Int, height:Int):Void {}

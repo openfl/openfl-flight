@@ -245,14 +245,35 @@ class EventDispatcherCaptureScenario {
 
 	private static function testWillTrigger():Dynamic {
 		var dispatcher = new EventDispatcher();
-		var before = dispatcher.willTrigger("test");
+		var genericBefore = dispatcher.willTrigger("test");
 
 		dispatcher.addEventListener("test", function(e:Event):Void {});
-		var after = dispatcher.willTrigger("test");
+		var genericAfter = dispatcher.willTrigger("test");
+
+		var root = new Sprite();
+		var parent = new Sprite();
+		var target = new Sprite();
+		root.addChild(parent);
+		parent.addChild(target);
+		var ancestorListener = function(e:Event):Void {};
+		root.addEventListener("ancestor", ancestorListener);
+		var targetHasAncestor = target.hasEventListener("ancestor");
+		var targetWillTriggerAncestor = target.willTrigger("ancestor");
+		var aggregate = new EventDispatcher(target);
+		var aggregateWillTriggerAncestor = aggregate.willTrigger("ancestor");
+		root.removeEventListener("ancestor", ancestorListener);
+		var afterAncestorRemove = target.willTrigger("ancestor");
+		target.addEventListener("local", function(e:Event):Void {});
 
 		return {
-			before: before,
-			after: after
+			genericBefore: genericBefore,
+			genericAfter: genericAfter,
+			targetHasAncestor: targetHasAncestor,
+			targetWillTriggerAncestor: targetWillTriggerAncestor,
+			aggregateWillTriggerAncestor: aggregateWillTriggerAncestor,
+			afterAncestorRemove: afterAncestorRemove,
+			targetHasLocal: target.hasEventListener("local"),
+			targetWillTriggerLocal: target.willTrigger("local")
 		};
 	}
 

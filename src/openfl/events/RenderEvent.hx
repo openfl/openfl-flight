@@ -160,9 +160,8 @@ import openfl.geom.Matrix;
 
 	public override function clone():RenderEvent
 	{
-		// TODO(Flight): Replace this data copy with the renderer bridge's value
-		// snapshot once Flight render events are wired. Avoid OpenFL's private
-		// ColorTransform.__clone() dependency in the meantime.
+		// Snapshot the renderer-populated values without retaining the ephemeral
+		// renderer binding. Avoid OpenFL's private ColorTransform.__clone() dependency.
 		var colorTransform = #if flash null #else new ColorTransform(objectColorTransform.redMultiplier, objectColorTransform.greenMultiplier,
 			objectColorTransform.blueMultiplier, objectColorTransform.alphaMultiplier, objectColorTransform.redOffset, objectColorTransform.greenOffset,
 			objectColorTransform.blueOffset, objectColorTransform.alphaOffset) #end;

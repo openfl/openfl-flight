@@ -18,6 +18,16 @@
     "className": "openfl.events.TimerEvent",
     "type": "timer"
   },
+  "fullScreenEvent": {
+    "cancelable": true,
+    "interactive": true,
+    "bubbles": true,
+    "fullScreen": true,
+    "cloneInteractive": true,
+    "activating": false,
+    "type": "fullScreenInteractiveAccepted",
+    "cloneFullScreen": true
+  },
   "cloneBehavior": {
     "mouseCloneClassName": "openfl.events.MouseEvent",
     "progCloneClassName": "openfl.events.ProgressEvent",
@@ -37,6 +47,59 @@
     "errorID": 42,
     "className": "openfl.events.ErrorEvent",
     "type": "error"
+  },
+  "renderEvent": {
+    "binding": {
+      "color": {
+        "blueMultiplier": 0.3,
+        "redOffset": 10,
+        "greenMultiplier": 0.2,
+        "alphaMultiplier": 0.4,
+        "alphaOffset": 40,
+        "redMultiplier": 0.1,
+        "blueOffset": 30,
+        "greenOffset": 20
+      },
+      "allowSmoothing": true,
+      "type": "renderCanvas",
+      "rendererMatches": true,
+      "matrix": {
+        "tx": 12,
+        "d": 3,
+        "c": 0,
+        "a": 2,
+        "b": 0,
+        "ty": -8
+      }
+    },
+    "constructed": {
+      "cancelable": true,
+      "matrixMatches": true,
+      "cloneColor": {
+        "blueMultiplier": 0.3,
+        "redOffset": 10,
+        "greenMultiplier": 0.2,
+        "alphaMultiplier": 0.4,
+        "alphaOffset": 40,
+        "redMultiplier": 0.1,
+        "blueOffset": 30,
+        "greenOffset": 20
+      },
+      "colorMatches": true,
+      "bubbles": true,
+      "cloneRendererIsNull": true,
+      "allowSmoothing": false,
+      "rendererIsNull": true,
+      "type": "renderCanvas",
+      "cloneMatrix": {
+        "tx": 6,
+        "d": 5,
+        "c": 4,
+        "a": 2,
+        "b": 3,
+        "ty": 7
+      }
+    }
   },
   "securityErrorEvent": {
     "text": "sec error",

@@ -13,8 +13,10 @@ import openfl.events.EventDispatcher;
 import openfl.events.EventPhase;
 import openfl.events.EventType;
 import openfl.events.MouseEvent;
+import openfl.events.RenderEvent;
 import openfl.events.TouchEvent;
 import openfl.filters.BitmapFilter;
+import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
@@ -681,6 +683,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private var __cacheAsBitmap:Bool;
 	@:noCompletion private var __cacheAsBitmapMatrix:Matrix;
 	@:noCompletion private var __children:Array<DisplayObject>;
+	@:noCompletion private var __customRenderEvent:RenderEvent;
 	@:noCompletion private var __filters:Array<BitmapFilter>;
 	@:noCompletion private var __flightNode:FlightNode2D;
 	@:noCompletion private var __graphics:Graphics;
@@ -744,6 +747,13 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 					__broadcastEvents.set(type, dispatchers);
 				}
 				if (dispatchers.indexOf(this) == -1) dispatchers.push(this);
+			case RenderEvent.CLEAR_DOM, RenderEvent.RENDER_CAIRO, RenderEvent.RENDER_CANVAS, RenderEvent.RENDER_DOM, RenderEvent.RENDER_OPENGL:
+				if (__customRenderEvent == null)
+				{
+					__customRenderEvent = new RenderEvent(null);
+					__customRenderEvent.objectColorTransform = new ColorTransform();
+					__customRenderEvent.objectMatrix = new Matrix();
+				}
 			default:
 		}
 		super.addEventListener(type, listener, useCapture, priority, useWeakReference);
@@ -946,6 +956,15 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 				{
 					var dispatchers = __broadcastEvents.get(type);
 					if (dispatchers != null) dispatchers.remove(this);
+				}
+			case RenderEvent.CLEAR_DOM, RenderEvent.RENDER_CAIRO, RenderEvent.RENDER_CANVAS, RenderEvent.RENDER_DOM, RenderEvent.RENDER_OPENGL:
+				if (!hasEventListener(RenderEvent.CLEAR_DOM)
+					&& !hasEventListener(RenderEvent.RENDER_CAIRO)
+					&& !hasEventListener(RenderEvent.RENDER_CANVAS)
+					&& !hasEventListener(RenderEvent.RENDER_DOM)
+					&& !hasEventListener(RenderEvent.RENDER_OPENGL))
+				{
+					__customRenderEvent = null;
 				}
 			default:
 		}
