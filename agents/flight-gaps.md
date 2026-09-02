@@ -274,15 +274,30 @@ the capability that this adapter can compile against.
   items and Power keep-awake operations back `startAtLogin` and
   `systemIdleMode`; the remaining surfaces stay deterministic stubs.
 
-- **StageText host input ownership**: Flight TextInput provides the RichText
-  editor, selection, restrictions, focus manager, and a connector for an
-  explicit `TextInputSource`. OpenFL's Stage surface does not yet retain or
-  expose the host-local Flight `InputManager`, so StageText can back its text,
-  selection, restrictions, formatting, focus state, and scene node with Flight
-  but cannot autonomously connect native keyboard/text ingress. The display
-  bridge needs to own one host input source per Stage and make it available to
-  StageText; Flight-driven edits also need a change signal from TextInput so
-  OpenFL `Event.CHANGE` can be dispatched without polling the RichText value.
+- **TextField and StageText host input ownership**: Flight TextInput provides
+  the RichText editor, selection, restrictions, focus manager, and a connector
+  for an explicit `TextInputSource`. Flight Text also exposes change and scroll
+  signals, which the adapters can translate to OpenFL events. OpenFL's Stage
+  surface does not yet retain or expose the host-local Flight `InputManager`,
+  however, so TextField and StageText can back their text, selection,
+  restrictions, formatting, focus state, and scene nodes with Flight but cannot
+  autonomously connect native keyboard/text ingress. The display bridge needs
+  to own one host input source per Stage and make it available to both classes.
+
+- **Embedded-versus-device text font selection**: Flight resolves registered
+  font families for text formats but exposes no per-RichText policy equivalent
+  to OpenFL's `TextField.embedFonts`. The adapter preserves the flag and sends
+  the requested family and bold/italic properties to Flight, but it cannot
+  require an embedded face or suppress device-font fallback when the flag is
+  true.
+
+- **TextMarkup on non-JavaScript flight-hx targets**: Flight TextMarkup exposes
+  the standard tags, entities, format ranges, and class-style resolver needed
+  by `TextField.htmlText`. The current generated Haxe implementation calls the
+  JavaScript-only `String.search` method while tokenizing a tag, causing
+  `parseTextMarkup()` to fail under the eval/interp target. TextField retains a
+  small adapter parser until the generated facade uses a portable string/regex
+  operation; StyleSheet CSS parsing remains the separate gap below.
 
 - **StyleSheet CSS parsing**: Flight TextMarkup parses and formats markup and
   can register normalized class-to-text-format records, but it has no CSS text
@@ -338,3 +353,11 @@ misunderstanding of the API.)
   Flight primitive. The adapter now keeps a global internal playhead while
   exposing scene-relative frames, labels, and scene transitions, and it merges
   multiple scripts on one frame in declaration order.
+
+- **TextField render and query substrate**: Flight's public RichText node,
+  TextLayout queries, TextInput selection/options, Text format ranges, and text
+  field signals cover TextField rendering plus measurement, line, scrolling,
+  selection, password, restriction, and maximum-character state. TextField now
+  retains a RichText child and synchronizes these surfaces through the public
+  Flight facades; host input ownership, embedded-font policy, and non-JavaScript
+  TextMarkup portability remain the narrower gaps above.
