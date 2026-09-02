@@ -791,19 +791,22 @@ private class Log
 {
 	public static inline function error(value:Dynamic):Void
 	{
-		// TODO: Route diagnostics through Flight's logging API.
+		// Intentional adapter stub: the GL draw seam supersedes this AGAL-only path.
+		// Preserve legacy trace output rather than adding a Flight logging dependency.
 		trace(value);
 	}
 
 	public static inline function info(value:Dynamic):Void
 	{
-		// TODO: Route diagnostics through Flight's logging API.
+		// Intentional adapter stub: the GL draw seam supersedes this AGAL-only path.
+		// Preserve legacy trace output rather than adding a Flight logging dependency.
 		trace(value);
 	}
 
 	public static inline function warn(value:Dynamic):Void
 	{
-		// TODO: Route diagnostics through Flight's logging API.
+		// Intentional adapter stub: the GL draw seam supersedes this AGAL-only path.
+		// Preserve legacy trace output rather than adding a Flight logging dependency.
 		trace(value);
 	}
 }
