@@ -1,9 +1,19 @@
 {
+  "offset": {
+    "x": 3,
+    "y": 4
+  },
+  "distanceKnownPoints": 5,
   "point": {
     "x": 3,
     "y": 4
   },
   "distanceFromOrigin": 5,
+  "length": 5,
+  "copyFrom": {
+    "x": 8,
+    "y": -6
+  },
   "normalizeToTen": {
     "x": 6,
     "y": 8
@@ -16,8 +26,30 @@
     "same": true,
     "different": false
   },
+  "polar": {
+    "x": 5,
+    "y": 0
+  },
+  "interpolate": {
+    "midpoint": {
+      "x": 6,
+      "y": 2
+    },
+    "secondEndpoint": {
+      "x": 10,
+      "y": -2
+    },
+    "firstEndpoint": {
+      "x": 2,
+      "y": 6
+    }
+  },
   "add": {
     "x": 2,
     "y": 6
+  },
+  "setTo": {
+    "x": 8,
+    "y": -6
   }
 }
