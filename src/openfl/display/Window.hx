@@ -4,8 +4,17 @@ package openfl.display;
 import flight.Application as FlightApplication;
 import flight.Sdk.*;
 import flight.Signals as FlightSignals;
+import flight.Bitmap as FlightBitmap;
+import flight._internal._UInt8ClampedArray as FlightUInt8ClampedArray;
 import flight.types.ApplicationWindow as FlightApplicationWindow;
+import flight.types.Bitmap as FlightBitmapHandle;
+import flight.types.CanvasTextureResolvers as FlightCanvasTextureResolvers;
 import flight.types.Host as FlightHost;
+import flight.types.Texture as FlightTexture;
+#if (lime_cairo && !js)
+import flight._internal.backend.NativeScratchCanvas;
+import haxe.ds.ObjectMap;
+#end
 #end
 #if lime
 import lime.app.Application;
@@ -97,6 +106,10 @@ class Window #if lime extends LimeWindow #end
 	@:noCompletion private var __flightRenderState:Dynamic;
 	@:noCompletion private var __flightWindow:FlightApplicationWindow;
 	@:noCompletion private var __usingCairo:Bool;
+	#if (lime_cairo && !js)
+	@:noCompletion private static final __flightBitmapCanvases:ObjectMap<FlightBitmapHandle,
+		{canvas:NativeScratchCanvas, version:Float}> = new ObjectMap();
+	#end
 	#end
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -261,7 +274,7 @@ class Window #if lime extends LimeWindow #end
 			registerRenderer(__flightRenderState, RichTextKind, defaultCanvasRichTextRenderer);
 			registerCanvasShapeCommands(__flightRenderState, defaultCanvasShapeCommands);
 			registerCanvasImageTextureResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
-			registerCanvasBitmapTextureResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
+			__registerFlightCanvasBitmapResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
 			enableCanvasBlendMode(__flightRenderState);
 			#else
 			throw "This Lime build does not include Cairo support.";
@@ -286,14 +299,57 @@ class Window #if lime extends LimeWindow #end
 			var surfaceCreator = flight.Scene2DCairo.createCairoRenderSurfaceCreator();
 			var shapeResolvers = createCanvasTextureResolvers(surfaceCreator);
 			connectCanvasTextureResolverMisses(shapeResolvers, __flightRenderState);
-			registerCanvasBitmapTextureResolver(shapeResolvers);
+			__registerFlightCanvasBitmapResolver(shapeResolvers);
 			registerCanvasImageTextureResolver(shapeResolvers);
+			registerCanvasShapeCommands(__flightRenderState, defaultCanvasShapeCommands);
+			registerCanvasShapeCommands(__flightRenderState, defaultCanvasTextureShapeCommands);
 			registerGlShapeRasterizer(__flightRenderState, createCanvasShapeRasterizer(shapeResolvers));
 			#end
 			registerGlShapeCommands(__flightRenderState, defaultGlShapeCommands);
+			registerGlShapeCommands(__flightRenderState, defaultGlTextureShapeCommands);
 			enableGlBlendModeSupport(__flightRenderState);
 		}
 	}
+
+	@:noCompletion private static function __registerFlightCanvasBitmapResolver(resolvers:FlightCanvasTextureResolvers):Void
+	{
+		#if (lime_cairo && !js)
+		registerCanvasTextureResolver(resolvers, BitmapTextureSourceKind, __resolveFlightCanvasBitmap);
+		#else
+		registerCanvasBitmapTextureResolver(resolvers);
+		#end
+	}
+
+	#if (lime_cairo && !js)
+	@:noCompletion private static function __resolveFlightCanvasBitmap(_resolvers:FlightCanvasTextureResolvers,
+		texture:FlightTexture):Dynamic
+	{
+		var bitmap:FlightBitmapHandle = cast getTextureSource(texture);
+		if (bitmap == null || bitmap.width <= 0 || bitmap.height <= 0) return null;
+
+		var entry = __flightBitmapCanvases.get(bitmap);
+		if (entry == null || entry.version != bitmap.version)
+		{
+			var canvas = entry == null ? new NativeScratchCanvas() : entry.canvas;
+			canvas.width = Std.int(bitmap.width);
+			canvas.height = Std.int(bitmap.height);
+			var pixels = bitmap.data;
+			if (bitmap.alphaType == cast "premultiplied")
+			{
+				pixels = new FlightUInt8ClampedArray(bitmap.data.length);
+				FlightBitmap.unpremultiplyBitmapPixels(pixels, bitmap.data, bitmap.data.length);
+			}
+			canvas.nativeContext().putImageData({
+				width: canvas.width,
+				height: canvas.height,
+				data: pixels
+			}, 0, 0);
+			entry = {canvas: canvas, version: bitmap.version};
+			__flightBitmapCanvases.set(bitmap, entry);
+		}
+		return cast entry.canvas;
+	}
+	#end
 
 	@:noCompletion private function __renderFlight(context:RenderContext):Void
 	{

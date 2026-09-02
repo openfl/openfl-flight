@@ -29,6 +29,8 @@ import openfl.geom.Rectangle;
 @:access(openfl.display.DisplayObject)
 class TextField extends InteractiveObject
 {
+	@:noCompletion private static var __missingFontWarning:Map<String, Bool> = new Map();
+
 	public var antiAliasType(get, set):AntiAliasType;
 	public var autoSize(get, set):TextFieldAutoSize;
 	public var background(get, set):Bool;
@@ -87,6 +89,8 @@ class TextField extends InteractiveObject
 	@:noCompletion private var __maxChars:Int;
 	@:noCompletion private var __mouseWheelEnabled:Bool;
 	@:noCompletion private var __multiline:Bool;
+	@:noCompletion private var __offsetX:Float;
+	@:noCompletion private var __offsetY:Float;
 	@:noCompletion private var __passwordChar:String;
 	@:noCompletion private var __restrict:String;
 	@:noCompletion private var __scrollH:Int;
@@ -124,6 +128,8 @@ class TextField extends InteractiveObject
 		__maxChars = 0;
 		__mouseWheelEnabled = true;
 		__multiline = false;
+		__offsetX = 0;
+		__offsetY = 0;
 		__passwordChar = "*";
 		__restrict = null;
 		__scrollH = 0;
@@ -152,6 +158,17 @@ class TextField extends InteractiveObject
 			restrict: __toFlightRestrict(__restrict)
 		});
 		__syncFlightText();
+	}
+
+	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
+	{
+		if (__flightText.x != __offsetX || __flightText.y != __offsetY)
+		{
+			__flightText.x = __offsetX;
+			__flightText.y = __offsetY;
+			FlightNode.invalidateNodeLocalTransform(__flightText);
+		}
+		super.__enterFrame(deltaTime);
 	}
 
 	public function appendText(text:String):Void
@@ -825,6 +842,20 @@ class TextField extends InteractiveObject
 		var scale = Math.abs(scaleX);
 		__fieldWidth = scale == 0 ? value : value / scale;
 		FlightText.setRichTextWidth(__flightText, __fieldWidth);
+		return value;
+	}
+	@:noCompletion private override function get_x():Float return __transform.tx + __offsetX;
+	@:noCompletion private override function set_x(value:Float):Float
+	{
+		__transform.tx = value - __offsetX;
+		__syncFlightNode();
+		return value;
+	}
+	@:noCompletion private override function get_y():Float return __transform.ty + __offsetY;
+	@:noCompletion private override function set_y(value:Float):Float
+	{
+		__transform.ty = value - __offsetY;
+		__syncFlightNode();
 		return value;
 	}
 	@:noCompletion private function get_wordWrap():Bool return __wordWrap;

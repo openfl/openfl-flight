@@ -199,6 +199,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		@see [Caching display objects](https://books.openfl.org/openfl-developers-guide/display-programming/manipulating-display-objects/caching-display-objects.html)
 	**/
 	public var cacheAsBitmapMatrix(get, set):Matrix;
+	@:noCompletion private var clippingLayer(get, set):DisplayObject;
 	/**
 		An indexed array that contains each filter object currently associated
 		with the display object. The openfl.filters package contains several
@@ -1231,6 +1232,8 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	}
 
 	@:noCompletion private function get_loaderInfo():LoaderInfo return __loaderInfo;
+	@:noCompletion private function get_clippingLayer():DisplayObject return __mask;
+	@:noCompletion private function set_clippingLayer(value:DisplayObject):DisplayObject return mask = value;
 	@:noCompletion private function get_mask():DisplayObject return __mask;
 	@:noCompletion private function set_mask(value:DisplayObject):DisplayObject
 	{
