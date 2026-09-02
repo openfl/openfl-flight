@@ -104,6 +104,7 @@ class Bitmap extends DisplayObject
 	@:noCompletion private var __bitmapData:BitmapData;
 	@:noCompletion private var __flightTexture:FlightTextureData;
 	@:noCompletion private var __imageVersion:Int;
+	@:noCompletion private var __textureSmoothing:Bool;
 
 	#if openfljs
 	@:noCompletion private static function __init__()
@@ -143,6 +144,11 @@ class Bitmap extends DisplayObject
 
 	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
 	{
+		if (smoothing != __textureSmoothing)
+		{
+			__syncBitmapData();
+		}
+
 		if (__bitmapData != null && __bitmapData.image != null && __bitmapData.image.version != __imageVersion)
 		{
 			__setRenderDirty();
@@ -205,6 +211,7 @@ class Bitmap extends DisplayObject
 
 	@:noCompletion private function __syncBitmapData():Void
 	{
+		__textureSmoothing = smoothing;
 		var sprite:FlightSpriteData = cast __flightNode;
 		if (__bitmapData == null || __bitmapData.__flightBitmap == null)
 		{
