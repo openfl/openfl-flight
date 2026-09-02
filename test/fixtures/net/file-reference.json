@@ -1,4 +1,5 @@
 {
+  "uploadWithoutSelectionDispatchedError": true,
   "browseWithoutFilter": true,
   "filter": {
     "description": "Pictures",
@@ -11,7 +12,9 @@
     "extension": null
   },
   "browseWithFilter": true,
-  "events": [],
+  "events": [
+    "ioError"
+  ],
   "initial": {
     "name": null,
     "creationDateIsNull": true,
@@ -31,5 +34,14 @@
     "modificationDateIsNull": true,
     "type": null,
     "dataIsNull": true
+  },
+  "list": {
+    "browseWithoutFilter": true,
+    "browseWithFilter": true,
+    "events": [],
+    "replacedOnBrowse": true,
+    "secondLength": 0,
+    "firstLength": 0,
+    "initialIsNull": true
   }
 }

@@ -1,8 +1,16 @@
 package openfl.net;
 
 #if !flash
-#if desktop
+#if (desktop || js)
+import flight.Dialog as FlightDialog;
+import flight.FileSystem as FlightFileSystem;
+import flight.types.FileDialogHandle as FlightFileDialogHandle;
+import flight.types.HasDialogFileOpen as FlightDialogOpenHost;
+import flight.types.HasStorageFileSystem as FlightFileSystemHost;
+import flight.types.FileStat as FlightFileStat;
+import openfl.events.Event;
 import openfl.events.EventDispatcher;
+import openfl.events.IOErrorEvent;
 /**
 	The FileReferenceList class provides a means to let users select one or
 	more files for uploading. A FileReferenceList object represents a group of
@@ -50,6 +58,8 @@ import openfl.events.EventDispatcher;
 @:access(openfl.net.FileReference)
 class FileReferenceList extends EventDispatcher
 {
+	@:noCompletion private var __operationGeneration:Int = 0;
+
 	/**
 		An array of `FileReference` objects.
 		When the `FileReferenceList.browse()` method is called and the user
@@ -77,7 +87,6 @@ class FileReferenceList extends EventDispatcher
 	public function new()
 	{
 		super();
-		fileList = [];
 	}
 
 	/**
@@ -129,101 +138,76 @@ class FileReferenceList extends EventDispatcher
 	public function browse(typeFilter:Array<FileFilter> = null):Bool
 	{
 		fileList = [];
-		// TODO: Open a multi-file picker through Flight.
-		return false;
-	}
-}
-#elseif js
-import openfl.utils.ByteArray;
-import openfl.events.MouseEvent;
-import openfl.net.FileFilter;
-import openfl.net.FileReference;
-import openfl.events.EventDispatcher;
-import openfl.events.Event;
-#if haxe4
-import js.lib.DataView;
-#else
-import js.html.DataView;
-#end
+		if (!FileReference.__hasDialogBackend()) return true;
 
-#if !openfl_debug
-@:fileXml('tags="haxe,release"')
-@:noDebug
-#end
-@:access(openfl.net.FileReference)
-class FileReferenceList extends EventDispatcher
-{
-	public var fileList(default, null):Array<FileReference>;
-
-	private var fileInput:Dynamic;
-
-	public function new()
-	{
-		super();
-		fileList = new Array<FileReference>();
-	}
-
-	public function browse(typeFilter:Array<FileFilter> = null):Bool
-	{
-		fileInput = js.Browser.document.createElement("input");
-		fileInput.type = "file";
-		fileInput.multiple = true;
-		if (typeFilter != null)
+		var generation = ++__operationGeneration;
+		var host = FileReference.__getHost();
+		var dialogHost:FlightDialogOpenHost = cast host;
+		FlightDialog.showOpenFileDialog(dialogHost, {multiple: true, filters: FileReference.__toFlightFilters(typeFilter)}).then(function(result:Dynamic):Dynamic
 		{
-			var accept:String = "";
-			for (i in 0...typeFilter.length)
+			if (generation != __operationGeneration) return result;
+			var outcome = result == null ? null : Reflect.field(result, "outcome");
+			var handles = FileReference.__openDialogHandles(result);
+			if (outcome == "cancelled" || (outcome == null && handles.length == 0))
 			{
-				if (i > 0)
-				{
-					accept += ",";
-				}
-				accept += typeFilter[i].extension;
+				dispatchEvent(new Event(Event.CANCEL));
 			}
-			fileInput.accept = accept;
-		}
-		fileInput.addEventListener("change", fileInput_onChange);
-		fileInput.click();
+			else if ((outcome == "selected" || outcome == null) && handles.length > 0)
+			{
+				__selectHandles(handles, cast host, generation);
+			}
+			else
+			{
+				__dispatchIOError(outcome == null ? "Unable to open a file dialog" : outcome);
+			}
+			return result;
+		}, function(error:Dynamic):Dynamic
+		{
+			if (generation == __operationGeneration) __dispatchIOError(error);
+			return null;
+		});
 		return true;
 	}
 
-	private function fileInput_onChange(event:Dynamic):Void
+	@:noCompletion private function __dispatchIOError(error:Dynamic):Void
 	{
-		var files = (event.target : js.html.InputElement).files;
-		if (files.length == 0)
-		{
-			dispatchEvent(new Event(Event.CANCEL));
-			return;
-		}
-		for (i in 0...files.length)
-		{
-			var file = files[i];
-			var fileReference = new FileReference();
-			fileReference.__path = file.name;
-			fileReference.name = file.name;
-			fileReference.size = file.size;
-			fileReference.type = file.type;
-			// Set creationDate and modificationDate properties
-			var lastModified = Date.fromTime(file.lastModified);
-			fileReference.creationDate = lastModified;
-			fileReference.modificationDate = lastModified;
+		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, Std.string(error)));
+	}
 
-			var reader = new js.html.FileReader();
-			reader.addEventListener("load", function(readerEvent)
+	@:noCompletion private function __selectHandles(handles:Array<FlightFileDialogHandle>, fileSystemHost:FlightFileSystemHost, generation:Int):Void
+	{
+		var remaining = handles.length;
+		for (handle in handles)
+		{
+			var reference = new FileReference();
+			reference.__flightHandle = handle;
+			reference.__name = handle.name;
+			reference.__path = handle.path;
+			reference.__type = FileReference.__typeForName(handle.name);
+			fileList.push(reference);
+
+			if (handle.path == null || fileSystemHost == null)
 			{
-				var byteArray = new ByteArray();
-				var dataView = new DataView(readerEvent.target.result);
-				for (i in 0...dataView.byteLength)
+				if (--remaining == 0 && generation == __operationGeneration) dispatchEvent(new Event(Event.SELECT));
+				continue;
+			}
+
+			FlightFileSystem.statFile(fileSystemHost, handle.path).then(function(stat:FlightFileStat):FlightFileStat
+			{
+				if (generation != __operationGeneration) return stat;
+				if (stat != null)
 				{
-					byteArray.writeByte(dataView.getUint8(i));
+					reference.__creationDate = Date.fromTime(stat.createdTime);
+					reference.__modificationDate = Date.fromTime(stat.modifiedTime);
+					reference.__size = stat.size;
 				}
-				fileReference.data = byteArray;
-				fileList.push(fileReference);
-				if (fileList.length == files.length)
-				{
-					dispatchEvent(new Event(Event.SELECT));
-				}
+				if (--remaining == 0) dispatchEvent(new Event(Event.SELECT));
+				return stat;
+			}, function(error:Dynamic):FlightFileStat
+			{
+				if (generation == __operationGeneration) __dispatchIOError(error);
+				return null;
 			});
-			reader.readAsArrayBuffer(cast file);
 		}
 	}
 }

@@ -2,3 +2,4 @@
 -main harness.Main
 --interp
 -D tools
+-D desktop

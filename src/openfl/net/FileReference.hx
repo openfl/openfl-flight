@@ -6,8 +6,6 @@ import flight.FileSystem as FlightFileSystem;
 import flight._internal._UInt8Array as FlightUInt8Array;
 import flight.types.FileDialogFilter as FlightFileDialogFilter;
 import flight.types.FileDialogHandle as FlightFileDialogHandle;
-import flight.types.FileOpenDialogResult as FlightFileOpenResult;
-import flight.types.FileSaveDialogResult as FlightFileSaveResult;
 import flight.types.FileStat as FlightFileStat;
 import flight.types.HasDialogFileOpen as FlightDialogOpenHost;
 import flight.types.HasDialogFileSave as FlightDialogSaveHost;
@@ -74,16 +72,16 @@ class FileReference extends EventDispatcher
 		if (!__hasDialogBackend()) return true;
 		var generation = ++__operationGeneration;
 		var dialogHost:FlightDialogOpenHost = cast __getHost();
-		FlightDialog.showOpenFileDialog(dialogHost, {multiple: false, filters: __toFlightFilters(typeFilter)}).then(function(result:FlightFileOpenResult):FlightFileOpenResult
+		FlightDialog.showOpenFileDialog(dialogHost, {multiple: false, filters: __toFlightFilters(typeFilter)}).then(function(result:Dynamic):Dynamic
 		{
 			if (generation != __operationGeneration) return result;
 			var outcome = result == null ? null : Reflect.field(result, "outcome");
-			var handles:Array<FlightFileDialogHandle> = result == null ? null : cast Reflect.field(result, "handles");
-			if (outcome == "cancelled")
+			var handles = __openDialogHandles(result);
+			if (outcome == "cancelled" || (outcome == null && handles.length == 0))
 			{
 				dispatchEvent(new Event(Event.CANCEL));
 			}
-			else if (outcome == "selected" && handles != null && handles.length > 0)
+			else if ((outcome == "selected" || outcome == null) && handles.length > 0)
 			{
 				__selectHandle(handles[0], generation);
 			}
@@ -92,7 +90,7 @@ class FileReference extends EventDispatcher
 				__dispatchIOError(outcome == null ? "Unable to open a file dialog" : outcome);
 			}
 			return result;
-		}, function(error:Dynamic):FlightFileOpenResult
+		}, function(error:Dynamic):Dynamic
 		{
 			if (generation == __operationGeneration) __dispatchIOError(error);
 			return cast {outcome: "file-open-failed"};
@@ -107,7 +105,9 @@ class FileReference extends EventDispatcher
 
 	public function download(request:URLRequest, defaultFileName:String = null):Void
 	{
-		// TODO: Select a destination and download through Flight.
+		// Flight cannot yet compose a cancellable network request with a save
+		// dialog and streamed filesystem destination; see agents/flight-gaps.md.
+		__dispatchIOError("FileReference download is not available through Flight");
 	}
 
 	public function load():Void
@@ -148,17 +148,21 @@ class FileReference extends EventDispatcher
 		var host = __getHost();
 		var dialogHost:FlightDialogSaveHost = cast host;
 		var fileSystemHost:FlightFileSystemHost = cast host;
-		FlightDialog.showSaveFileDialog(dialogHost, {defaultName: defaultFileName}).then(function(result:FlightFileSaveResult):FlightFileSaveResult
+		var options:Dynamic = {defaultName: defaultFileName};
+		// The maintained Lime host consumes this compatibility field; the
+		// generated Dialog contract consumes defaultName above.
+		Reflect.setField(options, "defaultPath", defaultFileName);
+		FlightDialog.showSaveFileDialog(dialogHost, cast options).then(function(result:Dynamic):Dynamic
 		{
 			if (generation != __operationGeneration) return result;
 			var outcome = result == null ? null : Reflect.field(result, "outcome");
-			var handle:FlightFileDialogHandle = result == null ? null : cast Reflect.field(result, "handle");
-			if (outcome == "cancelled")
+			var handle = __saveDialogHandle(result);
+			if (outcome == "cancelled" || (outcome == null && handle == null))
 			{
 				dispatchEvent(new Event(Event.CANCEL));
 				return result;
 			}
-			if (outcome != "selected" || handle == null)
+			if ((outcome != "selected" && outcome != null) || handle == null)
 			{
 				__dispatchIOError(outcome == null ? "Unable to open a save dialog" : outcome);
 				return result;
@@ -183,7 +187,7 @@ class FileReference extends EventDispatcher
 				__finishWrite(FlightFileSystem.writeDialogHandleTextFile(fileSystemHost, handle, Std.string(data)), generation);
 			}
 			return result;
-		}, function(error:Dynamic):FlightFileSaveResult
+		}, function(error:Dynamic):Dynamic
 		{
 			if (generation == __operationGeneration) __dispatchIOError(error);
 			return cast {outcome: "file-save-failed"};
@@ -192,7 +196,10 @@ class FileReference extends EventDispatcher
 
 	public function upload(request:URLRequest, uploadDataFieldName:String = "Filedata", testUpload:Bool = false):Void
 	{
-		// TODO: Upload the selected file through Flight networking.
+		// Flight cannot yet expose this API's cancellable multipart upload
+		// lifecycle; report the unsupported operation instead of silently
+		// starting a partial transfer. See agents/flight-gaps.md.
+		__dispatchIOError("FileReference upload is not available through Flight");
 	}
 
 	@:noCompletion private function __dispatchIOError(error:Dynamic):Void
@@ -314,9 +321,29 @@ class FileReference extends EventDispatcher
 			}
 			var accept:Dynamic = {};
 			Reflect.setField(accept, "", extensions);
-			result.push({name: filter.description == null ? "" : filter.description, accept: cast accept});
+			var item:Dynamic = {name: filter.description == null ? "" : filter.description, accept: accept};
+			// The maintained native Flight host consumes this compatibility field;
+			// the generated Dialog contract consumes accept above.
+			Reflect.setField(item, "extensions", extensions);
+			result.push(cast item);
 		}
 		return result;
+	}
+
+	@:noCompletion private static function __openDialogHandles(result:Dynamic):Array<FlightFileDialogHandle>
+	{
+		if (result == null) return [];
+		if (Std.isOfType(result, Array)) return cast result;
+		if (Reflect.hasField(result, "kind")) return [cast result];
+		var handles:Array<FlightFileDialogHandle> = cast Reflect.field(result, "handles");
+		return handles == null ? [] : handles;
+	}
+
+	@:noCompletion private static function __saveDialogHandle(result:Dynamic):FlightFileDialogHandle
+	{
+		if (result == null) return null;
+		if (Reflect.hasField(result, "kind")) return cast result;
+		return cast Reflect.field(result, "handle");
 	}
 
 	@:noCompletion private static function __typeForName(name:String):String

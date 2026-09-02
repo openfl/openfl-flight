@@ -288,11 +288,13 @@ the capability that this adapter can compile against.
   OpenFL adopts an asynchronous boundary).
 
 - **FileReference network transfers and cancellation**: Flight Dialog and
-  FileSystem can back file selection, metadata, loading, and saving, but their
-  promise operations do not expose cancellation handles. `FileReference`
-  ignores stale completions after `cancel()`; true host-operation cancellation
-  and the combined download/save and multipart upload workflows still require
-  Flight primitives that compose dialog, filesystem, and network operations.
+  FileSystem back single- and multi-file selection, metadata, loading, and
+  saving, but their promise operations do not expose cancellation handles.
+  `FileReference` ignores stale completions after `cancel()` and reports an IO
+  error for its unsupported transfer entry points; true host-operation
+  cancellation and the combined download/save and multipart upload workflows
+  still require Flight primitives that compose dialog, filesystem, and network
+  operations.
 
 - **Filesystem metadata, locations, and synchronous contracts**: Flight
   FileSystem backs text/binary reads and writes, copies, moves, deletion,

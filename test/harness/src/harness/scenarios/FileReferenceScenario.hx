@@ -5,6 +5,8 @@ import openfl.events.IOErrorEvent;
 import openfl.events.ProgressEvent;
 import openfl.net.FileFilter;
 import openfl.net.FileReference;
+import openfl.net.FileReferenceList;
+import openfl.net.URLRequest;
 
 class FileReferenceScenario {
 	public static function run():Dynamic {
@@ -24,6 +26,21 @@ class FileReferenceScenario {
 		reference.load();
 		reference.save(null);
 		reference.save("flight", "flight.txt");
+		var eventsBeforeUpload = events.length;
+		reference.upload(new URLRequest("https://example.invalid/upload"));
+		var uploadWithoutSelectionDispatchedError = events.length == eventsBeforeUpload + 1 && events[events.length - 1] == IOErrorEvent.IO_ERROR;
+
+		var list = new FileReferenceList();
+		var listEvents:Array<String> = [];
+		list.addEventListener(Event.CANCEL, function(event:Event):Void listEvents.push(event.type));
+		list.addEventListener(IOErrorEvent.IO_ERROR, function(event:Event):Void listEvents.push(event.type));
+		list.addEventListener(Event.SELECT, function(event:Event):Void listEvents.push(event.type));
+		var initialListIsNull = list.fileList == null;
+		var listBrowseWithoutFilter = list.browse();
+		var firstList = list.fileList;
+		var firstListLength = firstList.length;
+		var listBrowseWithFilter = list.browse([filter]);
+		var listWasReplaced = list.fileList != firstList;
 
 		filter.description = "Pictures";
 		filter.extension = "*.gif";
@@ -44,7 +61,17 @@ class FileReferenceScenario {
 				macType: filter.macType
 			},
 			initial: initial,
-			referenceAfterOperations: metadata(reference)
+			list: {
+				browseWithFilter: listBrowseWithFilter,
+				browseWithoutFilter: listBrowseWithoutFilter,
+				events: listEvents,
+				firstLength: firstListLength,
+				initialIsNull: initialListIsNull,
+				replacedOnBrowse: listWasReplaced,
+				secondLength: list.fileList.length
+			},
+			referenceAfterOperations: metadata(reference),
+			uploadWithoutSelectionDispatchedError: uploadWithoutSelectionDispatchedError
 		};
 	}
 
