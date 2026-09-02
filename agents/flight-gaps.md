@@ -300,6 +300,16 @@ adapter does not add a new method for it.
   mutable `SoundChannel.soundTransform`. Flight also exposes no left/right peak
   levels, so peak metering remains a separate capability gap after pan lands.
 
+- **Native Lime audio device backend**: `HostLime.enableHostLime()` does not
+  install an `AudioDeviceBackend`, so Flight Media resolves its silent sentinel
+  for Neko and other native Lime targets. Flight contains a prospective
+  `LimeAudioDevice`, but it is excluded behind `flight_host_develop`; when
+  activated against the current facade its PCM conversion casts Flight's Lime
+  `_Float32Array` storage to `Array<Float>` and raises `Unsupported operation`.
+  Flight needs to ship and install a native device backend that reads its typed
+  channel arrays portably. Until then decoded OpenFL sounds can create logical
+  channels, but native playback cannot reach the host audio device.
+
 - **Synchronous audio file factories**: Flight audio decoding and URL resolution
   return promises. The adapter uses Flight's public Lime audio-context factory
   for `Sound.load()`, byte decoding, PCM resources, and playback, but cannot
