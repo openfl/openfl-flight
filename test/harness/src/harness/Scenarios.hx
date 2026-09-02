@@ -35,6 +35,7 @@ import harness.scenarios.FileReferenceScenario;
 import harness.scenarios.FileScenario;
 import harness.scenarios.FileStreamScenario;
 import harness.scenarios.FilterScenario;
+import harness.scenarios.FiltersDisplayIntegrationScenario;
 import harness.scenarios.FontAndStyleScenario;
 import harness.scenarios.GameInputScenario;
 import harness.scenarios.GraphicsDrawScenario;
@@ -120,6 +121,10 @@ class Scenarios {
 			{
 				name: "integration/display-geom",
 				run: DisplayGeomIntegrationScenario.run
+			},
+			{
+				name: "integration/filters-display",
+				run: FiltersDisplayIntegrationScenario.run
 			},
 			{
 				name: "geom/point",

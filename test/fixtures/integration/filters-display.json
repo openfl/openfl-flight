@@ -1,0 +1,153 @@
+{
+  "assignmentClone": {
+    "glowIsAssignmentClone": true,
+    "returnedArraysShareReference": false,
+    "blurIsAssignmentClone": true,
+    "originalBlurAfterMutation": {
+      "quality": 2,
+      "blurY": 6,
+      "blurX": 40
+    },
+    "assignedArrayLengthAfterMutation": 1,
+    "storedCountAfterReadArrayMutation": 2,
+    "originalGlowColorAfterMutation": 16777215,
+    "storedCountBeforeReadArrayMutation": 2,
+    "storedGlowColor": 3368601,
+    "storedBlur": {
+      "quality": 2,
+      "blurY": 6,
+      "blurX": 4
+    },
+    "storedTypesAfterReadArrayMutation": [
+      "BlurFilter",
+      "GlowFilter"
+    ]
+  },
+  "multipleFilters": {
+    "glow": {
+      "strength": 3.5,
+      "quality": 2,
+      "color": 11259375,
+      "alpha": 0.6,
+      "blurY": 11,
+      "knockout": true,
+      "inner": true,
+      "blurX": 10
+    },
+    "colorMatrix": [
+      1,
+      0,
+      0,
+      0,
+      12,
+      0,
+      0.5,
+      0,
+      0,
+      -8,
+      0,
+      0,
+      1.5,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0.8,
+      0
+    ],
+    "cacheAsBitmap": true,
+    "count": 4,
+    "dropShadow": {
+      "strength": 2.5,
+      "quality": 3,
+      "color": 1193046,
+      "alpha": 0.4,
+      "distance": 7,
+      "angle": 30,
+      "blurY": 9,
+      "hideObject": true,
+      "knockout": true,
+      "inner": true,
+      "blurX": 8
+    },
+    "blur": {
+      "quality": 2,
+      "blurY": 12,
+      "blurX": 8
+    },
+    "order": [
+      "BlurFilter",
+      "GlowFilter",
+      "DropShadowFilter",
+      "ColorMatrixFilter"
+    ]
+  },
+  "removal": {
+    "afterEmpty": {
+      "cacheAsBitmap": false,
+      "count": 0
+    },
+    "afterNull": {
+      "cacheAsBitmap": false,
+      "count": 0
+    },
+    "applied": {
+      "cacheAsBitmap": true,
+      "count": 2
+    },
+    "reapplied": {
+      "cacheAsBitmap": true,
+      "count": 1
+    }
+  },
+  "containerBounds": {
+    "after": {
+      "containerHeight": 27.083088,
+      "containerSelf": {
+        "x": 2.183459,
+        "y": 8.862501,
+        "height": 27.083088,
+        "width": 34.154156
+      },
+      "containerInRoot": {
+        "x": 42.183459,
+        "y": -6.137499,
+        "height": 27.083088,
+        "width": 34.154156
+      },
+      "childInContainer": {
+        "x": 2.183459,
+        "y": 8.862501,
+        "height": 27.083088,
+        "width": 34.154156
+      },
+      "containerWidth": 34.154156
+    },
+    "childBoundsUnchanged": true,
+    "rootBoundsUnchanged": true,
+    "containerBoundsUnchanged": true,
+    "before": {
+      "containerHeight": 27.083088,
+      "containerSelf": {
+        "x": 2.183459,
+        "y": 8.862501,
+        "height": 27.083088,
+        "width": 34.154156
+      },
+      "containerInRoot": {
+        "x": 42.183459,
+        "y": -6.137499,
+        "height": 27.083088,
+        "width": 34.154156
+      },
+      "childInContainer": {
+        "x": 2.183459,
+        "y": 8.862501,
+        "height": 27.083088,
+        "width": 34.154156
+      },
+      "containerWidth": 34.154156
+    }
+  }
+}
