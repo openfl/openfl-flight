@@ -431,11 +431,9 @@ class BitmapData implements IBitmapDrawable
 	{
 		#if (js && html5)
 		if (canvas == null) return null;
-		var result = __fromFlightBitmap(FlightBitmap.createBitmapFromCanvas(cast canvas), transparent);
-		if (!transparent)
-		{
-			for (y in 0...result.height) for (x in 0...result.width) result.setPixel32(x, y, result.getPixel32(x, y));
-		}
+		var bitmap = FlightBitmap.createBitmapFromCanvas(cast canvas);
+		var result = new BitmapData(Std.int(bitmap.width), Std.int(bitmap.height), transparent, 0);
+		result.__writeStraightRegion(bitmap, 0, 0, result.width, result.height);
 		return result;
 		#else
 		return null;
