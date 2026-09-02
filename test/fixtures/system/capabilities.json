@@ -16,6 +16,19 @@
       "stylus"
     ]
   },
+  "capabilityValidation": {
+    "languageMatchesFormat": true,
+    "hasAudio": true,
+    "hasScreenPlayback": false,
+    "hasVideoEncoder": false,
+    "screenDPIPositive": true,
+    "hasMP3": false,
+    "screenResolutionYPositive": false,
+    "playerTypeIsKnown": true,
+    "versionMatchesFormat": true,
+    "osMatchesFormat": true,
+    "screenResolutionXPositive": false
+  },
   "security": {
     "exactSettings": null,
     "sandboxTypeIsNull": true,
@@ -86,6 +99,8 @@
     "useCodePageMutable": true,
     "totalMemoryNumberIsFloat": false,
     "totalMemoryIsInt": true,
+    "totalMemoryIsIntOrUInt": true,
+    "gcDoesNotThrow": true,
     "totalMemoryNumberNonNegative": true,
     "useCodePageDefault": false
   }

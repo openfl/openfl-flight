@@ -18,6 +18,19 @@ class SystemScenario {
 		var customLoaderContext = new LoaderContext(true, childApplicationDomain, securityDomain);
 		var totalMemory = System.totalMemory;
 		var totalMemoryNumber = System.totalMemoryNumber;
+		var language = Capabilities.language;
+		var os = Capabilities.os;
+		var playerType = Capabilities.playerType;
+		var version = Capabilities.version;
+		var screenResolutionX = Capabilities.screenResolutionX;
+		var screenResolutionY = Capabilities.screenResolutionY;
+		var screenDPI = Capabilities.screenDPI;
+		var gcDoesNotThrow = true;
+		try {
+			System.gc();
+		} catch (_:Dynamic) {
+			gcDoesNotThrow = false;
+		}
 		var originalUseCodePage = System.useCodePage;
 		System.useCodePage = !originalUseCodePage;
 		var changedUseCodePage = System.useCodePage;
@@ -50,23 +63,36 @@ class SystemScenario {
 				hasVideoEncoder: Capabilities.hasVideoEncoder,
 				isDebugger: Capabilities.isDebugger,
 				isEmbeddedInAcrobat: Capabilities.isEmbeddedInAcrobat,
-				language: Capabilities.language,
+				language: language,
 				localFileReadDisable: Capabilities.localFileReadDisable,
 				manufacturer: Capabilities.manufacturer,
 				maxLevelIDC: Capabilities.maxLevelIDC,
-				os: Capabilities.os,
+				os: os,
 				pixelAspectRatio: Capabilities.pixelAspectRatio,
-				playerType: Capabilities.playerType,
+				playerType: playerType,
 				screenColor: Capabilities.screenColor,
-				screenDPI: Capabilities.screenDPI,
-				version: Capabilities.version,
-				screenResolutionX: Capabilities.screenResolutionX,
-				screenResolutionY: Capabilities.screenResolutionY,
+				screenDPI: screenDPI,
+				version: version,
+				screenResolutionX: screenResolutionX,
+				screenResolutionY: screenResolutionY,
 				serverString: Capabilities.serverString,
 				supports32BitProcesses: Capabilities.supports32BitProcesses,
 				supports64BitProcesses: Capabilities.supports64BitProcesses,
 				touchscreenType: Std.string(Capabilities.touchscreenType),
 				hasMultiChannelAudio: Capabilities.hasMultiChannelAudio("DolbyDigital")
+			},
+			capabilityValidation: {
+				languageMatchesFormat: ~/^(?:[a-z]{2}|zh-(?:CN|TW)|xu)$/.match(language),
+				osMatchesFormat: os == "" || ~/^(?:Windows|Mac OS|Linux|Android|iPhone OS)(?: |$)/.match(os),
+				playerTypeIsKnown: ["Desktop", "PlugIn", "StandAlone"].indexOf(playerType) != -1,
+				versionMatchesFormat: ~/^[A-Za-z]+ [0-9]+,[0-9]+,[0-9]+,[0-9]+$/.match(version),
+				screenResolutionXPositive: screenResolutionX > 0,
+				screenResolutionYPositive: screenResolutionY > 0,
+				screenDPIPositive: screenDPI > 0,
+				hasAudio: Capabilities.hasAudio,
+				hasMP3: Capabilities.hasMP3,
+				hasVideoEncoder: Capabilities.hasVideoEncoder,
+				hasScreenPlayback: Capabilities.hasScreenPlayback
 			},
 			constants: {
 				imageDecodingPolicy: [Std.string(ImageDecodingPolicy.ON_DEMAND), Std.string(ImageDecodingPolicy.ON_LOAD)],
@@ -96,11 +122,13 @@ class SystemScenario {
 			},
 			system: {
 				totalMemoryIsInt: Type.typeof(totalMemory) == TInt,
+				totalMemoryIsIntOrUInt: Type.typeof(totalMemory) == TInt,
 				totalMemoryNonNegative: totalMemory >= 0,
 				totalMemoryNumberIsFloat: Type.typeof(totalMemoryNumber) == TFloat,
 				totalMemoryNumberNonNegative: totalMemoryNumber >= 0,
 				useCodePageDefault: originalUseCodePage,
-				useCodePageMutable: changedUseCodePage == !originalUseCodePage
+				useCodePageMutable: changedUseCodePage == !originalUseCodePage,
+				gcDoesNotThrow: gcDoesNotThrow
 			}
 		};
 	}
