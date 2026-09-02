@@ -4,7 +4,10 @@ package openfl.display;
 import openfl.utils.ByteArray;
 
 /**
-	// TODO: Document GLSL Shaders
+	Flight gap: OpenFL shader execution model. This adapter can reflect GLSL
+	declarations into ShaderData, but Flight cannot execute the broader OpenFL
+	shader model or register arbitrary shader source without a render-state bridge.
+
 	A ShaderData object contains properties representing any parameters and
 	inputs for a shader kernel, as well as properties containing any metadata
 	specified for the shader.

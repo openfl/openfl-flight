@@ -4,7 +4,10 @@ package openfl.display;
 import openfl.events.EventDispatcher;
 
 /**
-	// TODO: Document GLSL Shaders
+	Flight gap: OpenFL shader execution model. Flight custom effects cannot run
+	OpenFL ShaderJob operations over bitmap or numeric buffers, synchronously or
+	asynchronously, so execution remains an intentional compatibility stub.
+
 	A ShaderJob instance is used to execute a shader operation in stand-alone
 	mode. The shader operation executes and returns its result data. It is up
 	to the developer to determine how to use the result.

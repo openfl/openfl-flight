@@ -163,7 +163,6 @@ class Lib
 			if ((value is Bool) || value == Bool) return "Bool";
 			else if ((value is Int) || value == Int) return "Int";
 			else if ((value is Float) || value == Float) return "Float";
-			// TODO: Array? Map?
 			else
 				return null;
 		}
@@ -760,8 +759,7 @@ class Lib
 	// Get & Set Methods
 	@:noCompletion private static function get_application():Application
 	{
-		// TODO: Flight application host
-		return null;
+		return cast Application.current;
 	}
 
 	@:noCompletion private static function get_current():MovieClip

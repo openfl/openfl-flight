@@ -33,17 +33,20 @@ import openfl.display3D.Context3D;
 
 	@:noCompletion private function __disableGL(context:Context3D):Void
 	{
-		// TODO (Flight): disable the parameter in the active shader.
+		// Flight gap: OpenFL shader execution model.
+		// There is no active OpenFL shader program from which to disable this parameter.
 	}
 
 	@:noCompletion private function __updateGL(context:Context3D, overrideValue:Array<T> = null):Void
 	{
-		// TODO (Flight): upload the parameter to the active shader.
+		// Flight gap: OpenFL shader execution model.
+		// Flight custom-effect uniforms cannot back arbitrary OpenFL shader parameters.
 	}
 
 	@:noCompletion private function __updateGLFromBuffer(context:Context3D, buffer:Dynamic, position:Int, length:Int, bufferOffset:Int):Void
 	{
-		// TODO (Flight): upload a buffered parameter.
+		// Flight gap: OpenFL shader execution model.
+		// Flight exposes no buffered-parameter upload for an OpenFL shader program.
 	}
 
 	@:noCompletion private function set_name(value:String):String
