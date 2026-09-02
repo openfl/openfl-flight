@@ -21,6 +21,7 @@ import openfl.geom.Rectangle;
 @:noDebug
 #end
 @:access(openfl.display.DisplayObject)
+@:access(openfl.display.GraphicsPath)
 @:final class Graphics
 {
 	@:noCompletion private var __owner:DisplayObject;
@@ -132,12 +133,91 @@ import openfl.geom.Rectangle;
 
 	public function drawGraphicsData(graphicsData:Vector<IGraphicsData>):Void
 	{
-		// TODO: Translate graphics data into Flight vector commands.
+		if (graphicsData == null) return;
+		for (item in graphicsData)
+		{
+			if ((item is GraphicsSolidFill))
+			{
+				var fill:GraphicsSolidFill = cast item;
+				beginFill(fill.color, fill.alpha);
+			}
+			else if ((item is GraphicsGradientFill))
+			{
+				var fill:GraphicsGradientFill = cast item;
+				beginGradientFill(fill.type, fill.colors, fill.alphas, fill.ratios, fill.matrix, fill.spreadMethod, fill.interpolationMethod,
+					fill.focalPointRatio);
+			}
+			else if ((item is GraphicsBitmapFill))
+			{
+				var fill:GraphicsBitmapFill = cast item;
+				beginBitmapFill(fill.bitmapData, fill.matrix, fill.repeat, fill.smooth);
+			}
+			else if ((item is GraphicsStroke))
+			{
+				var stroke:GraphicsStroke = cast item;
+				var thickness:Null<Float> = Math.isNaN(stroke.thickness) ? null : stroke.thickness;
+				if ((stroke.fill is GraphicsSolidFill))
+				{
+					var fill:GraphicsSolidFill = cast stroke.fill;
+					lineStyle(thickness, fill.color, fill.alpha, stroke.pixelHinting, stroke.scaleMode, stroke.caps, stroke.joints, stroke.miterLimit);
+				}
+				else
+				{
+					lineStyle(thickness, 0, 1, stroke.pixelHinting, stroke.scaleMode, stroke.caps, stroke.joints, stroke.miterLimit);
+				}
+			}
+			else if ((item is GraphicsPath))
+			{
+				var path:GraphicsPath = cast item;
+				drawPath(path.commands, path.data, path.winding);
+			}
+			else if ((item is GraphicsTrianglePath))
+			{
+				var path:GraphicsTrianglePath = cast item;
+				drawTriangles(path.vertices, path.indices, path.uvtData, path.culling);
+			}
+			else if ((item is GraphicsQuadPath))
+			{
+				var path:GraphicsQuadPath = cast item;
+				drawQuads(path.rects, path.indices, path.transforms);
+			}
+			else if ((item is GraphicsEndFill))
+			{
+				endFill();
+			}
+		}
 	}
 
 	public function drawPath(commands:Vector<Int>, data:Vector<Float>, winding:GraphicsPathWinding = GraphicsPathWinding.EVEN_ODD):Void
 	{
 		if (commands == null || data == null) return;
+		var dataIndex = 0;
+		for (command in commands)
+		{
+			switch (command)
+			{
+				case GraphicsPathCommand.MOVE_TO:
+					FlightPath.appendPathMoveTo(__flightPath, data[dataIndex], data[dataIndex + 1]);
+					dataIndex += 2;
+				case GraphicsPathCommand.LINE_TO:
+					FlightPath.appendPathLineTo(__flightPath, data[dataIndex], data[dataIndex + 1]);
+					dataIndex += 2;
+				case GraphicsPathCommand.CURVE_TO:
+					FlightPath.appendPathCurveTo(__flightPath, data[dataIndex], data[dataIndex + 1], data[dataIndex + 2], data[dataIndex + 3]);
+					dataIndex += 4;
+				case GraphicsPathCommand.CUBIC_CURVE_TO:
+					FlightPath.appendPathCubicCurveTo(__flightPath, data[dataIndex], data[dataIndex + 1], data[dataIndex + 2], data[dataIndex + 3],
+						data[dataIndex + 4], data[dataIndex + 5]);
+					dataIndex += 6;
+				case GraphicsPathCommand.WIDE_MOVE_TO:
+					FlightPath.appendPathMoveTo(__flightPath, data[dataIndex + 2], data[dataIndex + 3]);
+					dataIndex += 4;
+				case GraphicsPathCommand.WIDE_LINE_TO:
+					FlightPath.appendPathLineTo(__flightPath, data[dataIndex + 2], data[dataIndex + 3]);
+					dataIndex += 4;
+				default:
+			}
+		}
 		FlightShape.appendShapePath(__flightShape, __colorsToFloat(commands), __vectorToArray(data), cast winding);
 		__invalidate();
 	}
@@ -250,8 +330,77 @@ import openfl.geom.Rectangle;
 
 	public function readGraphicsData(recurse:Bool = true):Vector<IGraphicsData>
 	{
-		// TODO: Reconstruct graphics data from the Flight command buffer.
-		return new Vector<IGraphicsData>();
+		var result = new Vector<IGraphicsData>();
+		var path:GraphicsPath = null;
+		var commands:Array<Dynamic> = cast __flightShape.data.commands;
+		var index = 0;
+		var flushPath = function():Void
+		{
+			if (path != null)
+			{
+				result.push(path);
+				path = null;
+			}
+		};
+
+		while (index < commands.length)
+		{
+			var name:String = cast commands[index++];
+			var count = Std.int(commands[index++]);
+			var values = commands.slice(index, index + count);
+			index += count;
+			var geometry = name == "moveTo" || name == "lineTo" || name == "curveTo" || name == "cubicCurveTo" || name == "drawCircle"
+				|| name == "drawEllipse" || name == "drawRectangle" || name == "drawRoundRectangle";
+			if (geometry)
+			{
+				if (path == null) path = new GraphicsPath();
+			}
+			else
+			{
+				flushPath();
+			}
+
+			switch (name)
+			{
+				case "beginFill":
+					result.push(new GraphicsSolidFill(Std.int(values[0]), values[1]));
+				case "beginGradientFill":
+					var colors:Array<Float> = cast values[1];
+					var ratios:Array<Float> = cast values[3];
+					result.push(new GraphicsGradientFill(cast values[0], [for (value in colors) Std.int(value)], cast values[2],
+						[for (value in ratios) Std.int(value)], __matrix(values[4]), cast values[5], cast values[6], values[7]));
+				case "lineStyle":
+					var stroke = new GraphicsStroke(values[0], values[3], cast values[4], cast values[5], cast values[6], values[7]);
+					stroke.fill = new GraphicsSolidFill(Std.int(values[1]), values[2]);
+					result.push(stroke);
+				case "endFill":
+					result.push(new GraphicsEndFill());
+				case "moveTo":
+					path.moveTo(values[0], values[1]);
+				case "lineTo":
+					path.lineTo(values[0], values[1]);
+				case "curveTo":
+					path.curveTo(values[0], values[1], values[2], values[3]);
+				case "cubicCurveTo":
+					path.cubicCurveTo(values[0], values[1], values[2], values[3], values[4], values[5]);
+				case "drawCircle":
+					path.__drawCircle(values[0], values[1], values[2]);
+				case "drawEllipse":
+					path.__drawEllipse(values[0], values[1], values[2], values[3]);
+				case "drawRectangle":
+					path.__drawRect(values[0], values[1], values[2], values[3]);
+				case "drawRoundRectangle":
+					path.__drawRoundRect(values[0], values[1], values[2], values[3], values[4], values[5]);
+				default:
+			}
+		}
+		flushPath();
+		return result;
+	}
+
+	@:noCompletion private static function __matrix(value:Dynamic):Matrix
+	{
+		return value == null ? null : new Matrix(value.a, value.b, value.c, value.d, value.tx, value.ty);
 	}
 
 	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix, includeStroke:Bool = true):Void
