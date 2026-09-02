@@ -301,13 +301,35 @@ class BitmapData implements IBitmapDrawable
 	public function draw(source:IBitmapDrawable, matrix:Matrix = null, colorTransform:ColorTransform = null, blendMode:BlendMode = null,
 			clipRect:Rectangle = null, smoothing:Bool = false):Void
 	{
-		// TODO: Render bitmap draw operations through Flight.
+		if (!readable || __bitmap == null || source == null || !Std.isOfType(source, BitmapData)) return;
+		var sourceBitmapData:BitmapData = cast source;
+		if (!sourceBitmapData.readable || sourceBitmapData.__bitmap == null) return;
+		var inverse = matrix == null ? new Matrix() : matrix.clone();
+		inverse.invert();
+		var transformed = FlightBitmap.createBitmap(width, height, 0);
+		FlightBitmap.transformBitmap(FlightBitmap.createBitmapRegion(transformed),
+			FlightBitmap.createBitmapRegion(__toStraightBitmap(sourceBitmapData)),
+			[inverse.a, inverse.b, inverse.c, inverse.d, inverse.tx, inverse.ty], "transparent", smoothing ? "bilinear" : "nearest");
+		if (colorTransform != null)
+		{
+			var transformedBitmapData = __fromFlightBitmap(transformed, true);
+			transformedBitmapData.colorTransform(transformedBitmapData.rect, colorTransform);
+			transformed = __toStraightBitmap(transformedBitmapData);
+		}
+
+		var clipped = clipRect == null ? rect : __clipRectangle(clipRect);
+		if (clipped == null) return;
+		var destinationBitmap = __toStraightBitmap(this);
+		var destination = FlightBitmap.createBitmapRegion(destinationBitmap, clipped.x, clipped.y, clipped.width, clipped.height);
+		var transformedRegion = FlightBitmap.createBitmapRegion(transformed, clipped.x, clipped.y, clipped.width, clipped.height);
+		FlightBitmap.compositeBitmapRegion(destination, transformedRegion, __flightBlendMode(blendMode));
+		__writeStraightRegion(destinationBitmap, Std.int(clipped.x), Std.int(clipped.y), Std.int(clipped.width), Std.int(clipped.height));
 	}
 
 	public function drawWithQuality(source:IBitmapDrawable, matrix:Matrix = null, colorTransform:ColorTransform = null, blendMode:BlendMode = null,
 			clipRect:Rectangle = null, smoothing:Bool = false, quality:StageQuality = null):Void
 	{
-		// TODO: Render quality-controlled bitmap draws through Flight.
+		draw(source, matrix, colorTransform, blendMode, clipRect, smoothing);
 	}
 
 	public function encode(rect:Rectangle, compressor:Object, byteArray:ByteArray = null):ByteArray
@@ -719,6 +741,25 @@ class BitmapData implements IBitmapDrawable
 			case BitmapDataChannel.BLUE: FlightBitmap.ImageChannel.Blue;
 			case BitmapDataChannel.ALPHA: FlightBitmap.ImageChannel.Alpha;
 			default: FlightBitmap.ImageChannel.Red;
+		};
+	}
+
+	@:noCompletion private static function __flightBlendMode(blendMode:BlendMode):String
+	{
+		return switch (blendMode)
+		{
+			case BlendMode.ADD: "Add";
+			case BlendMode.DARKEN: "Darken";
+			case BlendMode.DIFFERENCE: "Difference";
+			case BlendMode.ERASE: "DestinationOut";
+			case BlendMode.HARDLIGHT: "HardLight";
+			case BlendMode.INVERT: "Invert";
+			case BlendMode.LIGHTEN: "Lighten";
+			case BlendMode.MULTIPLY: "Multiply";
+			case BlendMode.OVERLAY: "Overlay";
+			case BlendMode.SCREEN: "Screen";
+			case BlendMode.SUBTRACT: "Subtract";
+			default: "Normal";
 		};
 	}
 

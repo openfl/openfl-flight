@@ -62,6 +62,16 @@
     "pixel": 3430008,
     "pixel32": -13347208
   },
+  "drawBitmapData": {
+    "qualityWidth": 2,
+    "source": [
+      -65536,
+      -16711936,
+      -16776961,
+      -1
+    ],
+    "destinationWidth": 4
+  },
   "pixelRoundtrip": [
     0,
     2131631662,

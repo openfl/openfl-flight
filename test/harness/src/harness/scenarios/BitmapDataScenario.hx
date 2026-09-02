@@ -5,6 +5,7 @@ import openfl.display.BitmapDataChannel;
 import openfl.display.Shape;
 import openfl.filters.ColorMatrixFilter;
 import openfl.geom.ColorTransform;
+import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.ByteArray;
@@ -36,6 +37,7 @@ class BitmapDataScenario {
 			applyColorMatrixFilter: testApplyColorMatrixFilter(),
 			noise: testNoise(),
 			perlinNoise: testPerlinNoise(),
+			drawBitmapData: testDrawBitmapData(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -394,6 +396,24 @@ class BitmapDataScenario {
 			seedChangesOutput: fractal.compare(different) != 0,
 			channelsValid: channelsValid,
 			grayValid: grayValid
+		};
+	}
+
+	private static function testDrawBitmapData():Dynamic {
+		var source = new BitmapData(2, 2, true, 0);
+		source.setPixel32(0, 0, 0xFFFF0000);
+		source.setPixel32(1, 0, 0xFF00FF00);
+		source.setPixel32(0, 1, 0xFF0000FF);
+		source.setPixel32(1, 1, 0xFFFFFFFF);
+		var destination = new BitmapData(4, 3, true, 0xFF102030);
+		destination.draw(source, new Matrix(1, 0, 0, 1, 1, 1));
+
+		var quality = new BitmapData(2, 2, true, 0);
+		quality.drawWithQuality(source);
+		return {
+			source: pixels(source),
+			destinationWidth: destination.width,
+			qualityWidth: quality.width
 		};
 	}
 
