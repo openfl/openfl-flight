@@ -3,6 +3,7 @@
   "css": {
     "names": [
       ".a, .b",
+      ".all",
       ".body",
       ".manual"
     ],
@@ -17,6 +18,7 @@
       "blockIndent": null,
       "leftMargin": 7,
       "color": 11189196,
+      "kerning": null,
       "size": 14,
       "rightMargin": null,
       "align": 0,
@@ -31,6 +33,7 @@
       "blockIndent": null,
       "leftMargin": null,
       "color": null,
+      "kerning": null,
       "size": null,
       "rightMargin": null,
       "align": null,
@@ -42,6 +45,38 @@
     },
     "bodyColorAfterMerge": "#AABBCC",
     "bodyFontFamily": "serif, Arial",
+    "allProperties": {
+      "dashedMarginRight": "8px",
+      "letterSpacing": "1.5px",
+      "fontStyle": "italic",
+      "color": "#0A1B2C",
+      "textDecoration": "underline",
+      "kerning": "true",
+      "marginRight": null,
+      "fontFamily": "sans-serif, Arial",
+      "marginLeft": "7px",
+      "textAlign": "justify",
+      "fontSize": "16px",
+      "format": {
+        "letterSpacing": 1,
+        "blockIndent": 9,
+        "leftMargin": 7,
+        "color": 662316,
+        "kerning": null,
+        "size": 16,
+        "rightMargin": null,
+        "align": 2,
+        "font": "_sans",
+        "underline": true,
+        "leading": 3,
+        "italic": true,
+        "bold": true
+      },
+      "textIndent": "9px",
+      "display": "block",
+      "leading": "-3px",
+      "fontWeight": "bold"
+    },
     "bodyFontSize": "14px"
   },
   "missingIsNull": true,
@@ -50,6 +85,7 @@
     "blockIndent": null,
     "leftMargin": null,
     "color": null,
+    "kerning": null,
     "size": null,
     "rightMargin": null,
     "align": null,
@@ -62,11 +98,13 @@
   "removal": {
     "namesAfterNullCSS": [
       ".a, .b",
+      ".all",
       ".body",
       ".manual"
     ],
     "namesAfterCachedRemoval": [
       ".a, .b",
+      ".all",
       ".body",
       ".manual"
     ],
@@ -80,6 +118,7 @@
       "blockIndent": 6,
       "leftMargin": 4,
       "color": 3368601,
+      "kerning": null,
       "size": 18,
       "rightMargin": 5,
       "align": 4,
@@ -90,5 +129,20 @@
       "bold": true
     },
     "namesAfterCachedSet": []
+  },
+  "invalidCSS": {
+    "namesAfter": [
+      ".a, .b",
+      ".all",
+      ".body",
+      ".manual"
+    ],
+    "namesBefore": [
+      ".a, .b",
+      ".all",
+      ".body",
+      ".manual"
+    ],
+    "error": null
   }
 }
