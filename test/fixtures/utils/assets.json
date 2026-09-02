@@ -1,15 +1,29 @@
 {
+  "replacementLibrary": {
+    "secondUnloadCalls": 1,
+    "lookupMatchesReplacement": true,
+    "firstUnloadCalls": 1,
+    "sameRegistrationUnloadCalls": 0
+  },
   "defaultLibrary": {
     "lookupMatchesNamedDefault": true,
     "hasLibraryMatchesLookup": true
   },
   "populatedCache": {
+    "hasSoundAfterRemove": false,
+    "removeSound": true,
     "removeMissingBitmapData": false,
     "removeBitmapData": true,
     "fontMatches": true,
     "reenabled": true,
+    "removeMissingSound": false,
+    "hasSound": true,
+    "soundMatches": true,
     "disabled": true,
     "enabledByDefault": true,
+    "hasFontAfterRemove": false,
+    "removeMissingFont": false,
+    "removeFont": true,
     "hasBitmapDataAfterRemove": false,
     "hasFont": true,
     "bitmapDataMatches": true,
@@ -25,11 +39,30 @@
     "image": "IMAGE",
     "template": "TEMPLATE"
   },
+  "globalCache": {
+    "fontMatches": true,
+    "musicIsLocal": true,
+    "bitmapDataIsLocal": true,
+    "soundMatches": true,
+    "fontIsLocal": true,
+    "soundIsLocal": true,
+    "bitmapDataMatches": true,
+    "unknownTypeIsLocal": true
+  },
   "clearedCache": {
     "bitmapDataIsNull": true,
+    "hasSound": false,
+    "soundIsNull": true,
     "fontIsNull": true,
+    "keptNonMatchingBitmapData": true,
     "hasFont": false,
     "hasBitmapData": false
+  },
+  "events": {
+    "hasListenerAfterRemove": false,
+    "firstDispatch": true,
+    "secondDispatch": true,
+    "changeEvents": 1
   },
   "registeredLibrary": {
     "listedImages": [
@@ -45,6 +78,7 @@
   },
   "unregisteredLibrary": {
     "hasLibrary": false,
+    "unloadCalls": 1,
     "lookupIsNull": true
   }
 }

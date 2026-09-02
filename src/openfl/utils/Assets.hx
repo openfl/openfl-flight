@@ -1,5 +1,8 @@
 package openfl.utils;
 
+#if !flash
+import flight.Log as FlightLog;
+#end
 import openfl.display.BitmapData;
 import openfl.display.MovieClip;
 import openfl.display.Sprite;
@@ -122,7 +125,6 @@ class Assets
 	**/
 	public static function getBitmapData(id:String, useCache:Bool = true):BitmapData
 	{
-		#if (lime && tools && !display)
 		if (useCache && cache.enabled && cache.hasBitmapData(id))
 		{
 			var bitmapData = cache.getBitmapData(id);
@@ -133,6 +135,7 @@ class Assets
 			}
 		}
 
+		#if (lime && tools && !display)
 		var image = LimeAssets.getImage(id, false);
 
 		if (image != null)
@@ -192,12 +195,12 @@ class Assets
 	**/
 	public static function getFont(id:String, useCache:Bool = true):Font
 	{
-		#if (lime && tools && !display && !macro)
 		if (useCache && cache.enabled && cache.hasFont(id))
 		{
 			return cache.getFont(id);
 		}
 
+		#if (lime && tools && !display && !macro)
 		var limeFont = LimeAssets.getFont(id, false);
 
 		if (limeFont != null)
@@ -291,11 +294,13 @@ class Assets
 		}
 		else
 		{
-			// TODO: Streaming sound
+			// TODO (blocked: streaming audio source): Flight decodes complete
+			// AudioResources and exposes no progressively buffered music source.
 			return getSound(id, useCache);
 		}
 		#else
-		// TODO: Streaming sound
+		// TODO (blocked: streaming audio source): Flight's ResourceLoader can
+		// schedule work, but it does not provide incremental audio playback.
 		return getSound(id, useCache);
 		#end
 	}
@@ -335,7 +340,6 @@ class Assets
 	**/
 	public static function getSound(id:String, useCache:Bool = true):Sound
 	{
-		#if (lime && tools && !display)
 		if (useCache && cache.enabled && cache.hasSound(id))
 		{
 			var sound = cache.getSound(id);
@@ -346,6 +350,7 @@ class Assets
 			}
 		}
 
+		#if (lime && tools && !display)
 		var buffer = LimeAssets.getAudioBuffer(id, false);
 
 		if (buffer != null)
@@ -431,7 +436,8 @@ class Assets
 				instance.__bind(library, className);
 			}
 			#else
-			// TODO: Consolidate behavior
+			// TODO (Flash-only binding semantics): Flash libraries bind their
+			// generated symbol directly and do not expose Flight display nodes.
 			library.bind(className);
 			#end
 		}
@@ -450,7 +456,6 @@ class Assets
 	**/
 	public static function isLocal(id:String, type:AssetType = null, useCache:Bool = true):Bool
 	{
-		#if (lime && tools && !display)
 		if (useCache && cache.enabled)
 		{
 			if (type == AssetType.IMAGE || type == null)
@@ -469,6 +474,7 @@ class Assets
 			}
 		}
 
+		#if (lime && tools && !display)
 		var libraryName = id.substring(0, id.indexOf(":"));
 		var symbolName = id.substr(id.indexOf(":") + 1);
 		var library = getLibrary(libraryName);
@@ -699,10 +705,7 @@ class Assets
 				}
 				else
 				{
-					// TODO: after Lime 8.2.0 is released, use conditional
-					// compilation to call LimeAssets.removeLibrary(name, false)
-					// since that is a new public API
-					@:privateAccess LimeAssets.libraries.remove(name);
+					LimeAssets.removeLibrary(name, false);
 					_library = new AssetLibrary();
 					_library.__proxy = library;
 					LimeAssets.registerLibrary(name, _library);
@@ -909,7 +912,11 @@ class Assets
 		LimeAssets.registerLibrary(name, library);
 		#else
 		if (name == null || name == "") name = "default";
-		if (registeredLibraries.exists(name)) unloadLibrary(name);
+		if (registeredLibraries.exists(name))
+		{
+			if (registeredLibraries.get(name) == library) return;
+			unloadLibrary(name);
+		}
 		registeredLibraries.set(name, library);
 		#end
 	}
@@ -985,13 +992,19 @@ private class Log
 {
 	public static inline function error(value:Dynamic):Void
 	{
-		// TODO: Route asset diagnostics through Flight's logging API.
+		#if flash
 		trace(value);
+		#else
+		FlightLog.logError(Std.string(value), "openfl.assets");
+		#end
 	}
 
 	public static inline function warn(value:Dynamic):Void
 	{
-		// TODO: Route asset diagnostics through Flight's logging API.
+		#if flash
 		trace(value);
+		#else
+		FlightLog.logWarn(Std.string(value), "openfl.assets");
+		#end
 	}
 }

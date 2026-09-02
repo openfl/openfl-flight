@@ -1,6 +1,8 @@
 package harness.scenarios;
 
 import openfl.display.BitmapData;
+import openfl.events.Event;
+import openfl.media.Sound;
 import openfl.text.Font;
 import openfl.utils.AssetCache;
 import openfl.utils.AssetLibrary;
@@ -41,18 +43,37 @@ class AssetScenario
 		Assets.unloadLibrary(libraryName);
 		var unregisteredLibraryState = {
 			hasLibrary: Assets.hasLibrary(libraryName),
-			lookupIsNull: Assets.getLibrary(libraryName) == null
+			lookupIsNull: Assets.getLibrary(libraryName) == null,
+			unloadCalls: library.unloadCalls
+		};
+
+		var replacementName = "harness-assets-replacement";
+		var firstLibrary = new ScenarioAssetLibrary(replacementName);
+		var secondLibrary = new ScenarioAssetLibrary(replacementName);
+		Assets.registerLibrary(replacementName, firstLibrary);
+		Assets.registerLibrary(replacementName, firstLibrary);
+		var sameRegistrationUnloadCalls = firstLibrary.unloadCalls;
+		Assets.registerLibrary(replacementName, secondLibrary);
+		var lookupMatchesReplacement = Assets.getLibrary(replacementName) == secondLibrary;
+		Assets.unloadLibrary(replacementName);
+		var replacementLibraryState = {
+			sameRegistrationUnloadCalls: sameRegistrationUnloadCalls,
+			firstUnloadCalls: firstLibrary.unloadCalls,
+			lookupMatchesReplacement: lookupMatchesReplacement,
+			secondUnloadCalls: secondLibrary.unloadCalls
 		};
 
 		var cache = new AssetCache();
 		var bitmapData = new BitmapData(2, 3, true, 0x80402010);
 		var font = new Font("HarnessFont");
+		var sound = new Sound();
 		var enabledByDefault = cache.enabled;
 		cache.enabled = false;
 		var disabled = !cache.enabled;
 		cache.enabled = true;
 		cache.setBitmapData("bitmap", bitmapData);
 		cache.setFont("font", font);
+		cache.setSound("sound", sound);
 
 		var populatedCacheState = {
 			enabledByDefault: enabledByDefault,
@@ -62,19 +83,64 @@ class AssetScenario
 			bitmapDataMatches: cache.getBitmapData("bitmap") == bitmapData,
 			hasFont: cache.hasFont("font"),
 			fontMatches: cache.getFont("font") == font,
+			hasSound: cache.hasSound("sound"),
+			soundMatches: cache.getSound("sound") == sound,
 			removeBitmapData: cache.removeBitmapData("bitmap"),
 			hasBitmapDataAfterRemove: cache.hasBitmapData("bitmap"),
-			removeMissingBitmapData: cache.removeBitmapData("bitmap")
+			removeMissingBitmapData: cache.removeBitmapData("bitmap"),
+			removeFont: cache.removeFont("font"),
+			hasFontAfterRemove: cache.hasFont("font"),
+			removeMissingFont: cache.removeFont("font"),
+			removeSound: cache.removeSound("sound"),
+			hasSoundAfterRemove: cache.hasSound("sound"),
+			removeMissingSound: cache.removeSound("sound")
 		};
 
 		cache.setBitmapData("clear-bitmap", bitmapData);
-		cache.clear();
+		cache.setFont("clear-font", font);
+		cache.setSound("clear-sound", sound);
+		cache.setBitmapData("keep-bitmap", bitmapData);
+		cache.clear("clear-");
 		var clearedCacheState = {
 			hasBitmapData: cache.hasBitmapData("clear-bitmap"),
-			hasFont: cache.hasFont("font"),
+			hasFont: cache.hasFont("clear-font"),
+			hasSound: cache.hasSound("clear-sound"),
+			keptNonMatchingBitmapData: cache.hasBitmapData("keep-bitmap"),
 			bitmapDataIsNull: cache.getBitmapData("clear-bitmap") == null,
-			fontIsNull: cache.getFont("font") == null
+			fontIsNull: cache.getFont("clear-font") == null,
+			soundIsNull: cache.getSound("clear-sound") == null
 		};
+
+		var changeEvents = 0;
+		var changeListener = function(_:Event):Void changeEvents++;
+		Assets.addEventListener(Event.CHANGE, changeListener);
+		var firstDispatch = Assets.dispatchEvent(new Event(Event.CHANGE));
+		Assets.removeEventListener(Event.CHANGE, changeListener);
+		var secondDispatch = Assets.dispatchEvent(new Event(Event.CHANGE));
+		var eventState = {
+			changeEvents: changeEvents,
+			firstDispatch: firstDispatch,
+			secondDispatch: secondDispatch,
+			hasListenerAfterRemove: Assets.hasEventListener(Event.CHANGE)
+		};
+
+		var originalCache = Assets.cache;
+		var globalCache = new AssetCache();
+		Assets.cache = globalCache;
+		globalCache.setBitmapData("global-bitmap", bitmapData);
+		globalCache.setFont("global-font", font);
+		globalCache.setSound("global-sound", sound);
+		var globalCacheState = {
+			bitmapDataMatches: Assets.getBitmapData("global-bitmap") == bitmapData,
+			fontMatches: Assets.getFont("global-font") == font,
+			soundMatches: Assets.getSound("global-sound") == sound,
+			bitmapDataIsLocal: Assets.isLocal("global-bitmap", AssetType.IMAGE),
+			fontIsLocal: Assets.isLocal("global-font", AssetType.FONT),
+			soundIsLocal: Assets.isLocal("global-sound", AssetType.SOUND),
+			musicIsLocal: Assets.isLocal("global-sound", AssetType.MUSIC),
+			unknownTypeIsLocal: Assets.isLocal("global-bitmap")
+		};
+		Assets.cache = originalCache;
 
 		return {
 			assetTypes: {
@@ -90,14 +156,18 @@ class AssetScenario
 			defaultLibrary: defaultLibraryState,
 			registeredLibrary: registeredLibraryState,
 			unregisteredLibrary: unregisteredLibraryState,
+			replacementLibrary: replacementLibraryState,
 			populatedCache: populatedCacheState,
-			clearedCache: clearedCacheState
+			clearedCache: clearedCacheState,
+			events: eventState,
+			globalCache: globalCacheState
 		};
 	}
 }
 
 private class ScenarioAssetLibrary extends AssetLibrary
 {
+	public var unloadCalls(default, null):Int = 0;
 	private var libraryName:String;
 
 	public function new(libraryName:String)
@@ -125,5 +195,10 @@ private class ScenarioAssetLibrary extends AssetLibrary
 	public override function list(type:String):Array<String>
 	{
 		return type == null || type == cast(AssetType.IMAGE, String) ? [libraryName + ":image"] : [];
+	}
+
+	public override function unload():Void
+	{
+		unloadCalls++;
 	}
 }

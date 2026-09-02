@@ -262,6 +262,16 @@ the capability that this adapter can compile against.
   `sampleData` events. Empty `Sound` playback therefore cannot stream generated
   samples until Flight exposes a public streaming PCM source.
 
+- **OpenFL asset registry and streaming music**: Flight Loader schedules
+  caller-provided Promise jobs and reports queue progress, but it is not a
+  named resource registry, manifest reader, synchronous cache, or library
+  resolver. Flight's image, font, and audio loaders also return Flight resource
+  handles rather than OpenFL `BitmapData`, `Font`, and `Sound` instances. The
+  adapter therefore retains Lime asset libraries where available and its local
+  OpenFL library/cache contracts elsewhere. `Assets.getMusic()` continues to
+  use decoded `Sound` data because Flight exposes no incrementally playable
+  streaming audio source.
+
 - **Cross-target NetStream video source**: Flight can wrap an HTML video
   element in a `VideoResource`, which lets the JavaScript/HTML5 adapter attach
   OpenFL's existing `NetStream` element to a Flight video texture. Other
