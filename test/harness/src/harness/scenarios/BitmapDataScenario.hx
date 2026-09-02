@@ -29,6 +29,7 @@ class BitmapDataScenario {
 			colorBounds: testColorBounds(),
 			histogram: testHistogram(),
 			pixelsBytes: testPixelsBytes(),
+			threshold: testThreshold(),
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
@@ -262,6 +263,25 @@ class BitmapDataScenario {
 			outputPosition: output.position,
 			outputBigEndian: output.endian == Endian.BIG_ENDIAN,
 			eof: eof
+		};
+	}
+
+	private static function testThreshold():Dynamic {
+		var source = new BitmapData(4, 1, true, 0);
+		source.setPixel32(0, 0, 0x10203040);
+		source.setPixel32(1, 0, 0x7F405060);
+		source.setPixel32(2, 0, 0x80607080);
+		source.setPixel32(3, 0, 0xFF90A0B0);
+		var destination = new BitmapData(5, 1, true, 0xFF010203);
+		var changed = destination.threshold(source, source.rect, new Point(1, 0), "<", 0x80000000, 0xFFABCDEF, 0xFF000000, true);
+
+		var equalDestination = new BitmapData(4, 1, true, 0);
+		var equalChanged = equalDestination.threshold(source, source.rect, new Point(), "==", 0x00607000, 0x80443322, 0x00FFFF00);
+		return {
+			changed: changed,
+			pixels: pixels(destination),
+			equalChanged: equalChanged,
+			equalPixels: pixels(equalDestination)
 		};
 	}
 

@@ -193,6 +193,23 @@
     "height": 50,
     "width": 100
   },
+  "threshold": {
+    "changed": 2,
+    "pixels": [
+      -16711165,
+      -5517841,
+      -5517841,
+      -2141163392,
+      -7298896
+    ],
+    "equalPixels": [
+      0,
+      0,
+      -2143014366,
+      0
+    ],
+    "equalChanged": 1
+  },
   "scroll": {
     "negative": [
       -11534336,

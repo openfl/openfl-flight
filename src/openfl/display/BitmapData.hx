@@ -536,8 +536,32 @@ class BitmapData implements IBitmapDrawable
 	public function threshold(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, operation:String, threshold:Int,
 			color:Int = 0x00000000, mask:Int = 0xFFFFFFFF, copySource:Bool = false):Int
 	{
-		// TODO: Apply bitmap thresholds through Flight.
-		return 0;
+		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
+			|| sourceRect == null || destPoint == null) return 0;
+		if (operation != "<" && operation != "<=" && operation != ">" && operation != ">=" && operation != "==" && operation != "!=") return 0;
+		var regionWidth = Std.int(Math.max(0, sourceRect.width));
+		var regionHeight = Std.int(Math.max(0, sourceRect.height));
+		if (regionWidth == 0 || regionHeight == 0) return 0;
+
+		// Threshold compares packed ARGB values. Encode those values directly as
+		// Flight pixels so the packed numeric ordering remains ARGB, not RGBA.
+		var sourceBitmap = FlightBitmap.createBitmap(sourceBitmapData.width, sourceBitmapData.height, 0);
+		for (y in 0...sourceBitmapData.height) for (x in 0...sourceBitmapData.width)
+			FlightBitmap.setBitmapPixel(sourceBitmap, x, y, sourceBitmapData.getPixel32(x, y));
+		var destinationBitmap = FlightBitmap.createBitmap(width, height, 0);
+		for (y in 0...height) for (x in 0...width) FlightBitmap.setBitmapPixel(destinationBitmap, x, y, getPixel32(x, y));
+
+		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceRect.x, sourceRect.y, regionWidth, regionHeight);
+		var destination = FlightBitmap.createBitmapRegion(destinationBitmap, destPoint.x, destPoint.y, regionWidth, regionHeight);
+		var changed = FlightBitmap.applyBitmapThreshold(destination, source, operation, threshold, color, mask, copySource);
+		for (offsetY in 0...regionHeight) for (offsetX in 0...regionWidth)
+		{
+			var bitmapX = Std.int(destPoint.x) + offsetX;
+			var bitmapY = Std.int(destPoint.y) + offsetY;
+			if (bitmapX < 0 || bitmapY < 0 || bitmapX >= width || bitmapY >= height) continue;
+			setPixel32(bitmapX, bitmapY, Std.int(FlightBitmap.getBitmapPixel(destinationBitmap, bitmapX, bitmapY)));
+		}
+		return Std.int(changed);
 	}
 
 	public function unlock(changeRect:Rectangle = null):Void {}
