@@ -209,8 +209,7 @@ class Window #if lime extends LimeWindow #end
 			catch (e:Dynamic) {}
 		}
 
-		stage.__setLogicalSize(Reflect.hasField(normalizedAttributes, "width") ? Reflect.field(normalizedAttributes, "width") : 0,
-			Reflect.hasField(normalizedAttributes, "height") ? Reflect.field(normalizedAttributes, "height") : 0);
+		stage.__setLogicalSize(Std.int(__flightWindow.width), Std.int(__flightWindow.height));
 
 		if (Reflect.hasField(normalizedAttributes, "resizable") && !Reflect.field(normalizedAttributes, "resizable"))
 		{

@@ -27,6 +27,7 @@ class Lib
 {
 	public static var application(get, never):Application;
 	public static var current(get, never):MovieClip;
+	@:noCompletion private static var __current:MovieClip;
 	@:noCompletion private static var __lastTimerID:UInt = 0;
 	@:noCompletion private static var __sentWarnings:Map<String, Bool> = new Map();
 	@:noCompletion private static var __timers:Map<UInt, Timer> = new Map();
@@ -768,8 +769,8 @@ class Lib
 		#if flash
 		return cast flash.Lib.current;
 		#else
-		// TODO: Flight application host
-		return null;
+		if (__current == null) __current = new MovieClip();
+		return __current;
 		#end
 	}
 

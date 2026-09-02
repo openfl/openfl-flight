@@ -698,6 +698,11 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__flightNode = __scene.root;
 		FlightScene2D.setScene2DSize(__scene, stageWidth, stageHeight);
 		this.color = color;
+
+		if (openfl.Lib.current.stage == null)
+		{
+			addChild(openfl.Lib.current);
+		}
 	}
 
 	/**

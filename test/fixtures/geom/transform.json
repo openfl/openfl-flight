@@ -1,7 +1,7 @@
 {
   "concatenatedMatrix": {
-    "tx": 150,
-    "ty": 0
+    "tx": 30,
+    "ty": 56
   },
   "rotationMatrixSync": {
     "matrixB": 0.707106781186547462,
@@ -9,6 +9,16 @@
     "matrixA": 0.707106781186547573,
     "matrixC": -0.707106781186547462,
     "matrixD": 0.707106781186547573
+  },
+  "concatenatedColorTransform": {
+    "blueMultiplier": 1,
+    "redOffset": 0,
+    "greenMultiplier": 1,
+    "alphaMultiplier": 1,
+    "alphaOffset": 0,
+    "redMultiplier": 1,
+    "blueOffset": 0,
+    "greenOffset": 0
   },
   "matrixSync": {
     "matrixTY": 50,
@@ -27,6 +37,37 @@
     "redMultiplier": 0.5,
     "blueOffset": 30,
     "greenOffset": 20
+  },
+  "pixelBoundsDefaults": {
+    "isEmpty": true,
+    "x": 0,
+    "y": 0,
+    "height": 0,
+    "width": 0
+  },
+  "matrixMutualExclusion": {
+    "matrix3DIsNullAfterMatrix": true,
+    "matrix3DReadBackIsSameReference": false,
+    "matrixAfterMatrix3D": {
+      "tx": 4,
+      "d": 3,
+      "a": 2,
+      "ty": 5
+    },
+    "matrix3DTranslation": [
+      12,
+      -7,
+      0
+    ],
+    "matrixIsNullAfterMatrix3D": true
+  },
+  "perspectiveProjectionDefaults": {
+    "fieldOfView": 0,
+    "projectionCenter": {
+      "x": 0,
+      "y": 0
+    },
+    "focalLength": 0
   },
   "scaleMatrixSync": {
     "matrixA": 2,
