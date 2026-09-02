@@ -1,0 +1,1070 @@
+package: geom
+
+entries:
+
+  # -- Matrix --
+
+  - id: geom.MTX.constructor-fields
+    section: "Matrix"
+    behavior: >-
+      `a`, `b`, `c`, `d`, `tx`, and `ty` are freely writable numbers. The constructor stores its
+      six arguments verbatim; defaults are identity `(1, 0, 0, 1, 0, 0)`.
+    status: covered
+    scenarios:
+      - geom/matrix:custom
+      - geom/matrix:identity
+
+  - id: geom.MTX.clone-copy-set
+    section: "Matrix"
+    behavior: >-
+      `clone()` returns a distinct matrix with all six values copied. `copyFrom(source)`
+      overwrites all six values, and `setTo(...)` overwrites all six directly.
+    status: covered
+    scenarios:
+      - geom/matrix:clone
+      - geom/matrix:copyFrom
+      - geom/matrix:setTo
+
+  - id: geom.MTX.identity
+    section: "Matrix"
+    behavior: >-
+      `identity()` resets all six values to `(1, 0, 0, 1, 0, 0)`.
+    status: covered
+    scenarios:
+      - geom/matrix:identityReset
+
+  - id: geom.MTX.concat-order
+    section: "Matrix"
+    behavior: >-
+      `concat(m)` replaces the receiver using these exact OpenFL formulas: `a'=a*m.a+b*m.c`,
+      `b'=a*m.b+b*m.d`, `c'=c*m.a+d*m.c`, `d'=c*m.b+d*m.d`, `tx'=tx*m.a+ty*m.c+m.tx`,
+      `ty'=tx*m.b+ty*m.d+m.ty`. Thus `m` acts after the existing transform. The adapter obtains
+      this order by passing `m` first and the receiver second to Flight's conventional matrix
+      multiply, including for general skew/rotation cases.
+    status: covered
+    scenarios:
+      - geom/matrix:concat
+
+  - id: geom.MTX.transform-vs-delta
+    section: "Matrix"
+    behavior: >-
+      `transformPoint(p)` applies the full affine map; `deltaTransformPoint(p)` applies only the
+      linear `a,b,c,d` portion. `transformPointToOutput` and `deltaTransformPointToOutput` have
+      the same arithmetic and support output aliasing.
+    status: covered
+    scenarios:
+      - geom/matrix:transformPoint
+      - geom/matrix:deltaTransformPoint
+      - geom/matrix:transformVsDelta
+
+  - id: geom.MTX.translate-direct
+    section: "Matrix"
+    behavior: >-
+      `translate(dx,dy)` adds directly to `tx` and `ty`; it does not transform the delta by the
+      existing basis.
+    status: covered
+    scenarios:
+      - geom/matrix:translate
+
+  - id: geom.MTX.scale-output-coordinates
+    section: "Matrix"
+    behavior: >-
+      `scale(sx,sy)` post-scales output coordinates: `a,c,tx` are multiplied by `sx`, while
+      `b,d,ty` are multiplied by `sy`.
+    status: covered
+    scenarios:
+      - geom/matrix:scale
+      - geom/matrix:composeScaleRotateTranslate
+
+  - id: geom.MTX.rotate
+    section: "Matrix"
+    behavior: >-
+      `rotate(theta)` takes radians and rotates the complete output, including translation:
+      `(a,b)`, `(c,d)`, and `(tx,ty)` each use `x'=x*cos-y*sin`, `y'=x*sin+y*cos`.
+    status: covered
+    scenarios:
+      - geom/matrix:rotate
+      - geom/matrix:composeScaleRotateTranslate
+
+  - id: geom.MTX.create-box
+    section: "Matrix"
+    behavior: >-
+      `createBox(scaleX,scaleY,rotation,tx,ty)` replaces the matrix. At zero rotation it is
+      `(scaleX,0,0,scaleY,tx,ty)`; otherwise `a=cos*scaleX`, `b=sin*scaleY`, `c=-sin*scaleX`,
+      `d=cos*scaleY`.
+    status: covered
+    scenarios:
+      - geom/matrix:createBox
+
+  - id: geom.MTX.create-gradient-box
+    section: "Matrix"
+    behavior: >-
+      `createGradientBox(width,height,rotation,tx,ty)` starts with `a=width/1638.4`,
+      `d=height/1638.4`, rotates those axes when requested, and centers translation at
+      `(tx+width/2, ty+height/2)`.
+    status: covered
+    scenarios:
+      - geom/matrix:createGradientBox
+
+  - id: geom.MTX.invert-singular
+    section: "Matrix"
+    behavior: >-
+      `invert()` mutates and returns the same object. For nonzero determinant `a*d-b*c`, it
+      computes the affine inverse. For an exactly singular matrix it sets `a=b=c=d=0`, negates
+      the old translation, and still returns the receiver rather than signaling failure.
+    status: covered
+    scenarios:
+      - geom/matrix:invert
+      - geom/matrix:invertIdentity
+
+  - id: geom.MTX.copy-columns
+    section: "Matrix"
+    behavior: >-
+      `copyColumnFrom(0|1|2,v)` copies `(x,y)` into `(a,b)`, `(c,d)`, or `(tx,ty)`.
+      `copyColumnTo` also sets output `z` to `0`, `0`, or `1` and preserves output `w`. An index
+      greater than 2 throws a string; a negative index is treated as column 2.
+    status: covered
+    scenarios: []
+
+  - id: geom.MTX.copy-rows
+    section: "Matrix"
+    behavior: >-
+      `copyRowFrom(0|1,v)` copies `(x,y,z)` into `(a,c,tx)` or `(b,d,ty)`; row 2 is a no-op. A
+      row greater than 2 throws, while a negative row is also a no-op. `copyRowTo(0|1)` performs
+      the inverse mapping and any other row at or below 2 returns `(0,0,1)`; it preserves output
+      `w`, and only values greater than 2 throw.
+    status: covered
+    scenarios: []
+
+  - id: geom.MTX.equals-exact
+    section: "Matrix"
+    behavior: >-
+      `equals(other)` is a hidden-but-public exact comparison of all six fields and returns
+      false for null.
+    status: covered
+    scenarios:
+      - geom/matrix:equals
+
+  - id: geom.MTX.string-format
+    section: "Matrix"
+    behavior: >-
+      `toString()` is exactly `matrix(a, b, c, d, tx, ty)` using normal interpolation. Hidden
+      string helpers emit CSS `matrix3d(...)`/Mozilla forms; the rounded `matrix3d` form
+      truncates `tx` and `ty` with `Std.int`.
+    status: covered
+    scenarios: []
+
+  # -- Point --
+
+  - id: geom.PT.fields-length
+    section: "Point"
+    behavior: >-
+      `x` and `y` are freely writable; the constructor defaults both to zero. Read-only `length`
+      is `sqrt(x*x+y*y)` on every access.
+    status: covered
+    scenarios:
+      - geom/point:point
+      - geom/point:length
+
+  - id: geom.PT.add-subtract
+    section: "Point"
+    behavior: >-
+      `add(v)` and `subtract(v)` allocate coordinate-wise results without changing either input.
+      `addToOutput` and `subtractToOutput` overwrite/return the supplied output.
+    status: covered
+    scenarios:
+      - geom/point:add
+      - geom/point:subtract
+
+  - id: geom.PT.clone-copy-set
+    section: "Point"
+    behavior: >-
+      `clone()` returns a distinct copy; `copyFrom(source)` and `setTo(x,y)` overwrite the
+      receiver.
+    status: covered
+    scenarios:
+      - geom/point:copyFrom
+      - geom/point:setTo
+
+  - id: geom.PT.distance
+    section: "Point"
+    behavior: >-
+      `distance(a,b)` is Euclidean distance and is symmetric.
+    status: covered
+    scenarios:
+      - geom/point:distanceFromOrigin
+      - geom/point:distanceKnownPoints
+
+  - id: geom.PT.equals-exact
+    section: "Point"
+    behavior: >-
+      `equals(other)` requires non-null and exact `x` and `y` equality.
+    status: covered
+    scenarios:
+      - geom/point:equals
+
+  - id: geom.PT.interpolate-direction
+    section: "Point"
+    behavior: >-
+      `interpolate(pt1,pt2,f)` computes `pt2 + f*(pt1-pt2)`: `f=0` returns pt2's coordinates,
+      `f=1` pt1's, and values outside `[0,1]` extrapolate. `interpolateToOutput` is identical.
+    status: covered
+    scenarios:
+      - geom/point:interpolate
+
+  - id: geom.PT.normalize
+    section: "Point"
+    behavior: >-
+      `normalize(thickness)` leaves `(0,0)` unchanged; otherwise it scales the vector to the
+      requested signed length. A negative thickness reverses direction.
+    status: covered
+    scenarios:
+      - geom/point:normalizeToTen
+
+  - id: geom.PT.offset
+    section: "Point"
+    behavior: >-
+      `offset(dx,dy)` adds both deltas in place.
+    status: covered
+    scenarios:
+      - geom/point:offset
+
+  - id: geom.PT.polar
+    section: "Point"
+    behavior: >-
+      `polar(len,angle)` returns `(len*cos(angle), len*sin(angle))`, with angle in radians;
+      `polarToOutput` is identical.
+    status: covered
+    scenarios:
+      - geom/point:polar
+
+  - id: geom.PT.string-format
+    section: "Point"
+    behavior: >-
+      `toString()` is exactly `(x=value, y=value)`.
+    status: covered
+    scenarios: []
+
+  # -- Rectangle --
+
+  - id: geom.RCT.fields-copy-set
+    section: "Rectangle"
+    behavior: >-
+      `x`, `y`, `width`, and `height` are freely writable and default to zero. `clone`,
+      `copyFrom`, and `setTo` copy or replace all four values exactly.
+    status: covered
+    scenarios:
+      - geom/rectangle:construct
+      - geom/rectangle:constructDefault
+      - geom/rectangle:constructNegative
+      - geom/rectangle:clone
+      - geom/rectangle:copyFrom
+      - geom/rectangle:setTo
+
+  - id: geom.RCT.edge-setters
+    section: "Rectangle"
+    behavior: >-
+      `left`/`top` read `x`/`y`. Setting either moves that edge while preserving the old
+      opposite edge by adjusting width/height. `right=x+width` and `bottom=y+height`; setting
+      either changes only width/height relative to the unchanged origin.
+    status: covered
+    scenarios:
+      - geom/rectangle:derivedProps
+      - geom/rectangle:setters
+
+  - id: geom.RCT.corner-points
+    section: "Rectangle"
+    behavior: >-
+      `topLeft` and `bottomRight` getters allocate new Points. Setting `topLeft` changes only
+      `x,y`; setting `bottomRight` changes `width,height` relative to the origin. The internal
+      setter returns a clone, so the rectangle never retains either Point.
+    status: covered
+    scenarios:
+      - geom/rectangle:derivedProps
+      - geom/rectangle:setters
+
+  - id: geom.RCT.size
+    section: "Rectangle"
+    behavior: >-
+      `size` gets a new `(width,height)` Point and setting it copies both components; the input
+      Point is not retained.
+    status: covered
+    scenarios:
+      - geom/rectangle:derivedProps
+      - geom/rectangle:setters
+
+  - id: geom.RCT.contains-half-open
+    section: "Rectangle"
+    behavior: >-
+      `contains(px,py)` and `containsPoint(p)` use a half-open region: left/top inclusive,
+      right/bottom exclusive. Non-positive receiver dimensions cannot contain a point.
+    status: covered
+    scenarios:
+      - geom/rectangle:contains
+      - geom/rectangle:containsPoint
+
+  - id: geom.RCT.contains-rectangle-edges
+    section: "Rectangle"
+    behavior: >-
+      `containsRect(r)` normally permits coincident edges (`>=`/`<=`). When `r.width<=0` or
+      `r.height<=0`, all four edges must be strictly inside the receiver; this is source
+      behavior even though such a rectangle is empty. Negative receiver dimensions are not
+      normalized.
+    status: covered
+    scenarios:
+      - geom/rectangle:containsRect
+
+  - id: geom.RCT.intersection-canonical-empty
+    section: "Rectangle"
+    behavior: >-
+      `intersection(r)` returns the overlapping half-open region and returns canonical
+      `(0,0,0,0)` when either axis only touches or is disjoint. `intersectionToOutput`
+      overwrites and returns its output with the same rule. Neither rectangle is normalized
+      first, so negative dimensions follow the raw edge arithmetic.
+    status: covered
+    scenarios:
+      - geom/rectangle:intersection
+
+  - id: geom.RCT.intersects-positive-overlap
+    section: "Rectangle"
+    behavior: >-
+      `intersects(r)` requires strictly positive overlap on both axes; edge touching is false.
+    status: covered
+    scenarios:
+      - geom/rectangle:intersects
+
+  - id: geom.RCT.union-empty-rules
+    section: "Rectangle"
+    behavior: >-
+      `union(r)` treats a rectangle as empty only when width **equals** zero or height
+      **equals** zero (not when negative). If the receiver is empty it returns `r.clone`; if `r`
+      is empty it returns `clone`; otherwise it encloses raw left/right/top/bottom edges.
+      `unionToOutput` has the same rules.
+    status: covered
+    scenarios:
+      - geom/rectangle:union
+
+  - id: geom.RCT.inflate
+    section: "Rectangle"
+    behavior: >-
+      `inflate(dx,dy)` subtracts the deltas from the origin and adds twice each delta to size;
+      negative deltas shrink and can create negative size. `inflatePoint` delegates
+      component-wise.
+    status: covered
+    scenarios:
+      - geom/rectangle:inflate
+      - geom/rectangle:deflatePastZero
+
+  - id: geom.RCT.offset
+    section: "Rectangle"
+    behavior: >-
+      `offset(dx,dy)` and `offsetPoint(p)` move only the origin.
+    status: covered
+    scenarios:
+      - geom/rectangle:offset
+      - geom/rectangle:offsetPoint
+
+  - id: geom.RCT.empty-contract
+    section: "Rectangle"
+    behavior: >-
+      `isEmpty()` is true when `width<=0 || height<=0`. `setEmpty()` canonicalizes all four
+      fields to zero.
+    status: covered
+    scenarios:
+      - geom/rectangle:isEmpty
+      - geom/rectangle:setEmpty
+
+  - id: geom.RCT.equals-exact
+    section: "Rectangle"
+    behavior: >-
+      `equals(other)` is true for the same object, otherwise requires non-null and exact
+      equality of all four fields.
+    status: covered
+    scenarios:
+      - geom/rectangle:equals
+
+  - id: geom.RCT.string-format
+    section: "Rectangle"
+    behavior: >-
+      `toString()` is exactly `(x=value, y=value, width=value, height=value)`.
+    status: covered
+    scenarios: []
+
+  # -- Vector3D --
+
+  - id: geom.V3D.fields-lengths
+    section: "Vector3D"
+    behavior: >-
+      `x`, `y`, `z`, and `w` are freely writable and default to zero. `length`/`lengthSquared`
+      use only `x,y,z`.
+    status: covered
+    scenarios:
+      - geom/vector3d:construct
+      - geom/vector3d:constructDefault
+      - geom/vector3d:length
+      - geom/vector3d:lengthSquared
+      - geom/vector3d:zeroLength
+
+  - id: geom.V3D.axis-constants
+    section: "Vector3D"
+    behavior: >-
+      `X_AXIS`, `Y_AXIS`, and `Z_AXIS` return a new unit vector on every access, with `w=0`.
+    status: covered
+    scenarios:
+      - geom/vector3d:axes
+
+  - id: geom.V3D.clone-copy-set-w
+    section: "Vector3D"
+    behavior: >-
+      `clone()` copies all four components. `copyFrom(source)` and `setTo(x,y,z)` copy only
+      `x,y,z`, deliberately preserving the receiver's existing `w`.
+    status: covered
+    scenarios:
+      - geom/vector3d:clone
+      - geom/vector3d:copyFrom
+      - geom/vector3d:setTo
+
+  - id: geom.V3D.arithmetic-w
+    section: "Vector3D"
+    behavior: >-
+      `add`, `subtract`, `incrementBy`, `decrementBy`, `addToOutput`, and `subtractToOutput`
+      operate only on `x,y,z`; newly allocated results have `w=0`, while output/in-place forms
+      preserve existing `w`.
+    status: covered
+    scenarios:
+      - geom/vector3d:add
+      - geom/vector3d:subtract
+      - geom/vector3d:incrementBy
+      - geom/vector3d:decrementBy
+
+  - id: geom.V3D.distance-ignores-w
+    section: "Vector3D"
+    behavior: >-
+      `distance(a,b)` is three-dimensional Euclidean distance and ignores `w`.
+    status: covered
+    scenarios:
+      - geom/vector3d:distance
+
+  - id: geom.V3D.dot-cross-products
+    section: "Vector3D"
+    behavior: >-
+      `dotProduct(a)` uses `x,y,z`. `crossProduct(a)` is the right-handed `this × a`:
+      `(y*az-z*ay, z*ax-x*az, x*ay-y*ax)` and forces result `w=1`; `crossProductToOutput` does
+      the same.
+    status: covered
+    scenarios:
+      - geom/vector3d:dotProduct
+      - geom/vector3d:crossProduct
+
+  - id: geom.V3D.angle-between
+    section: "Vector3D"
+    behavior: >-
+      `angleBetween(a,b)` computes `acos(dot/(|a||b|))`, but divides by each length only when
+      that length is nonzero and does not clamp the ratio. A zero vector paired with any vector
+      therefore yields `acos(0) = π/2`; rounding can produce `NaN` outside `[-1,1]`.
+    status: covered
+    scenarios:
+      - geom/vector3d:angleBetween
+
+  - id: geom.V3D.equals-near-equals
+    section: "Vector3D"
+    behavior: >-
+      `equals(other,allFour=false)` compares `x,y,z` exactly and optionally `w`; it does not
+      null-check. `nearEquals` uses strict `< tolerance` per component, optionally including
+      `w`, so equality with tolerance zero is false.
+    status: covered
+    scenarios:
+      - geom/vector3d:equals
+      - geom/vector3d:nearEquals
+
+  - id: geom.V3D.negate-scale-w
+    section: "Vector3D"
+    behavior: >-
+      `negate()` and `scaleBy(s)` mutate only `x,y,z`; `w` is preserved.
+    status: covered
+    scenarios:
+      - geom/vector3d:negate
+      - geom/vector3d:scaleBy
+
+  - id: geom.V3D.normalize
+    section: "Vector3D"
+    behavior: >-
+      `normalize()` returns the original three-dimensional length, divides `x,y,z` only when it
+      is nonzero, and preserves `w`. A zero vector remains unchanged and returns zero.
+    status: covered
+    scenarios:
+      - geom/vector3d:normalize
+      - geom/vector3d:zeroLength
+
+  - id: geom.V3D.project
+    section: "Vector3D"
+    behavior: >-
+      `project()` divides `x,y,z` by `w` without a zero guard and leaves `w` unchanged.
+    status: covered
+    scenarios:
+      - geom/vector3d:project
+
+  - id: geom.V3D.string-format
+    section: "Vector3D"
+    behavior: >-
+      `toString()` is `Vector3D(x, y, z)` and omits `w`.
+    status: covered
+    scenarios: []
+
+  # -- Matrix3D > Storage, copying, and addressing --
+
+  - id: geom.M3D.raw-data-layout
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      `rawData` is a directly writable Vector in column-major layout: indices `0..3` are column
+      0 and translation is at `12,13,14`. Despite its comment, assigning a short or singular
+      Vector is not validated. The constructor copies an input only when its length is exactly
+      16; null or any other length produces identity.
+    status: covered
+    scenarios:
+      - geom/matrix3d:custom
+      - geom/matrix3d:identity
+
+  - id: geom.M3D.determinant-position
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      `determinant` evaluates the full 4×4 determinant on each access. `position` gets a new
+      `(rawData[12],rawData[13],rawData[14],0)` and its setter changes only those three slots.
+    status: covered
+    scenarios:
+      - geom/matrix3d:determinant
+      - geom/matrix3d:identityDeterminant
+      - geom/matrix3d:position
+
+  - id: geom.M3D.clone-copy-rawdata-reference
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      With a normal 16-element receiver, `clone`, `copyFrom`, and `copyToMatrix3D` copy values
+      without sharing the source Vector. The exact edge contracts differ: upstream `copyFrom`
+      and `copyToMatrix3D` replace the destination's `rawData` reference with a copy of the
+      source of any length, while the adapter writes the first 16 values through Flight into the
+      existing destination Vector. Upstream `clone()` feeds a copy back through the constructor,
+      so malformed-length rawData yields identity; the adapter instead materializes Flight's
+      16-value view.
+    status: missing
+    scenarios:
+      - geom/matrix3d:clone
+
+  - id: geom.M3D.copy-columns-rows
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      `copyColumnFrom/To(0..3)` copy all four Vector3D components to/from the corresponding
+      contiguous column. Invalid signed columns silently do nothing. `copyRowFrom/To(0..3)` use
+      indices `row,row+4,row+8,row+12`; invalid rows silently do nothing.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.copy-raw-data-from
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      `copyRawDataFrom(v,index,transpose)` copies `v.length-index` values into `rawData`
+      starting at destination zero; it does not cap at 16 and leaves uncopied receiver elements
+      intact. With transpose true it transposes the receiver before the partial copy and
+      transposes it back afterward.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.copy-raw-data-to
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      `copyRawDataTo(v,index,transpose)` writes every element of the receiver's current
+      `rawData.length` starting at the destination index, extending the destination as needed.
+      With transpose true it temporarily transposes the receiver, writes, then restores it.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.identity-rawdata-reference
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      `identity()` replaces `rawData` with a new 16-element identity Vector, so external
+      references to the old Vector no longer observe the upstream matrix. The adapter writes
+      identity into the existing Vector and therefore preserves its reference.
+    status: missing
+    scenarios: []
+
+  - id: geom.M3D.transpose
+    section: "Matrix3D > Storage, copying, and addressing"
+    behavior: >-
+      `transpose()` swaps rows and columns in place, including translation/projective slots.
+    status: covered
+    scenarios:
+      - geom/matrix3d:transpose
+
+  # -- Matrix3D > Multiplication and incremental transforms --
+
+  - id: geom.M3D.append-prepend-order
+    section: "Matrix3D > Multiplication and incremental transforms"
+    behavior: >-
+      `append(lhs)` computes `this = lhs * this`; the appended transform acts in world/output
+      space after the existing transform. `prepend(rhs)` computes `this = this * rhs`; the
+      prepended transform acts in object/input space. The order is intentionally noncommutative.
+    status: covered
+    scenarios:
+      - geom/matrix3d:append
+      - geom/matrix3d:prepend
+
+  - id: geom.M3D.append-prepend-translation
+    section: "Matrix3D > Multiplication and incremental transforms"
+    behavior: >-
+      `appendTranslation(x,y,z)` is a source shortcut that adds directly to indices `12..14`; it
+      does not perform a full matrix multiply for projective matrices. `prependTranslation`
+      multiplies by a normal translation matrix on the right.
+    status: covered
+    scenarios:
+      - geom/matrix3d:appendTranslation
+      - geom/matrix3d:prependTranslation
+
+  - id: geom.M3D.append-prepend-scale
+    section: "Matrix3D > Multiplication and incremental transforms"
+    behavior: >-
+      `appendScale` left-multiplies a diagonal scale; `prependScale` right-multiplies it.
+    status: covered
+    scenarios:
+      - geom/matrix3d:appendScale
+      - geom/matrix3d:prependScale
+
+  - id: geom.M3D.append-prepend-rotation
+    section: "Matrix3D > Multiplication and incremental transforms"
+    behavior: >-
+      `appendRotation` and `prependRotation` take degrees, normalize a nonzero axis, build an
+      axis-angle matrix, optionally rotate around `pivotPoint`, and multiply on the
+      corresponding side. A zero-length axis produces a matrix whose 3×3 basis is all zero (not
+      identity), collapsing the spatial transform; the adapter explicitly preserves this oddity.
+    status: covered
+    scenarios:
+      - geom/matrix3d:appendRotation
+      - geom/matrix3d:prependRotation
+      - geom/matrix3d:rotatePivot
+
+  - id: geom.M3D.create-2d-abcd
+    section: "Matrix3D > Multiplication and incremental transforms"
+    behavior: >-
+      Hidden public `create2D(x,y,scale,rotationDegrees)` returns raw columns
+      `[cos*scale,-sin*scale,0,0]`, `[sin*scale,cos*scale,0,0]`, `[0,0,1,0]`, `[x,y,0,1]`.
+      `createABCD(a,b,c,d,tx,ty)` embeds those six values as
+      `[a,b,0,0,c,d,0,0,0,0,1,0,tx,ty,0,1]`.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.create-ortho
+    section: "Matrix3D > Multiplication and incremental transforms"
+    behavior: >-
+      Hidden public `createOrtho(x0,x1,y0,y1,zNear,zFar)` uses `sx=1/(x1-x0)`, `sy=1/(y1-y0)`,
+      `sz=1/(zFar-zNear)`, diagonal `(2*sx,2*sy,-2*sz,1)`, and translation `(-(x0+x1)*sx,
+      -(y0+y1)*sy, -(zNear+zFar)*sz)`. Zero extents divide by zero rather than throwing.
+    status: covered
+    scenarios: []
+
+  # -- Matrix3D > Transformation and interpolation --
+
+  - id: geom.M3D.transform-vs-delta
+    section: "Matrix3D > Transformation and interpolation"
+    behavior: >-
+      `transformVector(v)` and `transformVectorToOutput` apply the full 4×4 matrix with implicit
+      input `w=1`; result `w` is the fourth-row dot product. They do not use `v.w`.
+      `deltaTransformVector(v)` and `deltaTransformVectorToOutput` use implicit input `w=0`,
+      excluding ordinary translation but retaining projective fourth-row terms.
+    status: covered
+    scenarios:
+      - geom/matrix3d:transformVector
+      - geom/matrix3d:deltaTransformVector
+      - geom/matrix3d:transformVsDelta
+
+  - id: geom.M3D.transform-vector-triples
+    section: "Matrix3D > Transformation and interpolation"
+    behavior: >-
+      `transformVectors(vin,vout)` consumes complete triples only, transforms each with implicit
+      `w=1`, and writes results at the same numeric indices in `vout`; one or two trailing input
+      values are ignored.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.interpolate-elements
+    section: "Matrix3D > Transformation and interpolation"
+    behavior: >-
+      Static `interpolate(a,b,percent)`, static `interpolateToOutput`, and mutating
+      `interpolateTo` linearly interpolate each of the 16 raw elements. They do not decompose or
+      use quaternions despite API prose, and percentages outside `[0,1]` extrapolate.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.invert-threshold
+    section: "Matrix3D > Transformation and interpolation"
+    behavior: >-
+      `invert()` regards `abs(determinant)>1e-11` as invertible; otherwise it returns false and
+      leaves the matrix unchanged. The adapter preserves the OpenFL precheck, but Flight
+      `inverseMatrix4` rejects determinants at or below `1e-6`, so the interval `(1e-11,1e-6]`
+      incorrectly returns false. Blocker: **Inverse matrix determinant threshold**.
+    status: flight-gap
+    gap: "Inverse matrix determinant threshold"
+    scenarios:
+      - geom/matrix3d:invert
+
+  # -- Matrix3D > Decomposition and orientation --
+
+  - id: geom.M3D.decompose-order-scale
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      `decompose(style)` returns `[translation, rotation, scale]`. Scale is the length of each
+      of the first three columns; a negative 3×3 determinant makes `scale.z` negative. The basis
+      is divided by those scales without zero guards.
+    status: covered
+    scenarios:
+      - geom/matrix3d:decomposeEuler
+      - geom/matrix3d:decomposeAxisAngle
+      - geom/matrix3d:decomposeQuaternion
+
+  - id: geom.M3D.decompose-euler
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      Euler decomposition returns radians: `y=asin(-m[2])`, normally `x=atan2(m[6],m[10])`,
+      `z=atan2(m[1],m[0])`; at exact `m[2]==±1`, `z=0` and `x=atan2(m[4],m[5])`.
+    status: covered
+    scenarios:
+      - geom/matrix3d:decomposeEuler
+
+  - id: geom.M3D.decompose-axis-quaternion
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      Axis-angle decomposition stores the unit axis in `x,y,z` and angle `acos((trace-1)/2)` in
+      `w`; a zero antisymmetric length yields a zero axis. Quaternion decomposition uses the
+      trace/largest-diagonal branches and returns the quaternion in all four fields.
+    status: covered
+    scenarios:
+      - geom/matrix3d:decomposeAxisAngle
+      - geom/matrix3d:decomposeQuaternion
+
+  - id: geom.M3D.decompose-output-aliasing
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      `decomposeToOutput(style,output)` has the same numbers and allocates missing vectors.
+      Executable source reuses `output[0]` for position, temporarily uses `output[1]` as scale
+      and `output[2]` as rotation, then assigns the final order `[position,rotation,scale]`.
+      Consequently caller-supplied rotation/scale objects exchange slots and roles; the adapter
+      preserves this source quirk.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.recompose-contract
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      `recompose(components,style)` requires at least three entries and returns false without
+      changing the receiver when any scale component is zero. Null components, scale, or
+      rotation can throw despite the prose. Euler inputs are radians; axis-angle uses the
+      supplied (not normalized) axis `xyz` plus angle `w`; any other style is treated as
+      quaternion. For valid components the adapter preserves the formulas and returns true.
+    status: covered
+    scenarios:
+      - geom/matrix3d:recompose
+
+  - id: geom.M3D.recompose-rawdata-reference
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      A successful upstream `recompose` first calls `identity()`, replacing the `rawData` Vector
+      before filling it. The adapter produces the same 16 values but writes through the existing
+      Vector, so a previously retained rawData reference observes the adapter mutation but not
+      the upstream one.
+    status: missing
+    scenarios: []
+
+  - id: geom.M3D.reflection-negative-z
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      Reflection decomposition is adapter-remapped from Flight's negative-X convention to
+      OpenFL's negative-Z convention. This is local compatibility logic, not a remaining
+      blocker.
+    status: covered
+    scenarios: []
+
+  - id: geom.M3D.point-at-source-quirk
+    section: "Matrix3D > Decomposition and orientation"
+    behavior: >-
+      `pointAt(pos,at,up)` preserves OpenFL 9.5.2's known-broken implementation. Defaults are
+      `at=(0,0,-1)` and `up=(0,-1,0)`; it normalizes `dir=at-pos`, orthogonalizes `up`, chooses
+      a fallback perpendicular if parallel, and writes basis values into columns while writing
+      `pos` into indices `3,7,11` rather than normal translation slots. Degenerate `pos==at`
+      produces a largely zero basis rather than throwing.
+    status: covered
+    scenarios: []
+
+  # -- Transform --
+
+  - id: geom.TFM.constructor-state
+    section: "Transform"
+    behavior: >-
+      Construction is tied to one DisplayObject and starts with an identity private
+      ColorTransform, identity 2D-matrix mode, an identity `concatenatedColorTransform` object,
+      and an empty `pixelBounds` object.
+    status: covered
+    scenarios:
+      - geom/transform:transformIdentity
+
+  - id: geom.TFM.matrix-getter-clone
+    section: "Transform"
+    behavior: >-
+      `matrix` returns a new clone of the DisplayObject's local affine matrix when 2D mode is
+      active, otherwise null. Mutating the returned Matrix has no effect until assigned back.
+    status: covered
+    scenarios:
+      - geom/transform:matrixGetterClone
+
+  - id: geom.TFM.matrix-setter
+    section: "Transform"
+    behavior: >-
+      Setting non-null `matrix` enables 2D mode, disables 3D mode, copies the six affine values
+      to the DisplayObject, derives positive scale magnitudes and rotation in degrees, and marks
+      its transform dirty. Setting null only disables 2D mode.
+    status: covered
+    scenarios:
+      - geom/transform:matrixSetterProperties
+      - geom/transform:matrixSync
+      - geom/transform:rotationMatrixSync
+      - geom/transform:scaleMatrixSync
+      - geom/transform:matrixMutualExclusion
+
+  - id: geom.TFM.matrix3d-mode
+    section: "Transform"
+    behavior: >-
+      `matrix3D` returns null unless 3D mode is active; otherwise it constructs a fresh 4×4
+      embedding of the same 2D affine matrix. Setting non-null `matrix3D` enables 3D mode,
+      disables 2D mode, and retains only raw slots `0,1,4,5,12,13`; all other 3D information is
+      discarded. Setting null only disables 3D mode.
+    status: covered
+    scenarios:
+      - geom/transform:matrixMutualExclusion
+
+  - id: geom.TFM.concatenated-matrix
+    section: "Transform"
+    behavior: >-
+      `concatenatedMatrix` returns a fresh clone of the current world affine transform in 2D
+      mode and null in 3D mode. Parent order follows display ancestry; caller mutation cannot
+      affect the DisplayObject.
+    status: covered
+    scenarios:
+      - geom/transform:concatenatedMatrix
+      - geom/transform:concatenatedMatrixReadOnly
+      - integration/display-geom:concatenatedMatrix
+
+  - id: geom.TFM.color-transform-copy
+    section: "Transform"
+    behavior: >-
+      `colorTransform` gets a deep value copy. A non-null assignment copies all eight fields,
+      mirrors its `alphaMultiplier` into `displayObject.alpha`, and dirties rendering only when
+      values differ. Assigning null reaches the copy path and fails rather than clearing the
+      transform.
+    status: covered
+    scenarios:
+      - geom/transform:colorTransformAccess
+
+  - id: geom.TFM.concatenated-color-rendering
+    section: "Transform"
+    behavior: >-
+      Color transforms propagate through OpenFL's private render-world ColorTransform: the child
+      local transform is copied, then ancestor transforms are combined for rendering. The public
+      `concatenatedColorTransform` field itself is never refreshed by 9.5.2 and remains the
+      mutable identity object created by the constructor. The adapter matches that public quirk
+      but currently has no live Flight-node path applying the local/ancestor RGB transform, so
+      rendered propagation is missing (alpha still propagates through DisplayObject alpha).
+    status: missing
+    scenarios:
+      - geom/transform:concatenatedColorTransform
+
+  - id: geom.TFM.pixel-bounds
+    section: "Transform"
+    behavior: >-
+      `pixelBounds` is a read-only reference initialized to `(0,0,0,0)` and never updated by the
+      9.5.2 non-Flash implementation, even on-stage; callers can still mutate the returned
+      Rectangle directly. The adapter preserves this source behavior.
+    status: covered
+    scenarios:
+      - geom/transform:pixelBoundsLifecycle
+
+  - id: geom.TFM.assignment-value-copy
+    section: "Transform"
+    behavior: >-
+      Matrix and ColorTransform assignment store values, never retain caller objects. Assigning
+      a whole DisplayObject `transform` is handled by DisplayObject: null throws, local
+      matrix/color values are copied, and the Transform wrapper remains owned by the destination
+      object.
+    status: covered
+    scenarios:
+      - geom/transform:matrixGetterClone
+      - geom/transform:colorTransformAccess
+
+  # -- ColorTransform --
+
+  - id: geom.CT.fields-defaults
+    section: "ColorTransform"
+    behavior: >-
+      The public `redMultiplier`, `greenMultiplier`, `blueMultiplier`, and `alphaMultiplier`
+      fields default to 1; `redOffset`, `greenOffset`, `blueOffset`, and `alphaOffset` default
+      to 0. All eight are freely writable, with no clamping even for negative or
+      greater-than-255 offsets.
+    status: covered
+    scenarios:
+      - geom/color-transform:defaults
+      - geom/color-transform:custom
+      - geom/color-transform:edgeCases
+
+  - id: geom.CT.concat-order
+    section: "ColorTransform"
+    behavior: >-
+      `concat(second)` composes `second` after the receiver per channel: `offset = second.offset
+      * oldMultiplier + oldOffset`, then `multiplier *= second.multiplier`. It mutates only the
+      receiver.
+    status: covered
+    scenarios:
+      - geom/color-transform:concat
+
+  - id: geom.CT.color-pack-set
+    section: "ColorTransform"
+    behavior: >-
+      `color` getter packs `Std.int(redOffset)<<16 | Std.int(greenOffset)<<8 |
+      Std.int(blueOffset)` without independently masking the stored offsets. Setter extracts the
+      low 24-bit RGB bytes into offsets, zeros the three RGB multipliers, and preserves both
+      alpha fields; its returned value is the resulting getter value.
+    status: covered
+    scenarios:
+      - geom/color-transform:colorGet
+      - geom/color-transform:colorSet
+
+  - id: geom.CT.string-format
+    section: "ColorTransform"
+    behavior: >-
+      `toString()` lists all eight names and values in red/green/blue/alpha multiplier order
+      followed by offsets.
+    status: covered
+    scenarios: []
+
+  - id: geom.CT.internal-value-operations
+    section: "ColorTransform"
+    behavior: >-
+      Internal value operations used by DisplayObject are part of observable rendering:
+      clone/copy include all eight fields; identity is multipliers 1 and offsets 0; exact
+      equality can optionally ignore alphaMultiplier; identity detection can do the same;
+      inversion maps nonzero multipliers to reciprocals, zero multipliers to 1, and negates
+      offsets.
+    status: covered
+    scenarios:
+      - geom/color-transform:identity
+      - geom/color-transform:custom
+
+  - id: geom.CT.consumer-clamping
+    section: "ColorTransform"
+    behavior: >-
+      No component is clamped by the object itself. Pixel/render consumers perform any eventual
+      channel clamping or offset normalization.
+    status: covered
+    scenarios:
+      - geom/color-transform:edgeCases
+
+  # -- PerspectiveProjection --
+
+  - id: geom.PP.constructor-defaults
+    section: "PerspectiveProjection"
+    behavior: >-
+      Constructor state is `fieldOfView=0`, `focalLength=0`, and a newly allocated projection
+      center at half the current Stage width/height (unit-test builds use `(0,0)`). It also owns
+      one reusable identity Matrix3D.
+    status: covered
+    scenarios:
+      - geom/transform:perspectiveProjectionDefaults
+
+  - id: geom.PP.field-of-view-focal-length
+    section: "PerspectiveProjection"
+    behavior: >-
+      Setting `fieldOfView` treats the input as degrees but stores radians (`degrees*π/180`) and
+      exposes that radian value through the getter. It sets `focalLength = 250 /
+      tan(storedRadians/2)` without range checks. Setting `focalLength` directly does not update
+      `fieldOfView`.
+    status: covered
+    scenarios: []
+
+  - id: geom.PP.projection-center-reference
+    section: "PerspectiveProjection"
+    behavior: >-
+      `projectionCenter` is a freely replaceable Point reference. Its coordinates are not used
+      in matrix construction; only nullness matters.
+    status: covered
+    scenarios: []
+
+  - id: geom.PP.matrix-owned-reuse
+    section: "PerspectiveProjection"
+    behavior: >-
+      `toMatrix3D()` returns null when `projectionCenter` is null (or, only on Neko, when the
+      private field-of-view storage is null). Otherwise it mutates and returns the same owned
+      Matrix3D every call, setting only raw entries `0=focalLength`, `5=focalLength`, `11=1`,
+      and `15=0`; untouched entries retain their prior values.
+    status: covered
+    scenarios: []
+
+  - id: geom.PP.matrix-output-partial-write
+    section: "PerspectiveProjection"
+    behavior: >-
+      `toMatrix3DToOutput(output)` has the same null guard and four writes, allocates on null,
+      and deliberately leaves every other pre-existing output entry untouched.
+    status: covered
+    scenarios: []
+
+  - id: geom.PP.focal-projection-local-adapter
+    section: "PerspectiveProjection"
+    behavior: >-
+      Flight has no focal-projection builder matching this contract, but the adapter retains the
+      direct OpenFL raw-data implementation, so **Focal projection builder** is an upstream
+      Flight gap rather than a current parity blocker.
+    status: covered
+    scenarios: []
+
+  # -- Remaining public package types > Orientation3D --
+
+  - id: geom.O3D.constants-conversion
+    section: "Remaining public package types > Orientation3D"
+    behavior: >-
+      `AXIS_ANGLE`, `EULER_ANGLES`, and `QUATERNION` are `0,1,2` on non-JavaScript targets and
+      the strings `axisAngle`, `eulerAngles`, `quaternion` on OpenFL JavaScript. Non-JS private
+      conversions map those exact strings to the integer abstract and unknown strings to null.
+    status: covered
+    scenarios:
+      - geom/matrix3d:decomposeEuler
+      - geom/matrix3d:decomposeAxisAngle
+      - geom/matrix3d:decomposeQuaternion
+
+  # -- Remaining public package types > Utils3D --
+
+  - id: geom.U3D.project-vector
+    section: "Remaining public package types > Utils3D"
+    behavior: >-
+      `projectVector(m,v)` transforms with implicit input `w=1`, then divides output `x,y,z` by
+      the computed fourth component. Division by zero is unguarded. `projectVectorToOutput`
+      reuses output and preserves its pre-existing `w`, matching source.
+    status: covered
+    scenarios:
+      - geom/utils3d:projectVector
+      - geom/utils3d:projectVectorIsVector3D
+      - geom/utils3d:identityProjection
+      - geom/utils3d:knownProjection
+
+  - id: geom.U3D.project-vectors
+    section: "Remaining public package types > Utils3D"
+    behavior: >-
+      `projectVectors(m,verts,projectedVerts,uvts)` returns immediately unless `verts.length` is
+      divisible by three. It appends projected x/y pairs, writes reciprocal-w at `uvts[i+2]`
+      using the original triple index, and neither clears destination vectors nor writes
+      projected z.
+    status: covered
+    scenarios:
+      - geom/utils3d:projectVectors
+      - geom/utils3d:knownProjection
+
+  - id: geom.U3D.point-towards-absent
+    section: "Remaining public package types > Utils3D"
+    behavior: >-
+      `pointTowards` is enclosed in `#if false` and is not part of the compiled 9.5.2 API.
+    status: covered
+    scenarios:
+      - geom/utils3d:pointTowards
