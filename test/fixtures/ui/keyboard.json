@@ -1,18 +1,25 @@
 {
+  "keyCodesMatchFlash": true,
   "keyCodes": {
     "left": 37,
+    "backspace": 8,
     "up": 38,
+    "end": 35,
+    "delete": 46,
     "space": 32,
-    "a": 65,
     "down": 40,
     "right": 39,
+    "tab": 9,
     "enter": 13,
-    "escape": 27
+    "escape": 27,
+    "home": 36
   },
+  "accessible": false,
   "locks": {
     "capsLockIsBool": false,
     "capsLock": null,
     "numLockIsBool": false,
     "numLock": null
-  }
+  },
+  "accessibleIsBool": true
 }
