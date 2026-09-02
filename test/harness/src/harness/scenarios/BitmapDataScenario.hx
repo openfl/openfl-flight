@@ -2,6 +2,7 @@ package harness.scenarios;
 
 import openfl.display.BitmapData;
 import openfl.display.BitmapDataChannel;
+import openfl.display.Shape;
 import openfl.geom.ColorTransform;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
@@ -13,6 +14,7 @@ class BitmapDataScenario {
 			getSetPixel: testGetSetPixel(),
 			getSetPixel32: testGetSetPixel32(),
 			fillRect: testFillRect(),
+			floodFill: testFloodFill(),
 			dimensions: testDimensions(),
 			clone: testClone(),
 			rect: testRect(),
@@ -21,6 +23,8 @@ class BitmapDataScenario {
 			copyPixels: testCopyPixels(),
 			copyChannel: testCopyChannel(),
 			colorTransformPixels: testColorTransformPixels(),
+			drawShape: testDrawShape(),
+			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
 			compare: testCompare()
 		};
@@ -64,6 +68,13 @@ class BitmapDataScenario {
 		};
 	}
 
+	private static function testFloodFill():Dynamic {
+		var bmd = new BitmapData(5, 4, true, 0xFF000000);
+		for (y in 0...4) bmd.setPixel32(2, y, 0xFFFF0000);
+		bmd.floodFill(0, 0, 0xFF0000FF);
+		return pixels(bmd);
+	}
+
 	private static function testDimensions():Dynamic {
 		var bmd = new BitmapData(200, 100);
 		return {
@@ -76,6 +87,7 @@ class BitmapDataScenario {
 		var bmd = new BitmapData(10, 10, true, 0xFF00FF00);
 		bmd.setPixel32(5, 5, 0xFFFF0000);
 		var clone = bmd.clone();
+		clone.setPixel32(5, 5, 0xFF0000FF);
 		return {
 			cloneWidth: clone.width,
 			cloneHeight: clone.height,
@@ -92,7 +104,8 @@ class BitmapDataScenario {
 			x: r.x,
 			y: r.y,
 			width: r.width,
-			height: r.height
+			height: r.height,
+			matchesDimensions: r.width == bmd.width && r.height == bmd.height
 		};
 	}
 
@@ -162,6 +175,25 @@ class BitmapDataScenario {
 		bmd.setPixel32(1, 0, 0xFF102030);
 		var transform = new ColorTransform(2, 0.5, 1, 0.5, 5, 10, -8, 16);
 		bmd.colorTransform(new Rectangle(0, 0, 1, 1), transform);
+		return pixels(bmd);
+	}
+
+	private static function testDrawShape():Dynamic {
+		var shape = new Shape();
+		shape.graphics.beginFill(0x336699);
+		shape.graphics.drawRect(1, 1, 3, 2);
+		shape.graphics.endFill();
+		var bmd = new BitmapData(6, 5, true, 0);
+		bmd.draw(shape);
+		return pixels(bmd);
+	}
+
+	private static function testLockUnlock():Dynamic {
+		var bmd = new BitmapData(3, 2, true, 0);
+		bmd.lock();
+		bmd.setPixel32(0, 0, 0xFF112233);
+		bmd.fillRect(new Rectangle(1, 0, 2, 2), 0x80445566);
+		bmd.unlock(new Rectangle(0, 0, 3, 2));
 		return pixels(bmd);
 	}
 

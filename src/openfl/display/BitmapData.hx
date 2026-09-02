@@ -276,7 +276,9 @@ class BitmapData implements IBitmapDrawable
 
 	public function floodFill(x:Int, y:Int, color:Int):Void
 	{
-		// TODO: Flood-fill pixels through Flight bitmap services.
+		if (!readable || __bitmap == null || x < 0 || y < 0 || x >= width || y >= height) return;
+		if (!transparent) color = 0xFF000000 | (color & 0xFFFFFF);
+		FlightBitmap.floodFillBitmap(__bitmap, x, y, __argbToFlight(color, true));
 	}
 
 	public static function fromBase64(base64:String, type:String):BitmapData
