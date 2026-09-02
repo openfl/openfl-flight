@@ -39,7 +39,7 @@ class Preloader
 		ready = true;
 
 		#if !flash
-		Lib.current.loaderInfo.__complete();
+		if (Lib.current.loaderInfo != null) Lib.current.loaderInfo.__complete();
 		#end
 
 		if (display != null)
@@ -67,7 +67,7 @@ class Preloader
 	@:noCompletion private function update(loaded:Int, total:Int):Void
 	{
 		#if !flash
-		Lib.current.loaderInfo.__update(loaded, total);
+		if (Lib.current.loaderInfo != null) Lib.current.loaderInfo.__update(loaded, total);
 		#end
 
 		if (display != null)
@@ -236,7 +236,7 @@ class Preloader
 		removeEventListener(Event.ADDED_TO_STAGE, this_onAddedToStage);
 
 		onInit();
-		onUpdate(loaderInfo.bytesLoaded, loaderInfo.bytesTotal);
+		if (loaderInfo != null) onUpdate(loaderInfo.bytesLoaded, loaderInfo.bytesTotal);
 
 		addEventListener(ProgressEvent.PROGRESS, this_onProgress);
 		addEventListener(Event.COMPLETE, this_onComplete);

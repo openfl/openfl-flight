@@ -144,7 +144,7 @@ class Assets
 			var bitmapData = image.src;
 			#else
 			var bitmapData = BitmapData.fromImage(image);
-			bitmapData.__asset = true;
+			if (bitmapData != null) bitmapData.__asset = true;
 			#end
 
 			if (useCache && cache.enabled)

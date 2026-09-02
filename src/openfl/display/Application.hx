@@ -44,7 +44,14 @@ class Application #if lime extends LimeApplication #end
 {
 	@:noCompletion private static var __flightHost:FlightHost;
 
-	#if !lime
+	#if lime
+	public static var current(get, never):Application;
+
+	private static function get_current()
+	{
+		return cast(LimeApplication.current, Application);
+	}
+	#else
 	public static var current:Application;
 
 	public var window:Window;

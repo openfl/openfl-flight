@@ -56,6 +56,7 @@ class BitmapData implements IBitmapDrawable
 	public var transparent(default, null):Bool;
 	public var width(default, null):Int;
 
+	@:noCompletion private var __asset:Bool;
 	@:noCompletion private var __blendMode:BlendMode;
 	@:noCompletion private var __bitmap:FlightBitmapHandle;
 	@:noCompletion private var __drawableType:Dynamic;
@@ -113,34 +114,38 @@ class BitmapData implements IBitmapDrawable
 			FlightBitmap.colorMatrixBitmap(output, source, matrix);
 			// Flight rounds matrix results while OpenFL truncates them. Retain the
 			// Flight pass, then normalize that adapter-level numeric difference.
-			for (offsetY in 0...regionHeight) for (offsetX in 0...regionWidth)
-			{
-				var sourceX = Std.int(sourceRect.x) + offsetX;
-				var sourceY = Std.int(sourceRect.y) + offsetY;
-				if (sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height) continue;
-				var sourceColor = Std.int(FlightBitmap.getBitmapPixel(sourceBitmap, sourceX, sourceY));
-				var red = (sourceColor >>> 24) & 0xFF;
-				var green = (sourceColor >>> 16) & 0xFF;
-				var blue = (sourceColor >>> 8) & 0xFF;
-				var alpha = sourceColor & 0xFF;
-				var outputOffset = (offsetY * regionWidth + offsetX) * 4;
-				if (alpha == 0)
+			for (offsetY in 0...regionHeight)
+				for (offsetX in 0...regionWidth)
 				{
-					for (channel in 0...4) output[outputOffset + channel] = 0;
+					var sourceX = Std.int(sourceRect.x) + offsetX;
+					var sourceY = Std.int(sourceRect.y) + offsetY;
+					if (sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height) continue;
+					var sourceColor = Std.int(FlightBitmap.getBitmapPixel(sourceBitmap, sourceX, sourceY));
+					var red = (sourceColor >>> 24) & 0xFF;
+					var green = (sourceColor >>> 16) & 0xFF;
+					var blue = (sourceColor >>> 8) & 0xFF;
+					var alpha = sourceColor & 0xFF;
+					var outputOffset = (offsetY * regionWidth + offsetX) * 4;
+					if (alpha == 0)
+					{
+						for (channel in 0...4)
+							output[outputOffset + channel] = 0;
+					}
+					else
+					{
+						output[outputOffset] = __colorMatrixComponent(matrix, 0, red, green, blue, alpha);
+						output[outputOffset + 1] = __colorMatrixComponent(matrix, 5, red, green, blue, alpha);
+						output[outputOffset + 2] = __colorMatrixComponent(matrix, 10, red, green, blue, alpha);
+						output[outputOffset + 3] = __colorMatrixComponent(matrix, 15, red, green, blue, alpha);
+					}
 				}
-				else
-				{
-					output[outputOffset] = __colorMatrixComponent(matrix, 0, red, green, blue, alpha);
-					output[outputOffset + 1] = __colorMatrixComponent(matrix, 5, red, green, blue, alpha);
-					output[outputOffset + 2] = __colorMatrixComponent(matrix, 10, red, green, blue, alpha);
-					output[outputOffset + 3] = __colorMatrixComponent(matrix, 15, red, green, blue, alpha);
-				}
-			}
 		}
 		else if (Std.isOfType(filter, ConvolutionFilter) && (cast filter : ConvolutionFilter).clamp)
 		{
 			var convolution:ConvolutionFilter = cast filter;
-			if (convolution.matrix == null || convolution.matrixX <= 0 || convolution.matrixY <= 0
+			if (convolution.matrix == null
+				|| convolution.matrixX <= 0
+				|| convolution.matrixY <= 0
 				|| convolution.matrix.length < convolution.matrixX * convolution.matrixY) return;
 			FlightBitmap.convolveBitmap(output, source, {
 				matrix: convolution.matrix,
@@ -205,8 +210,7 @@ class BitmapData implements IBitmapDrawable
 		{
 			for (x in 0...regionWidth)
 			{
-				setPixel32(Std.int(clipped.x) + x, Std.int(clipped.y) + y,
-					__flightToArgb(Std.int(FlightBitmap.getBitmapPixel(destination, x, y)), false));
+				setPixel32(Std.int(clipped.x) + x, Std.int(clipped.y) + y, __flightToArgb(Std.int(FlightBitmap.getBitmapPixel(destination, x, y)), false));
 			}
 		}
 	}
@@ -265,8 +269,8 @@ class BitmapData implements IBitmapDrawable
 		__writeStraightRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
 	}
 
-	public function copyPixels(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, alphaBitmapData:BitmapData = null,
-			alphaPoint:Point = null, mergeAlpha:Bool = false):Void
+	public function copyPixels(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, alphaBitmapData:BitmapData = null, alphaPoint:Point = null,
+			mergeAlpha:Bool = false):Void
 	{
 		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
 			|| sourceRect == null || destPoint == null) return;
@@ -340,8 +344,7 @@ class BitmapData implements IBitmapDrawable
 		var inverse = matrix == null ? new Matrix() : matrix.clone();
 		inverse.invert();
 		var transformed = FlightBitmap.createBitmap(width, height, 0);
-		FlightBitmap.transformBitmap(FlightBitmap.createBitmapRegion(transformed),
-			FlightBitmap.createBitmapRegion(__toStraightBitmap(sourceBitmapData)),
+		FlightBitmap.transformBitmap(FlightBitmap.createBitmapRegion(transformed), FlightBitmap.createBitmapRegion(__toStraightBitmap(sourceBitmapData)),
 			[inverse.a, inverse.b, inverse.c, inverse.d, inverse.tx, inverse.ty], "transparent", smoothing ? "bilinear" : "nearest");
 		if (colorTransform != null)
 		{
@@ -399,7 +402,8 @@ class BitmapData implements IBitmapDrawable
 		var encoded:FlightUInt8Array = FlightBitmap.encodeBitmap(source, format, quality);
 		if (encoded == null) return null;
 		if (byteArray == null) byteArray = new ByteArray();
-		for (index in 0...encoded.length) byteArray.writeByte(encoded[index]);
+		for (index in 0...encoded.length)
+			byteArray.writeByte(encoded[index]);
 		return byteArray;
 	}
 
@@ -541,8 +545,7 @@ class BitmapData implements IBitmapDrawable
 		var regionWidth = Std.int(Math.max(0, rect.width));
 		var regionHeight = Std.int(Math.max(0, rect.height));
 		var pixels = new FlightUInt8ClampedArray(regionWidth * regionHeight * 4);
-		FlightBitmap.extractBitmapPixels(pixels,
-			FlightBitmap.createBitmapRegion(__toStraightBitmap(this), rect.x, rect.y, regionWidth, regionHeight));
+		FlightBitmap.extractBitmapPixels(pixels, FlightBitmap.createBitmapRegion(__toStraightBitmap(this), rect.x, rect.y, regionWidth, regionHeight));
 		var result = new ByteArray();
 		result.endian = Endian.BIG_ENDIAN;
 		for (index in 0...(regionWidth * regionHeight))
@@ -565,7 +568,9 @@ class BitmapData implements IBitmapDrawable
 		var top = Std.int(Math.max(0, rect.y));
 		var right = Std.int(Math.min(width, rect.x + rect.width));
 		var bottom = Std.int(Math.min(height, rect.y + rect.height));
-		for (y in top...bottom) for (x in left...right) result.push(getPixel32(x, y));
+		for (y in top...bottom)
+			for (x in left...right)
+				result.push(getPixel32(x, y));
 		return result;
 	}
 
@@ -573,8 +578,8 @@ class BitmapData implements IBitmapDrawable
 	{
 		if (!readable || __bitmap == null) return [for (_ in 0...4) [for (_ in 0...256) 0]];
 		var source = hRect == null ? rect : hRect;
-		var histogram = FlightBitmap.getBitmapHistogram(FlightBitmap.createBitmapRegion(__toStraightBitmap(this), source.x, source.y,
-			source.width, source.height));
+		var histogram = FlightBitmap.getBitmapHistogram(FlightBitmap.createBitmapRegion(__toStraightBitmap(this), source.x, source.y, source.width,
+			source.height));
 		return [
 			[for (value in histogram.red) Std.int(value)],
 			[for (value in histogram.green) Std.int(value)],
@@ -604,7 +609,9 @@ class BitmapData implements IBitmapDrawable
 			var top = Std.int(Math.max(0, second.y - firstPoint.y));
 			var right = Std.int(Math.min(width, second.x - firstPoint.x + second.width));
 			var bottom = Std.int(Math.min(height, second.y - firstPoint.y + second.height));
-			for (y in top...bottom) for (x in left...right) if (__alphaAt(x, y) > firstAlphaThreshold) return true;
+			for (y in top...bottom)
+				for (x in left...right)
+					if (__alphaAt(x, y) > firstAlphaThreshold) return true;
 			return false;
 		}
 
@@ -618,10 +625,12 @@ class BitmapData implements IBitmapDrawable
 			var top = Std.int(Math.max(0, offsetY));
 			var right = Std.int(Math.min(width, offsetX + second.width));
 			var bottom = Std.int(Math.min(height, offsetY + second.height));
-			for (y in top...bottom) for (x in left...right)
-			{
-				if (__alphaAt(x, y) > firstAlphaThreshold && second.__alphaAt(x - offsetX, y - offsetY) > secondAlphaThreshold) return true;
-			}
+			for (y in top...bottom)
+				for (x in left...right)
+				{
+					if (__alphaAt(x, y) > firstAlphaThreshold
+						&& second.__alphaAt(x - offsetX, y - offsetY) > secondAlphaThreshold) return true;
+				}
 		}
 		return false;
 	}
@@ -643,8 +652,8 @@ class BitmapData implements IBitmapDrawable
 
 	public function lock():Void {}
 
-	public function merge(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redMultiplier:UInt, greenMultiplier:UInt,
-			blueMultiplier:UInt, alphaMultiplier:UInt):Void
+	public function merge(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redMultiplier:UInt, greenMultiplier:UInt, blueMultiplier:UInt,
+			alphaMultiplier:UInt):Void
 	{
 		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
 			|| sourceRect == null || destPoint == null) return;
@@ -660,22 +669,23 @@ class BitmapData implements IBitmapDrawable
 
 		// Flight rounds blended channels; OpenFL truncates the 8.8 fixed-point
 		// result. Correct that adapter-level difference before storing the pixels.
-		for (offsetY in 0...regionHeight) for (offsetX in 0...regionWidth)
-		{
-			var sourceX = Std.int(sourceRect.x) + offsetX;
-			var sourceY = Std.int(sourceRect.y) + offsetY;
-			var destinationX = Std.int(destPoint.x) + offsetX;
-			var destinationY = Std.int(destPoint.y) + offsetY;
-			if (sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height
-				|| destinationX < 0 || destinationY < 0 || destinationX >= width || destinationY >= height) continue;
-			var sourceColor = Std.int(FlightBitmap.getBitmapPixel(sourceBitmap, sourceX, sourceY));
-			var destinationColor = Std.int(FlightBitmap.getBitmapPixel(originalDestination, destinationX, destinationY));
-			var mergedColor = (__mergeComponent((sourceColor >>> 24) & 0xFF, (destinationColor >>> 24) & 0xFF, redMultiplier) << 24)
-				| (__mergeComponent((sourceColor >>> 16) & 0xFF, (destinationColor >>> 16) & 0xFF, greenMultiplier) << 16)
-				| (__mergeComponent((sourceColor >>> 8) & 0xFF, (destinationColor >>> 8) & 0xFF, blueMultiplier) << 8)
-				| __mergeComponent(sourceColor & 0xFF, destinationColor & 0xFF, alphaMultiplier);
-			FlightBitmap.setBitmapPixel(destinationBitmap, destinationX, destinationY, mergedColor);
-		}
+		for (offsetY in 0...regionHeight)
+			for (offsetX in 0...regionWidth)
+			{
+				var sourceX = Std.int(sourceRect.x) + offsetX;
+				var sourceY = Std.int(sourceRect.y) + offsetY;
+				var destinationX = Std.int(destPoint.x) + offsetX;
+				var destinationY = Std.int(destPoint.y) + offsetY;
+				if (sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height || destinationX < 0
+					|| destinationY < 0 || destinationX >= width || destinationY >= height) continue;
+				var sourceColor = Std.int(FlightBitmap.getBitmapPixel(sourceBitmap, sourceX, sourceY));
+				var destinationColor = Std.int(FlightBitmap.getBitmapPixel(originalDestination, destinationX, destinationY));
+				var mergedColor = (__mergeComponent((sourceColor >>> 24) & 0xFF, (destinationColor >>> 24) & 0xFF,
+					redMultiplier) << 24) | (__mergeComponent((sourceColor >>> 16) & 0xFF, (destinationColor >>> 16) & 0xFF,
+						greenMultiplier) << 16) | (__mergeComponent((sourceColor >>> 8) & 0xFF, (destinationColor >>> 8) & 0xFF,
+							blueMultiplier) << 8) | __mergeComponent(sourceColor & 0xFF, destinationColor & 0xFF, alphaMultiplier);
+				FlightBitmap.setBitmapPixel(destinationBitmap, destinationX, destinationY, mergedColor);
+			}
 		__writeStraightRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
 	}
 
@@ -687,23 +697,23 @@ class BitmapData implements IBitmapDrawable
 		if (!grayScale)
 		{
 			var alphaNoise = FlightBitmap.createBitmap(width, height, 0);
-			if ((channelOptions & 8) != 0)
-				FlightBitmap.fillBitmapNoise(FlightBitmap.createBitmapRegion(alphaNoise), randomSeed ^ 0x6D2B79F5, low, high, true);
-			for (y in 0...height) for (x in 0...width)
-			{
-				var color = Std.int(FlightBitmap.getBitmapPixel(output, x, y));
-				var red = (channelOptions & 1) == 0 ? 0 : (color >>> 24) & 0xFF;
-				var green = (channelOptions & 2) == 0 ? 0 : (color >>> 16) & 0xFF;
-				var blue = (channelOptions & 4) == 0 ? 0 : (color >>> 8) & 0xFF;
-				var alpha = (channelOptions & 8) == 0 ? 0xFF : (Std.int(FlightBitmap.getBitmapPixel(alphaNoise, x, y)) >>> 24) & 0xFF;
-				FlightBitmap.setBitmapPixel(output, x, y, (red << 24) | (green << 16) | (blue << 8) | alpha);
-			}
+			if ((channelOptions & 8) != 0) FlightBitmap.fillBitmapNoise(FlightBitmap.createBitmapRegion(alphaNoise), randomSeed ^ 0x6D2B79F5, low, high, true);
+			for (y in 0...height)
+				for (x in 0...width)
+				{
+					var color = Std.int(FlightBitmap.getBitmapPixel(output, x, y));
+					var red = (channelOptions & 1) == 0 ? 0 : (color >>> 24) & 0xFF;
+					var green = (channelOptions & 2) == 0 ? 0 : (color >>> 16) & 0xFF;
+					var blue = (channelOptions & 4) == 0 ? 0 : (color >>> 8) & 0xFF;
+					var alpha = (channelOptions & 8) == 0 ? 0xFF : (Std.int(FlightBitmap.getBitmapPixel(alphaNoise, x, y)) >>> 24) & 0xFF;
+					FlightBitmap.setBitmapPixel(output, x, y, (red << 24) | (green << 16) | (blue << 8) | alpha);
+				}
 		}
 		__writeStraightRegion(output, 0, 0, width, height);
 	}
 
-	public function paletteMap(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redArray:Array<Int> = null,
-			greenArray:Array<Int> = null, blueArray:Array<Int> = null, alphaArray:Array<Int> = null):Void
+	public function paletteMap(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redArray:Array<Int> = null, greenArray:Array<Int> = null,
+			blueArray:Array<Int> = null, alphaArray:Array<Int> = null):Void
 	{
 		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
 			|| sourceRect == null || destPoint == null) return;
@@ -724,14 +734,13 @@ class BitmapData implements IBitmapDrawable
 		// effects from summing full 32-bit table entries cannot be represented.
 	}
 
-	public function perlinNoise(baseX:Float, baseY:Float, numOctaves:UInt, randomSeed:Int, stitch:Bool, fractalNoise:Bool,
-			channelOptions:UInt = 7, grayScale:Bool = false, offsets:Array<Point> = null):Void
+	public function perlinNoise(baseX:Float, baseY:Float, numOctaves:UInt, randomSeed:Int, stitch:Bool, fractalNoise:Bool, channelOptions:UInt = 7,
+			grayScale:Bool = false, offsets:Array<Point> = null):Void
 	{
 		if (!readable || __bitmap == null || width == 0 || height == 0) return;
 		var output = FlightBitmap.createBitmap(width, height, 0);
 		var flightChannels:UInt = grayScale ? 7 : channelOptions & 7;
-		FlightBitmap.fillBitmapPerlinNoise(FlightBitmap.createBitmapRegion(output), baseX, baseY, numOctaves, randomSeed, grayScale, stitch,
-			flightChannels);
+		FlightBitmap.fillBitmapPerlinNoise(FlightBitmap.createBitmapRegion(output), baseX, baseY, numOctaves, randomSeed, grayScale, stitch, flightChannels);
 		__writeStraightRegion(output, 0, 0, width, height);
 		// OpenFL 9.5.2 ignores `fractalNoise`, alpha channel selection, and
 		// octave offsets in its Perlin implementation; the adapter does likewise.
@@ -794,15 +803,16 @@ class BitmapData implements IBitmapDrawable
 		var top = Std.int(Math.max(0, rect.y));
 		var right = Std.int(Math.min(width, rect.x + rect.width));
 		var bottom = Std.int(Math.min(height, rect.y + rect.height));
-		for (y in top...bottom) for (x in left...right)
-		{
-			if (index >= inputVector.length) return;
-			setPixel32(x, y, inputVector[index++]);
-		}
+		for (y in top...bottom)
+			for (x in left...right)
+			{
+				if (index >= inputVector.length) return;
+				setPixel32(x, y, inputVector[index++]);
+			}
 	}
 
-	public function threshold(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, operation:String, threshold:Int,
-			color:Int = 0x00000000, mask:Int = 0xFFFFFFFF, copySource:Bool = false):Int
+	public function threshold(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, operation:String, threshold:Int, color:Int = 0x00000000,
+			mask:Int = 0xFFFFFFFF, copySource:Bool = false):Int
 	{
 		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
 			|| sourceRect == null || destPoint == null) return 0;
@@ -814,21 +824,25 @@ class BitmapData implements IBitmapDrawable
 		// Threshold compares packed ARGB values. Encode those values directly as
 		// Flight pixels so the packed numeric ordering remains ARGB, not RGBA.
 		var sourceBitmap = FlightBitmap.createBitmap(sourceBitmapData.width, sourceBitmapData.height, 0);
-		for (y in 0...sourceBitmapData.height) for (x in 0...sourceBitmapData.width)
-			FlightBitmap.setBitmapPixel(sourceBitmap, x, y, sourceBitmapData.getPixel32(x, y));
+		for (y in 0...sourceBitmapData.height)
+			for (x in 0...sourceBitmapData.width)
+				FlightBitmap.setBitmapPixel(sourceBitmap, x, y, sourceBitmapData.getPixel32(x, y));
 		var destinationBitmap = FlightBitmap.createBitmap(width, height, 0);
-		for (y in 0...height) for (x in 0...width) FlightBitmap.setBitmapPixel(destinationBitmap, x, y, getPixel32(x, y));
+		for (y in 0...height)
+			for (x in 0...width)
+				FlightBitmap.setBitmapPixel(destinationBitmap, x, y, getPixel32(x, y));
 
 		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceRect.x, sourceRect.y, regionWidth, regionHeight);
 		var destination = FlightBitmap.createBitmapRegion(destinationBitmap, destPoint.x, destPoint.y, regionWidth, regionHeight);
 		var changed = FlightBitmap.applyBitmapThreshold(destination, source, operation, threshold, color, mask, copySource);
-		for (offsetY in 0...regionHeight) for (offsetX in 0...regionWidth)
-		{
-			var bitmapX = Std.int(destPoint.x) + offsetX;
-			var bitmapY = Std.int(destPoint.y) + offsetY;
-			if (bitmapX < 0 || bitmapY < 0 || bitmapX >= width || bitmapY >= height) continue;
-			setPixel32(bitmapX, bitmapY, Std.int(FlightBitmap.getBitmapPixel(destinationBitmap, bitmapX, bitmapY)));
-		}
+		for (offsetY in 0...regionHeight)
+			for (offsetX in 0...regionWidth)
+			{
+				var bitmapX = Std.int(destPoint.x) + offsetX;
+				var bitmapY = Std.int(destPoint.y) + offsetY;
+				if (bitmapX < 0 || bitmapY < 0 || bitmapX >= width || bitmapY >= height) continue;
+				setPixel32(bitmapX, bitmapY, Std.int(FlightBitmap.getBitmapPixel(destinationBitmap, bitmapX, bitmapY)));
+			}
 		return Std.int(changed);
 	}
 
@@ -963,15 +977,14 @@ class BitmapData implements IBitmapDrawable
 
 	@:noCompletion private static inline function __colorMatrixComponent(matrix:Array<Float>, offset:Int, red:Int, green:Int, blue:Int, alpha:Int):Int
 	{
-		return Std.int(Math.max(0, Math.min(255,
-			matrix[offset] * red + matrix[offset + 1] * green + matrix[offset + 2] * blue + matrix[offset + 3] * alpha + matrix[offset + 4])));
+		return Std.int(Math.max(0,
+			Math.min(255, matrix[offset] * red + matrix[offset + 1] * green + matrix[offset + 2] * blue + matrix[offset + 3] * alpha + matrix[offset + 4])));
 	}
 
 	@:noCompletion private static function __premultiplyRgb(color:Int, alpha:Int):Int
 	{
-		return (__premultiplyComponent((color >>> 16) & 0xFF, alpha) << 16)
-			| (__premultiplyComponent((color >>> 8) & 0xFF, alpha) << 8)
-			| __premultiplyComponent(color & 0xFF, alpha);
+		return (__premultiplyComponent((color >>> 16) & 0xFF,
+			alpha) << 16) | (__premultiplyComponent((color >>> 8) & 0xFF, alpha) << 8) | __premultiplyComponent(color & 0xFF, alpha);
 	}
 
 	@:noCompletion private static function __unpremultiplyComponent(component:Int, alpha:Int):Int
@@ -983,13 +996,14 @@ class BitmapData implements IBitmapDrawable
 	{
 		if (alpha == 0) return 0;
 		if (alpha == 0xFF) return color & 0xFFFFFF;
-		return (__unpremultiplyComponent((color >>> 16) & 0xFF, alpha) << 16)
-			| (__unpremultiplyComponent((color >>> 8) & 0xFF, alpha) << 8)
-			| __unpremultiplyComponent(color & 0xFF, alpha);
+		return (__unpremultiplyComponent((color >>> 16) & 0xFF,
+			alpha) << 16) | (__unpremultiplyComponent((color >>> 8) & 0xFF, alpha) << 8) | __unpremultiplyComponent(color & 0xFF, alpha);
 	}
 
 	@:noCompletion private function __getBounds(rect:Rectangle, matrix:Matrix):Void {}
+
 	@:noCompletion private function __update(transformOnly:Bool, updateChildren:Bool):Void {}
+
 	@:noCompletion private function __updateTransforms(overrideTransform:Matrix = null):Void {}
 
 	@:noCompletion private static function __toFlightColor(color:UInt):UInt
