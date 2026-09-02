@@ -56,6 +56,7 @@ import harness.scenarios.SharedObjectScenario;
 import harness.scenarios.SoundStateScenario;
 import harness.scenarios.SoundLifecycleScenario;
 import harness.scenarios.SocketScenario;
+import harness.scenarios.SpriteScenario;
 import harness.scenarios.StageScenario;
 import harness.scenarios.StageTextScenario;
 import harness.scenarios.StaticTextScenario;
@@ -281,6 +282,10 @@ class Scenarios {
 			{
 				name: "display/interactive-object",
 				run: InteractiveObjectScenario.run
+			},
+			{
+				name: "display/sprite",
+				run: SpriteScenario.run
 			},
 			{
 				name: "display/simple-button",

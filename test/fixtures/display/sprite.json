@@ -1,0 +1,24 @@
+{
+  "defaults": {
+    "graphicsIsNonNull": true,
+    "hitAreaIsNull": true,
+    "graphicsIsStable": true,
+    "useHandCursor": true,
+    "buttonMode": false,
+    "dropTargetIsNull": true
+  },
+  "values": {
+    "hitAreaMatches": true,
+    "useHandCursor": false,
+    "buttonMode": true
+  },
+  "graphicsBounds": {
+    "spriteWidth": 30,
+    "x": 10,
+    "y": 20,
+    "height": 40,
+    "spriteHeight": 40,
+    "width": 30
+  },
+  "detachedDragThrew": false
+}
