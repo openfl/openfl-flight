@@ -5,6 +5,13 @@
   "emptyArray": {
     "throwsOnEmptyRead": true
   },
+  "readPastEnd": {
+    "positionAfterError": 1,
+    "valueBeforeEnd": 7,
+    "isEOFError": true,
+    "error": "openfl.errors.EOFError",
+    "bytesAvailableAfterError": 0
+  },
   "lzmaCompression": {
     "positionAfterUncompress": 0,
     "lengthChanged": false,
@@ -31,9 +38,11 @@
     "length": 12
   },
   "bytesAvailable": {
+    "length": 3,
     "atStart": 3,
     "afterOneRead": 2,
-    "atEnd": 0
+    "atEnd": 0,
+    "matchesLengthMinusPosition": true
   },
   "writeReadShort": {
     "negative": -1000,
@@ -59,6 +68,8 @@
     "positionAfterRead": 6,
     "lengthAfterWrite": 6,
     "positionAfterWrite": 6,
+    "roundTrip": "flight",
+    "bytesAvailableAfterRoundTrip": 0,
     "remaining": "ght",
     "first": "fli"
   },
@@ -68,10 +79,14 @@
   },
   "clear": {
     "positionAfterClear": 0,
-    "lengthAfterClear": 0
+    "lengthAfterClear": 0,
+    "bytesAvailableAfterClear": 0
   },
   "writeReadUTF": {
     "lengthAfterWrite": 7,
+    "bytesAvailableAfterWrite": 0,
+    "bytesAvailableBeforeRead": 7,
+    "bytesAvailableAfterRead": 0,
     "readBack": "hello"
   },
   "deflateCompression": {
@@ -101,6 +116,17 @@
     "second": 20,
     "first": 10
   },
+  "writeBytesSlice": {
+    "values": [
+      99,
+      20,
+      30,
+      40
+    ],
+    "destinationLength": 4,
+    "sourcePositionAfterWrite": 2,
+    "destinationPositionAfterWrite": 4
+  },
   "writeReadBoolean": {
     "third": true,
     "second": false,
@@ -122,5 +148,11 @@
   "endianness": {
     "bigEndianFirstByte": 1,
     "littleEndianFirstByte": 4
+  },
+  "endianSwitch": {
+    "positionAfterRead": 8,
+    "bigEndianValue": 16909060,
+    "lengthAfterWrite": 8,
+    "littleEndianValue": 287454020
   }
 }

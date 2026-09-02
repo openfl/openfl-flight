@@ -11,11 +11,13 @@ class ByteArrayScenario {
 			construct: testConstruct(),
 			writeAndRead: testWriteAndRead(),
 			endianness: testEndianness(),
+			endianSwitch: testEndianSwitch(),
 			position: testPosition(),
 			bytesAvailable: testBytesAvailable(),
 			clear: testClear(),
 			writeReadUTF: testWriteReadUTF(),
 			writeReadBytes: testWriteReadBytes(),
+			writeBytesSlice: testWriteBytesSlice(),
 			writeReadBoolean: testWriteReadBoolean(),
 			writeReadShort: testWriteReadShort(),
 			writeReadInt: testWriteReadInt(),
@@ -25,6 +27,7 @@ class ByteArrayScenario {
 			signedShort: testSignedShort(),
 			zeroMemory: testZeroMemory(),
 			emptyArray: testEmptyArray(),
+			readPastEnd: testReadPastEnd(),
 			utfBytes: testUTFBytes(),
 			objectEncodingWrite: testObjectEncodingWrite(),
 			zlibCompression: testCompression(CompressionAlgorithm.ZLIB),
@@ -87,6 +90,28 @@ class ByteArrayScenario {
 		};
 	}
 
+	private static function testEndianSwitch():Dynamic {
+		var ba = new ByteArray();
+		ba.endian = BIG_ENDIAN;
+		ba.writeInt(0x01020304);
+		ba.endian = LITTLE_ENDIAN;
+		ba.writeInt(0x11223344);
+
+		var lengthAfterWrite = ba.length;
+		ba.position = 0;
+		ba.endian = BIG_ENDIAN;
+		var bigEndianValue = ba.readInt();
+		ba.endian = LITTLE_ENDIAN;
+		var littleEndianValue = ba.readInt();
+
+		return {
+			bigEndianValue: bigEndianValue,
+			littleEndianValue: littleEndianValue,
+			lengthAfterWrite: lengthAfterWrite,
+			positionAfterRead: ba.position
+		};
+	}
+
 	private static function testPosition():Dynamic {
 		var ba = new ByteArray();
 		ba.writeByte(1);
@@ -121,9 +146,11 @@ class ByteArrayScenario {
 		var availableAfterOne = ba.bytesAvailable;
 
 		return {
+			length: ba.length,
 			atEnd: availableAtEnd,
 			atStart: availableAtStart,
-			afterOneRead: availableAfterOne
+			afterOneRead: availableAfterOne,
+			matchesLengthMinusPosition: availableAfterOne == ba.length - ba.position
 		};
 	}
 
@@ -135,7 +162,8 @@ class ByteArrayScenario {
 
 		return {
 			lengthAfterClear: ba.length,
-			positionAfterClear: ba.position
+			positionAfterClear: ba.position,
+			bytesAvailableAfterClear: ba.bytesAvailable
 		};
 	}
 
@@ -143,11 +171,16 @@ class ByteArrayScenario {
 		var ba = new ByteArray();
 		ba.writeUTF("hello");
 		var lengthAfter = ba.length;
+		var bytesAvailableAfterWrite = ba.bytesAvailable;
 		ba.position = 0;
+		var bytesAvailableBeforeRead = ba.bytesAvailable;
 		var readBack = ba.readUTF();
 
 		return {
 			lengthAfterWrite: lengthAfter,
+			bytesAvailableAfterWrite: bytesAvailableAfterWrite,
+			bytesAvailableBeforeRead: bytesAvailableBeforeRead,
+			bytesAvailableAfterRead: ba.bytesAvailable,
 			readBack: readBack
 		};
 	}
@@ -172,6 +205,29 @@ class ByteArrayScenario {
 			first: first,
 			second: second,
 			third: third
+		};
+	}
+
+	private static function testWriteBytesSlice():Dynamic {
+		var src = new ByteArray();
+		for (value in [10, 20, 30, 40, 50]) src.writeByte(value);
+		src.position = 2;
+
+		var dst = new ByteArray();
+		dst.writeByte(99);
+		dst.writeBytes(src, 1, 3);
+		var sourcePositionAfterWrite = src.position;
+		var destinationPositionAfterWrite = dst.position;
+		dst.position = 0;
+
+		var values = [];
+		while (dst.bytesAvailable > 0) values.push(dst.readUnsignedByte());
+
+		return {
+			values: values,
+			sourcePositionAfterWrite: sourcePositionAfterWrite,
+			destinationPositionAfterWrite: destinationPositionAfterWrite,
+			destinationLength: dst.length
 		};
 	}
 
@@ -324,9 +380,29 @@ class ByteArrayScenario {
 		};
 	}
 
+	private static function testReadPastEnd():Dynamic {
+		var ba = new ByteArray();
+		ba.writeByte(7);
+		ba.position = 0;
+		var value = ba.readUnsignedByte();
+		var error = errorClass(function():Void ba.readByte());
+
+		return {
+			valueBeforeEnd: value,
+			error: error,
+			isEOFError: error == "openfl.errors.EOFError",
+			positionAfterError: ba.position,
+			bytesAvailableAfterError: ba.bytesAvailable
+		};
+	}
+
 	private static function testUTFBytes():Dynamic {
 		var written = new ByteArray();
 		written.writeUTFBytes("flight");
+		var lengthAfterWrite = written.length;
+		var positionAfterWrite = written.position;
+		written.position = 0;
+		var roundTrip = written.readUTFBytes(written.bytesAvailable);
 
 		var readable = new ByteArray();
 		for (value in [102, 108, 105, 103, 104, 116]) readable.writeByte(value);
@@ -335,8 +411,10 @@ class ByteArrayScenario {
 		var remaining = readable.readUTFBytes(readable.bytesAvailable);
 
 		return {
-			lengthAfterWrite: written.length,
-			positionAfterWrite: written.position,
+			lengthAfterWrite: lengthAfterWrite,
+			positionAfterWrite: positionAfterWrite,
+			roundTrip: roundTrip,
+			bytesAvailableAfterRoundTrip: written.bytesAvailable,
 			first: first,
 			remaining: remaining,
 			positionAfterRead: readable.position
