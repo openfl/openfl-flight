@@ -1,5 +1,16 @@
 {
   "available": false,
+  "availableIsBool": true,
   "objectID": null,
-  "objectIDIsNull": true
+  "objectIDReadSucceeded": true,
+  "objectIDIsNull": true,
+  "objectIDIsStringOrNull": true,
+  "callWhenUnavailable": {
+    "didNotThrow": true,
+    "returnedNull": true
+  },
+  "callbackContract": {
+    "addDidNotThrow": true,
+    "removeWithNullDidNotThrow": true
+  }
 }

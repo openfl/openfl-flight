@@ -1,5 +1,9 @@
 {
   "text": null,
+  "textReadable": true,
+  "emptyDefault": true,
+  "constructorIsPublic": false,
+  "cannotConstructPublicly": true,
   "typeName": "openfl.text.StaticText",
   "display": {
     "root": true,

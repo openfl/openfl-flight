@@ -1,6 +1,10 @@
 {
   "connected": false,
+  "connectedReadable": true,
+  "connectedIsBool": true,
   "spanMarker": 0,
+  "spanMarkerReadable": true,
+  "spanMarkerIsNumber": true,
   "metricSucceeded": true,
   "spanMetricSucceeded": true,
   "registerCommandHandler": false,

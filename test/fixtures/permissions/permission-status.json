@@ -3,5 +3,24 @@
   "allDistinct": true,
   "granted": "granted",
   "denied": "denied",
-  "onlyWhenInUse": "onlyWhenInUse"
+  "onlyWhenInUse": "onlyWhenInUse",
+  "constants": {
+    "denied": "denied",
+    "granted": "granted",
+    "onlyWhenInUse": "onlyWhenInUse"
+  },
+  "construction": {
+    "denied": "denied",
+    "granted": "granted",
+    "onlyWhenInUse": "onlyWhenInUse",
+    "unknown": "unknown",
+    "invalidIsNull": true,
+    "matchesConstants": true
+  },
+  "statusValues": [
+    "denied",
+    "granted",
+    "onlyWhenInUse",
+    "unknown"
+  ]
 }
