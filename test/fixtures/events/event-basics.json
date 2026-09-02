@@ -1,0 +1,39 @@
+{
+  "construction": {
+    "cancelable": true,
+    "bubbles": true,
+    "type": "flightEvent"
+  },
+  "clone": {
+    "isNewInstance": true,
+    "typeMatches": true,
+    "bubblesMatch": true,
+    "properties": {
+      "cancelable": true,
+      "bubbles": true,
+      "type": "cloneEvent"
+    },
+    "cancelableMatches": true
+  },
+  "propagationControls": {
+    "stopImmediatePropagationDoesNotThrow": true,
+    "stopPropagationDoesNotThrow": true
+  },
+  "constants": {
+    "added": "added",
+    "deactivate": "deactivate",
+    "activate": "activate",
+    "removed": "removed"
+  },
+  "strings": {
+    "toString": "[Event type=\"stringEvent\" bubbles=true cancelable=true]",
+    "formatToString": "[CustomEvent type=\"stringEvent\" bubbles=true cancelable=true]"
+  },
+  "preventDefault": {
+    "nonCancelableStaysFalse": false,
+    "cancelableAfter": true,
+    "nonCancelableAfter": null,
+    "cancelableBefore": null,
+    "nonCancelableBefore": null
+  }
+}

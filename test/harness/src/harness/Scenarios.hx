@@ -22,6 +22,7 @@ import harness.scenarios.EventConstructionScenario;
 import harness.scenarios.EventDispatcherCaptureScenario;
 import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
+import harness.scenarios.EventScenario;
 import harness.scenarios.EventPropagationScenario;
 import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
@@ -204,6 +205,10 @@ class Scenarios {
 			{
 				name: "errors/subclasses",
 				run: ErrorSubclassesScenario.run
+			},
+			{
+				name: "events/event-basics",
+				run: EventScenario.run
 			},
 			{
 				name: "events/construction",
