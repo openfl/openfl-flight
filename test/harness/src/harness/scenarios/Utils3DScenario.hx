@@ -26,14 +26,49 @@ class Utils3DScenario {
 		Utils3D.projectVectors(perspective, verts, projVerts, uvts);
 
 		var identityProj = Utils3D.projectVector(new Matrix3D(), new Vector3D(10, 20, 30));
+		var projection = new Matrix3D(Vector.ofArray([
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 1.0,
+			0.0, 0.0, 0.0, 0.0
+		]));
+		var knownProjected = Utils3D.projectVector(projection, new Vector3D(10, 20, 5));
+		var knownVerts = Vector.ofArray([
+			10.0, 20.0, 5.0,
+			-6.0, 3.0, 3.0
+		]);
+		var knownProjectedVerts = new Vector<Float>();
+		var knownUVTs = Vector.ofArray([
+			0.0, 0.0, 0.0,
+			1.0, 1.0, 0.0
+		]);
+		Utils3D.projectVectors(projection, knownVerts, knownProjectedVerts, knownUVTs);
+
+		var pointTowardsMethod = Reflect.field(Utils3D, "pointTowards");
+		var pointTowardsResult:Dynamic = null;
+		if (pointTowardsMethod != null) {
+			pointTowardsResult = Reflect.callMethod(Utils3D, pointTowardsMethod, [1.0, new Matrix3D(), new Vector3D(0, 0, -10)]);
+		}
 
 		return {
 			projectVector: roundVec(projected),
+			projectVectorIsVector3D: Std.isOfType(projected, Vector3D),
 			projectVectors: {
 				length: projVerts.length,
-				values: roundArray(projVerts)
+				values: roundArray(projVerts),
+				uvts: roundArray(uvts)
 			},
-			identityProjection: roundVec(identityProj)
+			identityProjection: roundVec(identityProj),
+			knownProjection: {
+				projectVector: roundVec(knownProjected),
+				projectVectorIsVector3D: Std.isOfType(knownProjected, Vector3D),
+				projectVectors: roundArray(knownProjectedVerts),
+				uvts: roundArray(knownUVTs)
+			},
+			pointTowards: {
+				available: pointTowardsMethod != null,
+				resultIsMatrix3D: Std.isOfType(pointTowardsResult, Matrix3D)
+			}
 		};
 	}
 
