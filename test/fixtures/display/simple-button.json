@@ -1,4 +1,32 @@
 {
+  "stateAssignments": {
+    "reassigned": {
+      "upWidth": 11,
+      "up": true,
+      "down": true,
+      "hit": true,
+      "over": true
+    },
+    "cleared": {
+      "up": true,
+      "down": true,
+      "hit": true,
+      "over": true
+    },
+    "assigned": {
+      "upWidth": 11,
+      "up": true,
+      "down": true,
+      "hit": true,
+      "over": true
+    },
+    "activeWidths": {
+      "down": 33,
+      "returnedUp": 11,
+      "returnedOver": 22,
+      "over": 22
+    }
+  },
   "defaults": {
     "upStatePresent": true,
     "trackAsMenu": false,

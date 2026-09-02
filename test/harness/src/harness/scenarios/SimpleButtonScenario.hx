@@ -77,6 +77,7 @@ class SimpleButtonScenario {
 		return {
 			defaults: defaults,
 			constructor: constructor,
+			stateAssignments: testStateAssignments(),
 			transitions: transitions,
 			replacements: {
 				activeUpWidth: replacedActiveUpWidth,
@@ -104,6 +105,71 @@ class SimpleButtonScenario {
 				secondVolume: secondRead.volume,
 				secondPan: secondRead.pan,
 				leftToLeft: secondRead.leftToLeft
+			}
+		};
+	}
+
+	private static function testStateAssignments():Dynamic {
+		var button = new SimpleButton();
+		var up = createState("assignedUp", 11);
+		var over = createState("assignedOver", 22);
+		var down = createState("assignedDown", 33);
+		var hit = createState("assignedHit", 44);
+
+		button.upState = up;
+		button.overState = over;
+		button.downState = down;
+		button.hitTestState = hit;
+		var assigned = {
+			up: button.upState == up,
+			over: button.overState == over,
+			down: button.downState == down,
+			hit: button.hitTestState == hit,
+			upWidth: button.width
+		};
+
+		button.dispatchEvent(mouse(MouseEvent.MOUSE_OVER));
+		var overWidth = button.width;
+		button.dispatchEvent(mouse(MouseEvent.MOUSE_DOWN, true));
+		var downWidth = button.width;
+
+		button.downState = null;
+		button.dispatchEvent(mouse(MouseEvent.MOUSE_OUT));
+		var returnedUpWidth = button.width;
+		button.upState = null;
+		button.dispatchEvent(mouse(MouseEvent.MOUSE_OVER));
+		var returnedOverWidth = button.width;
+		button.overState = null;
+		button.hitTestState = null;
+
+		var cleared = {
+			up: button.upState == null,
+			over: button.overState == null,
+			down: button.downState == null,
+			hit: button.hitTestState == null
+		};
+
+		button.upState = up;
+		button.overState = over;
+		button.downState = down;
+		button.hitTestState = hit;
+		button.dispatchEvent(mouse(MouseEvent.MOUSE_OUT));
+
+		return {
+			assigned: assigned,
+			activeWidths: {
+				over: overWidth,
+				down: downWidth,
+				returnedUp: returnedUpWidth,
+				returnedOver: returnedOverWidth
+			},
+			cleared: cleared,
+			reassigned: {
+				up: button.upState == up,
+				over: button.overState == over,
+				down: button.downState == down,
+				hit: button.hitTestState == hit,
+				upWidth: button.width
 			}
 		};
 	}
