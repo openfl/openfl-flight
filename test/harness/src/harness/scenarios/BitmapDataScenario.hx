@@ -4,6 +4,7 @@ import openfl.display.BitmapData;
 import openfl.display.BitmapDataChannel;
 import openfl.display.PNGEncoderOptions;
 import openfl.display.Shape;
+import openfl.display3D.textures.TextureBase;
 import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
 import openfl.filters.ConvolutionFilter;
@@ -48,7 +49,8 @@ class BitmapDataScenario {
 			drawShape: testDrawShape(),
 			lockUnlock: testLockUnlock(),
 			dispose: testDispose(),
-			compare: testCompare()
+			compare: testCompare(),
+			textureAlias: testTextureAlias()
 		};
 	}
 
@@ -517,6 +519,26 @@ class BitmapDataScenario {
 			differenceIsBitmapData: Std.isOfType(difference, BitmapData),
 			differencePixels: pixels(cast difference),
 			alphaDifferencePixels: pixels(cast alphaDifference)
+		};
+	}
+
+	private static function testTextureAlias():Dynamic {
+		var texture:TextureBase = Type.createEmptyInstance(TextureBase);
+		@:privateAccess texture.__width = 3;
+		@:privateAccess texture.__height = 2;
+		#if harness_capture
+		@:privateAccess texture.__textureContext = null;
+		#else
+		@:privateAccess texture.__context = null;
+		#end
+		var bmd = BitmapData.fromTexture(texture);
+		return {
+			width: bmd.width,
+			height: bmd.height,
+			transparent: bmd.transparent,
+			readable: bmd.readable,
+			sameTexture: @:privateAccess bmd.__texture == texture,
+			nullSource: BitmapData.fromTexture(null) == null
 		};
 	}
 

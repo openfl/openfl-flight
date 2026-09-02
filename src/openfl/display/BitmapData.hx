@@ -7,8 +7,10 @@ import flight._internal._UInt8Array as FlightUInt8Array;
 import flight.types.Bitmap as FlightBitmapHandle;
 import openfl.Vector;
 import openfl.display3D.Context3D;
+import openfl.display3D.Context3DTextureFormat;
 import openfl.display3D.IndexBuffer3D;
 import openfl.display3D.VertexBuffer3D;
+import openfl.display3D.textures.RectangleTexture;
 import openfl.display3D.textures.TextureBase;
 import openfl.errors.Error;
 import openfl.filters.BitmapFilter;
@@ -43,6 +45,7 @@ private typedef CanvasElement = Dynamic;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display3D.textures.TextureBase)
 class BitmapData implements IBitmapDrawable
 {
 	public var height(default, null):Int;
@@ -63,6 +66,7 @@ class BitmapData implements IBitmapDrawable
 	@:noCompletion private var __renderable:Bool;
 	@:noCompletion private var __renderTransform:Matrix;
 	@:noCompletion private var __scrollRect:Rectangle;
+	@:noCompletion private var __texture:TextureBase;
 	@:noCompletion private var __transform:Matrix;
 	@:noCompletion private var __worldAlpha:Float;
 	@:noCompletion private var __worldColorTransform:ColorTransform;
@@ -313,6 +317,7 @@ class BitmapData implements IBitmapDrawable
 	{
 		image = null;
 		__bitmap = cast null;
+		__texture = null;
 		width = 0;
 		height = 0;
 		rect = null;
@@ -417,13 +422,15 @@ class BitmapData implements IBitmapDrawable
 
 	public static function fromBase64(base64:String, type:String):BitmapData
 	{
-		// TODO: Decode base64 bitmap data through Flight codecs.
+		// TODO (blocked: async-only Flight ImageCodec): this synchronous OpenFL
+		// factory cannot await Flight's Promise-based image decoder.
 		return null;
 	}
 
 	public static function fromBytes(bytes:ByteArray, rawAlpha:ByteArray = null):BitmapData
 	{
-		// TODO: Decode bitmap bytes through Flight codecs.
+		// TODO (blocked: async-only Flight ImageCodec): decoding encoded bytes is
+		// Promise-based, and Flight has no raw-alpha merge adapter.
 		return null;
 	}
 
@@ -442,20 +449,27 @@ class BitmapData implements IBitmapDrawable
 
 	public static function fromFile(path:String):BitmapData
 	{
-		// TODO: Decode bitmap files through Flight codecs.
+		// TODO (blocked: asynchronous resource pipeline): Flight exposes no
+		// synchronous local-path read-and-decode operation for this factory.
 		return null;
 	}
 
 	public static function fromImage(image:Image, transparent:Bool = true):BitmapData
 	{
-		// TODO: Import platform images through Flight.
+		// TODO (blocked: image-handle type bridge): Lime Image cannot be converted
+		// to Flight's Image resource through a public cross-target API.
 		return null;
 	}
 
 	public static function fromTexture(texture:TextureBase):BitmapData
 	{
-		// TODO: Read Flight GPU texture pixels.
-		return null;
+		if (texture == null) return null;
+		var result = new BitmapData(texture.__width, texture.__height, true, 0);
+		result.readable = false;
+		result.__bitmap = null;
+		result.__texture = texture;
+		result.image = null;
+		return result;
 	}
 
 	public function generateFilterRect(sourceRect:Rectangle, filter:BitmapFilter):Rectangle
@@ -474,26 +488,35 @@ class BitmapData implements IBitmapDrawable
 
 	@:dox(hide) public function getIndexBuffer(context:Context3D, scale9Grid:Rectangle = null):IndexBuffer3D
 	{
-		// TODO (Flight): expose a Flight-backed index buffer.
+		// TODO (blocked: Stage3D geometry bridge): Flight exposes no public mesh
+		// index-buffer abstraction matching OpenFL's cached quad/scale9 layout.
 		return null;
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
 	@:dox(hide) public function getSurface():#if lime CairoImageSurface #else Dynamic #end
 	{
-		// TODO (Flight): expose a Flight-backed Cairo surface.
+		// TODO (blocked: raster-surface type bridge): Flight surfaces cannot be
+		// converted to Lime's CairoImageSurface through a public API.
 		return null;
 	}
 
 	@:dox(hide) public function getTexture(context:Context3D):TextureBase
 	{
-		// TODO (Flight): expose a Flight-backed texture.
-		return null;
+		if (!__isValid || context == null) return null;
+		if (__texture != null && __texture.__context == context) return __texture;
+		if (!readable || __bitmap == null) return null;
+
+		var texture:RectangleTexture = context.createRectangleTexture(width, height, Context3DTextureFormat.BGRA, false);
+		texture.uploadFromBitmapData(this);
+		__texture = texture;
+		return texture;
 	}
 
 	@:dox(hide) public function getVertexBuffer(context:Context3D, scale9Grid:Rectangle = null, targetObject:DisplayObject = null):VertexBuffer3D
 	{
-		// TODO (Flight): expose a Flight-backed vertex buffer.
+		// TODO (blocked: Stage3D geometry bridge): Flight exposes no public vertex
+		// buffer/layout contract for OpenFL's quad and scale9 cache data.
 		return null;
 	}
 

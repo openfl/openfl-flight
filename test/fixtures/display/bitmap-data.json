@@ -1,4 +1,12 @@
 {
+  "textureAlias": {
+    "transparent": true,
+    "readable": false,
+    "height": 2,
+    "nullSource": true,
+    "sameTexture": true,
+    "width": 3
+  },
   "colorBounds": {
     "absent": {
       "x": 0,

@@ -59,7 +59,28 @@ the capability that this adapter can compile against.
 
 - **Context3D texture bridges**: Flight has no adapter for compressed ATF,
   `ByteArray`/typed-array uploads, arbitrary mip levels, render-target textures,
-  or `VideoTexture`. BitmapData uploads at the base mip are supported.
+  or `VideoTexture`. BitmapData uploads at the base mip and hardware-only
+  `BitmapData.fromTexture()` aliases are supported; cross-context readback is
+  not.
+
+- **Synchronous BitmapData image construction**: Flight's public `ImageCodec`
+  decodes encoded bytes through Promises, while `BitmapData.fromBase64()`,
+  `fromBytes()`, and `fromFile()` are synchronous OpenFL factories. Flight also
+  exposes no public cross-target conversion from Lime `Image` to a Flight Image
+  resource, so `fromImage()` remains blocked on an image-handle bridge.
+
+- **BitmapData platform and Stage3D cache types**: Flight raster surfaces do not
+  expose a Lime `CairoImageSurface` conversion, and Flight has no public mesh
+  buffer/layout abstraction matching OpenFL's cached quad and scale9 index and
+  vertex buffers. `getSurface()`, `getIndexBuffer()`, and `getVertexBuffer()`
+  therefore remain unavailable rather than returning unrelated handle types.
+
+- **Remaining BitmapData semantic adapters**: Flight's effect-only shadow,
+  glow, bevel, and displacement primitives do not directly preserve OpenFL's
+  source composition, offsets, knockout, bounds, and convolution fill-edge
+  rules. Display-object drawing still needs the portable rasterization bridge
+  below, full 32-bit cross-channel palette-map summation is not representable by
+  Flight's independent channel maps, and JPEG XR has no Flight encoder.
 
 - **Per-node render-effect attachment**: Flight Effects creates typed bevel,
   blur, convolution, shadow, and glow descriptors, but Flight Node exposes only
