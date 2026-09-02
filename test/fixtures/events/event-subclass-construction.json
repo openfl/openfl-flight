@@ -1,0 +1,154 @@
+{
+  "textEvent": {
+    "text": "hello",
+    "isEvent": true,
+    "className": "openfl.events.TextEvent",
+    "defaultText": "",
+    "type": "textInput"
+  },
+  "ioErrorEvent": {
+    "text": "io error",
+    "isEvent": true,
+    "className": "openfl.events.IOErrorEvent",
+    "isErrorEvent": true,
+    "type": "ioError"
+  },
+  "timerEvent": {
+    "isEvent": true,
+    "className": "openfl.events.TimerEvent",
+    "type": "timer"
+  },
+  "cloneBehavior": {
+    "mouseCloneClassName": "openfl.events.MouseEvent",
+    "progCloneClassName": "openfl.events.ProgressEvent",
+    "mouseCloneLocalY": 25.3,
+    "progCloneBytesLoaded": 30,
+    "progCloneBytesTotal": 90,
+    "keyCloneCharCode": 66,
+    "mouseCloneType": "click",
+    "keyCloneClassName": "openfl.events.KeyboardEvent",
+    "mouseCloneLocalX": 15.5,
+    "keyCloneKeyCode": 66
+  },
+  "errorEvent": {
+    "text": "test error",
+    "isTextEvent": true,
+    "isEvent": true,
+    "errorID": 42,
+    "className": "openfl.events.ErrorEvent",
+    "type": "error"
+  },
+  "securityErrorEvent": {
+    "text": "sec error",
+    "className": "openfl.events.SecurityErrorEvent",
+    "isErrorEvent": true,
+    "type": "securityError"
+  },
+  "mouseEvent": {
+    "defaults": {
+      "shiftKey": false,
+      "cancelable": false,
+      "stageY": null,
+      "buttonDown": false,
+      "bubbles": true,
+      "delta": 0,
+      "ctrlKey": false,
+      "localX": 0,
+      "clickCount": 0,
+      "relatedObjectMatches": true,
+      "commandKey": false,
+      "type": "click",
+      "stageX": null,
+      "localY": 0,
+      "isRelatedObjectInaccessible": false,
+      "controlKey": false,
+      "altKey": false
+    },
+    "isEvent": true,
+    "values": {
+      "shiftKey": true,
+      "cancelable": true,
+      "stageY": -62.75,
+      "buttonDown": true,
+      "bubbles": true,
+      "delta": -3,
+      "ctrlKey": true,
+      "localX": 10.5,
+      "clickCount": 2,
+      "relatedObjectMatches": true,
+      "commandKey": true,
+      "type": "mouseOut",
+      "stageX": 121,
+      "localY": -4.25,
+      "isRelatedObjectInaccessible": false,
+      "controlKey": true,
+      "altKey": true
+    },
+    "className": "openfl.events.MouseEvent"
+  },
+  "focusEvent": {
+    "defaults": {
+      "shiftKey": false,
+      "cancelable": false,
+      "keyCode": 0,
+      "bubbles": false,
+      "relatedObjectMatches": true,
+      "type": "focusIn",
+      "isRelatedObjectInaccessible": {
+        "available": false,
+        "value": null
+      }
+    },
+    "isEvent": true,
+    "values": {
+      "shiftKey": true,
+      "cancelable": true,
+      "keyCode": 9,
+      "bubbles": true,
+      "relatedObjectMatches": true,
+      "type": "keyFocusChange",
+      "isRelatedObjectInaccessible": {
+        "available": false,
+        "value": null
+      }
+    },
+    "className": "openfl.events.FocusEvent"
+  },
+  "progressEvent": {
+    "bytesTotal": 100,
+    "isEvent": true,
+    "className": "openfl.events.ProgressEvent",
+    "type": "progress",
+    "bytesLoaded": 50
+  },
+  "keyboardEvent": {
+    "defaults": {
+      "shiftKey": false,
+      "cancelable": false,
+      "keyCode": 0,
+      "bubbles": false,
+      "ctrlKey": false,
+      "charCode": 0,
+      "keyLocation": 0,
+      "commandKey": false,
+      "type": "keyDown",
+      "controlKey": false,
+      "altKey": false
+    },
+    "isEvent": true,
+    "values": {
+      "shiftKey": true,
+      "cancelable": true,
+      "keyCode": 222,
+      "bubbles": true,
+      "ctrlKey": true,
+      "charCode": 97,
+      "keyLocation": 2,
+      "commandKey": true,
+      "type": "keyUp",
+      "controlKey": true,
+      "altKey": true
+    },
+    "className": "openfl.events.KeyboardEvent"
+  }
+}

@@ -233,7 +233,7 @@ class Scenarios {
 				run: EventDispatcherCaptureScenario.run
 			},
 			{
-				name: "events/subclasses",
+				name: "events/event-subclass-construction",
 				run: EventSubclassesScenario.run
 			},
 			{

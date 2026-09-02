@@ -1,5 +1,6 @@
 package harness.scenarios;
 
+import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.ErrorEvent;
 import openfl.events.FocusEvent;
@@ -10,6 +11,7 @@ import openfl.events.ProgressEvent;
 import openfl.events.SecurityErrorEvent;
 import openfl.events.TextEvent;
 import openfl.events.TimerEvent;
+import openfl.ui.KeyLocation;
 
 class EventSubclassesScenario {
 	public static function run():Dynamic {
@@ -28,48 +30,100 @@ class EventSubclassesScenario {
 	}
 
 	private static function testMouseEvent():Dynamic {
-		var e = new MouseEvent(MouseEvent.CLICK, true, false, 10.5, 20.3);
+		var defaults = new MouseEvent(MouseEvent.CLICK);
+		var related = new Sprite();
+		var target = new Sprite();
+		target.x = 100;
+		target.y = -50;
+		target.scaleX = 2;
+		target.scaleY = 3;
+		var e = new MouseEvent(MouseEvent.MOUSE_OUT, true, true, 10.5, -4.25, related, true, true, true, true, -3, true, true, 2);
+		target.dispatchEvent(e);
 
 		return {
-			type: e.type,
-			bubbles: e.bubbles,
-			cancelable: e.cancelable,
-			localX: e.localX,
-			localY: e.localY,
-			altKey: e.altKey,
-			shiftKey: e.shiftKey,
-			ctrlKey: e.ctrlKey,
-			buttonDown: e.buttonDown,
-			delta: e.delta,
+			defaults: captureMouseEvent(defaults, null),
+			values: captureMouseEvent(e, related),
 			isEvent: Std.isOfType(e, Event),
 			className: Type.getClassName(Type.getClass(e))
+		};
+	}
+
+	private static function captureMouseEvent(event:MouseEvent, expectedRelated:Sprite):Dynamic {
+		return {
+			type: event.type,
+			bubbles: event.bubbles,
+			cancelable: event.cancelable,
+			localX: event.localX,
+			localY: event.localY,
+			stageX: Math.isNaN(event.stageX) ? null : event.stageX,
+			stageY: Math.isNaN(event.stageY) ? null : event.stageY,
+			relatedObjectMatches: event.relatedObject == expectedRelated,
+			ctrlKey: event.ctrlKey,
+			altKey: event.altKey,
+			shiftKey: event.shiftKey,
+			buttonDown: event.buttonDown,
+			delta: event.delta,
+			commandKey: event.commandKey,
+			controlKey: event.controlKey,
+			clickCount: event.clickCount,
+			isRelatedObjectInaccessible: event.isRelatedObjectInaccessible
 		};
 	}
 
 	private static function testKeyboardEvent():Dynamic {
-		var e = new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, false, 65, 65);
+		var defaults = new KeyboardEvent(KeyboardEvent.KEY_DOWN);
+		var e = new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, 97, 222, KeyLocation.RIGHT, true, true, true, true, true);
 
 		return {
-			type: e.type,
-			bubbles: e.bubbles,
-			charCode: e.charCode,
-			keyCode: e.keyCode,
-			altKey: e.altKey,
-			shiftKey: e.shiftKey,
-			ctrlKey: e.ctrlKey,
+			defaults: captureKeyboardEvent(defaults),
+			values: captureKeyboardEvent(e),
 			isEvent: Std.isOfType(e, Event),
 			className: Type.getClassName(Type.getClass(e))
 		};
 	}
 
+	private static function captureKeyboardEvent(event:KeyboardEvent):Dynamic {
+		return {
+			type: event.type,
+			bubbles: event.bubbles,
+			cancelable: event.cancelable,
+			charCode: event.charCode,
+			keyCode: event.keyCode,
+			keyLocation: event.keyLocation,
+			ctrlKey: event.ctrlKey,
+			altKey: event.altKey,
+			shiftKey: event.shiftKey,
+			controlKey: event.controlKey,
+			commandKey: event.commandKey
+		};
+	}
+
 	private static function testFocusEvent():Dynamic {
-		var e = new FocusEvent(FocusEvent.FOCUS_IN, true, false);
+		var defaults = new FocusEvent(FocusEvent.FOCUS_IN);
+		var related = new Sprite();
+		var e = new FocusEvent(FocusEvent.KEY_FOCUS_CHANGE, true, true, related, true, 9);
 
 		return {
-			type: e.type,
-			bubbles: e.bubbles,
+			defaults: captureFocusEvent(defaults, null),
+			values: captureFocusEvent(e, related),
 			isEvent: Std.isOfType(e, Event),
 			className: Type.getClassName(Type.getClass(e))
+		};
+	}
+
+	private static function captureFocusEvent(event:FocusEvent, expectedRelated:Sprite):Dynamic {
+		var hasInaccessible = Reflect.hasField(event, "isRelatedObjectInaccessible");
+		return {
+			type: event.type,
+			bubbles: event.bubbles,
+			cancelable: event.cancelable,
+			relatedObjectMatches: event.relatedObject == expectedRelated,
+			shiftKey: event.shiftKey,
+			keyCode: event.keyCode,
+			isRelatedObjectInaccessible: {
+				available: hasInaccessible,
+				value: hasInaccessible ? Reflect.field(event, "isRelatedObjectInaccessible") : null
+			}
 		};
 	}
 
@@ -122,10 +176,12 @@ class EventSubclassesScenario {
 	}
 
 	private static function testTextEvent():Dynamic {
+		var defaults = new TextEvent(TextEvent.TEXT_INPUT);
 		var e = new TextEvent(TextEvent.TEXT_INPUT, false, false, "hello");
 
 		return {
 			type: e.type,
+			defaultText: defaults.text,
 			text: e.text,
 			isEvent: Std.isOfType(e, Event),
 			className: Type.getClassName(Type.getClass(e))
