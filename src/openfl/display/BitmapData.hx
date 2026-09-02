@@ -12,6 +12,7 @@ import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.textures.TextureBase;
 import openfl.errors.Error;
 import openfl.filters.BitmapFilter;
+import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
 import openfl.filters.ConvolutionFilter;
 import openfl.geom.ColorTransform;
@@ -92,7 +93,17 @@ class BitmapData implements IBitmapDrawable
 		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceRect.x, sourceRect.y, regionWidth, regionHeight);
 		var output = new FlightUInt8ClampedArray(regionWidth * regionHeight * 4);
 
-		if (Std.isOfType(filter, ColorMatrixFilter))
+		if (Std.isOfType(filter, BlurFilter))
+		{
+			var blur:BlurFilter = cast filter;
+			var scratch = new FlightUInt8ClampedArray(regionWidth * regionHeight * 4);
+			FlightBitmap.boxBlurBitmap(output, scratch, source, {
+				radiusX: Math.round(blur.blurX) >> 1,
+				radiusY: Math.round(blur.blurY) >> 1,
+				passes: Std.int(Math.max(1, Math.min(3, blur.quality)))
+			});
+		}
+		else if (Std.isOfType(filter, ColorMatrixFilter))
 		{
 			var matrix = (cast filter : ColorMatrixFilter).matrix;
 			FlightBitmap.colorMatrixBitmap(output, source, matrix);

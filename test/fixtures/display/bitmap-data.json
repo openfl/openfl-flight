@@ -78,6 +78,10 @@
     -2136355859,
     -1
   ],
+  "applyBlurFilter": {
+    "height": 3,
+    "width": 3
+  },
   "encodeFailures": {
     "nullRectangle": true,
     "existingLength": 1,
