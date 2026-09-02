@@ -1,4 +1,29 @@
 {
+  "singleRepeat": {
+    "runningDuringTimer": [
+      false
+    ],
+    "currentCountAfterReset": 0,
+    "counts": [
+      1
+    ],
+    "delayIsMinimum": 1,
+    "runningAfterReset": false,
+    "runningAfterSecondStart": true,
+    "runningBeforeStart": false,
+    "afterCompletion": {
+      "currentCount": 1,
+      "delay": 1,
+      "repeatCount": 1,
+      "running": false
+    },
+    "completeCount": 1,
+    "eventTypes": [
+      "timer",
+      "timerComplete"
+    ],
+    "runningAfterStart": true
+  },
   "initial": {
     "currentCount": 0,
     "delay": 25,
@@ -16,5 +41,27 @@
     "delay": 40,
     "repeatCount": 5,
     "running": false
+  },
+  "infiniteRepeat": {
+    "currentCountAfterReset": 0,
+    "counts": [
+      1,
+      2,
+      3
+    ],
+    "runningAfterSecondStart": true,
+    "completeCount": 0,
+    "eventTypes": [
+      "timer",
+      "timer",
+      "timer"
+    ],
+    "afterStop": {
+      "currentCount": 3,
+      "delay": 1,
+      "repeatCount": 0,
+      "running": false
+    },
+    "runningAfterStart": true
   }
 }
