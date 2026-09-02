@@ -11,6 +11,18 @@
     "numChildren": 3,
     "child2": "a"
   },
+  "objectsUnderPoint": {
+    "overlap": [
+      "bottom",
+      "top",
+      "nestedChild"
+    ],
+    "outside": [],
+    "hiddenTop": [
+      "bottom",
+      "nestedChild"
+    ]
+  },
   "getChildByName": {
     "found": true,
     "notFound": true
@@ -23,16 +35,22 @@
     "unrelatedStillDetached": true
   },
   "removeChildren": {
-    "child0": "a",
-    "cParent": true,
-    "bParent": true,
-    "child1": "d",
-    "numChildren": 2
+    "all": {
+      "secondDetached": true,
+      "firstDetached": true,
+      "numChildren": 0
+    },
+    "range": {
+      "child0": "a",
+      "cParent": true,
+      "bParent": true,
+      "child1": "d",
+      "numChildren": 2
+    }
   },
   "swapChildren": {
-    "child0": "c",
-    "child1": "b",
-    "child2": "a"
+    "swapped": "c,b,a",
+    "sameChild": "c,b,a"
   },
   "addChild": {
     "childParent": true,
@@ -49,9 +67,8 @@
     "indexA": 0
   },
   "swapChildrenAt": {
-    "child0": "c",
-    "child1": "b",
-    "child2": "a"
+    "swapped": "c,b,a",
+    "sameIndex": "c,b,a"
   },
   "reparent": {
     "parent1Before": 1,
@@ -67,16 +84,18 @@
     "afterClear": 0,
     "one": 1,
     "two": 2,
-    "empty": 0
+    "empty": 0,
+    "afterRemove": 1,
+    "afterReadd": 2
   },
   "addedEvents": {
     "firstEvent": "added",
     "eventsLength": 1
   },
   "setChildIndex": {
-    "child0": "b",
-    "child1": "c",
-    "child2": "a"
+    "movedToBack": "a,b,c",
+    "sameIndex": "a,b,c",
+    "movedToFront": "b,c,a"
   },
   "removeChild": {
     "childParent": true,

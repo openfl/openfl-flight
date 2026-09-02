@@ -2,6 +2,7 @@ package harness.scenarios;
 
 import openfl.display.Sprite;
 import openfl.events.Event;
+import openfl.geom.Point;
 
 class DisplayContainerScenario {
 	public static function run():Dynamic {
@@ -21,6 +22,7 @@ class DisplayContainerScenario {
 			swapChildren: testSwapChildren(),
 			swapChildrenAt: testSwapChildrenAt(),
 			removeChildren: testRemoveChildren(),
+			objectsUnderPoint: testObjectsUnderPoint(),
 			removeChildAt: testRemoveChildAt(),
 			numChildren: testNumChildren(),
 			addChildReindex: testAddChildReindex()
@@ -211,11 +213,15 @@ class DisplayContainerScenario {
 		parent.addChild(c);
 
 		parent.setChildIndex(a, 2);
+		var movedToFront = childOrder(parent);
+		parent.setChildIndex(a, 0);
+		var movedToBack = childOrder(parent);
+		parent.setChildIndex(b, 1);
 
 		return {
-			child0: parent.getChildAt(0).name,
-			child1: parent.getChildAt(1).name,
-			child2: parent.getChildAt(2).name
+			movedToFront: movedToFront,
+			movedToBack: movedToBack,
+			sameIndex: childOrder(parent)
 		};
 	}
 
@@ -233,11 +239,12 @@ class DisplayContainerScenario {
 		parent.addChild(c);
 
 		parent.swapChildren(a, c);
+		var swapped = childOrder(parent);
+		parent.swapChildren(b, b);
 
 		return {
-			child0: parent.getChildAt(0).name,
-			child1: parent.getChildAt(1).name,
-			child2: parent.getChildAt(2).name
+			swapped: swapped,
+			sameChild: childOrder(parent)
 		};
 	}
 
@@ -255,11 +262,12 @@ class DisplayContainerScenario {
 		parent.addChild(c);
 
 		parent.swapChildrenAt(0, 2);
+		var swapped = childOrder(parent);
+		parent.swapChildrenAt(1, 1);
 
 		return {
-			child0: parent.getChildAt(0).name,
-			child1: parent.getChildAt(1).name,
-			child2: parent.getChildAt(2).name
+			swapped: swapped,
+			sameIndex: childOrder(parent)
 		};
 	}
 
@@ -281,12 +289,51 @@ class DisplayContainerScenario {
 
 		parent.removeChildren(1, 2);
 
+		var allParent = new Sprite();
+		var first = new Sprite();
+		var second = new Sprite();
+		allParent.addChild(first);
+		allParent.addChild(second);
+		allParent.removeChildren();
+
 		return {
-			numChildren: parent.numChildren,
-			child0: parent.getChildAt(0).name,
-			child1: parent.getChildAt(1).name,
-			bParent: b.parent == null,
-			cParent: c.parent == null
+			range: {
+				numChildren: parent.numChildren,
+				child0: parent.getChildAt(0).name,
+				child1: parent.getChildAt(1).name,
+				bParent: b.parent == null,
+				cParent: c.parent == null
+			},
+			all: {
+				numChildren: allParent.numChildren,
+				firstDetached: first.parent == null,
+				secondDetached: second.parent == null
+			}
+		};
+	}
+
+	private static function testObjectsUnderPoint():Dynamic {
+		var container = new Sprite();
+		var bottom = filledSprite("bottom", 0, 0, 30, 30);
+		var top = filledSprite("top", 10, 10, 30, 30);
+		var nested = new Sprite();
+		nested.name = "nested";
+		nested.x = 5;
+		nested.y = 5;
+		var nestedChild = filledSprite("nestedChild", 5, 5, 15, 15);
+		nested.addChild(nestedChild);
+		container.addChild(bottom);
+		container.addChild(top);
+		container.addChild(nested);
+
+		var overlap = objectNames(container.getObjectsUnderPoint(new Point(15, 15)));
+		var outside = objectNames(container.getObjectsUnderPoint(new Point(100, 100)));
+		top.visible = false;
+		var hiddenTop = objectNames(container.getObjectsUnderPoint(new Point(15, 15)));
+		return {
+			overlap: overlap,
+			outside: outside,
+			hiddenTop: hiddenTop
 		};
 	}
 
@@ -316,10 +363,16 @@ class DisplayContainerScenario {
 	private static function testNumChildren():Dynamic {
 		var parent = new Sprite();
 		var empty = parent.numChildren;
-		parent.addChild(new Sprite());
+		var first = new Sprite();
+		var second = new Sprite();
+		parent.addChild(first);
 		var one = parent.numChildren;
-		parent.addChild(new Sprite());
+		parent.addChild(second);
 		var two = parent.numChildren;
+		parent.removeChild(first);
+		var afterRemove = parent.numChildren;
+		parent.addChild(first);
+		var afterReadd = parent.numChildren;
 		parent.removeChildren();
 		var afterClear = parent.numChildren;
 
@@ -327,6 +380,8 @@ class DisplayContainerScenario {
 			empty: empty,
 			one: one,
 			two: two,
+			afterRemove: afterRemove,
+			afterReadd: afterReadd,
 			afterClear: afterClear
 		};
 	}
@@ -352,6 +407,25 @@ class DisplayContainerScenario {
 			child1: parent.getChildAt(1).name,
 			child2: parent.getChildAt(2).name
 		};
+	}
+
+	private static function childOrder(parent:Sprite):String {
+		return [for (i in 0...parent.numChildren) parent.getChildAt(i).name].join(",");
+	}
+
+	private static function filledSprite(name:String, x:Float, y:Float, width:Float, height:Float):Sprite {
+		var sprite = new Sprite();
+		sprite.name = name;
+		sprite.x = x;
+		sprite.y = y;
+		sprite.graphics.beginFill(0x336699);
+		sprite.graphics.drawRect(0, 0, width, height);
+		sprite.graphics.endFill();
+		return sprite;
+	}
+
+	private static function objectNames(objects:Array<openfl.display.DisplayObject>):Array<String> {
+		return [for (object in objects) object.name];
 	}
 
 	private static function errorClass(error:Dynamic):String {

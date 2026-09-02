@@ -13,6 +13,7 @@ import openfl.geom.Rectangle;
 @:noDebug
 #end
 @:access(openfl.display.DisplayObject)
+@:access(openfl.display.Graphics)
 @:access(openfl.events.Event)
 class DisplayObjectContainer extends InteractiveObject
 {
@@ -302,6 +303,7 @@ class DisplayObjectContainer extends InteractiveObject
 	{
 		var result:Array<DisplayObject> = [];
 		__collectObjectsUnderPoint(point, result);
+		result.reverse();
 		return result;
 	}
 
@@ -487,8 +489,12 @@ class DisplayObjectContainer extends InteractiveObject
 		while (--i >= 0)
 		{
 			var child = __children[i];
+			if (!child.visible) continue;
 			if ((child is DisplayObjectContainer)) cast(child, DisplayObjectContainer).__collectObjectsUnderPoint(point, result);
-			if (child.hitTestPoint(point.x, point.y)) result.push(child);
+			var ownHit = child.__graphics != null
+				? child.__graphics.__hitTest(point.x, point.y, false)
+				: !(child is DisplayObjectContainer) && child.__hitTest(point.x, point.y, false);
+			if (ownHit) result.push(child);
 		}
 	}
 
