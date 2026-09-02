@@ -1,7 +1,17 @@
 {
+  "autoNaming": {
+    "secondMatchesPattern": true,
+    "sequential": true,
+    "firstMatchesPattern": true
+  },
   "positionProperties": {
     "x": 100,
     "y": 200
+  },
+  "cacheAsBitmap": {
+    "initial": false,
+    "disabled": false,
+    "enabled": true
   },
   "visibleProperty": {
     "afterHide": false,
@@ -18,11 +28,77 @@
   },
   "alphaProperty": {
     "zero": 0,
+    "negative": 0,
     "half": 0.5,
+    "aboveOne": 1,
     "full": 1
   },
+  "blendMode": {
+    "multiply": 9,
+    "initial": 10,
+    "add": 0
+  },
+  "loaderInfo": {
+    "unparentedIsNull": true
+  },
+  "transformedBounds": {
+    "parentRect": {
+      "x": -5,
+      "y": 25,
+      "height": 80,
+      "width": 20
+    },
+    "parentBounds": {
+      "x": -5,
+      "y": 25,
+      "height": 80,
+      "width": 20
+    },
+    "selfRect": {
+      "x": 0,
+      "y": 0,
+      "height": 20,
+      "width": 40
+    },
+    "selfBounds": {
+      "x": 0,
+      "y": 0,
+      "height": 20,
+      "width": 40
+    }
+  },
+  "scaleDimensions": {
+    "initialHeight": 20,
+    "scaleX": 2,
+    "initialWidth": 40,
+    "height": 10,
+    "scaleY": 0.5,
+    "width": 80
+  },
+  "coordinateConversion": {
+    "transformedGlobal": {
+      "x": 126,
+      "y": 77
+    },
+    "transformedRoundTrip": {
+      "x": 3,
+      "y": 4
+    },
+    "identityRoundTrip": {
+      "x": 3,
+      "y": 4
+    },
+    "identityGlobal": {
+      "x": 3,
+      "y": 4
+    }
+  },
   "rotationProperty": {
-    "rotation": 45
+    "zero": 0,
+    "ninety": 90,
+    "negative": -90,
+    "fullTurn": 0,
+    "aboveFullTurn": 90
   },
   "defaultProperties": {
     "alpha": 1,
@@ -34,8 +110,17 @@
     "rotation": 0,
     "scaleY": 1
   },
+  "mask": {
+    "cleared": true,
+    "assigned": true
+  },
   "scaleProperties": {
     "scaleX": 2,
     "scaleY": 0.5
+  },
+  "visibleHitTest": {
+    "shownAgain": true,
+    "visible": true,
+    "hidden": true
   }
 }
