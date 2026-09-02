@@ -1,0 +1,299 @@
+package: events
+
+entries:
+
+  # ── EventDispatcher core > Listener registration ──
+
+  - id: events.ED.listener-identity
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      Listener identity is (type, callback, useCapture). Adding the same
+      identity twice is a no-op, even when the second call supplies a
+      different priority or weak-reference flag.
+    status: covered
+    scenarios:
+      - events/dispatcher:listenerIdentity
+
+  - id: events.ED.capture-distinct
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      Capture and non-capture registrations are distinct. The same callback
+      may be registered once for each, and removal must use the matching
+      useCapture value.
+    status: covered
+    scenarios:
+      - events/dispatcher-capture:captureDistinct
+
+  - id: events.ED.priority-order
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      Priority is descending signed Int; equal-priority listeners retain
+      insertion order. Changing priority requires remove then add.
+    status: covered
+    scenarios:
+      - events/dispatcher:priority
+
+  - id: events.ED.capture-phase-only
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      Capture listeners run only in CAPTURING_PHASE; they do not run on the
+      target. Non-capture listeners run at the target and during bubbling.
+      A plain EventDispatcher dispatch starts at AT_TARGET, so its capture
+      listeners do not run.
+    status: covered
+    scenarios:
+      - events/dispatcher-capture:capturePhaseOnly
+
+  - id: events.ED.null-listener-noop
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      Adding or removing a null listener is a no-op.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.remove-matching
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      removeEventListener ignores priority and removes at most the one
+      registration matching callback plus capture flag. Removing the final
+      listener also removes the type bucket.
+    status: covered
+    scenarios:
+      - events/dispatcher:removeMatching
+
+  - id: events.ED.has-local
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      hasEventListener is local and true for either capture or non-capture
+      registrations.
+    status: covered
+    scenarios:
+      - events/dispatcher:hasEventListener
+
+  - id: events.ED.weak-js-only
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      Weak callbacks are weak only on JS/HTML5 when JavaScript WeakRef
+      exists. Other non-Flash targets retain a strong callback. A collected
+      callback is removed lazily while dispatching; before that cleanup the
+      type bucket can still make hasEventListener true.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.will-trigger-deviation
+    section: EventDispatcher core > Listener registration
+    behavior: >
+      OpenFL 9.5.2 source implements willTrigger(type) as local
+      hasEventListener(type), despite documentation promising an ancestor
+      search. The adapter deliberately searches DisplayObject ancestors.
+    status: deviation
+    notes: >
+      Intentional project decision: adapter follows documented behavior
+      (ancestor search) rather than 9.5.2 source behavior (local-only).
+      Recorded by events/dispatcher-capture fixture.
+    scenarios:
+      - events/dispatcher-capture:willTrigger
+
+  # ── EventDispatcher core > Mutation and reentrancy ──
+
+  - id: events.ED.add-during-dispatch-snapshot
+    section: EventDispatcher core > Mutation and reentrancy
+    behavior: >
+      Adding a listener while an iterator for that type is active snapshots
+      the active frame first. The new listener is excluded from that phase
+      but is available to a later phase or a nested dispatch.
+    status: covered
+    scenarios:
+      - events/dispatcher:mutationAdd
+
+  - id: events.ED.remove-not-yet-visited
+    section: EventDispatcher core > Mutation and reentrancy
+    behavior: >
+      Removing a not-yet-visited listener during dispatch suppresses it in
+      the active frame. Removing an already-visited listener adjusts the
+      live iterator so the following listener is not skipped.
+    status: covered
+    scenarios:
+      - events/dispatcher:mutationRemove
+
+  - id: events.ED.nested-same-type
+    section: EventDispatcher core > Mutation and reentrancy
+    behavior: >
+      A nested dispatch of the same type gets a separate iterator. It
+      observes the then-current live registry without corrupting the outer
+      iterator. The existing mutation fixture records the sequence a(abc)c.
+    status: covered
+    scenarios:
+      - events/dispatcher:mutationNested
+
+  - id: events.ED.remove-readd-during-dispatch
+    section: EventDispatcher core > Mutation and reentrancy
+    behavior: >
+      Duplicate detection still applies during dispatch. Remove then re-add
+      creates a new registration at its priority position and does not
+      restore it to the active snapshot.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.mutation-safe-signal
+    section: EventDispatcher core > Mutation and reentrancy
+    behavior: >
+      Replacing the adapter-owned DispatchIterator with Flight signals
+      while retaining snapshot, skip, and nested-dispatch guarantees
+      requires a mutation-safe, per-emission Flight signal frame.
+    status: flight-gap
+    gap: "Signals: mutation-safe iteration during emit"
+    scenarios: []
+
+  # ── EventDispatcher core > Targeting, phases, cancellation ──
+
+  - id: events.ED.aggregate-target
+    section: EventDispatcher core > Targeting and phases
+    behavior: >
+      A generic dispatcher uses its optional aggregate object as
+      event.target; event.currentTarget remains the dispatcher actually
+      invoking the listener.
+    status: covered
+    scenarios:
+      - events/dispatcher:aggregateTarget
+
+  - id: events.ED.capture-bubble-order
+    section: EventDispatcher core > Targeting and phases
+    behavior: >
+      Programmatic display dispatch snapshots the ancestor chain before
+      capture, visits root to immediate parent, visits only non-capture
+      listeners at the target, then (when bubbles) recurses immediate
+      parent to root.
+    status: covered
+    scenarios:
+      - events/dispatcher-capture:captureBubbleOrder
+
+  - id: events.ED.reparent-during-capture
+    section: EventDispatcher core > Targeting and phases
+    behavior: >
+      Reparenting during capture does not change the capture stack. Bubbling
+      is less static: each node caches its immediate parent before invoking
+      its own listeners, then calls that cached parent.
+    status: covered
+    scenarios: []
+    notes: Phase-by-phase graph mutation still deserves a dedicated fixture.
+
+  - id: events.ED.capture-without-bubbles
+    section: EventDispatcher core > Targeting and phases
+    behavior: >
+      Capture occurs even when bubbles == false; that flag suppresses only
+      the upward bubbling phase.
+    status: covered
+    scenarios:
+      - events/dispatcher-capture:captureNoBubble
+
+  - id: events.ED.target-currentTarget-stable
+    section: EventDispatcher core > Targeting and phases
+    behavior: >
+      target is stable for the normal route. currentTarget changes only
+      when a dispatcher invokes listeners, and eventPhase is capture,
+      target, or bubble for that invocation. These values are not reset
+      after dispatch.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.stop-propagation-capture-quirk
+    section: EventDispatcher core > Cancellation
+    behavior: >
+      stopPropagation lets all listeners on the current node finish and
+      prevents the later bubble route. In programmatic DisplayObject
+      capture, however, the per-node cancellation result is ignored: later
+      capture ancestors and the target still run, after which bubbling is
+      suppressed. This is an OpenFL 9.5.2 source quirk.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.stop-immediate
+    section: EventDispatcher core > Cancellation
+    behavior: >
+      stopImmediatePropagation sets both cancellation flags and stops the
+      remaining listeners on the current node. The flags persist for the
+      Event instance; reusing a stopped Event does not reset them.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.prevent-default
+    section: EventDispatcher core > Cancellation
+    behavior: >
+      preventDefault changes state only when cancelable is true and does
+      not stop propagation. A target/capture prevention makes the outer
+      dispatch result false.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.bubble-prevent-ignored
+    section: EventDispatcher core > Cancellation
+    behavior: >
+      A bubble ancestor's preventDefault updates the Event, but the
+      DisplayObject bubble recursion ignores the ancestor's return value.
+      The original target dispatch can therefore return true even though the
+      Event is default-prevented afterward.
+    status: covered
+    scenarios: []
+    notes: This source trap still needs a dedicated fixture.
+
+  - id: events.ED.redispatch-no-clone
+    section: EventDispatcher core > Cancellation
+    behavior: >
+      Public redispatch does not clone an already-targeted Event despite API
+      documentation. Both generic and DisplayObject dispatch overwrite
+      target and reuse the same instance; cancellation/default state also
+      carries into the new dispatch.
+    status: covered
+    scenarios:
+      - events/redispatch:redispatchNoClone
+
+  - id: events.ED.mouse-stagexY-recompute
+    section: EventDispatcher core > Targeting and phases
+    behavior: >
+      Programmatically dispatching a MouseEvent or TouchEvent from a
+      DisplayObject recomputes stageX/stageY from that object's local
+      coordinates before routing.
+    status: covered
+    scenarios: []
+
+  - id: events.ED.null-event-dispatch
+    section: EventDispatcher core > Targeting and phases
+    behavior: >
+      DisplayObject.dispatchEvent(null) returns false in the adapter, while
+      the 9.5.2 source dereferences null and fails. Generic EventDispatcher
+      still fails before its private null guard.
+    status: missing
+    scenarios: []
+    notes: Null-event behavior needs an explicit compatibility capture.
+
+  - id: events.ED.uncaught-error-boundary
+    section: EventDispatcher core > Cancellation
+    behavior: >
+      When Stage uncaught-error handling is enabled, OpenFL catches listener
+      failures (except an UncaughtErrorEvent loop) and forwards them through
+      the Stage error handler. The adapter lets them escape.
+    status: flight-gap
+    gap: Application event-error boundary
+    scenarios: []
+
+  # ── Native Stage router ──
+
+  - id: events.STG.dispatch-stack-router
+    section: Native Stage router
+    behavior: >
+      OpenFL Stage.__dispatchStack uses a stack ordered root through target,
+      assigns target from the last element, and checks propagation
+      cancellation between every capture and bubble node.
+    status: missing
+    scenarios: []
+
+  - id: events.STG.native-uses-programmatic
+    section: Native Stage router
+    behavior: >
+      Current native mouse and keyboard handlers call
+      target.dispatchEvent(event) instead of __dispatchStack, selecting the
+      programmatic router including its capture-cancellation quirk rather
+      than the stricter Stage behavior.
+    status: missing
+    scenarios: []
