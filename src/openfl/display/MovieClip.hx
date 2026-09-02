@@ -236,7 +236,7 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 		stop();
 	}
 
-	@:noCompletion private function get_currentFrame():Int return __timeline == null ? 1 : __timeline.__currentFrame;
+	@:noCompletion private function get_currentFrame():Int return __timeline == null ? 1 : __timeline.__getCurrentFrame();
 	@:noCompletion private function get_currentFrameLabel():String return __timeline == null ? null : __timeline.__currentFrameLabel;
 	@:noCompletion private function get_currentLabel():String return __timeline == null ? null : __timeline.__currentLabel;
 	@:noCompletion private function get_currentLabels():Array<FrameLabel> return __timeline == null ? [] : __timeline.__currentLabels.copy();

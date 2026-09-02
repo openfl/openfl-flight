@@ -1,0 +1,7 @@
+-cp test/harness/src
+-main TimelineNavigationTest
+--interp
+-cp src
+-lib flight
+-D openfl
+-D harness_compare

@@ -53,6 +53,8 @@ class Timeline
 	@:noCompletion private var __currentLabel:String;
 	@:noCompletion private var __currentLabels:Array<FrameLabel>;
 	@:noCompletion private var __currentScene:Scene;
+	@:noCompletion private var __currentSceneIndex:Int;
+	@:noCompletion private var __currentSceneStart:Int;
 	@:noCompletion private var __frameScripts:Map<Int, MovieClip->Void>;
 	@:noCompletion private var __framesLoaded:Int;
 	@:noCompletion private var __frameTime:Int;
@@ -60,6 +62,7 @@ class Timeline
 	@:noCompletion private var __lastFrameScriptEval:Int;
 	@:noCompletion private var __lastFrameUpdate:Int;
 	@:noCompletion private var __scope:MovieClip;
+	@:noCompletion private var __sceneStarts:Array<Int>;
 	@:noCompletion private var __timeElapsed:Int;
 	@:noCompletion private var __totalFrames:Int;
 
@@ -68,6 +71,9 @@ class Timeline
 		__framesLoaded = 1;
 		__totalFrames = 1;
 		__currentLabels = [];
+		__currentSceneIndex = -1;
+		__currentSceneStart = 1;
+		__sceneStarts = [];
 
 		__currentFrame = 1;
 
@@ -141,21 +147,22 @@ class Timeline
 
 		__totalFrames = 0;
 		__framesLoaded = 0;
+		__currentLabels = [];
+		__currentScene = null;
+		__currentSceneIndex = -1;
+		__currentSceneStart = 1;
+		__sceneStarts = [];
 
 		if (scenes != null && scenes.length > 0)
 		{
 			for (scene in scenes)
 			{
+				__sceneStarts.push(__totalFrames + 1);
 				__totalFrames += scene.numFrames;
 				__framesLoaded += scene.numFrames;
-				if (scene.labels != null)
-				{
-					// TODO: Handle currentLabels properly for multiple scenes
-					__currentLabels = __currentLabels.concat(scene.labels);
-				}
 			}
 
-			__currentScene = scenes[0];
+			__setCurrentScene(0);
 		}
 
 		if (scripts != null && scripts.length > 0)
@@ -165,14 +172,7 @@ class Timeline
 			{
 				if (__frameScripts.exists(script.frame))
 				{
-					// TODO: Does this merging code work?
-					var existing = __frameScripts.get(script.frame);
-					var append = script.script;
-					__frameScripts.set(script.frame, function(clip:MovieClip)
-					{
-						existing(clip);
-						append(clip);
-					});
+					__frameScripts.set(script.frame, __mergeFrameScripts(__frameScripts.get(script.frame), script.script));
 				}
 				else
 				{
@@ -181,6 +181,7 @@ class Timeline
 			}
 		}
 
+		__updateFrameLabel();
 		attachMovieClip(movieClip);
 	}
 
@@ -289,13 +290,13 @@ class Timeline
 	@:noCompletion private function __gotoAndPlay(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end, scene:String = null):Void
 	{
 		__play();
-		__goto(__resolveFrameReference(frame));
+		__goto(__resolveFrameReference(frame, scene));
 	}
 
 	@:noCompletion private function __gotoAndStop(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end, scene:String = null):Void
 	{
 		__stop();
-		__goto(__resolveFrameReference(frame));
+		__goto(__resolveFrameReference(frame, scene));
 	}
 
 	@:noCompletion private function __nextFrame():Void
@@ -306,7 +307,9 @@ class Timeline
 
 	@:noCompletion private function __nextScene():Void
 	{
-		// TODO
+		__stop();
+		if (__currentSceneIndex < 0 || __currentSceneIndex + 1 >= __sceneStarts.length) return;
+		__goto(__sceneStarts[__currentSceneIndex + 1]);
 	}
 
 	@:noCompletion private function __play():Void
@@ -330,7 +333,9 @@ class Timeline
 
 	@:noCompletion private function __prevScene():Void
 	{
-		// TODO
+		__stop();
+		if (__currentSceneIndex <= 0) return;
+		__goto(__sceneStarts[__currentSceneIndex - 1]);
 	}
 
 	@:noCompletion private function __stop():Void
@@ -338,21 +343,32 @@ class Timeline
 		__isPlaying = false;
 	}
 
-	@:noCompletion private function __resolveFrameReference(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end):Int
+	@:noCompletion private function __resolveFrameReference(frame:#if (haxe_ver >= "3.4.2") Any #else Dynamic #end, sceneName:String = null):Int
 	{
+		var sceneIndex = __resolveSceneIndex(sceneName);
+		var scene = sceneIndex < 0 ? null : scenes[sceneIndex];
+		var sceneStart = sceneIndex < 0 ? 1 : __sceneStarts[sceneIndex];
+
 		if ((frame is Int))
 		{
-			return cast frame;
+			var localFrame:Int = cast frame;
+			if (scene != null)
+			{
+				if (localFrame < 1) localFrame = 1;
+				else if (localFrame > scene.numFrames) localFrame = scene.numFrames;
+			}
+			return sceneStart + localFrame - 1;
 		}
 		else if ((frame is String))
 		{
 			var label:String = cast frame;
+			var labels = scene == null ? __currentLabels : scene.labels;
 
-			for (frameLabel in __currentLabels)
+			if (labels != null) for (frameLabel in labels)
 			{
 				if (frameLabel.name == label)
 				{
-					return frameLabel.frame;
+					return sceneStart + frameLabel.frame - 1;
 				}
 			}
 
@@ -364,28 +380,87 @@ class Timeline
 		}
 	}
 
+	@:noCompletion private function __resolveSceneIndex(sceneName:String):Int
+	{
+		if (scenes == null || scenes.length == 0)
+		{
+			if (sceneName != null) throw new ArgumentError("Error #2108: Scene " + sceneName + " was not found.");
+			return -1;
+		}
+
+		if (sceneName == null) return __currentSceneIndex < 0 ? 0 : __currentSceneIndex;
+
+		for (index in 0...scenes.length)
+		{
+			if (scenes[index].name == sceneName) return index;
+		}
+
+		throw new ArgumentError("Error #2108: Scene " + sceneName + " was not found.");
+	}
+
+	@:noCompletion private function __getCurrentFrame():Int
+	{
+		return __currentSceneIndex < 0 ? __currentFrame : __currentFrame - __currentSceneStart + 1;
+	}
+
+	@:noCompletion private static function __mergeFrameScripts(first:MovieClip->Void, second:MovieClip->Void):MovieClip->Void
+	{
+		return function(clip:MovieClip):Void
+		{
+			first(clip);
+			second(clip);
+		};
+	}
+
+	@:noCompletion private function __setCurrentScene(index:Int):Void
+	{
+		__currentSceneIndex = index;
+		__currentScene = scenes[index];
+		__currentSceneStart = __sceneStarts[index];
+		__currentLabels = __currentScene.labels == null ? [] : __currentScene.labels.copy();
+		__currentLabels.sort(function(a:FrameLabel, b:FrameLabel):Int return a.frame - b.frame);
+	}
+
+	@:noCompletion private function __updateScene():Void
+	{
+		if (scenes == null || scenes.length == 0) return;
+
+		var sceneIndex = 0;
+		for (index in 0...__sceneStarts.length)
+		{
+			if (__currentFrame < __sceneStarts[index]) break;
+			sceneIndex = index;
+		}
+
+		if (sceneIndex != __currentSceneIndex) __setCurrentScene(sceneIndex);
+	}
+
 	@:noCompletion private function __updateFrameLabel():Void
 	{
 		__currentLabel = null;
 		__currentFrameLabel = null;
+		if (__currentLabels.length == 0) return;
 
-		// TODO: Update without looping so much
-
-		for (label in __currentLabels)
+		var currentFrame = __getCurrentFrame();
+		var low = 0;
+		var high = __currentLabels.length - 1;
+		var match = -1;
+		while (low <= high)
 		{
-			if (label.frame < __currentFrame)
+			var middle = (low + high) >> 1;
+			if (__currentLabels[middle].frame <= currentFrame)
 			{
-				__currentLabel = label.name;
+				match = middle;
+				low = middle + 1;
 			}
-			else if (label.frame == __currentFrame)
-			{
-				__currentLabel = label.name;
-				__currentFrameLabel = label.name;
-			}
-			else
-			{
-				break;
-			}
+			else high = middle - 1;
+		}
+
+		if (match >= 0)
+		{
+			var label = __currentLabels[match];
+			__currentLabel = label.name;
+			if (label.frame == currentFrame) __currentFrameLabel = label.name;
 		}
 	}
 
@@ -393,6 +468,7 @@ class Timeline
 	{
 		if (__currentFrame != __lastFrameUpdate)
 		{
+			__updateScene();
 			__updateFrameLabel();
 			enterFrame(targetFrame);
 			__lastFrameUpdate = __currentFrame;
