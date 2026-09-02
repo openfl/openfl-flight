@@ -1,7 +1,21 @@
 {
-  "auto": "auto",
-  "arrow": "arrow",
-  "ibeam": "ibeam",
-  "hand": "hand",
-  "button": "button"
+  "cursorRestored": true,
+  "supportsCursor": true,
+  "hideDoesNotThrow": true,
+  "cursorValues": {
+    "auto": "auto",
+    "arrow": "arrow",
+    "ibeam": "ibeam",
+    "hand": "hand",
+    "button": "button"
+  },
+  "supportsNativeCursor": true,
+  "showDoesNotThrow": true,
+  "cursorReadBack": {
+    "auto": "auto",
+    "arrow": "arrow",
+    "ibeam": "ibeam",
+    "hand": "hand",
+    "button": "button"
+  }
 }
