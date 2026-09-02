@@ -1,7 +1,13 @@
 {
   "replaceText": {
-    "text": "abXYZef",
-    "length": 7
+    "empty": {
+      "text": "af",
+      "length": 2
+    },
+    "middle": {
+      "text": "abXYZef",
+      "length": 7
+    }
   },
   "metrics": {
     "textWidth": 0,
@@ -14,6 +20,21 @@
     "underline": true,
     "italic": true,
     "bold": true
+  },
+  "inputConstraints": {
+    "maxCharsLength": 6,
+    "restrict": "A-Z",
+    "maxChars": 4,
+    "restrictedText": "aB3C",
+    "maxCharsText": "abcdef"
+  },
+  "singleLine": {
+    "offset": 0,
+    "text": "Hello world",
+    "length": 11,
+    "numLines": 1,
+    "multilineNumLines": 3,
+    "caretIndex": 0
   },
   "appendText": {
     "text": "Hello world",

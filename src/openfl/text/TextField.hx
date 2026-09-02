@@ -139,7 +139,7 @@ class TextField extends InteractiveObject
 	public function appendText(text:String):Void
 	{
 		if (text == null || text == "") return;
-		var value = __limitText(__text + text);
+		var value = __text + text;
 		var added = value.length - __text.length;
 		for (_ in 0...added) __formatByCharacter.push(__textFormat.clone());
 		__text = value;
@@ -258,7 +258,7 @@ class TextField extends InteractiveObject
 		var before = __formatByCharacter.slice(0, beginIndex);
 		var after = __formatByCharacter.slice(endIndex);
 		var inserted = [for (_ in 0...newText.length) __textFormat.clone()];
-		__text = __limitText(__text.substring(0, beginIndex) + newText + __text.substring(endIndex));
+		__text = __text.substring(0, beginIndex) + newText + __text.substring(endIndex);
 		__formatByCharacter = before.concat(inserted).concat(after).slice(0, __text.length);
 		__htmlText = __text;
 		__isHTML = false;
@@ -350,12 +350,6 @@ class TextField extends InteractiveObject
 	@:noCompletion private function __lineHeight():Float
 	{
 		return __fontSize() + (__textFormat.leading == null ? 0 : __textFormat.leading);
-	}
-
-	@:noCompletion private function __limitText(value:String):String
-	{
-		if (__maxChars > 0 && value.length > __maxChars) return value.substr(0, __maxChars);
-		return value;
 	}
 
 	@:noCompletion private function __measureLine(value:String):Float
@@ -553,7 +547,7 @@ class TextField extends InteractiveObject
 		__htmlText = value;
 		__isHTML = true;
 		var parsed = __parseHTML(value);
-		__text = __limitText(parsed.text);
+		__text = parsed.text;
 		__formatByCharacter = parsed.formats.slice(0, __text.length);
 		__selectionIndex = __caretIndex = __text.length;
 		__updateAutoSize();
@@ -564,7 +558,6 @@ class TextField extends InteractiveObject
 	@:noCompletion private function set_maxChars(value:Int):Int
 	{
 		__maxChars = value;
-		if (value > 0 && __text.length > value) set_text(__text.substr(0, value));
 		return value;
 	}
 	@:noCompletion private function get_maxScrollH():Int
@@ -627,7 +620,7 @@ class TextField extends InteractiveObject
 	{
 		if (value == null) throw new TypeError("Error #2007: Parameter text must be non-null.");
 		if (__styleSheet != null) return set_htmlText(value);
-		__text = __limitText(value);
+		__text = value;
 		__htmlText = __text;
 		__isHTML = false;
 		__formatByCharacter = [for (_ in 0...__text.length) __textFormat.clone()];

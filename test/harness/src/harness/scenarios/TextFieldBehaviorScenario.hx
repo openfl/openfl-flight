@@ -8,6 +8,8 @@ class TextFieldBehaviorScenario {
 		return {
 			metrics: testMetrics(),
 			lines: testLines(),
+			singleLine: testSingleLine(),
+			inputConstraints: testInputConstraints(),
 			textFormat: testTextFormat(),
 			appendText: testAppendText(),
 			replaceText: testReplaceText()
@@ -41,6 +43,42 @@ class TextFieldBehaviorScenario {
 		};
 	}
 
+	private static function testSingleLine():Dynamic {
+		var single = new TextField();
+		single.text = "Hello world";
+
+		var multiple = new TextField();
+		multiple.multiline = true;
+		multiple.text = "First\nSecond\nThird";
+
+		return {
+			text: single.getLineText(0),
+			offset: single.getLineOffset(0),
+			length: single.getLineLength(0),
+			numLines: single.numLines,
+			multilineNumLines: multiple.numLines,
+			caretIndex: single.caretIndex
+		};
+	}
+
+	private static function testInputConstraints():Dynamic {
+		var maxChars = new TextField();
+		maxChars.maxChars = 4;
+		maxChars.text = "abcdef";
+
+		var restricted = new TextField();
+		restricted.restrict = "A-Z";
+		restricted.text = "aB3C";
+
+		return {
+			maxChars: maxChars.maxChars,
+			maxCharsText: maxChars.text,
+			maxCharsLength: maxChars.length,
+			restrict: restricted.restrict,
+			restrictedText: restricted.text
+		};
+	}
+
 	private static function testTextFormat():Dynamic {
 		var field = new TextField();
 		field.text = "abcdef";
@@ -68,12 +106,22 @@ class TextFieldBehaviorScenario {
 	}
 
 	private static function testReplaceText():Dynamic {
-		var field = new TextField();
-		field.text = "abcdef";
-		field.replaceText(2, 4, "XYZ");
+		var middle = new TextField();
+		middle.text = "abcdef";
+		middle.replaceText(2, 4, "XYZ");
+
+		var empty = new TextField();
+		empty.text = "abcdef";
+		empty.replaceText(1, 5, "");
 		return {
-			text: field.text,
-			length: field.length
+			middle: {
+				text: middle.text,
+				length: middle.length
+			},
+			empty: {
+				text: empty.text,
+				length: empty.length
+			}
 		};
 	}
 }
