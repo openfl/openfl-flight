@@ -11,11 +11,35 @@
     "phase": 3,
     "target": "redispatcher"
   },
+  "dispatchReturns": {
+    "withoutListener": true,
+    "listenerCalls": 1,
+    "withListener": true
+  },
   "originalAfterDispatch": {
     "currentTarget": "parent",
     "sameInstance": true,
     "phase": 3,
     "target": "redispatcher"
+  },
+  "cloneRedispatch": {
+    "originalObserved": {
+      "currentTarget": "cloneSource",
+      "sameInstance": true,
+      "phase": 2,
+      "target": "cloneSource"
+    },
+    "cloneDispatchResult": true,
+    "cloneObserved": {
+      "currentTarget": "cloneDestination",
+      "sameInstance": false,
+      "phase": 2,
+      "target": "cloneDestination"
+    },
+    "cloneTargetAfterDispatch": "cloneDestination",
+    "cloneIsNewInstance": true,
+    "originalDispatchResult": true,
+    "originalTargetAfterCloneDispatch": "cloneSource"
   },
   "nested": {
     "currentTarget": "redispatcher",

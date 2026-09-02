@@ -39,7 +39,53 @@ class EventRedispatchScenario {
 			nested: nested,
 			after: after,
 			bubbled: bubbled,
-			originalAfterDispatch: describe(original, original)
+			originalAfterDispatch: describe(original, original),
+			cloneRedispatch: testCloneRedispatch(),
+			dispatchReturns: testDispatchReturns()
+		};
+	}
+
+	private static function testCloneRedispatch():Dynamic {
+		var source = namedSprite("cloneSource");
+		var destination = namedSprite("cloneDestination");
+		var original = new Event("cloneRedispatch");
+		var originalObserved:Dynamic = null;
+		var cloneObserved:Dynamic = null;
+
+		source.addEventListener("cloneRedispatch", function(event:Event):Void {
+			originalObserved = describe(event, original);
+		});
+		destination.addEventListener("cloneRedispatch", function(event:Event):Void {
+			cloneObserved = describe(event, original);
+		});
+
+		var originalDispatchResult = source.dispatchEvent(original);
+		var clone = original.clone();
+		var cloneDispatchResult = destination.dispatchEvent(clone);
+
+		return {
+			cloneIsNewInstance: clone != original,
+			originalDispatchResult: originalDispatchResult,
+			cloneDispatchResult: cloneDispatchResult,
+			originalObserved: originalObserved,
+			cloneObserved: cloneObserved,
+			originalTargetAfterCloneDispatch: objectName(original.target),
+			cloneTargetAfterDispatch: objectName(clone.target)
+		};
+	}
+
+	private static function testDispatchReturns():Dynamic {
+		var withListener = namedSprite("withListener");
+		var listenerCalls = 0;
+		withListener.addEventListener("returnValue", function(_:Event):Void listenerCalls++);
+
+		var withoutListener = namedSprite("withoutListener");
+		var withListenerResult = withListener.dispatchEvent(new Event("returnValue"));
+		var withoutListenerResult = withoutListener.dispatchEvent(new Event("returnValue"));
+		return {
+			withListener: withListenerResult,
+			withoutListener: withoutListenerResult,
+			listenerCalls: listenerCalls
 		};
 	}
 
