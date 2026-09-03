@@ -488,7 +488,8 @@ entries:
       - display/NativeWindow.hx:closed
       - display/NativeWindow.hx:maxSize
       - display/NativeWindow.hx:minSize
-    scenarios: []
+    scenarios:
+      - desktop/native-window:window.sizeLimits
     notes: "Target conditions: #if lime."
   - id: desktop.NW.activate-makes-window-visible-asks-host-focus
     section: NativeWindow > Operations and event order

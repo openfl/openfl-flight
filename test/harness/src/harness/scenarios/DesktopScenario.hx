@@ -162,6 +162,14 @@ class DesktopScenario {
 			},
 			listOwnedWindowsIsCopy: true,
 			nullOptionsThrows: true,
+			sizeLimits: {
+				maxGettersAreDistinct: true,
+				maxMutationIsolated: true,
+				maxSize: [900, 700],
+				minGettersAreDistinct: true,
+				minMutationIsolated: true,
+				minSize: [120, 80]
+			},
 			mutated: {
 				bounds: [10, -3, 321, 199],
 				maxSize: [900, 700],
@@ -192,10 +200,24 @@ class DesktopScenario {
 		};
 
 		owner.bounds = new Rectangle(10.8, -3.9, 321.7, 199.9);
-		owner.minSize = new Point(120, 80);
-		owner.maxSize = new Point(900, 700);
+		owner.minSize = new Point(120.75, 80.5);
+		owner.maxSize = new Point(900.75, 700.5);
 		owner.title = "Flight window";
 		owner.visible = true;
+		var firstMinSize = owner.minSize;
+		var secondMinSize = owner.minSize;
+		var firstMaxSize = owner.maxSize;
+		var secondMaxSize = owner.maxSize;
+		firstMinSize.x = -1;
+		firstMaxSize.x = -1;
+		var sizeLimits = {
+			maxGettersAreDistinct: firstMaxSize != secondMaxSize,
+			maxMutationIsolated: owner.maxSize.x == secondMaxSize.x,
+			maxSize: [secondMaxSize.x, secondMaxSize.y],
+			minGettersAreDistinct: firstMinSize != secondMinSize,
+			minMutationIsolated: owner.minSize.x == secondMinSize.x,
+			minSize: [secondMinSize.x, secondMinSize.y]
+		};
 		var mutated = {
 			bounds: [owner.bounds.x, owner.bounds.y, owner.bounds.width, owner.bounds.height],
 			maxSize: [owner.maxSize.x, owner.maxSize.y],
@@ -242,6 +264,7 @@ class DesktopScenario {
 			mutated: mutated,
 			nullOptionsThrows: nullOptionsThrows,
 			openedWindowCountAfterClose: NativeApplication.nativeApplication.openedWindows.length,
+			sizeLimits: sizeLimits,
 			suppliedTypeIgnored: suppliedTypeIgnored
 		};
 		#end

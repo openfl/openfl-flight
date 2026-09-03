@@ -60,6 +60,20 @@
   },
   "window": {
     "suppliedTypeIgnored": true,
+    "sizeLimits": {
+      "minSize": [
+        120,
+        80
+      ],
+      "maxSize": [
+        900,
+        700
+      ],
+      "minMutationIsolated": true,
+      "maxMutationIsolated": true,
+      "minGettersAreDistinct": true,
+      "maxGettersAreDistinct": true
+    },
     "mutated": {
       "minSize": [
         120,
