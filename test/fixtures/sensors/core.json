@@ -23,10 +23,12 @@
       "locationAccuracyNearestTenMeters",
       "locationAccuracyThreeKilometers"
     ],
-    "isSupported": false
+    "isSupported": false,
+    "plainClass": true
   },
   "deviceRotation": {
     "constructorError": "openfl.errors.IllegalOperationError",
-    "isSupported": false
+    "isSupported": false,
+    "plainClass": true
   }
 }

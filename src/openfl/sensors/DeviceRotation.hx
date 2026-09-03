@@ -1,16 +1,7 @@
 package openfl.sensors;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
-import flight.Sensors as FlightSensors;
-import flight.Signals as FlightSignals;
-import flight.types.HasSystemSensors as FlightSystemSensorsHost;
-import flight.types.OrientationReading;
-import flight.types.QuaternionReading;
-import flight.types.Sensors as FlightSensorSet;
-import haxe.Timer;
 import openfl.errors.IllegalOperationError;
-import openfl.events.DeviceRotationEvent;
-import openfl.events.EventDispatcher;
 
 /**
 	The DeviceRotation class dispatches events based on activity detected by the
@@ -37,7 +28,7 @@ import openfl.events.EventDispatcher;
 	[AIR Profile Support](https://help.adobe.com/en_US/air/build/WS144092a96ffef7cc16ddeea2126bb46b82f-8000.html)
 	for more information regarding API support across multiple profiles.
 **/
-class DeviceRotation extends EventDispatcher
+class DeviceRotation
 {
 	/**
 		The isSupported property is set to `true` if the accelerometer and
@@ -48,11 +39,8 @@ class DeviceRotation extends EventDispatcher
 
 	private static function get_isSupported():Bool
 	{
-		return FlightSensors.hasOrientationSensor(__getFlightHost());
+		return false;
 	}
-
-	@:noCompletion private static var __flightHost:FlightSystemSensorsHost;
-	@:noCompletion private var __flightSensors:FlightSensorSet;
 
 	/**
 		Specifies whether the user has denied access to the Device Rotation data
@@ -66,22 +54,7 @@ class DeviceRotation extends EventDispatcher
 	**/
 	public function new()
 	{
-		super();
-		if (!isSupported) throw new IllegalOperationError("Not supported");
-
-		__flightSensors = FlightSensors.createSensors();
-		FlightSignals.connectSignal(__flightSensors.onOrientation, deviceRotation_onFlightUpdate);
-		FlightSensors.attachSensors(__getFlightHost(), __flightSensors);
-	}
-
-	@:noCompletion private static function __getFlightHost():FlightSystemSensorsHost
-	{
-		if (__flightHost == null)
-		{
-			// HostLime and HostClay do not currently expose Flight's sensors capability.
-			__flightHost = cast {system: {sensors: {isOrientationSupported: function():Bool return false}}};
-		}
-		return __flightHost;
+		throw new IllegalOperationError("Not supported");
 	}
 
 	/**
@@ -95,24 +68,6 @@ class DeviceRotation extends EventDispatcher
 		application receives updates based on the device's default interval.
 	**/
 	public function setRequestedUpdateInterval(interval:Float):Void {}
-
-	@:noCompletion private function deviceRotation_onFlightUpdate(reading:OrientationReading):Void
-	{
-		var quaternion:QuaternionReading = {
-			accuracy: reading.accuracy,
-			interval: reading.interval,
-			timestamp: reading.timestamp,
-			w: 1,
-			x: 0,
-			y: 0,
-			z: 0
-		};
-		FlightSensors.computeQuaternionFromOrientationReading(quaternion, reading);
-		dispatchEvent(new DeviceRotationEvent(DeviceRotationEvent.UPDATE, false, false,
-			reading.timestamp >= 0 ? reading.timestamp : Timer.stamp() * 1000,
-			reading.gamma, reading.beta, reading.alpha,
-			[quaternion.w, quaternion.x, quaternion.y, quaternion.z]));
-	}
 }
 #else
 #if air

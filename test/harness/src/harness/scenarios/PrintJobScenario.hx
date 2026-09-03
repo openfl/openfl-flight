@@ -47,6 +47,7 @@ class PrintJobScenario
 			defaults: defaults,
 			isSupported: PrintJob.isSupported,
 			isSupportedIsBool: Type.typeof(PrintJob.isSupported) == TBool,
+			isSupportedMatchesTarget: PrintJob.isSupported == #if (js && html5) true #else false #end,
 			lifecycle: {
 				addPageDidNotThrow: addPageDidNotThrow,
 				sendDidNotThrow: sendDidNotThrow,

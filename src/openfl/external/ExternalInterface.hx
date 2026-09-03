@@ -1,6 +1,7 @@
 package openfl.external;
 
 #if !flash
+import openfl.Lib;
 /**
 	The ExternalInterface class is an application programming interface that
 	enables straightforward communication between ActionScript and the SWF
@@ -159,7 +160,12 @@ package openfl.external;
 	**/
 	public static function addCallback(functionName:String, closure:Dynamic):Void
 	{
-		// TODO: Register the callback through Flight's host/browser integration.
+		#if (js && html5)
+		if (Lib.application != null && Lib.application.window != null && Lib.application.window.element != null)
+		{
+			untyped Lib.application.window.element[functionName] = closure;
+		}
+		#end
 	}
 
 	/**
@@ -293,7 +299,13 @@ package openfl.external;
 
 	private static function get_objectID():String
 	{
-		// TODO: Read the host object ID through Flight's host/browser integration.
+		#if (js && html5)
+		if (Lib.application != null && Lib.application.window != null && Lib.application.window.element != null)
+		{
+			return Lib.application.window.element.id;
+		}
+		#end
+
 		return null;
 	}
 }

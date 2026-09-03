@@ -41,7 +41,8 @@ class SensorScenario
 				{
 					new DeviceRotation();
 				}),
-				isSupported: DeviceRotation.isSupported
+				isSupported: DeviceRotation.isSupported,
+				plainClass: Type.getSuperClass(DeviceRotation) == null
 			},
 			geolocation: {
 				accuracyConstants: [
@@ -56,7 +57,8 @@ class SensorScenario
 				{
 					new Geolocation();
 				}),
-				isSupported: Geolocation.isSupported
+				isSupported: Geolocation.isSupported,
+				plainClass: Type.getSuperClass(Geolocation) == null
 			}
 		};
 	}

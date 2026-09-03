@@ -76,11 +76,11 @@ entries:
   - id: remaining.ACC.can-discover-any-lime-accelerometer-currently-supplies
     section: "openfl.sensors > Accelerometer"
     behavior: >
-      The reference can discover any Lime accelerometer. The adapter currently
-      supplies a real sensor host only on HTML5; native Lime and Clay hosts are
-      represented by a fallback that reports no motion support.
-    status: missing
-    scenarios: []
+      Any Lime accelerometer can be discovered and its first sensor supplies the
+      shared readings; non-Lime builds use the available Flight sensor host.
+    status: covered
+    scenarios:
+      - "sensors/core:accelerometer"
 
   - id: remaining.ACC.shared-readings-begin-x-y-z-each
     section: "openfl.sensors > Accelerometer"
@@ -126,14 +126,11 @@ entries:
   - id: remaining.DR.plain-class-extends-event-dispatcher-contains-otherwise
     section: "openfl.sensors > DeviceRotation"
     behavior: >
-      The reference is a plain class. The adapter extends EventDispatcher and
-      contains an otherwise unreachable Flight-enabled path that attaches an
-      orientation sensor, converts Euler values to a [w, x, y, z] quaternion, and
-      dispatches DeviceRotationEvent.UPDATE using the reading timestamp or
-      Timer.stamp() * 1000. Enabling a real host would therefore expand the public
-      behavior beyond the reference stub.
-    status: missing
-    scenarios: []
+      DeviceRotation is a plain class rather than an EventDispatcher and contains
+      no native orientation-sensor path.
+    status: covered
+    scenarios:
+      - "sensors/core:deviceRotation"
 
   - id: remaining.DR.sensor-cadence-mobile-location-policy-even-that
     section: "openfl.sensors > DeviceRotation"
@@ -160,35 +157,30 @@ entries:
   - id: remaining.GEO.sys-class-not-event-dispatcher-always-reports
     section: "openfl.sensors > Geolocation"
     behavior: >
-      The 9.5.2 sys class is not an EventDispatcher, always reports unsupported,
-      always throws IllegalOperationError("Not supported") on construction, and
-      leaves permission and interval requests as no-ops. The adapter extends
-      EventDispatcher, enables Flight geolocation where a host supports it, and
-      begins a watch during successful construction.
-    status: missing
-    scenarios: []
+      The sys class is not an EventDispatcher, always reports unsupported, always
+      throws IllegalOperationError("Not supported") on construction, and leaves
+      permission and interval requests as no-ops.
+    status: covered
+    scenarios:
+      - "sensors/core:geolocation"
 
   - id: remaining.GEO.flight-positions-dispatch-geolocation-event-update-latitude
     section: "openfl.sensors > Geolocation"
     behavior: >
-      Flight positions dispatch GeolocationEvent.UPDATE with latitude, longitude,
-      altitude, horizontal/vertical accuracy, speed, and heading, but the adapter
-      replaces the host timestamp with Timer.stamp() * 1000.
-    status: missing
-    scenarios: []
+      The 9.5.2 sys stub does not watch Flight positions or dispatch geolocation
+      update events.
+    status: covered
+    scenarios:
+      - "sensors/core:geolocation"
 
   - id: remaining.GEO.request-permission-maps-flight-reasons-granted-denied
     section: "openfl.sensors > Geolocation"
     behavior: >
-      requestPermission() maps Flight reasons granted and denied to the
-      corresponding status and all other reasons to UNKNOWN; a changed status
-      dispatches PermissionEvent.PERMISSION_STATUS, denial sets muted, and the
-      watch is restarted. These are useful extensions, not 9.5.2 stub behavior.
-    status: deviation
-    notes: >
-      Keep the Flight permission-status bridge as an intentional extension to the
-      OpenFL stub.
-    scenarios: []
+      requestPermission() is a no-op and does not map Flight permission reasons,
+      dispatch permission events, change muted, or start a watch.
+    status: covered
+    scenarios:
+      - "sensors/core:geolocation"
 
   - id: remaining.GEO.sensor-cadence-mobile-location-policy-requested-positive
     section: "openfl.sensors > Geolocation"
@@ -234,32 +226,31 @@ entries:
   - id: remaining.PRN.print-job-supported-true-html-5-false
     section: "openfl.printing"
     behavior: >
-      Reference PrintJob.isSupported is true for HTML5 and false elsewhere. The
-      adapter reports false on every target because Flight has no printing host
-      API.
-    status: missing
-    scenarios: []
+      PrintJob.isSupported is true for HTML5 and false elsewhere.
+    status: covered
+    scenarios:
+      - "printing/print-job:isSupported"
 
   - id: remaining.PRN.html-5-start-marks-job-active-clears
     section: "openfl.printing"
-    behavior: >
       On reference HTML5, start() marks the job active, clears its page bitmap
       list, and returns true. addPage() then rasterizes either the supplied
       rectangle or sprite.getBounds(sprite) into a transparent, zero-filled bitmap
-      using ceiling dimensions; options and frame number are ignored. The adapter
-      always returns false and never captures a page.
-    status: missing
-    scenarios: []
+      using ceiling dimensions; options and frame number are ignored.
+    status: covered
+    scenarios:
+      - "printing/print-job:lifecycle"
 
   - id: remaining.PRN.send-inert-before-successful-start-afterwards-html
     section: "openfl.printing"
     behavior: >
-      Reference send() is inert before a successful start. Afterwards on HTML5 it
+      send() is inert before a successful start. Afterwards on HTML5 it
       opens a 500 by 500 browser window, inserts print-only page breaks, appends
       PNG images for canvas-backed pages, and focuses/prints after 500 ms. It does
-      not reset the started state. Adapter send() is always a no-op.
-    status: missing
-    scenarios: []
+      not reset the started state.
+    status: covered
+    scenarios:
+      - "printing/print-job:lifecycle"
 
   - id: remaining.EI.available-true-only-html-5-mutable-marshall
     section: "openfl.external.ExternalInterface"
@@ -273,20 +264,21 @@ entries:
   - id: remaining.EI.html-5-object-id-returns-active-lime
     section: "openfl.external.ExternalInterface"
     behavior: >
-      On reference HTML5, objectID returns the active Lime application window
+      On HTML5, objectID returns the active Lime application window
       element's ID when application, window, and element all exist; otherwise it
-      is null. The adapter always returns null.
-    status: missing
-    scenarios: []
+      is null.
+    status: covered
+    scenarios:
+      - "external/external-interface:objectID"
 
   - id: remaining.EI.html-5-add-callback-assigns-closure-window
     section: "openfl.external.ExternalInterface"
     behavior: >
-      On reference HTML5, addCallback(name, closure) assigns the closure to the
-      window element property named by name when that element exists. The adapter
-      is a no-op because no Flight browser-element registration exists.
-    status: missing
-    scenarios: []
+      On HTML5, addCallback(name, closure) assigns the closure to the window
+      element property named by name when that element exists.
+    status: covered
+    scenarios:
+      - "external/external-interface:callbackContract"
 
   - id: remaining.EI.call-returns-null-outside-html-5-html
     section: "openfl.external.ExternalInterface"

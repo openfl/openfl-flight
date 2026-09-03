@@ -10,6 +10,7 @@
   },
   "isSupported": false,
   "isSupportedIsBool": true,
+  "isSupportedMatchesTarget": true,
   "lifecycle": {
     "addPageDidNotThrow": true,
     "sendDidNotThrow": true,

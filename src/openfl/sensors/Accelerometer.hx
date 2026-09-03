@@ -13,6 +13,10 @@ import haxe.Timer;
 import openfl.errors.ArgumentError;
 import openfl.events.AccelerometerEvent;
 import openfl.events.EventDispatcher;
+#if lime
+import lime.system.Sensor;
+import lime.system.SensorType;
+#end
 
 /**
 	The Accelerometer class dispatches events based on activity detected by the
@@ -143,6 +147,15 @@ class Accelerometer extends EventDispatcher
 	{
 		if (!initialized)
 		{
+			#if lime
+			var sensors = Sensor.getSensors(SensorType.ACCELEROMETER);
+
+			if (sensors.length > 0)
+			{
+				sensors[0].onUpdate.add(accelerometer_onUpdate);
+				supported = true;
+			}
+			#else
 			var host = __getFlightHost();
 			supported = FlightSensors.hasAccelerometer(host);
 			if (supported)
@@ -151,6 +164,7 @@ class Accelerometer extends EventDispatcher
 				FlightSignals.connectSignal(__flightSensors.onAccelerometer, accelerometer_onFlightUpdate);
 				FlightSensors.attachSensors(host, __flightSensors);
 			}
+			#end
 			initialized = true;
 		}
 	}

@@ -1,24 +1,7 @@
 package openfl.sensors;
 
 #if (!flash && sys && (!flash_doc_gen || air_doc_gen))
-import flight.Geolocation as FlightGeolocation;
-import flight.types.GeoPosition;
-import flight.types.GeolocationAccessOutcome;
-import flight.types.GeolocationRequestOptions;
-import flight.types.Host as FlightHost;
-#if (js && html5)
-import flight.HostWeb as FlightHostWeb;
-#elseif (clay && sys)
-import flight.hostClay.HostClay as FlightHostClay;
-#elseif (lime && sys)
-import flight.hostLime.HostLime as FlightHostLime;
-import lime.app.Application as LimeApplication;
-#end
-import haxe.Timer;
 import openfl.errors.IllegalOperationError;
-import openfl.events.EventDispatcher;
-import openfl.events.GeolocationEvent;
-import openfl.events.PermissionEvent;
 import openfl.permissions.PermissionStatus;
 
 /**
@@ -49,7 +32,7 @@ import openfl.permissions.PermissionStatus;
 	[iOS Settings](http://help.adobe.com/en_US/air/build/WSfffb011ac560372f7e64a7f12cd2dd1867-8000.html)
 	for more information on the `infoAdditions` element.
 **/
-class Geolocation extends EventDispatcher
+class Geolocation
 {
 	/**
 		The best level of accuracy available.
@@ -90,13 +73,8 @@ class Geolocation extends EventDispatcher
 
 	private static function get_isSupported():Bool
 	{
-		__getFlightHost();
-		return FlightGeolocation.isGeolocationAvailable();
+		return false;
 	}
-
-	@:noCompletion private static var __flightHost:FlightHost;
-	@:noCompletion private var __requestedUpdateInterval:Float = 0;
-	@:noCompletion private var __watchID:Float = -1;
 
 	/**
 		This property determines the accuracy of the geolocation data on iOS.
@@ -149,29 +127,13 @@ class Geolocation extends EventDispatcher
 	**/
 	public function new()
 	{
-		super();
-		if (!isSupported) throw new IllegalOperationError("Not supported");
-
-		__startWatch();
+		throw new IllegalOperationError("Not supported");
 	}
 
 	/**
 		Requests permission to access Geolocation.
 	**/
-	public function requestPermission():Void
-	{
-		FlightGeolocation.promptForGeolocationAccess(__getFlightHost()).then(function(outcome:GeolocationAccessOutcome):GeolocationAccessOutcome
-		{
-			switch (outcome.reason)
-			{
-				case "granted": __setPermissionStatus(PermissionStatus.GRANTED);
-				case "denied": __setPermissionStatus(PermissionStatus.DENIED);
-				default: __setPermissionStatus(PermissionStatus.UNKNOWN);
-			}
-			__startWatch();
-			return outcome;
-		});
-	}
+	public function requestPermission():Void {}
 
 	/**
 		Used to set the time interval for updates, in milliseconds. The update
@@ -187,59 +149,7 @@ class Geolocation extends EventDispatcher
 		Geolocation object initially dispatches one or two `update` events. It
 		then dispatches `update` events when information changes noticeably.
 	**/
-	public function setRequestedUpdateInterval(interval:Float):Void
-	{
-		__requestedUpdateInterval = interval;
-		__startWatch();
-	}
-
-	@:noCompletion private function __startWatch():Void
-	{
-		if (__watchID >= 0) FlightGeolocation.clearGeolocationWatch(__watchID);
-		var options:GeolocationRequestOptions = {
-			enableHighAccuracy: desiredAccuracy == LOCATION_ACCURACY_BEST || desiredAccuracy == LOCATION_ACCURACY_BEST_FOR_NAVIGATION
-		};
-		if (__requestedUpdateInterval > 0) options.maximumAgeMs = __requestedUpdateInterval;
-		__watchID = FlightGeolocation.watchGeolocationPosition(__updatePosition, options, function(reason:String):Void
-		{
-			if (reason == "denied") __setPermissionStatus(PermissionStatus.DENIED);
-		});
-	}
-
-	@:noCompletion private static function __getFlightHost():FlightHost
-	{
-		if (__flightHost != null) return __flightHost;
-
-		#if (js && html5)
-		FlightHostWeb.enableHostWebGeolocation();
-		__flightHost = cast FlightHostWeb.webHost;
-		#elseif (clay && sys)
-		__flightHost = FlightHostClay.createClayHost();
-		#elseif (lime && sys)
-		if (LimeApplication.current == null) return cast {system: {}};
-		__flightHost = FlightHostLime.createLimeHost(LimeApplication.current);
-		#else
-		__flightHost = cast {system: {}};
-		#end
-
-		return __flightHost;
-	}
-
-	@:noCompletion private function __setPermissionStatus(status:PermissionStatus):Void
-	{
-		untyped this.muted = status == PermissionStatus.DENIED;
-		if (permissionStatus == status) return;
-		untyped this.permissionStatus = status;
-		dispatchEvent(new PermissionEvent(PermissionEvent.PERMISSION_STATUS, false, false, status));
-	}
-
-	@:noCompletion private function __updatePosition(position:GeoPosition):Void
-	{
-		dispatchEvent(new GeolocationEvent(GeolocationEvent.UPDATE, false, false,
-			position.latitude, position.longitude, position.altitude,
-			position.accuracy, position.altitudeAccuracy, position.speed,
-			position.heading, Timer.stamp() * 1000));
-	}
+	public function setRequestedUpdateInterval(interval:Float):Void {}
 }
 #else
 #if air
