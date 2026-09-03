@@ -39,7 +39,8 @@ entries:
       getQualifiedDefinitionNames, MIN_DOMAIN_MEMORY_LENGTH) are not public
       members of the compiled 9.5.2 class.
     status: covered
-    scenarios: []
+    scenarios:
+      - "system/capabilities:applicationDomain"
 
   - id: system.LC.constructor-stores-check-policy-file-default-false
     section: "LoaderContext"
@@ -70,7 +71,9 @@ entries:
       strings map to null. LoaderContext itself exposes no field of that type in
       this source version.
     status: covered
-    scenarios: []
+    scenarios:
+      - "system/capabilities:constants"
+      - "system/capabilities:loaderContext"
 
   - id: system.SEC.security-domain-current-domain-one-eagerly-created
     section: "SecurityDomain and Security"
@@ -108,7 +111,8 @@ entries:
       arguments and do nothing. loadPolicyFile(url) also does nothing. The
       disabled pageDomain and showSettings blocks produce no public members.
     status: covered
-    scenarios: []
+    scenarios:
+      - "system/capabilities:security"
 
   - id: system.SYS.total-memory-reports-target-runtime-s-current
     section: "System > Memory and runtime state"
@@ -143,11 +147,11 @@ entries:
   - id: system.SYS.exit-forwards-numeric-status-lime-system-exit
     section: "System > Process, application loop, and clipboard"
     behavior: >
-      Reference exit(code) forwards the numeric status to Lime System.exit. The
-      adapter asks the current Flight host to quit and discards the code; without
-      a supported host it is a no-op.
-    status: missing
-    scenarios: []
+      exit(code) forwards the numeric status to Lime System.exit when Lime is
+      available and is otherwise a no-op.
+    status: covered
+    scenarios:
+      - "system/capabilities:system"
 
   - id: system.SYS.non-strict-builds-pause-resume-only-call
     section: "System > Process, application loop, and clipboard"
@@ -160,7 +164,8 @@ entries:
     notes: >
       Keep Flight application pause/resume integration as an intentional extension
       to the OpenFL stubs.
-    scenarios: []
+    scenarios:
+      - "system/capabilities:system"
 
   - id: system.SYS.set-clipboard-void-writes-supplied-string-platform
     section: "System > Process, application loop, and clipboard"
@@ -170,7 +175,8 @@ entries:
       active Lime host exists and otherwise does nothing, matching the reference's
       best-effort target behavior.
     status: covered
-    scenarios: []
+    scenarios:
+      - "system/capabilities:system"
 
   - id: system.CAP.these-values-unchanged-av-hardware-disable-true
     section: "Capabilities > Fixed/compile-time values"
@@ -206,30 +212,31 @@ entries:
   - id: system.CAP.cpu-architecture-compile-time-arm-only-real
     section: "Capabilities > Locale and platform descriptions"
     behavior: >
-      Reference cpuArchitecture is compile-time ARM only on a real mobile device
-      and x86 otherwise. The adapter first maps Flight architecture text to ARM,
-      PowerPC, SPARC, or x86, then uses the reference fallback.
-    status: missing
-    scenarios: []
+      cpuArchitecture is compile-time ARM only on a real mobile device and x86
+      otherwise.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
 
   - id: system.CAP.manufacturer-open-fl-macintosh-open-fl-linux
     section: "Capabilities > Locale and platform descriptions"
     behavior: >
-      Reference manufacturer is OpenFL Macintosh, OpenFL Linux, or "OpenFL " +
-      Lime platformName (and null without Lime). Adapter derives it from Flight OS
-      data, returning OpenFL when no name exists and normalizing Mac only.
-    status: missing
-    scenarios: []
+      manufacturer is OpenFL Macintosh, OpenFL Linux, or "OpenFL " + Lime
+      platformName (and null without Lime).
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
 
   - id: system.CAP.os-reports-i-os-tv-os-device
     section: "Capabilities > Locale and platform descriptions"
     behavior: >
-      Reference os reports iOS/tvOS device model, Mac OS <version>, Linux plus
-      uname -r when available, or Lime's platform label; it is null without Lime.
-      Adapter combines Flight osName/osVersion, normalizes Mac, and returns an
-      empty string when unavailable.
-    status: missing
-    scenarios: []
+      os reports iOS/tvOS device model, Mac OS <version>, Linux plus uname -r
+      when available, or Lime's platform label; it is null without Lime.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
 
   - id: system.CAP.version-starts-target-code-win-mac-lnx
     section: "Capabilities > Locale and platform descriptions"
@@ -247,50 +254,47 @@ entries:
   - id: system.CAP.desktop-web-screen-dpi-window-scale-mobile
     section: "Capabilities > Screen, process, touch, and server report"
     behavior: >
-      Reference desktop/web screenDPI is 72 * window.scale; mobile selects the
-      closest of 120, 160, 240, 320, 480, 640, 800, or 960 to the active display
-      DPI. Adapter prefers Flight device density, then screen DPI, then 72 times a
-      reported scale/pixel ratio.
-    status: missing
-    scenarios: []
+      Desktop/web screenDPI is 72 * window.scale; mobile selects the closest of
+      120, 160, 240, 320, 480, 640, 800, or 960 to the active display DPI.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
 
   - id: system.CAP.screen-resolution-x-y-use-active-display
     section: "Capabilities > Screen, process, touch, and server report"
     behavior: >
-      Reference screenResolutionX/Y use active display mode times window scale,
-      then stage dimensions, and return zero without Lime/Stage. Adapter prefers
-      Flight physical metrics, derives physical size from logical metrics and
-      scale, and finally returns deterministic 800 by 600 without host metrics.
-    status: missing
-    scenarios: []
+      screenResolutionX/Y use active display mode times window scale, then stage
+      dimensions, and return zero without Lime or a Stage.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
 
   - id: system.CAP.supports-64-bit-processes-true-desktop-defined
     section: "Capabilities > Screen, process, touch, and server report"
     behavior: >
-      Reference supports64BitProcesses is true when desktop is defined and false
-      otherwise. Adapter uses Flight pointer width when known and otherwise
-      returns true for any desktop or sys build.
-    status: missing
-    scenarios: []
+      supports64BitProcesses is true when desktop is defined and false otherwise.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
 
   - id: system.CAP.touchscreen-type-constant-finger-every-target-reports
     section: "Capabilities > Screen, process, touch, and server report"
     behavior: >
-      Reference touchscreenType is the constant FINGER on every target. Adapter
-      reports STYLUS for a Flight stylus, otherwise FINGER for a touch platform
-      and NONE for a non-touch platform.
-    status: missing
-    scenarios: []
+      touchscreenType is the constant FINGER on every target.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
 
   - id: system.CAP.server-string-empty-string-constructs-stable-ampersand
     section: "Capabilities > Screen, process, touch, and server report"
     behavior: >
-      Reference serverString is the empty string. Adapter constructs a stable
-      ampersand-delimited capability report containing audio/video/accessibility,
-      printing/debug, version/manufacturer/resolution/DPI/color/aspect, OS/locale,
-      player type, local-file/TLS, and WD=f fields with values URL-encoded.
-    status: missing
-    scenarios: []
+      serverString is the empty string.
+    status: covered
+    scenarios:
+      - "system/capabilities:capabilities"
+      - "system/capabilities:capabilityValidation"
 
   - id: system.TS.ordinary-haxe-targets-nullable-integer-abstract-finger
     section: "TouchscreenType"

@@ -1,10 +1,8 @@
 package openfl.system;
 
 #if !flash
-import flight.App as FlightApp;
 import flight.Application as FlightApplication;
 import flight.Clipboard as FlightClipboard;
-import flight.types.HasAppQuit as FlightAppQuitHost;
 import flight.types.HasClipboardText as FlightClipboardTextHost;
 import flight.types.Host as FlightHost;
 #if (js && html5)
@@ -14,6 +12,9 @@ import flight.hostClay.HostClay as FlightHostClay;
 #elseif (lime && sys)
 import flight.hostLime.HostLime as FlightHostLime;
 import lime.app.Application as LimeApplication;
+#end
+#if lime
+import lime.system.System as LimeSystem;
 #end
 #if sys
 import openfl.desktop.NativeApplication;
@@ -208,8 +209,9 @@ import hl.Gc;
 	**/
 	public static function exit(code:Int):Void
 	{
-		var host:FlightAppQuitHost = cast __getHost();
-		if (host != null) FlightApp.quitApp(host);
+		#if lime
+		LimeSystem.exit(code);
+		#end
 	}
 
 	/**

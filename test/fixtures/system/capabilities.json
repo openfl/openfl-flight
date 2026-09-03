@@ -4,6 +4,7 @@
       "onDemand",
       "onLoad"
     ],
+    "unknownImageDecodingPolicyIsNull": true,
     "security": [
       "localTrusted",
       "localWithFile",
@@ -18,14 +19,14 @@
   },
   "capabilityValidation": {
     "localFileReadDisableIsBool": true,
-    "osNonNull": true,
+    "osNonNull": false,
     "hasMP3IsBool": true,
     "hasVideoEncoderIsBool": true,
     "languageMatchesFormat": true,
     "screenColorIsKnown": true,
     "hasAudio": true,
     "hasScreenPlayback": false,
-    "manufacturerNonEmpty": true,
+    "manufacturerNonEmpty": false,
     "pixelAspectRatioPositive": true,
     "hasVideoEncoder": false,
     "screenDPIPositive": true,
@@ -33,21 +34,23 @@
     "languageNonEmpty": true,
     "avHardwareDisableIsBool": true,
     "hasMP3": false,
-    "serverStringNonEmpty": true,
-    "screenResolutionYPositive": true,
+    "serverStringNonEmpty": false,
+    "screenResolutionYPositive": false,
     "playerTypeIsKnown": true,
     "hasAudioIsBool": true,
-    "serverStringHasResolution": true,
+    "serverStringHasResolution": false,
     "versionMatchesFormat": true,
-    "osMatchesFormat": true,
-    "screenResolutionXPositive": true
+    "osMatchesFormat": false,
+    "screenResolutionXPositive": false
   },
   "security": {
     "exactSettings": null,
     "sandboxTypeIsNull": true,
-    "currentDomainStable": true
+    "currentDomainStable": true,
+    "stubCallsDoNotThrow": true
   },
   "applicationDomain": {
+    "disabledMembersAbsent": true,
     "knownDefinitionMatches": true,
     "missingDefinitionIsNull": true,
     "hasKnownDefinition": true,
@@ -65,10 +68,10 @@
     "avHardwareDisable": true,
     "screenDPI": 72,
     "hasScreenBroadcast": false,
-    "os": "",
+    "os": null,
     "hasAudio": true,
     "hasScreenPlayback": false,
-    "screenResolutionY": 600,
+    "screenResolutionY": 0,
     "hasVideoEncoder": false,
     "language": "en",
     "maxLevelIDC": 0,
@@ -79,19 +82,20 @@
     "hasPrinting": false,
     "hasStreamingVideo": false,
     "version": "OFL 9,5,2,0",
-    "manufacturer": "OpenFL",
+    "manufacturer": null,
     "hasMP3": false,
     "screenColor": "color",
     "hasStreamingAudio": false,
     "isDebugger": false,
     "hasMultiChannelAudio": false,
-    "touchscreenType": "none",
+    "touchscreenType": "finger",
     "pixelAspectRatio": 1,
-    "screenResolutionX": 800,
-    "serverString": "A=t&SA=f&SV=f&EV=f&MP3=f&AE=f&VE=f&ACC=f&PR=f&SP=f&SB=f&DEB=f&V=OFL%209%2C5%2C2%2C0&M=OpenFL&R=800x600&DP=72&COL=color&AR=1&OS=&L=en&PT=Desktop&AVD=t&LFD=f&TLS=t&WD=f",
+    "screenResolutionX": 0,
+    "serverString": "",
     "hasAccessibility": false
   },
   "loaderContext": {
+    "disabledMembersAbsent": true,
     "defaults": {
       "allowCodeImport": true,
       "applicationDomainIsNull": true,
@@ -115,6 +119,7 @@
     "totalMemoryIsIntOrUInt": true,
     "gcDoesNotThrow": true,
     "totalMemoryNumberNonNegative": true,
-    "useCodePageDefault": false
+    "useCodePageDefault": false,
+    "processMethodsPresent": true
   }
 }

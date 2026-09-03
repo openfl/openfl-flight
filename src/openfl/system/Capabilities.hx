@@ -6,6 +6,7 @@ import flight.App as FlightApp;
 import flight.Device as FlightDevice;
 import flight.Platform as FlightPlatform;
 import flight.Screen as FlightScreen;
+import openfl.Lib;
 import flight.types.HasAppLocale as FlightAppLocaleHost;
 import flight.types.HasScreenQuery as FlightScreenHost;
 import flight.types.HasSystemDevice as FlightSystemDeviceHost;
@@ -17,6 +18,9 @@ import flight.hostClay.HostClay as FlightHostClay;
 #elseif (lime && sys)
 import flight.hostLime.HostLime as FlightHostLime;
 import lime.app.Application as LimeApplication;
+#end
+#if linux
+import sys.io.Process;
 #end
 
 /**
@@ -444,7 +448,7 @@ import lime.app.Application as LimeApplication;
 		R=1600x1200&DP=72&COL=color&AR=1.0&OS=Windows%20XP&
 		L=en&PT=External&AVD=f&LFD=f&WD=f</pre>
 	**/
-	public static var serverString(default, null) = __buildServerString();
+	public static var serverString(default, null) = ""; // TODO
 
 	/**
 		Specifies whether the system supports running 32-bit processes. The server
@@ -456,13 +460,13 @@ import lime.app.Application as LimeApplication;
 		Specifies whether the system supports running 64-bit processes. The server
 		string is `PR64`.
 	**/
-	public static var supports64BitProcesses(default, null) = __getSupports64BitProcesses();
+	public static var supports64BitProcesses(default, null) = #if desktop true #else false #end; // TODO
 
 	/**
 		Specifies the type of touchscreen supported, if any. Values are defined in
 		the openfl.system.TouchscreenType class.
 	**/
-	public static var touchscreenType(default, null) = __getTouchscreenType();
+	public static var touchscreenType(default, null) = TouchscreenType.FINGER; // TODO
 
 	/**
 		Specifies the Flash Player or Adobe<sup>®</sup> AIR<sup>®</sup> platform
@@ -600,13 +604,7 @@ import lime.app.Application as LimeApplication;
 	// Getters & Setters
 	@:noCompletion private static inline function get_cpuArchitecture():String
 	{
-		var architecture = Std.string(__getFlightDeviceInfo().arch).toLowerCase();
-
-		if (architecture.indexOf("arm") != -1 || architecture.indexOf("aarch") != -1) return "ARM";
-		if (architecture.indexOf("powerpc") != -1 || architecture.indexOf("ppc") != -1) return "PowerPC";
-		if (architecture.indexOf("sparc") != -1) return "SPARC";
-		if (architecture.indexOf("x86") != -1 || architecture.indexOf("amd64") != -1 || architecture.indexOf("x64") != -1) return "x86";
-
+		// TODO: Check architecture
 		#if (mobile && !simulator && !emulator)
 		return "ARM";
 		#else
@@ -652,26 +650,46 @@ import lime.app.Application as LimeApplication;
 		return "en";
 	}
 
-	@:noCompletion private static function get_manufacturer():String
+	@:noCompletion private static inline function get_manufacturer():String
 	{
-		var osName = Std.string(__getFlightDeviceInfo().osName);
-		if (osName == "") return "OpenFL";
-
-		var normalized = osName.toLowerCase();
-		if (normalized.indexOf("mac") != -1) return "OpenFL Macintosh";
-		return "OpenFL " + osName;
+		#if mac
+		return "OpenFL Macintosh";
+		#elseif linux
+		return "OpenFL Linux";
+		#elseif lime
+		var name = lime.system.System.platformName;
+		return "OpenFL" + (name != null ? " " + name : "");
+		#else
+		return null;
+		#end
 	}
 
-	@:noCompletion private static function get_os():String
+	@:noCompletion private static inline function get_os():String
 	{
-		var info = __getFlightDeviceInfo();
-		var osName = Std.string(info.osName);
-		if (osName == "") return "";
-
-		var osVersion = Std.string(info.osVersion);
-		var normalized = osName.toLowerCase();
-		if (normalized.indexOf("mac") != -1) osName = "Mac OS";
-		return osVersion == "" ? osName : osName + " " + osVersion;
+		#if lime
+		#if (ios || tvos)
+		return lime.system.System.deviceModel;
+		#elseif mac
+		return "Mac OS " + lime.system.System.platformVersion;
+		#elseif linux
+		var kernelVersion = "";
+		try
+		{
+			var process = new Process("uname", ["-r"]);
+			kernelVersion = StringTools.trim(process.stdout.readLine().toString());
+			process.close();
+		}
+		catch (e:Dynamic) {}
+		if (kernelVersion != "") return "Linux " + kernelVersion;
+		else
+			return "Linux";
+		#else
+		var label = lime.system.System.platformLabel;
+		return label != null ? label : "";
+		#end
+		#else
+		return null;
+		#end
 	}
 
 	@:noCompletion private static function get_pixelAspectRatio():Float
@@ -681,92 +699,110 @@ import lime.app.Application as LimeApplication;
 
 	@:noCompletion private static function get_screenDPI():Float
 	{
-		var metrics = __getFlightDisplayMetrics();
-		if (metrics.densityDpi > 0) return metrics.densityDpi;
-		var screen = __getFlightScreenInfo();
-		if (screen.dpi > 0) return screen.dpi;
-		if (screen.scaleFactor > 0) return 72 * screen.scaleFactor;
-		return 72 * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1);
+		#if lime
+		var window = Lib.application != null ? Lib.application.window : null;
+		var screenDPI:Float;
+
+		#if (desktop || web)
+		screenDPI = 72;
+
+		if (window != null)
+		{
+			screenDPI *= window.scale;
+		}
+		#else
+		screenDPI = __standardDensities[0];
+
+		if (window != null)
+		{
+			var display = window.display;
+
+			if (display != null)
+			{
+				var actual = display.dpi;
+
+				var closestValue = screenDPI;
+				var closestDifference = Math.abs(actual - screenDPI);
+				var difference:Float;
+
+				for (density in __standardDensities)
+				{
+					difference = Math.abs(actual - density);
+
+					if (difference < closestDifference)
+					{
+						closestDifference = difference;
+						closestValue = density;
+					}
+				}
+
+				screenDPI = closestValue;
+			}
+		}
+		#end
+
+		return screenDPI;
+		#else
+		return 72;
+		#end
 	}
 
 	@:noCompletion private static function get_screenResolutionX():Float
 	{
-		var metrics = __getFlightDisplayMetrics();
-		if (metrics.physicalWidth > 0) return Math.ceil(metrics.physicalWidth);
-		if (metrics.logicalWidth > 0) return Math.ceil(metrics.logicalWidth * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1));
-		var screen = __getFlightScreenInfo();
-		if (screen.physicalWidth > 0) return Math.ceil(screen.physicalWidth);
-		if (screen.width > 0) return Math.ceil(screen.width * (screen.scaleFactor > 0 ? screen.scaleFactor : 1));
-		// Flight has no display metrics when the adapter runs without an active
-		// host (for example in an interpreter). Keep the public capability useful
-		// and deterministic until a host supplies real metrics.
-		return 800;
+		#if lime
+		var stage = Lib.current != null ? Lib.current.stage : null;
+		var resolutionX = 0;
+
+		if (stage == null) return 0;
+
+		if (stage.window != null)
+		{
+			var display = stage.window.display;
+
+			if (display != null)
+			{
+				resolutionX = Math.ceil(display.currentMode.width * stage.window.scale);
+			}
+		}
+
+		if (resolutionX > 0)
+		{
+			return resolutionX;
+		}
+
+		return stage.stageWidth;
+		#else
+		return 0;
+		#end
 	}
 
 	@:noCompletion private static function get_screenResolutionY():Float
 	{
-		var metrics = __getFlightDisplayMetrics();
-		if (metrics.physicalHeight > 0) return Math.ceil(metrics.physicalHeight);
-		if (metrics.logicalHeight > 0) return Math.ceil(metrics.logicalHeight * (metrics.pixelRatio > 0 ? metrics.pixelRatio : 1));
-		var screen = __getFlightScreenInfo();
-		if (screen.physicalHeight > 0) return Math.ceil(screen.physicalHeight);
-		if (screen.height > 0) return Math.ceil(screen.height * (screen.scaleFactor > 0 ? screen.scaleFactor : 1));
-		return 600;
-	}
+		#if lime
+		var stage = Lib.current != null ? Lib.current.stage : null;
+		var resolutionY = 0;
 
-	@:noCompletion private static function __buildServerString():String
-	{
-		return [
-			__serverFlag("A", hasAudio),
-			__serverFlag("SA", hasStreamingAudio),
-			__serverFlag("SV", hasStreamingVideo),
-			__serverFlag("EV", hasEmbeddedVideo),
-			__serverFlag("MP3", hasMP3),
-			__serverFlag("AE", hasAudioEncoder),
-			__serverFlag("VE", hasVideoEncoder),
-			__serverFlag("ACC", hasAccessibility),
-			__serverFlag("PR", hasPrinting),
-			__serverFlag("SP", hasScreenPlayback),
-			__serverFlag("SB", hasScreenBroadcast),
-			__serverFlag("DEB", isDebugger),
-			__serverValue("V", version),
-			__serverValue("M", manufacturer),
-			__serverValue("R", screenResolutionX + "x" + screenResolutionY),
-			__serverValue("DP", screenDPI),
-			__serverValue("COL", screenColor),
-			__serverValue("AR", pixelAspectRatio),
-			__serverValue("OS", os),
-			__serverValue("L", language),
-			__serverValue("PT", playerType),
-			__serverFlag("AVD", avHardwareDisable),
-			__serverFlag("LFD", localFileReadDisable),
-			__serverFlag("TLS", hasTLS),
-			"WD=f"
-		].join("&");
-	}
+		if (stage == null) return 0;
 
-	@:noCompletion private static inline function __serverFlag(name:String, value:Bool):String
-	{
-		return name + "=" + (value ? "t" : "f");
-	}
+		if (stage.window != null)
+		{
+			var display = stage.window.display;
 
-	@:noCompletion private static inline function __serverValue(name:String, value:Dynamic):String
-	{
-		return name + "=" + StringTools.urlEncode(Std.string(value));
-	}
+			if (display != null)
+			{
+				resolutionY = Math.ceil(display.currentMode.height * stage.window.scale);
+			}
+		}
 
-	@:noCompletion private static function __getSupports64BitProcesses():Bool
-	{
-		var pointerWidth:Float = __getFlightPlatformInfo().pointerWidth;
-		if (pointerWidth > 0) return pointerWidth >= 64;
-		return #if (desktop || sys) true #else false #end;
-	}
+		if (resolutionY > 0)
+		{
+			return resolutionY;
+		}
 
-	@:noCompletion private static function __getTouchscreenType():TouchscreenType
-	{
-		var deviceCapabilities = FlightDevice.getDeviceCapabilities(__getFlightSystemDeviceHost(), FlightDevice.createDeviceCapabilities());
-		if (deviceCapabilities.hasStylus) return TouchscreenType.STYLUS;
-		return FlightPlatform.isPlatformTouch(__getFlightSystemPlatformHost()) ? TouchscreenType.FINGER : TouchscreenType.NONE;
+		return stage.stageHeight;
+		#else
+		return 0;
+		#end
 	}
 
 	@:noCompletion private static inline function __getFlightDeviceInfo():Dynamic

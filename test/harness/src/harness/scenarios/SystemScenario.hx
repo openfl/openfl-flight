@@ -1,5 +1,6 @@
 package harness.scenarios;
 
+import openfl.display.MovieClip;
 import openfl.system.ApplicationDomain;
 import openfl.system.Capabilities;
 import openfl.system.ImageDecodingPolicy;
@@ -11,11 +12,25 @@ import openfl.system.TouchscreenType;
 
 class SystemScenario {
 	public static function run():Dynamic {
+		var internalLib = Type.resolveClass("openfl.utils._internal.Lib");
+		if (internalLib != null && Reflect.field(internalLib, "current") == null) {
+			Reflect.setField(internalLib, "current", new MovieClip());
+		}
+
 		var currentApplicationDomain = ApplicationDomain.currentDomain;
 		var childApplicationDomain = new ApplicationDomain(currentApplicationDomain);
 		var defaultLoaderContext = new LoaderContext();
 		var securityDomain = SecurityDomain.currentDomain;
 		var customLoaderContext = new LoaderContext(true, childApplicationDomain, securityDomain);
+		var unknownImageDecodingPolicy:ImageDecodingPolicy = "unknown";
+		var securityStubsDoNotThrow = true;
+		try {
+			Security.allowDomain("one", "two", null, 4, true);
+			Security.allowInsecureDomain("one", "two", null, 4, true);
+			Security.loadPolicyFile("https://example.invalid/crossdomain.xml");
+		} catch (_:Dynamic) {
+			securityStubsDoNotThrow = false;
+		}
 		var totalMemory = System.totalMemory;
 		var totalMemoryNumber = System.totalMemoryNumber;
 		var language = Capabilities.language;
@@ -42,6 +57,9 @@ class SystemScenario {
 
 		return {
 			applicationDomain: {
+				disabledMembersAbsent: !Reflect.hasField(childApplicationDomain, "domainMemory")
+					&& !Reflect.hasField(childApplicationDomain, "getQualifiedDefinitionNames")
+					&& !Reflect.hasField(ApplicationDomain, "MIN_DOMAIN_MEMORY_LENGTH"),
 				currentParentIsNull: currentApplicationDomain.parentDomain == null,
 				childParentIsCurrent: childApplicationDomain.parentDomain == currentApplicationDomain,
 				hasKnownDefinition: childApplicationDomain.hasDefinition("openfl.system.System"),
@@ -89,7 +107,7 @@ class SystemScenario {
 				languageNonEmpty: language != null && language != "",
 				languageMatchesFormat: ~/^(?:[a-z]{2}|zh-(?:CN|TW)|xu)$/.match(language),
 				osNonNull: os != null,
-				osMatchesFormat: os == "" || ~/^(?:Windows|Mac OS|Linux|Android|iPhone OS)(?: |$)/.match(os),
+				osMatchesFormat: os != null && (os == "" || ~/^(?:Windows|Mac OS|Linux|Android|iPhone OS)(?: |$)/.match(os)),
 				manufacturerNonEmpty: manufacturer != null && manufacturer != "",
 				playerTypeIsKnown: ["Desktop", "PlugIn", "StandAlone"].indexOf(playerType) != -1,
 				versionNonEmpty: version != null && version != "",
@@ -113,10 +131,14 @@ class SystemScenario {
 			},
 			constants: {
 				imageDecodingPolicy: [Std.string(ImageDecodingPolicy.ON_DEMAND), Std.string(ImageDecodingPolicy.ON_LOAD)],
+				unknownImageDecodingPolicyIsNull: unknownImageDecodingPolicy == null,
 				touchscreenType: [Std.string(TouchscreenType.FINGER), Std.string(TouchscreenType.NONE), Std.string(TouchscreenType.STYLUS)],
 				security: [Security.LOCAL_TRUSTED, Security.LOCAL_WITH_FILE, Security.LOCAL_WITH_NETWORK, Security.REMOTE]
 			},
 			loaderContext: {
+				disabledMembersAbsent: !Reflect.hasField(defaultLoaderContext, "imageDecodingPolicy")
+					&& !Reflect.hasField(defaultLoaderContext, "requestedContentParent")
+					&& !Reflect.hasField(defaultLoaderContext, "uncaughtErrorEvents"),
 				defaults: {
 					allowCodeImport: defaultLoaderContext.allowCodeImport,
 					allowLoadBytesCodeExecution: defaultLoaderContext.allowLoadBytesCodeExecution,
@@ -135,7 +157,8 @@ class SystemScenario {
 			security: {
 				currentDomainStable: SecurityDomain.currentDomain == securityDomain,
 				exactSettings: Security.exactSettings,
-				sandboxTypeIsNull: Security.sandboxType == null
+				sandboxTypeIsNull: Security.sandboxType == null,
+				stubCallsDoNotThrow: securityStubsDoNotThrow
 			},
 			system: {
 				totalMemoryIsInt: Type.typeof(totalMemory) == TInt,
@@ -145,7 +168,8 @@ class SystemScenario {
 				totalMemoryNumberNonNegative: totalMemoryNumber >= 0,
 				useCodePageDefault: originalUseCodePage,
 				useCodePageMutable: changedUseCodePage == !originalUseCodePage,
-				gcDoesNotThrow: gcDoesNotThrow
+				gcDoesNotThrow: gcDoesNotThrow,
+				processMethodsPresent: System.exit != null && System.pause != null && System.resume != null && System.setClipboard != null
 			}
 		};
 	}
