@@ -9,7 +9,14 @@ entries:
     behavior: >-
       `a`, `b`, `c`, `d`, `tx`, and `ty` are freely writable numbers. The constructor stores its
       six arguments verbatim; defaults are identity `(1, 0, 0, 1, 0, 0)`.
-    status: covered
+    source:
+      - geom/Matrix.hx:new
+      - geom/Matrix.hx:a
+      - geom/Matrix.hx:b
+      - geom/Matrix.hx:c
+      - geom/Matrix.hx:d
+      - geom/Matrix.hx:tx
+      - geom/Matrix.hx:ty
     scenarios:
       - geom/matrix:custom
       - geom/matrix:identity
@@ -19,7 +26,10 @@ entries:
     behavior: >-
       `clone()` returns a distinct matrix with all six values copied. `copyFrom(source)`
       overwrites all six values, and `setTo(...)` overwrites all six directly.
-    status: covered
+    source:
+      - geom/Matrix.hx:clone
+      - geom/Matrix.hx:copyFrom
+      - geom/Matrix.hx:setTo
     scenarios:
       - geom/matrix:clone
       - geom/matrix:copyFrom
@@ -29,7 +39,8 @@ entries:
     section: "Matrix"
     behavior: >-
       `identity()` resets all six values to `(1, 0, 0, 1, 0, 0)`.
-    status: covered
+    source:
+      - geom/Matrix.hx:identity
     scenarios:
       - geom/matrix:identityReset
 
@@ -41,7 +52,8 @@ entries:
       `ty'=tx*m.b+ty*m.d+m.ty`. Thus `m` acts after the existing transform. The adapter obtains
       this order by passing `m` first and the receiver second to Flight's conventional matrix
       multiply, including for general skew/rotation cases.
-    status: covered
+    source:
+      - geom/Matrix.hx:concat
     scenarios:
       - geom/matrix:concat
 
@@ -52,7 +64,11 @@ entries:
       linear `a,b,c,d` portion. `transformPointToOutput` and `deltaTransformPointToOutput` have
       the same arithmetic and support output aliasing; a null output allocates and returns a new
       Point.
-    status: covered
+    source:
+      - geom/Matrix.hx:transformPoint
+      - geom/Matrix.hx:transformPointToOutput
+      - geom/Matrix.hx:deltaTransformPoint
+      - geom/Matrix.hx:deltaTransformPointToOutput
     scenarios:
       - geom/matrix:transformPoint
       - geom/matrix:deltaTransformPoint
@@ -63,7 +79,8 @@ entries:
     behavior: >-
       `translate(dx,dy)` adds directly to `tx` and `ty`; it does not transform the delta by the
       existing basis.
-    status: covered
+    source:
+      - geom/Matrix.hx:translate
     scenarios:
       - geom/matrix:translate
 
@@ -72,7 +89,8 @@ entries:
     behavior: >-
       `scale(sx,sy)` post-scales output coordinates: `a,c,tx` are multiplied by `sx`, while
       `b,d,ty` are multiplied by `sy`.
-    status: covered
+    source:
+      - geom/Matrix.hx:scale
     scenarios:
       - geom/matrix:scale
       - geom/matrix:composeScaleRotateTranslate
@@ -82,7 +100,8 @@ entries:
     behavior: >-
       `rotate(theta)` takes radians and rotates the complete output, including translation:
       `(a,b)`, `(c,d)`, and `(tx,ty)` each use `x'=x*cos-y*sin`, `y'=x*sin+y*cos`.
-    status: covered
+    source:
+      - geom/Matrix.hx:rotate
     scenarios:
       - geom/matrix:rotate
       - geom/matrix:composeScaleRotateTranslate
@@ -93,7 +112,8 @@ entries:
       `createBox(scaleX,scaleY,rotation,tx,ty)` replaces the matrix. At zero rotation it is
       `(scaleX,0,0,scaleY,tx,ty)`; otherwise `a=cos*scaleX`, `b=sin*scaleY`, `c=-sin*scaleX`,
       `d=cos*scaleY`.
-    status: covered
+    source:
+      - geom/Matrix.hx:createBox
     scenarios:
       - geom/matrix:createBox
 
@@ -103,7 +123,8 @@ entries:
       `createGradientBox(width,height,rotation,tx,ty)` starts with `a=width/1638.4`,
       `d=height/1638.4`, rotates those axes when requested, and centers translation at
       `(tx+width/2, ty+height/2)`.
-    status: covered
+    source:
+      - geom/Matrix.hx:createGradientBox
     scenarios:
       - geom/matrix:createGradientBox
 
@@ -113,7 +134,8 @@ entries:
       `invert()` mutates and returns the same object. For nonzero determinant `a*d-b*c`, it
       computes the affine inverse. For an exactly singular matrix it sets `a=b=c=d=0`, negates
       the old translation, and still returns the receiver rather than signaling failure.
-    status: covered
+    source:
+      - geom/Matrix.hx:invert
     scenarios:
       - geom/matrix:invert
       - geom/matrix:invertIdentity
@@ -124,7 +146,9 @@ entries:
       `copyColumnFrom(0|1|2,v)` copies `(x,y)` into `(a,b)`, `(c,d)`, or `(tx,ty)`.
       `copyColumnTo` also sets output `z` to `0`, `0`, or `1` and preserves output `w`. An index
       greater than 2 throws a string; a negative index is treated as column 2.
-    status: covered
+    source:
+      - geom/Matrix.hx:copyColumnFrom
+      - geom/Matrix.hx:copyColumnTo
     scenarios:
       - geom/matrix:copyColumns
 
@@ -135,7 +159,9 @@ entries:
       row greater than 2 throws, while a negative row is also a no-op. `copyRowTo(0|1)` performs
       the inverse mapping and any other row at or below 2 returns `(0,0,1)`; it preserves output
       `w`, and only values greater than 2 throw.
-    status: covered
+    source:
+      - geom/Matrix.hx:copyRowFrom
+      - geom/Matrix.hx:copyRowTo
     scenarios:
       - geom/matrix:copyRows
 
@@ -144,7 +170,8 @@ entries:
     behavior: >-
       `equals(other)` is a hidden-but-public exact comparison of all six fields and returns
       false for null.
-    status: covered
+    source:
+      - geom/Matrix.hx:equals
     scenarios:
       - geom/matrix:equals
 
@@ -155,7 +182,10 @@ entries:
       public `to3DString(roundPixels=false)` emits CSS `matrix3d(...)`, and `toMozString()` emits
       the Mozilla `matrix(...)` form with pixel units. The rounded `to3DString(true)` truncates
       `tx` and `ty` with `Std.int`.
-    status: covered
+    source:
+      - geom/Matrix.hx:toString
+      - geom/Matrix.hx:to3DString
+      - geom/Matrix.hx:toMozString
     scenarios:
       - geom/matrix:stringFormat
 
@@ -166,7 +196,11 @@ entries:
     behavior: >-
       `x` and `y` are freely writable; the constructor defaults both to zero. Read-only `length`
       is `sqrt(x*x+y*y)` on every access.
-    status: covered
+    source:
+      - geom/Point.hx:new
+      - geom/Point.hx:x
+      - geom/Point.hx:y
+      - geom/Point.hx:length
     scenarios:
       - geom/point:point
       - geom/point:length
@@ -177,7 +211,11 @@ entries:
       `add(v)` and `subtract(v)` allocate coordinate-wise results without changing either input.
       `addToOutput` and `subtractToOutput` overwrite/return the supplied output, or allocate a
       new Point when output is null. Their arithmetic remains safe when output aliases an input.
-    status: covered
+    source:
+      - geom/Point.hx:add
+      - geom/Point.hx:addToOutput
+      - geom/Point.hx:subtract
+      - geom/Point.hx:subtractToOutput
     scenarios:
       - geom/point:add
       - geom/point:subtract
@@ -187,7 +225,10 @@ entries:
     behavior: >-
       `clone()` returns a distinct copy; `copyFrom(source)` and `setTo(x,y)` overwrite the
       receiver.
-    status: covered
+    source:
+      - geom/Point.hx:clone
+      - geom/Point.hx:copyFrom
+      - geom/Point.hx:setTo
     scenarios:
       - geom/point:copyFrom
       - geom/point:setTo
@@ -196,7 +237,8 @@ entries:
     section: "Point"
     behavior: >-
       `distance(a,b)` is Euclidean distance and is symmetric.
-    status: covered
+    source:
+      - geom/Point.hx:distance
     scenarios:
       - geom/point:distanceFromOrigin
       - geom/point:distanceKnownPoints
@@ -205,7 +247,8 @@ entries:
     section: "Point"
     behavior: >-
       `equals(other)` requires non-null and exact `x` and `y` equality.
-    status: covered
+    source:
+      - geom/Point.hx:equals
     scenarios:
       - geom/point:equals
 
@@ -215,7 +258,9 @@ entries:
       `interpolate(pt1,pt2,f)` computes `pt2 + f*(pt1-pt2)`: `f=0` returns pt2's coordinates,
       `f=1` pt1's, and values outside `[0,1]` extrapolate. `interpolateToOutput` is identical,
       reuses an output when supplied, and allocates a new Point when it is null.
-    status: covered
+    source:
+      - geom/Point.hx:interpolate
+      - geom/Point.hx:interpolateToOutput
     scenarios:
       - geom/point:interpolate
 
@@ -224,7 +269,8 @@ entries:
     behavior: >-
       `normalize(thickness)` leaves `(0,0)` unchanged; otherwise it scales the vector to the
       requested signed length. A negative thickness reverses direction.
-    status: covered
+    source:
+      - geom/Point.hx:normalize
     scenarios:
       - geom/point:normalizeToTen
 
@@ -232,7 +278,8 @@ entries:
     section: "Point"
     behavior: >-
       `offset(dx,dy)` adds both deltas in place.
-    status: covered
+    source:
+      - geom/Point.hx:offset
     scenarios:
       - geom/point:offset
 
@@ -241,7 +288,9 @@ entries:
     behavior: >-
       `polar(len,angle)` returns `(len*cos(angle), len*sin(angle))`, with angle in radians;
       `polarToOutput` is identical, reusing a non-null output or allocating a Point for null.
-    status: covered
+    source:
+      - geom/Point.hx:polar
+      - geom/Point.hx:polarToOutput
     scenarios:
       - geom/point:polar
 
@@ -249,7 +298,8 @@ entries:
     section: "Point"
     behavior: >-
       `toString()` is exactly `(x=value, y=value)`.
-    status: covered
+    source:
+      - geom/Point.hx:toString
     scenarios:
       - geom/point:stringFormat
 
@@ -260,7 +310,15 @@ entries:
     behavior: >-
       `x`, `y`, `width`, and `height` are freely writable and default to zero. `clone`,
       `copyFrom`, and `setTo` copy or replace all four values exactly.
-    status: covered
+    source:
+      - geom/Rectangle.hx:new
+      - geom/Rectangle.hx:x
+      - geom/Rectangle.hx:y
+      - geom/Rectangle.hx:width
+      - geom/Rectangle.hx:height
+      - geom/Rectangle.hx:clone
+      - geom/Rectangle.hx:copyFrom
+      - geom/Rectangle.hx:setTo
     scenarios:
       - geom/rectangle:construct
       - geom/rectangle:constructDefault
@@ -275,7 +333,11 @@ entries:
       `left`/`top` read `x`/`y`. Setting either moves that edge while preserving the old
       opposite edge by adjusting width/height. `right=x+width` and `bottom=y+height`; setting
       either changes only width/height relative to the unchanged origin.
-    status: covered
+    source:
+      - geom/Rectangle.hx:left
+      - geom/Rectangle.hx:top
+      - geom/Rectangle.hx:right
+      - geom/Rectangle.hx:bottom
     scenarios:
       - geom/rectangle:derivedProps
       - geom/rectangle:setters
@@ -286,7 +348,9 @@ entries:
       `topLeft` and `bottomRight` getters allocate new Points. Setting `topLeft` changes only
       `x,y`; setting `bottomRight` changes `width,height` relative to the origin. The internal
       setter returns a clone, so the rectangle never retains either Point.
-    status: covered
+    source:
+      - geom/Rectangle.hx:topLeft
+      - geom/Rectangle.hx:bottomRight
     scenarios:
       - geom/rectangle:derivedProps
       - geom/rectangle:setters
@@ -296,7 +360,8 @@ entries:
     behavior: >-
       `size` gets a new `(width,height)` Point and setting it copies both components; the input
       Point is not retained.
-    status: covered
+    source:
+      - geom/Rectangle.hx:size
     scenarios:
       - geom/rectangle:derivedProps
       - geom/rectangle:setters
@@ -306,7 +371,9 @@ entries:
     behavior: >-
       `contains(px,py)` and `containsPoint(p)` use a half-open region: left/top inclusive,
       right/bottom exclusive. Non-positive receiver dimensions cannot contain a point.
-    status: covered
+    source:
+      - geom/Rectangle.hx:contains
+      - geom/Rectangle.hx:containsPoint
     scenarios:
       - geom/rectangle:contains
       - geom/rectangle:containsPoint
@@ -318,7 +385,8 @@ entries:
       `r.height<=0`, all four edges must be strictly inside the receiver; this is source
       behavior even though such a rectangle is empty. Negative receiver dimensions are not
       normalized.
-    status: covered
+    source:
+      - geom/Rectangle.hx:containsRect
     scenarios:
       - geom/rectangle:containsRect
 
@@ -330,7 +398,9 @@ entries:
       overwrites and returns its output with the same rule, allocating a new Rectangle when the
       output argument is null. Neither rectangle is normalized first, so negative dimensions
       follow the raw edge arithmetic.
-    status: covered
+    source:
+      - geom/Rectangle.hx:intersection
+      - geom/Rectangle.hx:intersectionToOutput
     scenarios:
       - geom/rectangle:intersection
 
@@ -338,7 +408,8 @@ entries:
     section: "Rectangle"
     behavior: >-
       `intersects(r)` requires strictly positive overlap on both axes; edge touching is false.
-    status: covered
+    source:
+      - geom/Rectangle.hx:intersects
     scenarios:
       - geom/rectangle:intersects
 
@@ -349,7 +420,9 @@ entries:
       **equals** zero (not when negative). If the receiver is empty it returns `r.clone`; if `r`
       is empty it returns `clone`; otherwise it encloses raw left/right/top/bottom edges.
       `unionToOutput` has the same rules and allocates a new Rectangle when output is null.
-    status: covered
+    source:
+      - geom/Rectangle.hx:union
+      - geom/Rectangle.hx:unionToOutput
     scenarios:
       - geom/rectangle:union
 
@@ -359,7 +432,9 @@ entries:
       `inflate(dx,dy)` subtracts the deltas from the origin and adds twice each delta to size;
       negative deltas shrink and can create negative size. `inflatePoint` delegates
       component-wise.
-    status: covered
+    source:
+      - geom/Rectangle.hx:inflate
+      - geom/Rectangle.hx:inflatePoint
     scenarios:
       - geom/rectangle:inflate
       - geom/rectangle:deflatePastZero
@@ -368,7 +443,9 @@ entries:
     section: "Rectangle"
     behavior: >-
       `offset(dx,dy)` and `offsetPoint(p)` move only the origin.
-    status: covered
+    source:
+      - geom/Rectangle.hx:offset
+      - geom/Rectangle.hx:offsetPoint
     scenarios:
       - geom/rectangle:offset
       - geom/rectangle:offsetPoint
@@ -378,7 +455,9 @@ entries:
     behavior: >-
       `isEmpty()` is true when `width<=0 || height<=0`. `setEmpty()` canonicalizes all four
       fields to zero.
-    status: covered
+    source:
+      - geom/Rectangle.hx:isEmpty
+      - geom/Rectangle.hx:setEmpty
     scenarios:
       - geom/rectangle:isEmpty
       - geom/rectangle:setEmpty
@@ -388,7 +467,8 @@ entries:
     behavior: >-
       `equals(other)` is true for the same object, otherwise requires non-null and exact
       equality of all four fields.
-    status: covered
+    source:
+      - geom/Rectangle.hx:equals
     scenarios:
       - geom/rectangle:equals
 
@@ -396,7 +476,8 @@ entries:
     section: "Rectangle"
     behavior: >-
       `toString()` is exactly `(x=value, y=value, width=value, height=value)`.
-    status: covered
+    source:
+      - geom/Rectangle.hx:toString
     scenarios:
       - geom/rectangle:stringFormat
 
@@ -407,7 +488,14 @@ entries:
     behavior: >-
       `x`, `y`, `z`, and `w` are freely writable and default to zero. `length`/`lengthSquared`
       use only `x,y,z`.
-    status: covered
+    source:
+      - geom/Vector3D.hx:new
+      - geom/Vector3D.hx:x
+      - geom/Vector3D.hx:y
+      - geom/Vector3D.hx:z
+      - geom/Vector3D.hx:w
+      - geom/Vector3D.hx:length
+      - geom/Vector3D.hx:lengthSquared
     scenarios:
       - geom/vector3d:construct
       - geom/vector3d:constructDefault
@@ -419,7 +507,10 @@ entries:
     section: "Vector3D"
     behavior: >-
       `X_AXIS`, `Y_AXIS`, and `Z_AXIS` return a new unit vector on every access, with `w=0`.
-    status: covered
+    source:
+      - geom/Vector3D.hx:X_AXIS
+      - geom/Vector3D.hx:Y_AXIS
+      - geom/Vector3D.hx:Z_AXIS
     scenarios:
       - geom/vector3d:axes
 
@@ -428,7 +519,10 @@ entries:
     behavior: >-
       `clone()` copies all four components. `copyFrom(source)` and `setTo(x,y,z)` copy only
       `x,y,z`, deliberately preserving the receiver's existing `w`.
-    status: covered
+    source:
+      - geom/Vector3D.hx:clone
+      - geom/Vector3D.hx:copyFrom
+      - geom/Vector3D.hx:setTo
     scenarios:
       - geom/vector3d:clone
       - geom/vector3d:copyFrom
@@ -441,7 +535,13 @@ entries:
       operate only on `x,y,z`; newly allocated results have `w=0`, while output/in-place forms
       preserve existing `w`. Each `*ToOutput` form allocates when output is null and safely
       supports output aliasing either input.
-    status: covered
+    source:
+      - geom/Vector3D.hx:add
+      - geom/Vector3D.hx:addToOutput
+      - geom/Vector3D.hx:subtract
+      - geom/Vector3D.hx:subtractToOutput
+      - geom/Vector3D.hx:incrementBy
+      - geom/Vector3D.hx:decrementBy
     scenarios:
       - geom/vector3d:add
       - geom/vector3d:subtract
@@ -452,7 +552,8 @@ entries:
     section: "Vector3D"
     behavior: >-
       `distance(a,b)` is three-dimensional Euclidean distance and ignores `w`.
-    status: covered
+    source:
+      - geom/Vector3D.hx:distance
     scenarios:
       - geom/vector3d:distance
 
@@ -462,7 +563,10 @@ entries:
       `dotProduct(a)` uses `x,y,z`. `crossProduct(a)` is the right-handed `this × a`:
       `(y*az-z*ay, z*ax-x*az, x*ay-y*ax)` and forces result `w=1`; `crossProductToOutput` does
       the same, allocating when output is null and supporting output aliasing either operand.
-    status: covered
+    source:
+      - geom/Vector3D.hx:dotProduct
+      - geom/Vector3D.hx:crossProduct
+      - geom/Vector3D.hx:crossProductToOutput
     scenarios:
       - geom/vector3d:dotProduct
       - geom/vector3d:crossProduct
@@ -473,7 +577,8 @@ entries:
       `angleBetween(a,b)` computes `acos(dot/(|a||b|))`, but divides by each length only when
       that length is nonzero and does not clamp the ratio. A zero vector paired with any vector
       therefore yields `acos(0) = π/2`; rounding can produce `NaN` outside `[-1,1]`.
-    status: covered
+    source:
+      - geom/Vector3D.hx:angleBetween
     scenarios:
       - geom/vector3d:angleBetween
 
@@ -483,7 +588,9 @@ entries:
       `equals(other,allFour=false)` compares `x,y,z` exactly and optionally `w`; it does not
       null-check. `nearEquals` uses strict `< tolerance` per component, optionally including
       `w`, so equality with tolerance zero is false.
-    status: covered
+    source:
+      - geom/Vector3D.hx:equals
+      - geom/Vector3D.hx:nearEquals
     scenarios:
       - geom/vector3d:equals
       - geom/vector3d:nearEquals
@@ -492,7 +599,9 @@ entries:
     section: "Vector3D"
     behavior: >-
       `negate()` and `scaleBy(s)` mutate only `x,y,z`; `w` is preserved.
-    status: covered
+    source:
+      - geom/Vector3D.hx:negate
+      - geom/Vector3D.hx:scaleBy
     scenarios:
       - geom/vector3d:negate
       - geom/vector3d:scaleBy
@@ -502,7 +611,8 @@ entries:
     behavior: >-
       `normalize()` returns the original three-dimensional length, divides `x,y,z` only when it
       is nonzero, and preserves `w`. A zero vector remains unchanged and returns zero.
-    status: covered
+    source:
+      - geom/Vector3D.hx:normalize
     scenarios:
       - geom/vector3d:normalize
       - geom/vector3d:zeroLength
@@ -511,7 +621,8 @@ entries:
     section: "Vector3D"
     behavior: >-
       `project()` divides `x,y,z` by `w` without a zero guard and leaves `w` unchanged.
-    status: covered
+    source:
+      - geom/Vector3D.hx:project
     scenarios:
       - geom/vector3d:project
 
@@ -519,7 +630,8 @@ entries:
     section: "Vector3D"
     behavior: >-
       `toString()` is `Vector3D(x, y, z)` and omits `w`.
-    status: covered
+    source:
+      - geom/Vector3D.hx:toString
     scenarios:
       - geom/vector3d:stringFormat
 
@@ -532,7 +644,9 @@ entries:
       0 and translation is at `12,13,14`. Despite its comment, assigning a short or singular
       Vector is not validated. The constructor copies an input only when its length is exactly
       16; null or any other length produces identity.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:new
+      - geom/Matrix3D.hx:rawData
     scenarios:
       - geom/matrix3d:custom
       - geom/matrix3d:identity
@@ -544,7 +658,9 @@ entries:
       `(rawData[12],rawData[13],rawData[14],0)` and its setter changes only those three slots.
       The setter reads the supplied Vector3D directly, so assigning null throws before any slot
       is changed.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:determinant
+      - geom/Matrix3D.hx:position
     scenarios:
       - geom/matrix3d:determinant
       - geom/matrix3d:identityDeterminant
@@ -557,7 +673,10 @@ entries:
       `copyFrom` and `copyToMatrix3D` replace the destination's `rawData` reference with a copy of
       the source of any length. `clone()` feeds a copy back through the constructor, so malformed-
       length rawData yields identity.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:clone
+      - geom/Matrix3D.hx:copyFrom
+      - geom/Matrix3D.hx:copyToMatrix3D
     scenarios:
       - geom/matrix3d:clone
       - geom/matrix3d:copyRawDataReferences
@@ -569,7 +688,11 @@ entries:
       contiguous column. Invalid signed columns silently do nothing. `copyRowFrom/To(0..3)` use
       indices `row,row+4,row+8,row+12`; invalid rows silently do nothing. A null Vector3D throws
       for a valid index, but an invalid index does not dereference it.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:copyColumnFrom
+      - geom/Matrix3D.hx:copyColumnTo
+      - geom/Matrix3D.hx:copyRowFrom
+      - geom/Matrix3D.hx:copyRowTo
     scenarios:
       - geom/matrix3d:copyColumnsRows
 
@@ -581,7 +704,8 @@ entries:
       intact. With transpose true it transposes the receiver before the partial copy and
       transposes it back afterward. A null source throws; when transpose is true that failure
       happens after the first transpose, leaving the receiver transposed.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:copyRawDataFrom
     scenarios:
       - geom/matrix3d:copyRawData.from
 
@@ -593,7 +717,8 @@ entries:
       With transpose true it temporarily transposes the receiver, writes, then restores it. A
       null destination throws on the first write; with transpose true the exception prevents
       restoration and leaves the receiver transposed.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:copyRawDataTo
     scenarios:
       - geom/matrix3d:copyRawData.to
 
@@ -602,7 +727,8 @@ entries:
     behavior: >-
       `identity()` replaces `rawData` with a new 16-element identity Vector, so external references
       to the old Vector no longer observe subsequent matrix mutations.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:identity
     scenarios:
       - geom/matrix3d:identityRawDataReference
 
@@ -610,7 +736,8 @@ entries:
     section: "Matrix3D > Storage, copying, and addressing"
     behavior: >-
       `transpose()` swaps rows and columns in place, including translation/projective slots.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:transpose
     scenarios:
       - geom/matrix3d:transpose
 
@@ -622,7 +749,9 @@ entries:
       `append(lhs)` computes `this = lhs * this`; the appended transform acts in world/output
       space after the existing transform. `prepend(rhs)` computes `this = this * rhs`; the
       prepended transform acts in object/input space. The order is intentionally noncommutative.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:append
+      - geom/Matrix3D.hx:prepend
     scenarios:
       - geom/matrix3d:append
       - geom/matrix3d:prepend
@@ -633,7 +762,9 @@ entries:
       `appendTranslation(x,y,z)` is a source shortcut that adds directly to indices `12..14`; it
       does not perform a full matrix multiply for projective matrices. `prependTranslation`
       multiplies by a normal translation matrix on the right.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:appendTranslation
+      - geom/Matrix3D.hx:prependTranslation
     scenarios:
       - geom/matrix3d:appendTranslation
       - geom/matrix3d:prependTranslation
@@ -642,7 +773,9 @@ entries:
     section: "Matrix3D > Multiplication and incremental transforms"
     behavior: >-
       `appendScale` left-multiplies a diagonal scale; `prependScale` right-multiplies it.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:appendScale
+      - geom/Matrix3D.hx:prependScale
     scenarios:
       - geom/matrix3d:appendScale
       - geom/matrix3d:prependScale
@@ -654,7 +787,9 @@ entries:
       axis-angle matrix, optionally rotate around `pivotPoint`, and multiply on the
       corresponding side. A zero-length axis produces a matrix whose 3×3 basis is all zero (not
       identity), collapsing the spatial transform; the adapter explicitly preserves this oddity.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:appendRotation
+      - geom/Matrix3D.hx:prependRotation
     scenarios:
       - geom/matrix3d:appendRotation
       - geom/matrix3d:prependRotation
@@ -667,7 +802,9 @@ entries:
       `[cos*scale,-sin*scale,0,0]`, `[sin*scale,cos*scale,0,0]`, `[0,0,1,0]`, `[x,y,0,1]`.
       `createABCD(a,b,c,d,tx,ty)` embeds those six values as
       `[a,b,0,0,c,d,0,0,0,0,1,0,tx,ty,0,1]`.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:create2D
+      - geom/Matrix3D.hx:createABCD
     scenarios:
       - geom/matrix3d:createHelpers.create2D
       - geom/matrix3d:createHelpers.createABCD
@@ -678,7 +815,8 @@ entries:
       Hidden public `createOrtho(x0,x1,y0,y1,zNear,zFar)` uses `sx=1/(x1-x0)`, `sy=1/(y1-y0)`,
       `sz=1/(zFar-zNear)`, diagonal `(2*sx,2*sy,-2*sz,1)`, and translation `(-(x0+x1)*sx,
       -(y0+y1)*sy, -(zNear+zFar)*sz)`. Zero extents divide by zero rather than throwing.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:createOrtho
     scenarios:
       - geom/matrix3d:createHelpers.createOrtho
 
@@ -692,7 +830,11 @@ entries:
       `deltaTransformVector(v)` and `deltaTransformVectorToOutput` use implicit input `w=0`,
       excluding ordinary translation but retaining projective fourth-row terms. Both output
       forms allocate a Vector3D when output is null and support aliasing the input.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:transformVector
+      - geom/Matrix3D.hx:transformVectorToOutput
+      - geom/Matrix3D.hx:deltaTransformVector
+      - geom/Matrix3D.hx:deltaTransformVectorToOutput
     scenarios:
       - geom/matrix3d:transformVector
       - geom/matrix3d:deltaTransformVector
@@ -704,7 +846,8 @@ entries:
       `transformVectors(vin,vout)` consumes complete triples only, transforms each with implicit
       `w=1`, and writes results at the same numeric indices in `vout`; one or two trailing input
       values are ignored.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:transformVectors
     scenarios:
       - geom/matrix3d:transformVectorTriples
 
@@ -715,7 +858,10 @@ entries:
       `interpolateTo` linearly interpolate each of the 16 raw elements. The static output form
       allocates a Matrix3D when output is null. They do not decompose or use quaternions despite
       API prose, and percentages outside `[0,1]` extrapolate.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:interpolate
+      - geom/Matrix3D.hx:interpolateToOutput
+      - geom/Matrix3D.hx:interpolateTo
     scenarios:
       - geom/matrix3d:interpolateElements
 
@@ -726,8 +872,9 @@ entries:
       leaves the matrix unchanged. The adapter preserves the OpenFL precheck, but Flight
       `inverseMatrix4` rejects determinants at or below `1e-6`, so the interval `(1e-11,1e-6]`
       incorrectly returns false. Blocker: **Inverse matrix determinant threshold**.
-    status: flight-gap
-    gap: "Inverse matrix determinant threshold"
+    source:
+      - geom/Matrix3D.hx:invert
+    notes: 'Blocked on Flight gap "Inverse matrix determinant threshold".'
     scenarios:
       - geom/matrix3d:invert
 
@@ -739,7 +886,8 @@ entries:
       `decompose(style)` returns `[translation, rotation, scale]`. Scale is the length of each
       of the first three columns; a negative 3×3 determinant makes `scale.z` negative. The basis
       is divided by those scales without zero guards.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:decompose
     scenarios:
       - geom/matrix3d:decomposeEuler
       - geom/matrix3d:decomposeAxisAngle
@@ -750,7 +898,8 @@ entries:
     behavior: >-
       Euler decomposition returns radians: `y=asin(-m[2])`, normally `x=atan2(m[6],m[10])`,
       `z=atan2(m[1],m[0])`; at exact `m[2]==±1`, `z=0` and `x=atan2(m[4],m[5])`.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:decompose
     scenarios:
       - geom/matrix3d:decomposeEuler
 
@@ -761,7 +910,8 @@ entries:
       `w`; a zero antisymmetric length yields a zero axis. Quaternion decomposition uses the
       trace/largest-diagonal branches and returns the quaternion in all four fields. A null or
       unrecognized orientation value matches no switch branch and leaves rotation `(0,0,0,0)`.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:decompose
     scenarios:
       - geom/matrix3d:decomposeAxisAngle
       - geom/matrix3d:decomposeQuaternion
@@ -774,7 +924,8 @@ entries:
       and `output[2]` as rotation, then assigns the final order `[position,rotation,scale]`.
       Consequently caller-supplied rotation/scale objects exchange slots and roles; the adapter
       preserves this source quirk.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:decomposeToOutput
     scenarios:
       - geom/matrix3d:decomposeOutputAliasing
 
@@ -786,7 +937,8 @@ entries:
       rotation can throw despite the prose. Euler inputs are radians; axis-angle uses the
       supplied (not normalized) axis `xyz` plus angle `w`; any other style is treated as
       quaternion. For valid components the adapter preserves the formulas and returns true.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:recompose
     scenarios:
       - geom/matrix3d:recompose
 
@@ -796,7 +948,9 @@ entries:
       A successful `recompose` first calls `identity()`, replacing the `rawData` Vector before
       filling it. A previously retained rawData reference therefore does not observe the newly
       recomposed values.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:recompose
+      - geom/Matrix3D.hx:identity
     scenarios:
       - geom/matrix3d:recomposeRawDataReference
 
@@ -806,7 +960,9 @@ entries:
       Reflection decomposition is adapter-remapped from Flight's negative-X convention to
       OpenFL's negative-Z convention. This is local compatibility logic, not a remaining
       blocker.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:decompose
+      - geom/Matrix3D.hx:recompose
     scenarios:
       - geom/matrix3d:reflectionNegativeZ
 
@@ -818,7 +974,8 @@ entries:
       a fallback perpendicular if parallel, and writes basis values into columns while writing
       `pos` into indices `3,7,11` rather than normal translation slots. Degenerate `pos==at`
       produces a largely zero basis rather than throwing.
-    status: covered
+    source:
+      - geom/Matrix3D.hx:pointAt
     scenarios:
       - geom/matrix3d:pointAtSourceQuirk
 
@@ -830,7 +987,10 @@ entries:
       Construction is tied to one DisplayObject and starts with an identity private
       ColorTransform, identity 2D-matrix mode, an identity `concatenatedColorTransform` object,
       and an empty `pixelBounds` object.
-    status: covered
+    source:
+      - geom/Transform.hx:new
+      - geom/Transform.hx:concatenatedColorTransform
+      - geom/Transform.hx:pixelBounds
     scenarios:
       - geom/transform:transformIdentity
 
@@ -839,7 +999,8 @@ entries:
     behavior: >-
       `matrix` returns a new clone of the DisplayObject's local affine matrix when 2D mode is
       active, otherwise null. Mutating the returned Matrix has no effect until assigned back.
-    status: covered
+    source:
+      - geom/Transform.hx:matrix
     scenarios:
       - geom/transform:matrixGetterClone
 
@@ -849,7 +1010,8 @@ entries:
       Setting non-null `matrix` enables 2D mode, disables 3D mode, copies the six affine values
       to the DisplayObject, derives positive scale magnitudes and rotation in degrees, and marks
       its transform dirty. Setting null only disables 2D mode.
-    status: covered
+    source:
+      - geom/Transform.hx:matrix
     scenarios:
       - geom/transform:matrixSetterProperties
       - geom/transform:matrixSync
@@ -864,7 +1026,8 @@ entries:
       embedding of the same 2D affine matrix. Setting non-null `matrix3D` enables 3D mode,
       disables 2D mode, and retains only raw slots `0,1,4,5,12,13`; all other 3D information is
       discarded. Setting null only disables 3D mode.
-    status: covered
+    source:
+      - geom/Transform.hx:matrix3D
     scenarios:
       - geom/transform:matrixMutualExclusion
 
@@ -874,7 +1037,8 @@ entries:
       `concatenatedMatrix` returns a fresh clone of the current world affine transform in 2D
       mode and null in 3D mode. Parent order follows display ancestry; caller mutation cannot
       affect the DisplayObject.
-    status: covered
+    source:
+      - geom/Transform.hx:concatenatedMatrix
     scenarios:
       - geom/transform:concatenatedMatrix
       - geom/transform:concatenatedMatrixReadOnly
@@ -887,7 +1051,8 @@ entries:
       mirrors its `alphaMultiplier` into `displayObject.alpha`, and dirties rendering only when
       values differ. Assigning null reaches the copy path and fails rather than clearing the
       transform.
-    status: covered
+    source:
+      - geom/Transform.hx:colorTransform
     scenarios:
       - geom/transform:colorTransformAccess
 
@@ -898,7 +1063,8 @@ entries:
       its Flight node and inherited with ancestor adjustments, while alpha multiplier continues
       through DisplayObject alpha. The public `concatenatedColorTransform` field retains OpenFL
       9.5.2's quirk of remaining the mutable identity object created by the constructor.
-    status: covered
+    source:
+      - geom/Transform.hx:concatenatedColorTransform
     scenarios:
       - geom/transform:concatenatedColorTransform
       - geom/transform:renderColorAdjustments
@@ -909,7 +1075,8 @@ entries:
       `pixelBounds` is a read-only reference initialized to `(0,0,0,0)` and never updated by the
       9.5.2 non-Flash implementation, even on-stage; callers can still mutate the returned
       Rectangle directly. The adapter preserves this source behavior.
-    status: covered
+    source:
+      - geom/Transform.hx:pixelBounds
     scenarios:
       - geom/transform:pixelBoundsLifecycle
 
@@ -920,7 +1087,9 @@ entries:
       a whole DisplayObject `transform` is handled by DisplayObject: null throws, local
       matrix/color values are copied, and the Transform wrapper remains owned by the destination
       object.
-    status: covered
+    source:
+      - geom/Transform.hx:matrix
+      - geom/Transform.hx:colorTransform
     scenarios:
       - geom/transform:matrixGetterClone
       - geom/transform:colorTransformAccess
@@ -931,7 +1100,10 @@ entries:
       The non-Flash 9.5.2 source does not compile the documented `perspectiveProjection` field,
       `getRelativeMatrix3D(relativeTo)`, or `getRelativeMatrix3DToOutput(relativeTo,output)`:
       the field is commented out and both methods are commented inside `#if false`.
-    status: missing
+    source:
+      - geom/Transform.hx:perspectiveProjection
+      - geom/Transform.hx:getRelativeMatrix3D
+      - geom/Transform.hx:getRelativeMatrix3DToOutput
     notes: >-
       Applies to the non-Flash OpenFL implementation; Flash uses its native Transform type.
     scenarios: []
@@ -945,7 +1117,16 @@ entries:
       fields default to 1; `redOffset`, `greenOffset`, `blueOffset`, and `alphaOffset` default
       to 0. All eight are freely writable, with no clamping even for negative or
       greater-than-255 offsets.
-    status: covered
+    source:
+      - geom/ColorTransform.hx:new
+      - geom/ColorTransform.hx:redMultiplier
+      - geom/ColorTransform.hx:greenMultiplier
+      - geom/ColorTransform.hx:blueMultiplier
+      - geom/ColorTransform.hx:alphaMultiplier
+      - geom/ColorTransform.hx:redOffset
+      - geom/ColorTransform.hx:greenOffset
+      - geom/ColorTransform.hx:blueOffset
+      - geom/ColorTransform.hx:alphaOffset
     scenarios:
       - geom/color-transform:defaults
       - geom/color-transform:custom
@@ -957,7 +1138,8 @@ entries:
       `concat(second)` composes `second` after the receiver per channel: `offset = second.offset
       * oldMultiplier + oldOffset`, then `multiplier *= second.multiplier`. It mutates only the
       receiver.
-    status: covered
+    source:
+      - geom/ColorTransform.hx:concat
     scenarios:
       - geom/color-transform:concat
 
@@ -968,7 +1150,8 @@ entries:
       Std.int(blueOffset)` without independently masking the stored offsets. Setter extracts the
       low 24-bit RGB bytes into offsets, zeros the three RGB multipliers, and preserves both
       alpha fields; its returned value is the resulting getter value.
-    status: covered
+    source:
+      - geom/ColorTransform.hx:color
     scenarios:
       - geom/color-transform:colorGet
       - geom/color-transform:colorSet
@@ -978,7 +1161,8 @@ entries:
     behavior: >-
       `toString()` lists all eight names and values in red/green/blue/alpha multiplier order
       followed by offsets.
-    status: covered
+    source:
+      - geom/ColorTransform.hx:toString
     scenarios:
       - geom/color-transform:stringFormat
 
@@ -991,7 +1175,14 @@ entries:
       inversion maps nonzero multipliers to reciprocals, zero multipliers to 1, and negates
       offsets. The render-facing combine operation multiplies channel multipliers but directly
       adds offsets, unlike public `concat`, which scales the second offsets first.
-    status: covered
+    source:
+      - geom/ColorTransform.hx:__clone
+      - geom/ColorTransform.hx:__copyFrom
+      - geom/ColorTransform.hx:__equals
+      - geom/ColorTransform.hx:__identity
+      - geom/ColorTransform.hx:__invert
+      - geom/ColorTransform.hx:__isDefault
+      - geom/ColorTransform.hx:__combine
     scenarios:
       - geom/color-transform:identity
       - geom/color-transform:custom
@@ -1001,7 +1192,9 @@ entries:
     behavior: >-
       No component is clamped by the object itself. Pixel/render consumers perform any eventual
       channel clamping or offset normalization.
-    status: covered
+    source:
+      - geom/ColorTransform.hx:redMultiplier
+      - geom/ColorTransform.hx:redOffset
     scenarios:
       - geom/color-transform:edgeCases
 
@@ -1015,7 +1208,8 @@ entries:
       dereferences `Lib.current.stage`, so construction fails if the current display root or its
       Stage is null. Builds with `openfl_unit_testing` use `(0,0)` without Stage access. It also
       owns one reusable identity Matrix3D.
-    status: covered
+    source:
+      - geom/PerspectiveProjection.hx:new
     notes: >-
       Projection-center initialization is selected by the `openfl_unit_testing` define and is
       the class's only coupling to Stage dimensions.
@@ -1030,7 +1224,10 @@ entries:
       exposes that radian value through the getter. It sets `focalLength = 250 /
       tan(storedRadians/2)` without range checks. Setting `focalLength` directly does not update
       `fieldOfView`.
-    status: covered
+    source:
+      - geom/PerspectiveProjection.hx:TO_RADIAN
+      - geom/PerspectiveProjection.hx:fieldOfView
+      - geom/PerspectiveProjection.hx:focalLength
     scenarios:
       - geom/perspective-projection:fieldOfView
 
@@ -1039,7 +1236,8 @@ entries:
     behavior: >-
       `projectionCenter` is a freely replaceable Point reference. Its coordinates are not used
       in matrix construction; only nullness matters.
-    status: covered
+    source:
+      - geom/PerspectiveProjection.hx:projectionCenter
     scenarios:
       - geom/perspective-projection:projectionCenterOwned
 
@@ -1050,7 +1248,8 @@ entries:
       private field-of-view storage is null). Otherwise it mutates and returns the same owned
       Matrix3D every call, setting only raw entries `0=focalLength`, `5=focalLength`, `11=1`,
       and `15=0`; untouched entries retain their prior values.
-    status: covered
+    source:
+      - geom/PerspectiveProjection.hx:toMatrix3D
     notes: >-
       The private field-of-view null guard is compiled only for the Neko target; all targets
       guard a null projectionCenter.
@@ -1062,7 +1261,8 @@ entries:
     behavior: >-
       `toMatrix3DToOutput(output)` has the same null guard and four writes, allocates on null,
       and deliberately leaves every other pre-existing output entry untouched.
-    status: covered
+    source:
+      - geom/PerspectiveProjection.hx:toMatrix3DToOutput
     scenarios:
       - geom/perspective-projection:matrixPartialWrite
 
@@ -1072,7 +1272,8 @@ entries:
       Flight has no focal-projection builder matching this contract, but the adapter retains the
       direct OpenFL raw-data implementation, so **Focal projection builder** is an upstream
       Flight gap rather than a current parity blocker.
-    status: covered
+    source:
+      - geom/PerspectiveProjection.hx:toMatrix3D
     scenarios:
       - geom/perspective-projection:focalLength250
 
@@ -1086,7 +1287,12 @@ entries:
       `eulerAngles`, and `quaternion` to them and map unknown strings to null. With `openfljs`,
       those three strings are the abstract values directly. This distinction follows the
       `openfljs` define, not the generic JavaScript target.
-    status: covered
+    source:
+      - geom/Orientation3D.hx:AXIS_ANGLE
+      - geom/Orientation3D.hx:EULER_ANGLES
+      - geom/Orientation3D.hx:QUATERNION
+      - geom/Orientation3D.hx:fromString
+      - geom/Orientation3D.hx:toString
     notes: >-
       The representation branch is selected by the `openfljs` define on non-Flash builds.
     scenarios:
@@ -1103,7 +1309,9 @@ entries:
       the computed fourth component. Division by zero is unguarded. `projectVectorToOutput`
       reuses output and preserves its pre-existing `w`, or allocates a new Vector3D with `w=0`
       when output is null, matching source.
-    status: covered
+    source:
+      - geom/Utils3D.hx:projectVector
+      - geom/Utils3D.hx:projectVectorToOutput
     scenarios:
       - geom/utils3d:projectVector
       - geom/utils3d:projectVectorIsVector3D
@@ -1117,7 +1325,8 @@ entries:
       divisible by three. It appends projected x/y pairs, writes reciprocal-w at `uvts[i+2]`
       using the original triple index, and neither clears destination vectors nor writes
       projected z.
-    status: covered
+    source:
+      - geom/Utils3D.hx:projectVectors
     scenarios:
       - geom/utils3d:projectVectors
       - geom/utils3d:knownProjection
@@ -1126,7 +1335,8 @@ entries:
     section: "Remaining public package types > Utils3D"
     behavior: >-
       `pointTowards` is enclosed in `#if false` and is not part of the compiled 9.5.2 API.
-    status: covered
+    source:
+      - geom/Utils3D.hx:pointTowards
     notes: >-
       Applies to the non-Flash implementation; Flash uses its native Utils3D type.
     scenarios:
@@ -1140,6 +1350,7 @@ entries:
       On the Flash target, every public type in this package is a typedef to the corresponding
       `flash.geom` type. All executable behaviors recorded above describe OpenFL's non-Flash
       implementations; Flash behavior is supplied by the platform classes instead.
-    status: missing
+    source:
+      - geom/Matrix.hx:new
     notes: "Applies only when the `flash` compilation target is selected."
     scenarios: []

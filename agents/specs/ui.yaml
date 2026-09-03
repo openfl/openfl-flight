@@ -10,7 +10,53 @@ entries:
       Top-row digit constants `NUMBER_0` through `NUMBER_9` are contiguous key codes `48..57`;
       alphabet constants `A` through `Z` are `65..90`; and `NUMPAD_0` through `NUMPAD_9` are
       `96..105`.
-    status: covered
+    source:
+      - ui/Keyboard.hx:NUMBER_0
+      - ui/Keyboard.hx:NUMBER_1
+      - ui/Keyboard.hx:NUMBER_2
+      - ui/Keyboard.hx:NUMBER_3
+      - ui/Keyboard.hx:NUMBER_4
+      - ui/Keyboard.hx:NUMBER_5
+      - ui/Keyboard.hx:NUMBER_6
+      - ui/Keyboard.hx:NUMBER_7
+      - ui/Keyboard.hx:NUMBER_8
+      - ui/Keyboard.hx:NUMBER_9
+      - ui/Keyboard.hx:A
+      - ui/Keyboard.hx:B
+      - ui/Keyboard.hx:C
+      - ui/Keyboard.hx:D
+      - ui/Keyboard.hx:E
+      - ui/Keyboard.hx:F
+      - ui/Keyboard.hx:G
+      - ui/Keyboard.hx:H
+      - ui/Keyboard.hx:I
+      - ui/Keyboard.hx:J
+      - ui/Keyboard.hx:K
+      - ui/Keyboard.hx:L
+      - ui/Keyboard.hx:M
+      - ui/Keyboard.hx:N
+      - ui/Keyboard.hx:O
+      - ui/Keyboard.hx:P
+      - ui/Keyboard.hx:Q
+      - ui/Keyboard.hx:R
+      - ui/Keyboard.hx:S
+      - ui/Keyboard.hx:T
+      - ui/Keyboard.hx:U
+      - ui/Keyboard.hx:V
+      - ui/Keyboard.hx:W
+      - ui/Keyboard.hx:X
+      - ui/Keyboard.hx:Y
+      - ui/Keyboard.hx:Z
+      - ui/Keyboard.hx:NUMPAD_0
+      - ui/Keyboard.hx:NUMPAD_1
+      - ui/Keyboard.hx:NUMPAD_2
+      - ui/Keyboard.hx:NUMPAD_3
+      - ui/Keyboard.hx:NUMPAD_4
+      - ui/Keyboard.hx:NUMPAD_5
+      - ui/Keyboard.hx:NUMPAD_6
+      - ui/Keyboard.hx:NUMPAD_7
+      - ui/Keyboard.hx:NUMPAD_8
+      - ui/Keyboard.hx:NUMPAD_9
     scenarios:
       - ui/keyboard:keyCodes.numbers
       - ui/keyboard:keyCodes.letters
@@ -23,7 +69,28 @@ entries:
       Numpad operator constants are `NUMPAD_MULTIPLY=106`, `NUMPAD_ADD=107`, `NUMPAD_ENTER=108`,
       `NUMPAD_SUBTRACT=109`, `NUMPAD_DECIMAL=110`, and `NUMPAD_DIVIDE=111`. Function keys `F1`
       through `F15` are contiguous `112..126`.
-    status: covered
+    source:
+      - ui/Keyboard.hx:NUMPAD_MULTIPLY
+      - ui/Keyboard.hx:NUMPAD_ADD
+      - ui/Keyboard.hx:NUMPAD_ENTER
+      - ui/Keyboard.hx:NUMPAD_SUBTRACT
+      - ui/Keyboard.hx:NUMPAD_DECIMAL
+      - ui/Keyboard.hx:NUMPAD_DIVIDE
+      - ui/Keyboard.hx:F1
+      - ui/Keyboard.hx:F2
+      - ui/Keyboard.hx:F3
+      - ui/Keyboard.hx:F4
+      - ui/Keyboard.hx:F5
+      - ui/Keyboard.hx:F6
+      - ui/Keyboard.hx:F7
+      - ui/Keyboard.hx:F8
+      - ui/Keyboard.hx:F9
+      - ui/Keyboard.hx:F10
+      - ui/Keyboard.hx:F11
+      - ui/Keyboard.hx:F12
+      - ui/Keyboard.hx:F13
+      - ui/Keyboard.hx:F14
+      - ui/Keyboard.hx:F15
     scenarios:
       - ui/keyboard:keyCodes.numpadOperators
       - ui/keyboard:keyCodes.functionKeys
@@ -36,7 +103,30 @@ entries:
       `CONTROL=17`, `ALTERNATE=18`, `BREAK=19`, `CAPS_LOCK=20`, `NUMPAD=21`, `ESCAPE=27`,
       `SPACE=32`, `PAGE_UP=33`, `PAGE_DOWN=34`, `END=35`, `HOME=36`, `LEFT=37`, `UP=38`,
       `RIGHT=39`, `DOWN=40`, `INSERT=45`, `DELETE=46`, and `NUMLOCK=144`.
-    status: covered
+    source:
+      - ui/Keyboard.hx:BACKSPACE
+      - ui/Keyboard.hx:TAB
+      - ui/Keyboard.hx:ALTERNATE
+      - ui/Keyboard.hx:ENTER
+      - ui/Keyboard.hx:COMMAND
+      - ui/Keyboard.hx:SHIFT
+      - ui/Keyboard.hx:CONTROL
+      - ui/Keyboard.hx:BREAK
+      - ui/Keyboard.hx:CAPS_LOCK
+      - ui/Keyboard.hx:NUMPAD
+      - ui/Keyboard.hx:ESCAPE
+      - ui/Keyboard.hx:SPACE
+      - ui/Keyboard.hx:PAGE_UP
+      - ui/Keyboard.hx:PAGE_DOWN
+      - ui/Keyboard.hx:END
+      - ui/Keyboard.hx:HOME
+      - ui/Keyboard.hx:LEFT
+      - ui/Keyboard.hx:RIGHT
+      - ui/Keyboard.hx:UP
+      - ui/Keyboard.hx:DOWN
+      - ui/Keyboard.hx:INSERT
+      - ui/Keyboard.hx:DELETE
+      - ui/Keyboard.hx:NUMLOCK
     scenarios:
       - ui/keyboard:keyCodes.controls
       - ui/keyboard:allKeyCodesMatchExpected
@@ -47,7 +137,18 @@ entries:
       Punctuation constants are `SEMICOLON=186`, `EQUAL=187`, `COMMA=188`, `MINUS=189`,
       `PERIOD=190`, `SLASH=191`, `BACKQUOTE=192`, `LEFTBRACKET=219`, `BACKSLASH=220`,
       `RIGHTBRACKET=221`, and `QUOTE=222`.
-    status: covered
+    source:
+      - ui/Keyboard.hx:SEMICOLON
+      - ui/Keyboard.hx:EQUAL
+      - ui/Keyboard.hx:COMMA
+      - ui/Keyboard.hx:MINUS
+      - ui/Keyboard.hx:PERIOD
+      - ui/Keyboard.hx:SLASH
+      - ui/Keyboard.hx:BACKQUOTE
+      - ui/Keyboard.hx:LEFTBRACKET
+      - ui/Keyboard.hx:BACKSLASH
+      - ui/Keyboard.hx:RIGHTBRACKET
+      - ui/Keyboard.hx:QUOTE
     scenarios:
       - ui/keyboard:keyCodes.punctuation
       - ui/keyboard:allKeyCodesMatchExpected
@@ -58,7 +159,9 @@ entries:
       Read-only static `capsLock` and `numLock` are declared but never assigned by the 9.5.2
       implementation, so each has the target-default false value and does not track actual
       keyboard state.
-    status: covered
+    source:
+      - ui/Keyboard.hx:capsLock
+      - ui/Keyboard.hx:numLock
     scenarios:
       - ui/keyboard:locks
 
@@ -66,7 +169,8 @@ entries:
     section: "Keyboard"
     behavior: >-
       `isAccessible()` always returns false; it does not inspect the host or permissions.
-    status: covered
+    source:
+      - ui/Keyboard.hx:isAccessible
     scenarios:
       - ui/keyboard:accessible
 
@@ -82,7 +186,9 @@ entries:
       as ASCII digits, and return zero for unhandled keys. The source's numpad operator table is
       literal: multiply/add/enter/decimal/divide become ASCII 42/43/44/45/46, while
       NUMPAD_SUBTRACT is unhandled and becomes zero.
-    status: missing
+    source:
+      - ui/Keyboard.hx:__convertKeyCode
+      - ui/Keyboard.hx:__getKeyLocation
     notes: >-
       Host key-code and location conversion, and their Stage call path, are compiled only with
       `lime`; the character-code helper itself is present on every non-Flash build. NUMPAD_ENTER
@@ -97,7 +203,11 @@ entries:
     behavior: >-
       The constants are `STANDARD=0`, `LEFT=1`, `RIGHT=2`, and `NUM_PAD=3`. The abstract converts
       freely from and to Int and UInt, so arbitrary numeric locations are representable.
-    status: covered
+    source:
+      - ui/KeyLocation.hx:LEFT
+      - ui/KeyLocation.hx:NUM_PAD
+      - ui/KeyLocation.hx:RIGHT
+      - ui/KeyLocation.hx:STANDARD
     scenarios:
       - ui/keyboard:keyboardEvent.keyLocation
 
@@ -109,7 +219,12 @@ entries:
       Public cursor constants are the exact strings `ARROW="arrow"`, `AUTO="auto"`,
       `BUTTON="button"`, `HAND="hand"`, and `IBEAM="ibeam"`. The abstract accepts arbitrary
       strings; assigning an unknown cursor does not throw.
-    status: covered
+    source:
+      - ui/MouseCursor.hx:ARROW
+      - ui/MouseCursor.hx:AUTO
+      - ui/MouseCursor.hx:BUTTON
+      - ui/MouseCursor.hx:HAND
+      - ui/MouseCursor.hx:IBEAM
     scenarios:
       - ui/mouse:cursorValues
       - ui/mouse:cursorReadBack
@@ -119,7 +234,8 @@ entries:
     behavior: >-
       `Mouse.cursor` begins as `AUTO`. Setting null coerces it to `AUTO`; every other value,
       including an unknown string, is retained and returned by the getter.
-    status: covered
+    source:
+      - ui/Mouse.hx:cursor
     scenarios:
       - ui/mouse:cursorReadBack
       - ui/mouse:nullCursorReadBack
@@ -130,7 +246,8 @@ entries:
       On Lime windows, `ARROW` maps to host `arrow`, `BUTTON` to `pointer`, `HAND` to `move`,
       and `IBEAM` to `text`. Setting `AUTO` or an unknown value changes stored state but makes
       no host cursor assignment, leaving the previous host cursor in place.
-    status: covered
+    source:
+      - ui/Mouse.hx:cursor
     notes: >-
       Host cursor assignment is compiled only with `lime`; other targets retain cursor state
       without iterating Application windows.
@@ -144,7 +261,9 @@ entries:
       window. Repeated calls do not stack. While hidden, changing `cursor` only changes stored
       state. `show()` clears the flag and reapplies the stored cursor mapping; repeated show
       calls are harmless.
-    status: covered
+    source:
+      - ui/Mouse.hx:hide
+      - ui/Mouse.hx:show
     notes: >-
       Clearing and reapplying cursor state on Application windows is compiled only with `lime`.
     scenarios:
@@ -158,7 +277,9 @@ entries:
     behavior: >-
       `supportsCursor` and `supportsNativeCursor` are read-only compile-time values: true for
       every non-mobile build and false for mobile, independent of the actual window/backend.
-    status: covered
+    source:
+      - ui/Mouse.hx:supportsCursor
+      - ui/Mouse.hx:supportsNativeCursor
     notes: "Both values are selected by the presence or absence of the `mobile` define."
     scenarios:
       - ui/mouse:capabilities
@@ -169,7 +290,9 @@ entries:
       `registerCursor` and `unregisterCursor` are inside `#if false` in 9.5.2 and are not part
       of the compiled non-Flash API. Extra private cursor names and string conversions do not
       expand the public MouseCursor constants.
-    status: covered
+    source:
+      - ui/Mouse.hx:registerCursor
+      - ui/Mouse.hx:unregisterCursor
     notes: >-
       The `#if false` absence applies to non-Flash OpenFL; Flash uses its native Mouse API.
     scenarios:
@@ -183,7 +306,9 @@ entries:
       `isSupported` is a read-only static initialized to true unconditionally. `numDevices` is
       the current size of one process-global device list, initially zero. There is no capability
       probe.
-    status: covered
+    source:
+      - ui/GameInput.hx:isSupported
+      - ui/GameInput.hx:numDevices
     scenarios:
       - ui/game-input:initial
 
@@ -192,7 +317,8 @@ entries:
     behavior: >-
       Every `new GameInput()` creates an independent EventDispatcher and appends it permanently
       to the global list of GameInput instances; there is no dispose/removal API.
-    status: covered
+    source:
+      - ui/GameInput.hx:new
     scenarios:
       - ui/game-input:device.replayedAddedCount
 
@@ -204,7 +330,8 @@ entries:
       connect callback and then subscribes to `Gamepad.onConnect`, so the global device list can
       populate before any GameInput instance is constructed. Non-Lime builds retain no
       equivalent source callback path.
-    status: covered
+    source:
+      - ui/GameInput.hx:new
     notes: "The Stage registration and host callback path are compiled only with `lime`."
     scenarios:
       - ui/game-input:hostAttachedBeforeInstance
@@ -214,7 +341,8 @@ entries:
     behavior: >-
       `getDeviceAt(index)` returns the device at a valid zero-based index and null for negative
       or out-of-range indices.
-    status: covered
+    source:
+      - ui/GameInput.hx:getDeviceAt
     scenarios:
       - ui/game-input:initial
       - ui/game-input:enumeration
@@ -228,7 +356,8 @@ entries:
       dispatcher, so all already-registered listeners of that dispatcher receive the replay
       too—not just the newly added listener. Other event types have ordinary EventDispatcher
       behavior, including capture, priority, and weak-reference arguments.
-    status: covered
+    source:
+      - ui/GameInput.hx:addEventListener
     scenarios:
       - ui/game-input:device.replayedAddedCount
       - ui/game-input:device.addedCount
@@ -242,7 +371,9 @@ entries:
       existing device without changing `numDevices`. Disconnect removes a known matching device
       first, updates the count, and broadcasts DEVICE_REMOVED; an unknown or repeated disconnect
       does nothing.
-    status: covered
+    source:
+      - ui/GameInput.hx:__onGamepadConnect
+      - ui/GameInput.hx:__onGamepadDisconnect
     notes: "Connect/disconnect callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:device
@@ -253,7 +384,10 @@ entries:
     behavior: >-
       An axis/button update for an unknown host id creates the device silently; DEVICE_ADDED is
       dispatched only by the later connect callback.
-    status: covered
+    source:
+      - ui/GameInput.hx:__onGamepadAxisMove
+      - ui/GameInput.hx:__onGamepadButtonDown
+      - ui/GameInput.hx:__onGamepadButtonUp
     notes: "Axis and button host callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:unknownDeviceEventOrder
@@ -264,7 +398,10 @@ entries:
       Axis and button callbacks ignore values while the device is disabled. When enabled, they
       lazily create missing controls, update the control value even when unchanged, and dispatch
       a plain `Event.CHANGE` from that control (non-bubbling, non-cancelable).
-    status: covered
+    source:
+      - ui/GameInput.hx:__onGamepadAxisMove
+      - ui/GameInput.hx:__onGamepadButtonDown
+      - ui/GameInput.hx:__onGamepadButtonUp
     notes: "Axis and button host callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:device.axisChanges
@@ -277,7 +414,9 @@ entries:
     behavior: >-
       The host axis value is stored verbatim, while a button-down callback is normalized to
       exactly 1 and button-up to exactly 0.
-    status: covered
+    source:
+      - ui/GameInput.hx:__onGamepadButtonDown
+      - ui/GameInput.hx:__onGamepadButtonUp
     notes: "Axis and button host callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:device.axisValue
@@ -292,7 +431,13 @@ entries:
       `MAX_BUFFER_SIZE` is the compile-time constant `32000`. A device retains its constructor
       id and name as read-only strings and begins `enabled=false` and `sampleInterval=0`.
       GameInputDevice itself has no event-dispatch API.
-    status: covered
+    source:
+      - ui/GameInputDevice.hx:MAX_BUFFER_SIZE
+      - ui/GameInputDevice.hx:enabled
+      - ui/GameInputDevice.hx:id
+      - ui/GameInputDevice.hx:name
+      - ui/GameInputDevice.hx:numControls
+      - ui/GameInputDevice.hx:sampleInterval
     scenarios:
       - ui/game-input:constants.maxBufferSize
       - ui/game-input:device.id
@@ -306,7 +451,9 @@ entries:
       Construction precreates six controls `AXIS_0` through `AXIS_5` with range `[-1,1]`,
       followed by fifteen `BUTTON_0` through `BUTTON_14` with range `[0,1]`. Thus `numControls`
       initially reports 21 and grows if host updates create higher-index controls.
-    status: covered
+    source:
+      - ui/GameInputDevice.hx:getControlAt
+      - ui/GameInputDevice.hx:numControls
     scenarios:
       - ui/game-input:device.numControls
       - ui/game-input:device.axisRange
@@ -318,7 +465,8 @@ entries:
       `getControlAt(i)` returns a control for a valid zero-based index and null for
       negative/out-of-range indices. Control ordering is the initial six axes, initial fifteen
       buttons, then controls in lazy-creation order.
-    status: covered
+    source:
+      - ui/GameInputDevice.hx:getControlAt
     scenarios:
       - ui/game-input:device.negativeControlIsNull
       - ui/game-input:device.outOfRangeControlIsNull
@@ -331,7 +479,9 @@ entries:
       `sampleInterval` and `enabled` are unrestricted direct fields. Toggling them has no
       immediate side effect in the OpenFL class; enabled gates only subsequent host input
       updates.
-    status: covered
+    source:
+      - ui/GameInputDevice.hx:enabled
+      - ui/GameInputDevice.hx:sampleInterval
     scenarios:
       - ui/game-input:device.enabledAfter
       - ui/game-input:device.sampleIntervalAfter
@@ -345,7 +495,10 @@ entries:
       is never dereferenced. The adapter preserves this literal 9.5.2 no-data contract;
       **Native gamepad attachment and sample history** blocks implementing the richer documented
       API, not source parity here.
-    status: covered
+    source:
+      - ui/GameInputDevice.hx:getCachedSamples
+      - ui/GameInputDevice.hx:startCachingSamples
+      - ui/GameInputDevice.hx:stopCachingSamples
     scenarios:
       - ui/game-input:device.cachedSamples
       - ui/game-input:device.cachedSamplesAppend
@@ -357,7 +510,9 @@ entries:
       The first host callback that sees a Lime Gamepad creates the device with `id=gamepad.guid`
       and `name=gamepad.name`. Those strings are captured once: a later connect for a device
       created silently by an earlier input callback reuses it and does not refresh either field.
-    status: covered
+    source:
+      - ui/GameInputDevice.hx:id
+      - ui/GameInputDevice.hx:name
     notes: "The Gamepad-to-device construction path is compiled only with `lime`."
     scenarios:
       - ui/game-input:device.id
@@ -371,7 +526,12 @@ entries:
       Controls have no public constructor. Their read-only `device`, `id`, `minValue`, and
       `maxValue` are set when the owning device creates them. Axis ranges are `[-1,1]`; button
       ranges are `[0,1]`.
-    status: covered
+    source:
+      - ui/GameInputControl.hx:device
+      - ui/GameInputControl.hx:id
+      - ui/GameInputControl.hx:minValue
+      - ui/GameInputControl.hx:maxValue
+      - ui/GameInputControl.hx:value
     scenarios:
       - ui/game-input:device.axisDeviceMatches
       - ui/game-input:device.axisID
@@ -385,7 +545,8 @@ entries:
     behavior: >-
       Read-only `value` starts at zero and changes only through internal host callbacks when the
       owning device is enabled. Values are stored verbatim rather than clamped to min/max.
-    status: covered
+    source:
+      - ui/GameInputControl.hx:value
     scenarios:
       - ui/game-input:device.axisValue
       - ui/game-input:device.buttonValue
@@ -396,7 +557,8 @@ entries:
       Each control is an EventDispatcher. A host value update assigns the new value even if
       unchanged and then dispatches `Event.CHANGE`; the event carries no separate old/new
       values.
-    status: covered
+    source:
+      - ui/GameInputControl.hx:value
     scenarios:
       - ui/game-input:device.axisChanges
       - ui/game-input:device.buttonChanges
@@ -408,7 +570,8 @@ entries:
     behavior: >-
       `inputMode` starts as `MultitouchInputMode.TOUCH_POINT` and is a freely writable static;
       assigning NONE/GESTURE does not itself enable, disable, or synthesize events.
-    status: covered
+    source:
+      - ui/Multitouch.hx:inputMode
     scenarios:
       - ui/multitouch:initial.inputMode
       - ui/multitouch:modes
@@ -417,7 +580,8 @@ entries:
     section: "Multitouch"
     behavior: >-
       Read-only `maxTouchPoints` is initialized once to 2 and never changed by observed touches.
-    status: covered
+    source:
+      - ui/Multitouch.hx:maxTouchPoints
     scenarios:
       - ui/multitouch:initial.maxTouchPoints
       - ui/multitouch:maxAfterThreeTouches
@@ -427,7 +591,9 @@ entries:
     behavior: >-
       `supportedGestures` is a read-only static left null, and `supportsGestureEvents` is a
       read-only false. Neither is populated dynamically.
-    status: covered
+    source:
+      - ui/Multitouch.hx:supportedGestures
+      - ui/Multitouch.hx:supportsGestureEvents
     scenarios:
       - ui/multitouch:initial.supportedGestures
       - ui/multitouch:initial.supportsGestureEvents
@@ -438,7 +604,8 @@ entries:
       On `js && html5`, `supportsTouchEvents` tests browser touch fields. Every other non-macOS
       build returns true at compile time, including JavaScript builds without `html5`; macOS
       builds return false. Observed touch events do not mutate it.
-    status: covered
+    source:
+      - ui/Multitouch.hx:supportsTouchEvents
     notes: >-
       Branch order is `js && html5`, then `!mac`, then macOS; this is not a generic JS/non-JS
       distinction.
@@ -452,7 +619,9 @@ entries:
       OpenFL itself exposes no gesture recognition through these statics, and the adapter
       preserves those null/false values. Flight's **Touch maximums and gesture recognition** gap
       blocks the richer documented capability, not this literal 9.5.2 source contract.
-    status: covered
+    source:
+      - ui/Multitouch.hx:supportedGestures
+      - ui/Multitouch.hx:supportsGestureEvents
     scenarios:
       - ui/multitouch:initial.supportedGestures
       - ui/multitouch:initial.supportsGestureEvents
@@ -462,7 +631,8 @@ entries:
     behavior: >-
       The documented hidden public static `mapTouchToMouse` field is commented out in the
       non-Flash 9.5.2 source and is therefore absent from the compiled OpenFL API.
-    status: missing
+    source:
+      - ui/Multitouch.hx:mapTouchToMouse
     notes: >-
       Applies to the non-Flash implementation; Flash uses its native Multitouch type.
     scenarios: []
@@ -477,7 +647,12 @@ entries:
       `"touchPoint"`, with an unknown input string converting to null. With `openfljs`, those
       three strings are the abstract values directly. This branch follows the define, not the
       generic JavaScript target.
-    status: covered
+    source:
+      - ui/MultitouchInputMode.hx:GESTURE
+      - ui/MultitouchInputMode.hx:NONE
+      - ui/MultitouchInputMode.hx:TOUCH_POINT
+      - ui/MultitouchInputMode.hx:fromString
+      - ui/MultitouchInputMode.hx:toString
     notes: >-
       The integer-versus-string representation branch is selected by the `openfljs` define on
       non-Flash builds.
@@ -492,6 +667,7 @@ entries:
       On the Flash target, every public type in this package is a typedef to the corresponding
       `flash.ui` type. The executable entries above describe OpenFL's non-Flash implementations;
       Flash behavior is supplied by the platform classes instead.
-    status: missing
+    source:
+      - ui/GameInput.hx:new
     notes: "Applies only when the `flash` compilation target is selected."
     scenarios: []
