@@ -2,6 +2,7 @@ package openfl.display;
 
 #if !flash
 import flight.Clip as FlightClip;
+import flight.Adjustments as FlightAdjustments;
 import flight.Geometry as FlightGeometry;
 import flight.Interaction as FlightInteraction;
 import flight.Node as FlightNode;
@@ -32,6 +33,7 @@ import openfl.geom.Transform;
 @:access(openfl.events.Event)
 @:access(openfl.events.EventDispatcher)
 @:access(openfl.filters.BitmapFilter)
+@:access(openfl.geom.ColorTransform)
 @:access(openfl.geom.Transform)
 class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (openfl_dynamic && haxe_ver < "4.0.0") implements Dynamic<DisplayObject> #end
 {
@@ -1201,7 +1203,21 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private function set_filters(value:Array<BitmapFilter>):Array<BitmapFilter>
 	{
 		__filters = value == null || value.length == 0 ? null : [for (filter in value) filter == null ? null : filter.clone()];
+		__syncFlightColorAdjustments();
+		return value;
+	}
+
+	@:noCompletion private function __syncFlightColorAdjustments():Void
+	{
 		var adjustments:Array<flight.types.Adjustment> = [];
+		if (__objectTransform != null && !__objectTransform.__colorTransform.__isDefault(false))
+		{
+			var colorScaleBias = __objectTransform.__colorTransform.__toFlightColorScaleBias();
+			// alphaMultiplier is already represented by DisplayObject.alpha in this
+			// compatibility layer; do not apply it twice in the pixel adjustment.
+			colorScaleBias.alphaScale = 1;
+			adjustments.push(FlightAdjustments.createColorScaleBiasAdjustment(colorScaleBias));
+		}
 		if (__filters != null)
 		{
 			for (filter in __filters)
@@ -1214,7 +1230,6 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		}
 		FlightNode.setNodeColorAdjustments(__flightNode, adjustments.length == 0 ? null : adjustments);
 		FlightNode.invalidateNodeAppearance(__flightNode);
-		return value;
 	}
 
 	@:keep @:noCompletion private function get_height():Float
@@ -1336,8 +1351,15 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:keep @:noCompletion private function set_transform(value:Transform):Transform
 	{
 		if (value == null) throw new TypeError("Parameter transform must be non-null.");
-		var matrix = value.matrix;
-		if (matrix != null) __setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
+		var matrix3D = value.matrix3D;
+		if (matrix3D != null)
+		{
+			transform.matrix3D = matrix3D;
+		}
+		else
+		{
+			transform.matrix = value.matrix;
+		}
 		transform.colorTransform = value.colorTransform;
 		return transform;
 	}

@@ -96,7 +96,7 @@ class Bitmap extends DisplayObject
 		`true`, the bitmap is smoothed when scaled. If
 		`false`, the bitmap is not smoothed when scaled.
 	**/
-	public var smoothing:Bool;
+	public var smoothing(get, set):Bool;
 
 	#if (js && html5)
 	@:noCompletion private var __image:ImageElement;
@@ -104,6 +104,7 @@ class Bitmap extends DisplayObject
 	@:noCompletion private var __bitmapData:BitmapData;
 	@:noCompletion private var __flightTexture:FlightTextureData;
 	@:noCompletion private var __imageVersion:Int;
+	@:noCompletion private var __smoothing:Bool;
 	@:noCompletion private var __textureSmoothing:Bool;
 
 	#if openfljs
@@ -131,6 +132,7 @@ class Bitmap extends DisplayObject
 		super();
 
 		__bitmapData = bitmapData;
+		if (__bitmapData != null) __bitmapData.__bitmapUsers.push(this);
 		this.pixelSnapping = pixelSnapping;
 		this.smoothing = smoothing;
 
@@ -175,12 +177,27 @@ class Bitmap extends DisplayObject
 
 	@:noCompletion private function set_bitmapData(value:BitmapData):BitmapData
 	{
+		if (__bitmapData != null) __bitmapData.__bitmapUsers.remove(this);
 		__bitmapData = value;
+		if (__bitmapData != null) __bitmapData.__bitmapUsers.push(this);
 		smoothing = false;
 		__syncBitmapData();
 		__imageVersion = -1;
 
 		return __bitmapData;
+	}
+
+	@:noCompletion private function get_smoothing():Bool
+	{
+		return __smoothing;
+	}
+
+	@:noCompletion private function set_smoothing(value:Bool):Bool
+	{
+		if (__smoothing == value) return value;
+		__smoothing = value;
+		__syncBitmapData();
+		return value;
 	}
 
 	@:noCompletion private override function set_height(value:Float):Float

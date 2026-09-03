@@ -279,6 +279,16 @@ class Assets
 		}
 		#end
 
+		#if !lime
+		var symbol = __resolveLibrarySymbol(id);
+		if (symbol.library != null
+			&& symbol.library.exists(symbol.id, cast AssetType.MOVIE_CLIP)
+			&& symbol.library.isLocal(symbol.id, cast AssetType.MOVIE_CLIP))
+		{
+			return symbol.library.getMovieClip(symbol.id);
+		}
+		#end
+
 		return null;
 	}
 

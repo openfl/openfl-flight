@@ -80,6 +80,11 @@ class Sound extends EventDispatcher
 	{
 		__loadGeneration++;
 		__buffer = null;
+		var channels = SoundMixer.__soundChannels.copy();
+		for (channel in channels)
+		{
+			if (channel.__sound == this) channel.stop();
+		}
 		if (__flightResource != null) FlightAudio.disposeAudioResource(__flightResource);
 		__flightResource = null;
 		__flightResourceReference = null;
@@ -192,8 +197,7 @@ class Sound extends EventDispatcher
 		{
 			for (byte in 0...bytesPerSample)
 			{
-				var sourceByte = bytes.endian == Endian.BIG_ENDIAN ? bytesPerSample - byte - 1 : byte;
-				source.set(sample * bytesPerSample + byte, bytes[bytes.position + sample * bytesPerSample + sourceByte]);
+				source.set(sample * bytesPerSample + byte, bytes[bytes.position + sample * bytesPerSample + byte]);
 			}
 		}
 
@@ -215,7 +219,10 @@ class Sound extends EventDispatcher
 		var channel = new SoundChannel(this, flightChannel, sndTransform, channelPosition);
 		if (__urlLoading)
 		{
-			__pendingChannels.push({channel: channel, loops: loops, startTime: startTime});
+			// OpenFL 9.5.2 retains only the most recently requested source while a
+			// URL load is pending. Earlier logical channels remain registered, but
+			// are never bound to that load's eventual resource.
+			__pendingChannels = [{channel: channel, loops: loops, startTime: startTime}];
 		}
 		return channel;
 	}
@@ -229,7 +236,7 @@ class Sound extends EventDispatcher
 		return FlightMedia.playAudioResource(audioDevice, resource, {
 			currentTime: startTime,
 			gain: SoundMixer.__soundTransform.volume * transform.volume,
-			loops: loops
+			loops: loops > 1 ? loops - 1 : 0
 		});
 	}
 
@@ -238,8 +245,10 @@ class Sound extends EventDispatcher
 		if (generation != __loadGeneration) return;
 		__flightResource = resource;
 		__urlLoading = false;
-		bytesLoaded = bytesTotal = Std.int(FlightAudio.getAudioResourceByteSize(resource));
-		dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bytesLoaded, bytesTotal));
+		var byteSize = Std.int(FlightAudio.getAudioResourceByteSize(resource));
+		// The portable 9.5.2 properties stay at zero even though the completion
+		// progress event reports the decoded resource size.
+		dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, byteSize, byteSize));
 		dispatchEvent(new Event(Event.COMPLETE));
 
 		var pending = __pendingChannels;

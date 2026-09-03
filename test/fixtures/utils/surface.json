@@ -1,0 +1,100 @@
+{
+  "namespace": {
+    "namedPrefix": "valid",
+    "namedURI": "urn:test",
+    "fromQNamePrefixIsNull": true,
+    "copyPrefix": "valid",
+    "fromQNameURI": "urn:q",
+    "invalidPrefixIsNull": true,
+    "emptyURI": "",
+    "emptyPrefix": ""
+  },
+  "libHelpers": {
+    "intervalIsPositive": true,
+    "definition": "openfl.display.Sprite",
+    "attachIsMovieClip": true,
+    "timeoutFollowsInterval": true
+  },
+  "qname": {
+    "namedURI": "urn:test",
+    "namedLocal": "item",
+    "localURI": "",
+    "emptyURI": "",
+    "emptyLocal": "",
+    "copiedLocal": "item",
+    "localName": "only"
+  },
+  "functionAlias": {
+    "callResult": 5
+  },
+  "byteFactories": {
+    "fromBytesLength": 3,
+    "fromDataLength": 3,
+    "fromBytesPosition": 0,
+    "fromDataPosition": 0
+  },
+  "perspective": {
+    "constructorLast": 15,
+    "constructorFirst": 0,
+    "projection": [
+      0.5,
+      1,
+      1.1,
+      -1.1,
+      0
+    ]
+  },
+  "dataInterfaces": {
+    "bytesAvailable": 4,
+    "endianMatches": true,
+    "externalizedValue": 17,
+    "value": 305419896
+  },
+  "promise": {
+    "isComplete": true,
+    "progressIdentity": true,
+    "isError": null,
+    "completed": [
+      "done"
+    ],
+    "progress": [
+      "1/2"
+    ],
+    "result": "done",
+    "completeIdentity": true
+  },
+  "agal": {
+    "endian": 1,
+    "position": 31,
+    "length": 31,
+    "verbose": null,
+    "error": ""
+  },
+  "assetManifest": {
+    "soundPathCount": 2,
+    "secondDefaultID": "data.bin",
+    "count": 5,
+    "firstID": "image",
+    "lastType": "TEXT"
+  },
+  "assetLookup": {
+    "firstIsMovieClip": true,
+    "returnsFreshClips": true
+  },
+  "object": {
+    "hasAnswer": true,
+    "fields": [
+      "answer"
+    ],
+    "valueIdentity": true,
+    "missingEnumerable": false,
+    "answer": 42
+  },
+  "byteStrings": {
+    "unknownWriteLength": 0,
+    "unknownReadPosition": 0,
+    "positionAfterWrite": 3,
+    "unknownReadIsNull": true,
+    "completeText": "hé"
+  }
+}

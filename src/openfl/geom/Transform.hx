@@ -214,6 +214,7 @@ class Transform
 				__displayObject.alpha = value.alphaMultiplier;
 			}
 
+			__displayObject.__syncFlightColorAdjustments();
 			__displayObject.__setRenderDirty();
 		}
 

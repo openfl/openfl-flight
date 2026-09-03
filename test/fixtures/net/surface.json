@@ -1,0 +1,90 @@
+{
+  "datagramSurface": {
+    "hasReceive": true,
+    "hasSend": true,
+    "hasClose": true,
+    "isSupported": true,
+    "hasConnect": true
+  },
+  "xmlSocketSurface": {
+    "connected": null,
+    "hasSend": true,
+    "hasClose": true,
+    "timeout": null,
+    "hasConnect": true
+  },
+  "netConnection": {
+    "closeAbsent": true,
+    "codes": [
+      "NetConnection.Connect.Success"
+    ],
+    "callAbsent": true,
+    "hasConnect": true
+  },
+  "serverSocketSurface": {
+    "localPort": null,
+    "bound": false,
+    "listening": false,
+    "localAddress": null,
+    "isSupported": true
+  },
+  "secureSocketSurface": {
+    "connected": false,
+    "certificateStatus": "unknown",
+    "isSupported": true
+  },
+  "netStream": {
+    "defaults": {
+      "initialPan": 0,
+      "bytesTotal": null,
+      "bufferTime": null,
+      "checkPolicyFile": null,
+      "objectEncoding": null,
+      "clientIsSelf": false,
+      "initialVolume": 1,
+      "bytesLoaded": null
+    },
+    "timeAfterClose": null,
+    "transform": {
+      "copiedInput": true,
+      "volume": 0.4,
+      "pan": -0.2
+    },
+    "appendBytesActionAbsent": true,
+    "publishAbsent": true,
+    "appendBytesAbsent": true,
+    "speed": 1
+  },
+  "ipVersion": {
+    "ipv4": "IPv4",
+    "ipv6": "IPv6"
+  },
+  "responder": {
+    "statusStored": true,
+    "resultStored": true
+  },
+  "urlStreamObject": {
+    "connected": false,
+    "readObjectIsNull": true,
+    "objectEncoding": 12
+  },
+  "dynamicProperties": {
+    "name": "value",
+    "value": 7
+  },
+  "requestSurface": {
+    "authenticateAbsent": true,
+    "digestAbsent": true,
+    "useRedirectedURLAbsent": true,
+    "cacheResponseAbsent": true
+  },
+  "encoding": {
+    "defaultValue": 10,
+    "amf0": 0,
+    "hxsf": 10,
+    "json": 12,
+    "amf3": 3,
+    "largeJson": 13,
+    "largeHxsf": 11
+  }
+}

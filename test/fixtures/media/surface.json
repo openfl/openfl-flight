@@ -1,0 +1,38 @@
+{
+  "constants": {
+    "audio": [
+      "ambient",
+      "media",
+      "voice"
+    ],
+    "camera": [
+      "back",
+      "front",
+      "unknown"
+    ]
+  },
+  "channelCompletion": {
+    "positionAfterComplete": 0,
+    "channelIsNull": false,
+    "events": 1
+  },
+  "videoSampling": {
+    "streamRetainedAfterClear": true,
+    "linear": "linear",
+    "attachCameraAbsent": true,
+    "nearest": "nearest"
+  },
+  "mixerSurface": {
+    "computeSpectrumAbsent": true,
+    "audioPlaybackModeAbsent": true
+  },
+  "soundSurface": {
+    "extractAbsent": true,
+    "hasLoadFromFile": true,
+    "hasFromFile": true,
+    "hasPCMLoader": true,
+    "hasCompressedLoader": true,
+    "hasClose": true,
+    "hasLoadFromFiles": true
+  }
+}

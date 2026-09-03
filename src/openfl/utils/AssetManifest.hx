@@ -19,6 +19,8 @@ class AssetManifest #if lime extends LimeAssetManifest #end
 	{
 		#if lime
 		super();
+		#else
+		assets = [];
 		#end
 	}
 

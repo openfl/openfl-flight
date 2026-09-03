@@ -51,6 +51,7 @@ private typedef CanvasElement = Dynamic;
 @:noDebug
 #end
 @:access(openfl.display3D.textures.TextureBase)
+@:access(openfl.display.Bitmap)
 @:access(openfl.display.DisplayObject)
 @:access(openfl.display.Window)
 class BitmapData implements IBitmapDrawable
@@ -66,6 +67,7 @@ class BitmapData implements IBitmapDrawable
 	@:noCompletion private var __asset:Bool;
 	@:noCompletion private var __blendMode:BlendMode;
 	@:noCompletion private var __bitmap:FlightBitmapHandle;
+	@:noCompletion private var __bitmapUsers:Array<Bitmap>;
 	@:noCompletion private var __drawableType:Dynamic;
 	@:noCompletion private var __flightBitmap(get, never):FlightBitmapHandle;
 	@:noCompletion private var __isMask:Bool;
@@ -87,6 +89,7 @@ class BitmapData implements IBitmapDrawable
 		this.transparent = transparent;
 		readable = true;
 		__isValid = true;
+		__bitmapUsers = [];
 		__renderable = true;
 		rect = new Rectangle(0, 0, this.width, this.height);
 		var color:Int = cast fillColor;
@@ -335,6 +338,7 @@ class BitmapData implements IBitmapDrawable
 		rect = null;
 		__isValid = false;
 		readable = false;
+		for (bitmap in __bitmapUsers.copy()) bitmap.__syncBitmapData();
 	}
 
 	@:beta public function disposeImage():Void
@@ -1003,7 +1007,7 @@ class BitmapData implements IBitmapDrawable
 	@:noCompletion private function __drawDisplayObject(source:DisplayObject, matrix:Matrix, smoothing:Bool):BitmapData
 	{
 		var flattened = FlightBitmap.createBitmap(width, height, 0);
-		if (__drawBitmapDisplayTree(flattened, source, matrix == null ? new Matrix() : matrix, 1, smoothing))
+		if (__drawBitmapDisplayTree(flattened, source, matrix == null ? new Matrix() : matrix, 1, smoothing, false))
 		{
 			var premultiplied = new FlightUInt8ClampedArray(flattened.data.length);
 			FlightBitmap.premultiplyBitmapPixels(premultiplied, flattened.data, flattened.data.length);
@@ -1054,13 +1058,17 @@ class BitmapData implements IBitmapDrawable
 	}
 
 	@:noCompletion private function __drawBitmapDisplayTree(destination:FlightBitmapHandle, source:DisplayObject, parentMatrix:Matrix, parentAlpha:Float,
-			smoothing:Bool):Bool
+			smoothing:Bool, includeLocalTransform:Bool = true):Bool
 	{
 		if (source == null) return true;
 		if (source.__graphics != null) return false;
 		if (!source.__visible || source.__alpha <= 0) return true;
-		var transform = source.__transform.clone();
-		transform.concat(parentMatrix);
+		var transform = parentMatrix.clone();
+		if (includeLocalTransform)
+		{
+			transform = source.__transform.clone();
+			transform.concat(parentMatrix);
+		}
 		var alpha = parentAlpha * source.__alpha;
 
 		if (Std.isOfType(source, Bitmap))

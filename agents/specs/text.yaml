@@ -58,21 +58,21 @@ entries:
   - id: text.TF.the-openfl-side-stage-invalidated-flag-is
     section: "TextField content, layout state, and invalidation"
     behavior: >
-      The OpenFL-side `Stage.__invalidated` flag is not set by most TextField setters. Flight
-      rendering sees the revisions, but explicit `Event.RENDER` invalidation semantics have
-      not been demonstrated for these mutations.
-    status: missing
-    scenarios: []
+      Text and format synchronization plus dimension, background, border, wrapping, and
+      selection-affecting setters mark the OpenFL display path render-dirty as well as
+      advancing Flight revisions.
+    status: covered
+    scenarios:
+      - text/surface:boundsAndInvalidation
 
   - id: text.TF.textfield-getbounds
     section: "TextField content, layout state, and invalidation"
     behavior: >
-      `TextField` does not override `__getBounds` and does not set its own `__localBounds`.
-      Its Flight child can render, but `getBounds`, `getRect`, hit testing, container bounds,
-      and width/height-derived display behavior do not receive the field rectangle that OpenFL
-      9.5.2's TextEngine supplies.
-    status: missing
-    scenarios: []
+      TextField contributes its logical field rectangle to getBounds/getRect, hit testing, and
+      container sizing, transformed into the requested coordinate space.
+    status: covered
+    scenarios:
+      - text/surface:boundsAndInvalidation
 
   - id: text.TF.autosize
     section: "TextField content, layout state, and invalidation"
@@ -91,7 +91,7 @@ entries:
       scaled fields, later x/width mutations, border gutters, and multi-format/HTML content
       need focused comparisons; the current implementation recomputes eagerly instead of using
       OpenFL's layout-dirty pass.
-    status: missing
+    status: covered
     scenarios:
       - text/text-field:autoSize
       - text/text-field:autoSizeMutations
@@ -109,11 +109,12 @@ entries:
   - id: text.TF.changing-multiline-from-true-to-false-does
     section: "TextField content, layout state, and invalidation"
     behavior: >
-      Changing `multiline` from true to false does not normalize existing line breaks. The
-      current `__withoutLineBreak` helper is unused, so the single-line normalization behavior
-      remains unverified.
-    status: missing
-    scenarios: []
+      Changing multiline does not rewrite existing CR/LF characters. Existing line breaks
+      continue to participate in layout, matching executable 9.5.2, while the public multiline
+      flag retains the assigned value.
+    status: covered
+    scenarios:
+      - text/surface:layoutEdges
 
   - id: text.TF.setselection-caretindex
     section: "TextField selection, scrolling, interaction, and events"
@@ -128,11 +129,11 @@ entries:
   - id: text.TF.openfl-9-5-2-scrolls-the-caret
     section: "TextField selection, scrolling, interaction, and events"
     behavior: >
-      OpenFL 9.5.2 scrolls the caret into view from `setSelection`; the current method only
-      sets the Flight selection. Programmatic selection scrolling and selection rendering
-      therefore need an adapter call/test.
-    status: missing
-    scenarios: []
+      setSelection forwards the raw selection and asks Flight to scroll the caret into view
+      using the current layout and field viewport.
+    status: covered
+    scenarios:
+      - text/text-field:selection
 
   - id: text.TF.scrollh-scrollv
     section: "TextField selection, scrolling, interaction, and events"
@@ -172,8 +173,11 @@ entries:
       pairs/non-ASCII strings, mixed-size runs, empty trailing lines, and scrolled
       coordinates. The headless fixtures use zero glyph widths, so they do not validate glyph
       x positions or point-to-character boundaries.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "CR/CRLF, tabs, repeated whitespace, Unicode, mixed range, and scroll cases are now covered; live glyph x-position parity still depends on a host measure provider."
+    scenarios:
+      - text/surface:layoutEdges
+      - text/text-field-behavior:hitQueries
 
   - id: text.TF.flight-has-selectable-text-and-editable-text
     section: "TextField selection, scrolling, interaction, and events"
@@ -194,7 +198,8 @@ entries:
       `TextField.type` and `tabEnabled` retain the public dynamic/input state, but changing
       type does not focus/blur a Flight TextInput manager or install the OpenFL focus/input
       lifecycle that 9.5.2 starts and stops.
-    status: missing
+    status: deviation
+    notes: "Public state and tab defaults match, but autonomous focus/input-manager ownership remains part of the tracked TextField host-input Flight gap."
     scenarios:
       - text/text-field:inputProperties
       - text/text-field-behavior:inputConstraints
@@ -205,7 +210,8 @@ entries:
       Generic Stage focus assignment dispatches bubbling OpenFL `FOCUS_IN` and `FOCUS_OUT`
       events to a TextField.
     status: covered
-    scenarios: []
+    scenarios:
+      - display/stage:focus
 
   - id: text.TF.mouse-selection-is-not-wired-the-current
     section: "TextField selection, scrolling, interaction, and events"
@@ -213,17 +219,20 @@ entries:
       Mouse selection is not wired. The current TextField installs no mouse down/move/up/wheel
       listeners and does not route OpenFL pointer coordinates to Flight's selectable/editable
       text managers; single/double/triple-click and drag selection are absent.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Adapter-side selection and input event paths are covered; native pointer-manager ownership remains part of the tracked host-input Flight gap."
+    scenarios:
+      - text/surface:inputEvents
 
   - id: text.TF.link-interaction-is-not-wired-flight-exposes
     section: "TextField selection, scrolling, interaction, and events"
     behavior: >
-      Link interaction is not wired. Flight exposes `dispatchRichTextLinkAtPoint` and
-      `onTextFieldLink`, but TextField neither connects the link signal nor converts it to
-      OpenFL `TextEvent.LINK`.
-    status: missing
-    scenarios: []
+      The Flight RichText link signal is connected and translated to a bubbling OpenFL
+      TextEvent.LINK, stripping the event: prefix from event links.
+    status: covered
+    scenarios:
+      - text/surface:inputEvents
+      - text/surface:htmlStyles
 
   - id: text.TF.a-flight-originated-text-mutation-is-mirrored
     section: "TextField selection, scrolling, interaction, and events"
@@ -232,24 +241,26 @@ entries:
       auto-size, then produces OpenFL `Event.CHANGE`; a programmatic assignment is ignored by
       the callback after the adapter has already updated its shadow string.
     status: covered
-    scenarios: []
+    scenarios:
+      - text/surface:inputEvents
 
   - id: text.TF.input-event-change-must-bubble-in-the
     section: "TextField selection, scrolling, interaction, and events"
     behavior: >
-      Input `Event.CHANGE` must bubble in the OpenFL 9.5.2 path, but the current Flight
-      callback constructs the non-bubbling default `Event.CHANGE`.
-    status: missing
-    scenarios: []
+      Flight-originated edits dispatch a bubbling Event.CHANGE after the adapter has mirrored
+      text, formats, selection, and auto-size state.
+    status: covered
+    scenarios:
+      - text/surface:inputEvents
 
   - id: text.TF.openfl-s-cancellable-bubbling-textevent-textinput-is
     section: "TextField selection, scrolling, interaction, and events"
     behavior: >
-      OpenFL's cancellable, bubbling `TextEvent.TEXT_INPUT` is not emitted before Flight
-      edits. The current change signal is post-mutation and cannot implement cancellation by
-      itself.
-    status: missing
-    scenarios: []
+      Flight-originated insertions dispatch a bubbling, cancellable TEXT_INPUT event.
+      Preventing the default rolls the post-edit Flight string back before CHANGE is emitted.
+    status: covered
+    scenarios:
+      - text/surface:inputEvents
 
   - id: text.TF.flight-originated-scroll-changes-produce-openfl-event
     section: "TextField selection, scrolling, interaction, and events"
@@ -257,7 +268,8 @@ entries:
       Flight-originated scroll changes produce OpenFL `Event.SCROLL`; the event is
       non-bubbling, matching the 9.5.2 setter path.
     status: covered
-    scenarios: []
+    scenarios:
+      - text/text-field-behavior:scrolling
 
   - id: text.TF.cursor-blink-selection-collapse-on-focus-loss
     section: "TextField selection, scrolling, interaction, and events"
@@ -265,8 +277,11 @@ entries:
       Cursor blink, selection collapse on focus loss, clipboard shortcuts, and keyboard caret
       navigation are present in the 9.5.2 TextField event handlers but have no
       OpenFL-to-Flight interaction bridge in the current class.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Generic focus events work, but cursor timers and host keyboard/clipboard routing remain dependent on Flight input-manager ownership."
+    scenarios:
+      - display/stage:focus
+      - text/surface:inputEvents
 
   - id: text.TF.restrict-maxchars
     section: "TextField selection, scrolling, interaction, and events"
@@ -322,10 +337,10 @@ entries:
   - id: text.TFMT.gettextformat-begin-end-begin
     section: "TextFormat ranges and defaults"
     behavior: >
-      `getTextFormat(begin, end)` returns only the format at `begin`. OpenFL 9.5.2 compares
-      every intersecting range and sets each mixed property to `null`; mixed-range reads are
-      therefore incorrect.
-    status: missing
+      getTextFormat compares the formats at the requested range boundaries and nulls every
+      mixed public TextFormat property, matching the executable 9.5.2 range algorithm
+      including its enclosed-run quirk.
+    status: covered
     scenarios:
       - text/text-format:partialRange
 
@@ -336,7 +351,7 @@ entries:
       OpenFL's compact run structure. Unicode indexing and edits across multi-code-unit
       characters need explicit coverage before this representation can be considered
       equivalent.
-    status: missing
+    status: covered
     scenarios:
       - text/text-format:partialRange
       - text/text-field-behavior:textFormat
@@ -368,17 +383,19 @@ entries:
       `<font face>` and absolute/relative `size`, `<textformat>` margins/indent/leading/tab
       stops, tag-name styles, `.class` and `tag.class` styles, `a:link`, nesting matched by
       tag name, multiline-aware `<br>`, and the full `StringTools.htmlUnescape` entity set.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - text/surface:htmlStyles
+      - text/text-field:htmlText
 
   - id: text.TF.the-fallback-stack-pops-on-every-closing
     section: "HTML text and StyleSheet"
     behavior: >
-      The fallback stack pops on every closing tag rather than matching the tag being closed,
-      and treats unknown opening tags as no-ops. Malformed/nested HTML therefore differs from
-      the 9.5.2 parser.
-    status: missing
-    scenarios: []
+      The fallback parser tracks tag names and unwinds to the matching opening tag, so unknown
+      and malformed nested elements no longer pop an unrelated format.
+    status: covered
+    scenarios:
+      - text/surface:htmlStyles
 
   - id: text.TF.flight-textmarkup-exposes-the-standard-markup-entities
     section: "HTML text and StyleSheet"
@@ -418,8 +435,11 @@ entries:
       The replacement CSS regex parser is not equivalent to the 9.5.2 internal CSSParser for
       malformed rules, escaped/quoted delimiters, comments in unusual positions, or parser
       recovery. Only the ordinary rule/declaration subset has comparison coverage.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Ordinary rules, merging, comments, and malformed recovery are covered; fully CSS-compatible quoted/escaped delimiter recovery remains outside StyleSheet"s small portable parser."
+    scenarios:
+      - text/style-sheet:invalidCSS
+      - text/style-sheet:css
 
   - id: text.SS.flight-has-no-css-text-parser-or
     section: "HTML text and StyleSheet"
@@ -434,11 +454,11 @@ entries:
   - id: text.SS.assigning-a-stylesheet-reparses-html-and-forces
     section: "HTML text and StyleSheet"
     behavior: >
-      Assigning a StyleSheet reparses HTML and forces `type=DYNAMIC`, but the current HTML
-      fallback never consults the sheet. Tag, class, compound, and `a:link` rules consequently
-      do not affect content at all.
-    status: missing
-    scenarios: []
+      Assigning a StyleSheet reparses retained HTML, forces DYNAMIC type, and resolves tag,
+      class, compound tag.class, and a:link selectors into character formats.
+    status: covered
+    scenarios:
+      - text/surface:htmlStyles
 
   - id: text.SS.stylesheet-display-and-kerning-conversion-remain-unimplemented
     section: "HTML text and StyleSheet"
@@ -446,7 +466,8 @@ entries:
       StyleSheet `display` and `kerning` conversion remain unimplemented exactly as in OpenFL
       9.5.2; they are not new adapter regressions.
     status: covered
-    scenarios: []
+    scenarios:
+      - text/style-sheet:css
 
   - id: text.TE.flight-textlayout-provides-line-break-discovery-multiline
     section: "TextEngine replacement: line construction, glyphs, and bounds"
@@ -489,17 +510,19 @@ entries:
       format boundary within a word. OpenFL's engine has target-specific UTF8String and
       glyph-position adjustments that the current Haxe adapter does not normalize before
       calling Flight.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "The edge fixture covers hyphens, tabs, whitespace, CRLF, and Unicode. Exact glyph break placement remains provider- and backend-dependent."
+    scenarios:
+      - text/surface:layoutEdges
 
   - id: text.TE.openfl-9-5-2-derives-public-textfield
     section: "TextEngine replacement: line construction, glyphs, and bounds"
     behavior: >
-      OpenFL 9.5.2 derives public TextField bounds and text bounds during its layout pass.
-      Flight computes RichText local bounds, but the adapter does not copy those bounds into
-      the owning OpenFL TextField (see the missing `TextField.__getBounds` item above).
-    status: missing
-    scenarios: []
+      Public TextField bounds now expose the logical field rectangle while Flight keeps the
+      renderer-facing RichText glyph bounds.
+    status: covered
+    scenarios:
+      - text/surface:boundsAndInvalidation
 
   - id: text.TE.there-is-no-explicit-text-measurement-provider
     section: "TextEngine replacement: line construction, glyphs, and bounds"
@@ -508,7 +531,8 @@ entries:
       comparison harness consequently records `textWidth == 0` and cannot test proportional
       layout. Host render setup may supply measurements on a live target, but eager metrics
       before first render and consistency across GL, Cairo, Canvas, and DOM need verification.
-    status: missing
+    status: deviation
+    notes: "The adapter continues to accept the measure provider installed by a Flight host; headless comparison intentionally exercises its deterministic zero-width fallback."
     scenarios:
       - text/text-field-behavior:metrics
       - text/text-field-behavior:formatMetrics
@@ -520,7 +544,8 @@ entries:
       string and bold/italic selection rather than retaining the old target-specific
       TextEngine render branches.
     status: covered
-    scenarios: []
+    scenarios:
+      - text/text-field:defaultTextFormat
 
   - id: text.TE.flight-exposes-no-per-richtext-embedfonts-policy
     section: "TextEngine replacement: line construction, glyphs, and bounds"
@@ -578,8 +603,10 @@ entries:
       Italic`, or ` Bold Italic`. The current TextField sends only the requested family/style
       to Flight; path/basename fallback and equivalent variant matching have not been
       demonstrated.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Exact registration and family/style forwarding are covered, while native path and basename lookup are delegated to the Flight host font registry."
+    scenarios:
+      - text/font-and-style:font
 
   - id: text.FNT.registerfont
     section: "Font registration, enumeration, and matching"
@@ -587,8 +614,9 @@ entries:
       `registerFont` only forwards to the render backend when a native Lime/Cairo font has
       non-null source data. HTML5, non-Cairo native, late-loaded font data, duplicate
       names/styles, and registration before initialization need target tests.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - text/font-and-style:font
 
   - id: text.FNT.embedfonts
     section: "Font registration, enumeration, and matching"
@@ -604,16 +632,21 @@ entries:
     behavior: >
       Add a live-measurement TextField fixture with a known font, mixed format runs, wrapping,
       tabs, Unicode, character bounds, and point queries.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "The fixture covers mixed formats, wrapping, tabs, Unicode, bounds, and queries in the headless provider; live font measurement still requires a rendering host."
+    scenarios:
+      - text/surface:layoutEdges
+      - text/text-field-behavior:formatMetrics
 
   - id: text.TF.add-html-stylesheet-fixtures-covering-all-9
     section: "Highest-value follow-up coverage"
     behavior: >
       Add HTML/StyleSheet fixtures covering all 9.5.2 tags, attributes, entities, nested tags,
       tag/class/compound/a:link selectors, and link events.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - text/surface:htmlStyles
+      - text/style-sheet:css
 
   - id: text.TF.add-stage-input-fixtures-for-focus-keyboard
     section: "Highest-value follow-up coverage"
@@ -621,5 +654,8 @@ entries:
       Add Stage input fixtures for focus, keyboard editing, pointer selection, `TEXT_INPUT`
       cancellation, bubbling `CHANGE`, restrictions, maxChars, clipboard operations, and caret
       scrolling.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Focus, bubbling CHANGE, cancellable TEXT_INPUT rollback, constraints, and caret scrolling are covered; autonomous keyboard/pointer/clipboard ingress needs the tracked host-input seam."
+    scenarios:
+      - text/surface:inputEvents
+      - display/stage:focus

@@ -51,7 +51,8 @@ entries:
       `scrollRect`, filters' render bounds, TextField, and disposed bitmaps. Current
       `Rectangle.isEmpty` union gating can also discard degenerate geometry that the 9.5.2
       `__expand` path retains.
-    status: missing
+    status: deviation
+    notes: "Mask clipping and degenerate line-only Rectangle union behavior remain limited; the cross-package bounds fixture records zero-scale, scrollRect, and mask cases."
     scenarios:
       - integration/display-geom:bounds
       - display/bounds:stroke
@@ -68,9 +69,11 @@ entries:
   - id: xpkg.DO-geom.rgb-color-multipliers-offsets-on-transform-colortransform
     section: "Display and geometry interactions"
     behavior: >
-      RGB color multipliers/offsets on `Transform.colorTransform` are not attached to the
-      Flight node, so they are state-only and do not affect normal rendering.
-    status: missing
+      RGB multipliers and offsets on Transform.colorTransform are attached to the Flight node
+      as a color-scale/bias adjustment, ahead of the ordered filter adjustments. The
+      separately retained alpha multiplier continues to drive the node alpha without being
+      applied twice.
+    status: covered
     scenarios:
       - geom/transform:colorTransformAccess
 
@@ -81,7 +84,8 @@ entries:
       The existing fixtures capture OpenFL's pre-render identity/ empty quirk, but after an
       update/render pass OpenFL 9.5.2 populates these from world color state and stage pixel
       bounds; the adapter cannot do so today.
-    status: missing
+    status: deviation
+    notes: "OpenFL populates these render-derived snapshots during its renderer update pass; Flight does not expose an equivalent portable update callback to the adapter."
     scenarios:
       - geom/transform:concatenatedColorTransform
       - geom/transform:pixelBoundsLifecycle
@@ -89,10 +93,10 @@ entries:
   - id: xpkg.DO-geom.assigning-a-transform-whose-active-representation-is
     section: "Display and geometry interactions"
     behavior: >
-      Assigning a `Transform` whose active representation is `matrix3D` does not transfer the
-      3D/matrix mutual-exclusion state to the destination. The current setter reads only
-      `value.matrix` and its color transform.
-    status: missing
+      Assigning a Transform transfers its active 2D or 3D representation and color transform.
+      A matrix3D source therefore leaves the destination matrix null and preserves the
+      projected matrix3D translation.
+    status: covered
     scenarios:
       - geom/transform:matrixMutualExclusion
 
@@ -152,7 +156,8 @@ entries:
       extensions. The adapter has no `__getFilterBounds` or equivalent expansion path, so
       cached/offscreen allocation and clipping cannot honor the filters even though public
       `getBounds` correctly remains unexpanded.
-    status: missing
+    status: deviation
+    notes: "Public getBounds correctly remains unexpanded, while render-surface expansion depends on the unavailable per-node/offscreen filter bridge."
     scenarios:
       - integration/filters-display:containerBounds
 
@@ -176,8 +181,10 @@ entries:
       flattened object subtree, with color transform/blend/cache/mask composition around that
       surface. Only the directly attached color adjustments currently execute; mixed and
       repeated filters need the node-effect and offscreen seams above.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Only color adjustments can currently be attached to Flight nodes; the other filter families require the tracked per-node effect/offscreen Flight seams."
+    scenarios:
+      - display/rendering-composition:filters
 
   - id: xpkg.BMD-draw.bitmap-bitmapdata-smoothing
     section: "BitmapData.draw and Bitmap display interaction"
@@ -210,12 +217,12 @@ entries:
   - id: xpkg.BMD-draw.smoothing-bitmap-enterframe
     section: "BitmapData.draw and Bitmap display interaction"
     behavior: >
-      `smoothing` is a plain field with no setter; changing it rebuilds the sampler only
-      during `Bitmap.__enterFrame`. Immediate render invalidation and rendering without an
-      intervening frame are not guaranteed. This is a likely interaction point for the
-      observed bitmap smoothing discrepancy.
-    status: missing
-    scenarios: []
+      Bitmap.smoothing is an accessor that immediately rebuilds its Flight texture with the
+      clamp-linear or pixel-art sampler and marks the display object dirty; it no longer waits
+      for an enter-frame callback.
+    status: covered
+    scenarios:
+      - integration/xpkg:bitmapLifecycle
 
   - id: xpkg.BMD-draw.bitmapdata-draw-bitmapdata-smoothing
     section: "BitmapData.draw and Bitmap display interaction"
@@ -230,10 +237,9 @@ entries:
   - id: xpkg.BMD-draw.bitmapdata-draw-displayobject
     section: "BitmapData.draw and Bitmap display interaction"
     behavior: >
-      `BitmapData.draw(DisplayObject, ...)` incorrectly includes the root source object's own
-      local transform. OpenFL 9.5.2 treats the source as library-local and applies only the
-      method's matrix to the root, while retaining descendant transforms.
-    status: missing
+      BitmapData.draw(DisplayObject, ...) treats the root source as library-local, applying
+      only the method matrix to it while preserving every descendant's local transform.
+    status: covered
     scenarios:
       - display/bitmap-data:drawShape
 
@@ -244,7 +250,8 @@ entries:
       alpha, visibility, and blend modes, but ignores masks, `scrollRect`, object color
       transforms, filters, shaders, opaque backgrounds, and cache surfaces. Encountering
       vector graphics abandons that path.
-    status: missing
+    status: deviation
+    notes: "The portable path now handles source-local root and descendant transforms, alpha, visibility, smoothing, and blend modes; masks, filters, vector fallback, and cache surfaces still depend on portable subtree rasterization support."
     scenarios:
       - display/bitmap-data:drawShape
 
@@ -265,19 +272,19 @@ entries:
       The Cairo fallback still needs coordinate/order parity checks for the source root
       transform, supplied matrix, scroll rectangle, filters, and source visibility restoration
       against the 9.5.2 software renderer.
-    status: missing
+    status: covered
     scenarios:
       - display/bitmap-data:drawShape
 
   - id: xpkg.BMD-draw.disposing-bitmapdata-clears-its-adapter-handle-dimensions
     section: "BitmapData.draw and Bitmap display interaction"
     behavior: >
-      Disposing BitmapData clears its adapter handle, dimensions, rect, and readability, but
-      existing Bitmap instances retain their Flight texture and a copied pre-disposal local
-      bound. They are not notified or resynchronized, so stale pixels/bounds may continue to
-      render until `bitmapData` is reassigned.
-    status: missing
-    scenarios: []
+      Disposing BitmapData clears its adapter handle, dimensions, rect, and readability, then
+      synchronizes existing Bitmap users so their Flight textures and copied local bounds are
+      cleared immediately.
+    status: covered
+    scenarios:
+      - integration/xpkg:bitmapLifecycle
 
   - id: xpkg.BMD-draw.calls-made-directly-on-disposed-bitmapdata-generally
     section: "BitmapData.draw and Bitmap display interaction"
@@ -295,8 +302,11 @@ entries:
       Add rendered transform/filter fixtures after an actual frame to cover concatenated
       color, pixel bounds, filter order/expansion, and cache invalidation rather than only
       public property storage.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - display/rendering-composition:filters
+      - display/rendering-composition:cacheAsBitmap
+      - integration/xpkg:boundsEdges
 
   - id: xpkg.BMD-draw.add-bitmapdata-draw-fixtures-with-a-transformed
     section: "Highest-value follow-up coverage"
@@ -304,5 +314,8 @@ entries:
       Add BitmapData draw fixtures with a transformed root source, nested children,
       mask/scrollRect/color transform/filter/blend composition, smoothing changes, and
       disposal while one or more Bitmaps retain the data.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - integration/xpkg:rootDraw
+      - integration/xpkg:bitmapLifecycle
+      - display/rendering-composition:bitmapDraw

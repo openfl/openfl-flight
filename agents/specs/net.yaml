@@ -66,8 +66,9 @@ entries:
       `authenticate` and `cacheResponse` occur in the broader AIR API but are not declared by
       non-Flash OpenFL 9.5.2. `digest` and `useRedirectedURL` are likewise compiled out. The
       adapter intentionally does not add them.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - net/surface:requestSurface
 
   - id: net.UR.urlrequestheader-new-name-value
     section: "URLRequest"
@@ -117,7 +118,8 @@ entries:
       response is available, not at connection/open time; `HTTP_RESPONSE_STATUS` carries
       response URL and response headers, while `HTTP_STATUS` carries only the numeric status.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/url-stream:completedBody
 
   - id: net.UL.the-current-flight-path-preserves-that-final
     section: "URLLoader"
@@ -126,7 +128,8 @@ entries:
       status/headers before the completed body; see **URLLoader/URLStream cancellation,
       chunks, and early response metadata**.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/url-stream:completedBody
 
   - id: net.UL.transport-decode-failure-dispatches-ioerrorevent-ioerror-the
     section: "URLLoader"
@@ -258,7 +261,8 @@ entries:
       adapter retains that stub. The `objectEncoding` value is copied to loaded data but not
       used by this method.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:urlStreamObject
 
   - id: net.US.endian-load
     section: "URLStream"
@@ -431,7 +435,9 @@ entries:
       The internal `connect`, `close`, `ioError`, `securityError`, and `socketData` lifecycle
       is forwarded. Connect sets `connected = true`; close sets it false.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/xml-socket:defaults
+      - net/xml-socket:disconnectedErrors
 
   - id: net.XS.send-object-std-string
     section: "XMLSocket"
@@ -484,7 +490,8 @@ entries:
       validates `localPort` rather than the supplied remote port before connecting; the
       adapter retains this quirk.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:datagramSurface
 
   - id: net.DS.receive-datagramsocketdataevent-data
     section: "DatagramSocket"
@@ -494,7 +501,8 @@ entries:
       containing exactly that packet. Delivery order and loss are UDP-defined; no
       retransmission or segmentation is supplied.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:datagramSurface
 
   - id: net.DS.send-bytes-offset-rangeerror
     section: "DatagramSocket"
@@ -505,7 +513,8 @@ entries:
       use throws `IllegalOperationError` or `ArgumentError`; transport failures become
       `IOError`.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/datagram-socket:constructionError
 
   - id: net.DS.close-bound
     section: "DatagramSocket"
@@ -513,7 +522,8 @@ entries:
       `close()` stops receive polling, unbinds/disconnects, sets `bound` false, and dispatches
       `Event.CLOSE`; repeated underlying close errors are swallowed.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:datagramSurface
 
   - id: net.SS.serversocket-bind-port-address
     section: "ServerSocket and SecureSocket"
@@ -526,7 +536,8 @@ entries:
       state/range/address produces the documented `IOError`, `RangeError`, or `ArgumentError`
       paths.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:serverSocketSurface
 
   - id: net.SEC.securesocket-issupported
     section: "ServerSocket and SecureSocket"
@@ -538,7 +549,8 @@ entries:
       `UNKNOWN`, then `TRUSTED` or `INVALID`. The public `addBinaryChainBuildingCertificate`
       declaration follows the platform's supported/no-op or `ArgumentError` behavior.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:secureSocketSurface
 
   - id: net.FR.a-new-reference-has-null-creationdate-creator
     section: "FileReference"
@@ -555,12 +567,11 @@ entries:
   - id: net.FR.browse-typefilter-filefilter
     section: "FileReference"
     behavior: >
-      `browse(typeFilter = null)` clears prior selected data/path, converts `FileFilter`
-      patterns, opens a single-select host dialog, returns true when that operation is
-      accepted, then dispatches `Event.SELECT` or `Event.CANCEL`. Unsupported 9.5.2 targets
-      return false; the current no-host path returns true without an event, a divergence that
-      remains unclear.
-    status: missing
+      browse(typeFilter = null) clears prior selected data/path, converts FileFilter patterns,
+      opens a single-select host dialog, returns true when that operation is accepted, then
+      dispatches Event.SELECT or Event.CANCEL. On the comparison target, the executable 9.5.2
+      and adapter no-host paths both return true without an immediate event.
+    status: covered
     scenarios:
       - net/file-reference:browseWithFilter
       - net/file-reference:browseWithoutFilter
@@ -573,7 +584,9 @@ entries:
       Despite the API prose, portable 9.5.2 does not dispatch `open` or `progress` for local
       load; the adapter matches this lifecycle.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/file-reference:referenceAfterOperations
+      - net/file-reference:events
 
   - id: net.FR.save-data-defaultfilename-std-string
     section: "FileReference"
@@ -583,7 +596,9 @@ entries:
       the user chooses a destination, followed by `complete` after the write. Host failure
       dispatches `ioError` in the adapter.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/file-reference:referenceAfterOperations
+      - net/file-reference:events
 
   - id: net.FR.download-request-defaultfilename-open
     section: "FileReference"
@@ -646,10 +661,10 @@ entries:
   - id: net.FRL.unsupported-target-return-behavior-has-the-same
     section: "FileReferenceList"
     behavior: >
-      Unsupported-target return behavior has the same no-host true/no-event divergence as
-      single-file browse. Host statistic failures dispatch `ioError` in the adapter rather
-      than selecting references with partial metadata.
-    status: missing
+      The no-host path returns true, replaces fileList with an empty array, and emits no
+      immediate event on both the executable 9.5.2 comparison target and the adapter. Host
+      statistic failures dispatch ioError before any partial selection is exposed.
+    status: covered
     scenarios:
       - net/file-reference:list
 
@@ -750,7 +765,8 @@ entries:
       `info.code` is `"NetConnection.Connect.Success"`; any non-null command throws the string
       `Error: Can only connect in "HTTP streaming" mode`. Optional arguments are ignored.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netConnection
 
   - id: net.NC.the-executable-portable-surface-has-no-close
     section: "NetConnection"
@@ -760,7 +776,8 @@ entries:
       `usingTLS`; these are commented declarations and exist only through the Flash typedef.
       The current source intentionally matches this limited 9.5.2 surface.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netConnection
 
   - id: net.NC.responder-new-result-status-netconnection-call
     section: "NetConnection"
@@ -769,7 +786,8 @@ entries:
       `NetConnection.call`, but the portable NetConnection has no call method and never
       invokes them.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:responder
 
   - id: net.NS.new-connection-peerid-peerid
     section: "NetStream"
@@ -778,7 +796,8 @@ entries:
       HTML5 it creates an anonymous, inline/cross-origin video element and attaches media
       callbacks; other targets create no decoder. `peerID` is ignored.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.portable-public-state-consists-of-mutable-default
     section: "NetStream"
@@ -790,7 +809,8 @@ entries:
       `soundTransform` and `speed`. Unassigned numeric fields remain zero, not the richer
       values promised by the Flash prose.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.play-url-p1-src
     section: "NetStream"
@@ -799,7 +819,8 @@ entries:
       assigns a string to video `src` or another value to `srcObject`, and calls play. Extra
       arguments are ignored. Other targets do nothing.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.cross-target-decoding-frame-delivery-is-unavailable
     section: "NetStream"
@@ -818,7 +839,8 @@ entries:
       `NetStream.SeekStart.Notify`, assigns currentTime, and the later seeking callback
       dispatches `NetStream.Seek.Complete`.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.close-src
     section: "NetStream"
@@ -827,7 +849,8 @@ entries:
       preserves the element/current frame object. `dispose()` calls close then releases the
       element, causing attached video to go blank.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.requestvideostatus-client-onplaystatus
     section: "NetStream"
@@ -835,7 +858,8 @@ entries:
       `requestVideoStatus()` asynchronously invokes `client.onPlayStatus` with
       `NetStream.Play.pause` or `.playing` when an HTML element exists.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.soundtransform-speed
     section: "NetStream"
@@ -844,7 +868,8 @@ entries:
       and immediately updates HTML media volume. Pan is not applied. `speed` gets/sets HTML
       `playbackRate`, or reads `1` and discards writes on other targets.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.html-callbacks-dispatch-netstatusevent-codes-to-both
     section: "NetStream"
@@ -858,7 +883,8 @@ entries:
       `client.onMetaData` with width, height, and duration. Missing handlers and exceptions
       are swallowed.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:netStream
 
   - id: net.NS.appendbytes-appendbytesaction
     section: "NetStream"
@@ -867,8 +893,9 @@ entries:
       and related status codes are all enclosed in `#if false` in non-Flash 9.5.2. They are
       Flash-only and absent from the adapter. There is no portable `audioCodec`/`videoCodec`
       discovery; note that 9.5.2 spells the latter field `videoCode`.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - net/surface:netStream
 
   - id: net.OE.objectencoding-amf0
     section: "Encoding and small value contracts"
@@ -878,7 +905,8 @@ entries:
       `dynamicPropertyWriter` is a mutable static hook, though the current ByteArray AMF
       implementation cannot consume it.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:encoding
 
   - id: net.IDP.idynamicpropertyoutput-writedynamicproperty-name-value-idynamicpropertywriter-writedynamicproperties
     section: "Encoding and small value contracts"
@@ -887,7 +915,8 @@ entries:
       `IDynamicPropertyWriter.writeDynamicProperties(obj,output)`; the interfaces impose no
       ordering or storage themselves.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:dynamicProperties
 
   - id: net.IPV.ipversion-ipv4
     section: "Encoding and small value contracts"
@@ -895,4 +924,5 @@ entries:
       `IPVersion` values are `IPV4 = "IPv4"` and `IPV6 = "IPv6"` (legacy 0, 1). These are
       selectors only; socket address-family validation remains a transport concern.
     status: covered
-    scenarios: []
+    scenarios:
+      - net/surface:ipVersion

@@ -5,7 +5,7 @@ import flight.Scene2D as FlightScene2D;
 import flight.Texture as FlightTexture;
 import flight.Video as FlightVideo;
 import flight.types.Sprite as FlightSpriteData;
-import flight.types.Texture as FlightTextureData;
+import flight.types.Texture2D as FlightTextureData;
 import flight.types.VideoResource as FlightVideoResource;
 import openfl.display.DisplayObject;
 import openfl.geom.Matrix;
@@ -26,7 +26,7 @@ import openfl.net.NetStream;
 class Video extends DisplayObject
 {
 	public var deblocking:Int;
-	public var smoothing:Bool;
+	public var smoothing(get, set):Bool;
 	public var videoHeight(get, never):Int;
 	public var videoWidth(get, never):Int;
 
@@ -34,6 +34,7 @@ class Video extends DisplayObject
 	@:noCompletion private var __flightResource:FlightVideoResource;
 	@:noCompletion private var __flightTexture:FlightTextureData;
 	@:noCompletion private var __stream:NetStream;
+	@:noCompletion private var __smoothing:Bool;
 	@:noCompletion private var __width:Float;
 
 	public function new(width:Int = 320, height:Int = 240):Void
@@ -44,7 +45,7 @@ class Video extends DisplayObject
 		smoothing = false;
 		deblocking = 0;
 		__flightResource = FlightVideo.createVideoResource();
-		__flightTexture = FlightTexture.createVideoTexture(__flightResource);
+		__flightTexture = FlightTexture.createVideoTexture(__flightResource, {sampler: FlightTexture.createPixelArtSampler()});
 		var sprite:FlightSpriteData = FlightScene2D.createSprite({data: {texture: __flightTexture}});
 		__flightNode = sprite;
 		__syncFlightNode();
@@ -65,7 +66,8 @@ class Video extends DisplayObject
 
 	public function clear():Void
 	{
-		FlightTexture.resetVideoTextureFrame(__flightTexture);
+		// Portable OpenFL 9.5.2 leaves the current frame and stream association
+		// intact. NetStream.close()/attachNetStream(null) own detachment.
 	}
 
 	public override function hitTestPoint(x:Float, y:Float, shapeFlag:Bool = false):Bool
@@ -81,6 +83,23 @@ class Video extends DisplayObject
 	@:noCompletion private function get_videoWidth():Int
 	{
 		return __flightResource == null ? 0 : Std.int(FlightVideo.getVideoResourceWidth(__flightResource));
+	}
+
+	@:noCompletion private function get_smoothing():Bool
+	{
+		return __smoothing;
+	}
+
+	@:noCompletion private function set_smoothing(value:Bool):Bool
+	{
+		if (__smoothing == value) return value;
+		__smoothing = value;
+		if (__flightTexture != null)
+		{
+			__flightTexture.sampler = value ? FlightTexture.createClampLinearSampler() : FlightTexture.createPixelArtSampler();
+			__setRenderDirty();
+		}
+		return value;
 	}
 
 	@:noCompletion private override function __getBounds(rect:Rectangle, matrix:Matrix):Void

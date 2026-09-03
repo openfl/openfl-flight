@@ -48,11 +48,13 @@ import harness.scenarios.LoaderScenario;
 import harness.scenarios.LoaderInfoScenario;
 import harness.scenarios.Matrix3DScenario;
 import harness.scenarios.MatrixScenario;
+import harness.scenarios.MediaSurfaceScenario;
 import harness.scenarios.MouseScenario;
 import harness.scenarios.MovieClipScenario;
 import harness.scenarios.MultitouchScenario;
 import harness.scenarios.NativeApplicationScenario;
 import harness.scenarios.NativeProcessScenario;
+import harness.scenarios.NetSurfaceScenario;
 import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
 import harness.scenarios.PointScenario;
@@ -78,11 +80,13 @@ import harness.scenarios.TelemetryScenario;
 import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFieldBehaviorScenario;
 import harness.scenarios.TextFormatScenario;
+import harness.scenarios.TextSurfaceScenario;
 import harness.scenarios.TimerScenario;
 import harness.scenarios.TimelineScenario;
 import harness.scenarios.TilesScenario;
 import harness.scenarios.TransformScenario;
 import harness.scenarios.Utils3DScenario;
+import harness.scenarios.UtilsSurfaceScenario;
 import harness.scenarios.URLLoaderScenario;
 import harness.scenarios.URLRequestScenario;
 import harness.scenarios.URLStreamScenario;
@@ -90,6 +94,7 @@ import harness.scenarios.URLTypesScenario;
 import harness.scenarios.Vector3DScenario;
 import harness.scenarios.VideoScenario;
 import harness.scenarios.XMLSocketScenario;
+import harness.scenarios.XPackageScenario;
 
 class Scenarios {
 	public static function all():Array<Scenario> {
@@ -103,8 +108,8 @@ class Scenarios {
 				run: ObjectPoolScenario.run
 			},
 			{
-				name: "utils/timer",
-				run: TimerScenario.run
+				name: "utils/surface",
+				run: UtilsSurfaceScenario.run
 			},
 			{
 				name: "events/redispatch",
@@ -125,6 +130,10 @@ class Scenarios {
 			{
 				name: "integration/filters-display",
 				run: FiltersDisplayIntegrationScenario.run
+			},
+			{
+				name: "integration/xpkg",
+				run: XPackageScenario.run
 			},
 			{
 				name: "geom/point",
@@ -243,6 +252,10 @@ class Scenarios {
 				run: VideoScenario.run
 			},
 			{
+				name: "media/surface",
+				run: MediaSurfaceScenario.run
+			},
+			{
 				name: "errors/error",
 				run: ErrorScenario.run
 			},
@@ -343,6 +356,10 @@ class Scenarios {
 				run: XMLSocketScenario.run
 			},
 			{
+				name: "net/surface",
+				run: NetSurfaceScenario.run
+			},
+			{
 				name: "display/display-object",
 				run: DisplayObjectScenario.run
 			},
@@ -399,6 +416,10 @@ class Scenarios {
 				run: TextFormatScenario.run
 			},
 			{
+				name: "text/surface",
+				run: TextSurfaceScenario.run
+			},
+			{
 				name: "text/font-and-style",
 				run: FontAndStyleScenario.run
 			},
@@ -453,6 +474,10 @@ class Scenarios {
 			{
 				name: "utils/dictionary",
 				run: DictionaryScenario.run
+			},
+			{
+				name: "utils/timer",
+				run: TimerScenario.run
 			}
 		];
 	}

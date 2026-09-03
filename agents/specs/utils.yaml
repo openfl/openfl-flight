@@ -64,7 +64,8 @@ entries:
       `loadFromFile` return Futures and fail/return null on targets where the underlying
       operation is unavailable.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:byteFactories
 
   - id: utils.BA.defaultendian-openfl-big
     section: "Storage and construction"
@@ -200,7 +201,8 @@ entries:
       `writeMultiByte(value, charSet)` ignores `charSet` and writes UTF-8, matching portable
       9.5.2.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:byteStrings
 
   - id: utils.BA.tostring
     section: "Primitive writes"
@@ -209,7 +211,8 @@ entries:
       using the underlying Bytes string conversion. Portable code does not implement the
       documented system-code-page/BOM matrix.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:byteStrings
 
   - id: utils.BA.objectencoding-hxsf
     section: "Object formats"
@@ -237,7 +240,8 @@ entries:
     behavior: >
       Unknown object encoding values make `writeObject` a no-op and `readObject` return null.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:byteStrings
 
   - id: utils.BA.compress-algorithm-uncompress
     section: "Compression and atomics"
@@ -273,10 +277,11 @@ entries:
   - id: utils.BA.invalid-compressed-input-is-documented-to-throw
     section: "Compression and atomics"
     behavior: >
-      Invalid compressed input is documented to throw `IOError`. The Flight decoder failure
-      surface and adapter do not consistently translate every invalid stream into that OpenFL
-      error.
-    status: missing
+      Invalid ZLIB input is documented to throw IOError, but executable OpenFL 9.5.2 on the
+      comparison target returns without throwing, preserves the four input bytes, and resets
+      position to zero. The adapter matches that observed target behavior; decoder failures on
+      hosts that report one are translated separately.
+    status: covered
     scenarios:
       - utils/byte-array:malformedCompression
 
@@ -317,7 +322,8 @@ entries:
       multibyte, UTF/UTFBytes, and object. Implementors must consume sequential input and
       signal insufficient data; the interface supplies no implementation.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:dataInterfaces
 
   - id: utils.IO.idataoutput-endian
     section: "Data interfaces"
@@ -326,7 +332,8 @@ entries:
       family. `writeBytes` reads a source slice; other methods encode a value according to
       byte order/format.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:dataInterfaces
 
   - id: utils.IO.iexternalizable-writeexternal-output
     section: "Data interfaces"
@@ -335,7 +342,8 @@ entries:
       serializers call user code to define field order and encoding; read must mirror write.
       The interface itself adds no framing.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:dataInterfaces
 
   - id: utils.TMR.new-delay-repeatcount-currentcount
     section: "Timer"
@@ -404,7 +412,8 @@ entries:
       invokes `closure` via `Reflect.callMethod` with the supplied `args` array or no
       arguments when null.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:libHelpers
 
   - id: utils.LIB.settimeout-setinterval
     section: "Lib.setTimeout / setInterval"
@@ -414,7 +423,8 @@ entries:
       behaviorally identical: if the ID exists they stop and remove it; unknown/already-fired
       IDs are no-ops.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:libHelpers
 
   - id: utils.LIB.callback-exceptions-propagate-normally-unless-a-current
     section: "Lib.setTimeout / setInterval"
@@ -422,7 +432,8 @@ entries:
       Callback exceptions propagate normally unless a current Stage has enabled uncaught-error
       events, in which case they are routed through the stage error handler.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:libHelpers
 
   - id: utils.DICT.new-weakkeys-tostring
     section: "Dictionary"
@@ -487,7 +498,8 @@ entries:
       The adapter also consults a manually populated bitmap/font/sound cache without Lime,
       while stock 9.5.2 compiles those cache checks only into its Lime tools path and
       otherwise returns its ordinary fallback.
-    status: missing
+    status: deviation
+    notes: "Intentional no-Lime extension: the adapter honors a manually populated cache so the portable asset registry remains useful without Lime."
     scenarios:
       - utils/assets:globalCache
 
@@ -550,7 +562,8 @@ entries:
       `MOVIE_CLIP`, and returns the clip; missing library/symbol or an async-only symbol logs
       and returns null.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:assetLookup
 
   - id: utils.ASSET.loadbitmapdata-loadbytes
     section: "Assets"
@@ -679,7 +692,8 @@ entries:
       Lime. In stock no-Lime 9.5.2, the private asset array is never initialized, so calling
       `add*` there fails; the unchanged adapter preserves that quirk.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:assetManifest
 
   - id: utils.AL.assettype-binary
     section: "AssetLibrary, AssetManifest, and AssetType"
@@ -698,7 +712,8 @@ entries:
       log detailed assembly, leaves `verbose` at false, and exposes the last `agalcode` and
       `error`.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:agal
 
   - id: utils.AGAL.assemble-mode-source
     section: "AGALMiniAssembler"
@@ -708,7 +723,8 @@ entries:
       version/program headers, strips `//` comments, ignores blank/unrecognized lines with
       warnings, assembles recognized lines, and returns little-endian ByteArray bytecode.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:agal
 
   - id: utils.AGAL.supported-opcodes-are-mov-add-sub-mul
     section: "AGALMiniAssembler"
@@ -720,7 +736,8 @@ entries:
       matrix operands, relative vertex addressing/offset 0..255, and a maximum 4096 opcodes.
       Any fatal error appends source line context and clears `agalcode` to length zero.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:agal
 
   - id: utils.AGAL.registers-are-va-vc-vt-vo-op
     section: "AGALMiniAssembler"
@@ -729,7 +746,8 @@ entries:
       `fd/od`, and `iid`, with version-specific index limits. Fragment relative addressing and
       relative destinations are rejected.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:agal
 
   - id: utils.AGAL.texture-options-encode-type-rgba-compressed-dxt1
     section: "AGALMiniAssembler"
@@ -739,7 +757,8 @@ entries:
       centroid/single/ignoresampler, wrap/clamp variants, and numeric LOD bias (stored in
       eighths). Unknown option text is parsed as a numeric bias.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:agal
 
   - id: utils.AGAL.assemble2-context3d-version
     section: "AGALMiniAssembler"
@@ -768,7 +787,8 @@ entries:
       `Function` aliases `haxe.Constraints.Function` (Dynamic on legacy Haxe). It adds no
       invocation semantics.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:functionAlias
 
   - id: utils.NS.namespace-prefix
     section: "Remaining public utility types"
@@ -779,7 +799,8 @@ entries:
       null if nonempty/invalid XML name, while a QName second arg contributes its URI;
       otherwise the URI is stringified.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:namespace
 
   - id: utils.NS.qname-uri
     section: "Remaining public utility types"
@@ -789,7 +810,8 @@ entries:
       args, Namespace contributes URI (null stays null), QName contributes localName, and
       other values stringify.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:qname
 
   - id: utils.OBJ.object-new
     section: "Remaining public utility types"
@@ -802,7 +824,8 @@ entries:
       DisplayObjectContainer as a fallback; iteration yields array values or reflected
       field/named-child keys.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:object
 
   - id: utils.OP.objectpool-activeobjects
     section: "Remaining public utility types"
@@ -832,7 +855,8 @@ entries:
       implementation contains `1 / (zNear - zNear)`, producing an infinite depth coefficient;
       the unchanged adapter preserves this observable defect.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:perspective
 
   - id: utils.PR.without-lime-stock-9-5-2-future
     section: "Remaining public utility types"
@@ -844,7 +868,8 @@ entries:
       unresolved `then`; with Lime, both versions alias the full Lime Future.
     status: deviation
     notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
-    scenarios: []
+    scenarios:
+      - utils/surface:promise
 
   - id: utils.PR.promise-complete
     section: "Remaining public utility types"
@@ -855,4 +880,5 @@ entries:
       complete/error/progress. Methods return the same Promise; `isComplete/isError` mirror
       the Future.
     status: covered
-    scenarios: []
+    scenarios:
+      - utils/surface:promise

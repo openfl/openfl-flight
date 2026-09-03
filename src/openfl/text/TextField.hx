@@ -10,10 +10,14 @@ import flight.types.TextFormat as FlightTextFormat;
 import flight.types.TextLayoutResult as FlightTextLayoutResult;
 import flight.types.TextMeasureFunction;
 import flight.types.RichText as FlightRichText;
+import flight.types.TextFieldChangeEvent as FlightTextFieldChangeEvent;
+import flight.types.TextFieldLinkEvent as FlightTextFieldLinkEvent;
 import openfl.display.InteractiveObject;
 import openfl.errors.RangeError;
 import openfl.errors.TypeError;
 import openfl.events.Event;
+import openfl.events.TextEvent;
+import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
 
 /**
@@ -26,7 +30,9 @@ import openfl.geom.Rectangle;
 @:noDebug
 #end
 @:access(openfl.text.TextFormat)
+@:access(openfl.text.StyleSheet)
 @:access(openfl.display.DisplayObject)
+@:access(openfl.geom.Rectangle)
 class TextField extends InteractiveObject
 {
 	@:noCompletion private static var __missingFontWarning:Map<String, Bool> = new Map();
@@ -151,6 +157,7 @@ class TextField extends InteractiveObject
 		FlightNode.addNodeChild(__flightNode, __flightText);
 		var signals = FlightText.enableTextFieldSignals(__flightText);
 		FlightSignals.connectSignal(signals.onTextFieldChange, cast __flight_onTextFieldChange);
+		FlightSignals.connectSignal(signals.onTextFieldLink, cast __flight_onTextFieldLink);
 		FlightSignals.connectSignal(signals.onTextFieldScroll, cast __flight_onTextFieldScroll);
 		FlightTextInput.enableTextInput(__flightText, {
 			displayAsPassword: __displayAsPassword,
@@ -286,9 +293,28 @@ class TextField extends InteractiveObject
 		if (endIndex == -1) endIndex = __text.length;
 		if (beginIndex >= endIndex || __formatByCharacter.length == 0) return new TextFormat();
 
-		var format:FlightTextFormat = {};
-		FlightText.getRichTextFormatRangeAt(format, __flightText, beginIndex);
-		return __fromFlightTextFormat(format);
+		var result = __formatByCharacter[beginIndex].clone();
+		var other = __formatByCharacter[endIndex - 1];
+		if (other.font != result.font) result.font = null;
+		if (other.size != result.size) result.size = null;
+		if (other.color != result.color) result.color = null;
+		if (other.bold != result.bold) result.bold = null;
+		if (other.italic != result.italic) result.italic = null;
+		if (other.underline != result.underline) result.underline = null;
+		if (other.url != result.url) result.url = null;
+		if (other.target != result.target) result.target = null;
+		if (other.align != result.align) result.align = null;
+		if (other.leftMargin != result.leftMargin) result.leftMargin = null;
+		if (other.rightMargin != result.rightMargin) result.rightMargin = null;
+		if (other.indent != result.indent) result.indent = null;
+		if (other.leading != result.leading) result.leading = null;
+		if (other.blockIndent != result.blockIndent) result.blockIndent = null;
+		if (other.bullet != result.bullet) result.bullet = null;
+		if (other.kerning != result.kerning) result.kerning = null;
+		if (other.letterSpacing != result.letterSpacing) result.letterSpacing = null;
+		if (other.tabStops != result.tabStops) result.tabStops = null;
+		if (other.strikethrough != result.strikethrough) result.strikethrough = null;
+		return result;
 	}
 
 	public function replaceSelectedText(value:String):Void
@@ -322,6 +348,7 @@ class TextField extends InteractiveObject
 		__selectionIndex = beginIndex;
 		__caretIndex = endIndex;
 		FlightTextInput.setTextInputSelection(__flightText, __selectionIndex, __caretIndex);
+		FlightTextInput.scrollTextInputCaretIntoView(__flightText, __createTextLayout(), __fieldWidth, __fieldHeight);
 	}
 
 	public function setTextFormat(format:TextFormat, beginIndex:Int = -1, endIndex:Int = -1):Void
@@ -343,10 +370,16 @@ class TextField extends InteractiveObject
 		__updateAutoSize();
 	}
 
-	@:noCompletion private function __flight_onTextFieldChange():Void
+	@:noCompletion private function __flight_onTextFieldChange(event:FlightTextFieldChangeEvent):Void
 	{
 		var value = FlightText.getRichTextString(__flightText);
 		if (value == __text) return;
+		var inserted = __insertedText(event == null ? __text : event.previousText, value);
+		if (inserted != "" && !dispatchEvent(new TextEvent(TextEvent.TEXT_INPUT, true, true, inserted)))
+		{
+			FlightText.setRichTextString(__flightText, __text);
+			return;
+		}
 		__text = value;
 		__htmlText = __text;
 		__isHTML = false;
@@ -364,7 +397,26 @@ class TextField extends InteractiveObject
 			__caretIndex = Std.int(input.caretIndex);
 		}
 		__updateAutoSize();
-		dispatchEvent(new Event(Event.CHANGE));
+		dispatchEvent(new Event(Event.CHANGE, true));
+	}
+
+	@:noCompletion private function __flight_onTextFieldLink(event:FlightTextFieldLinkEvent):Void
+	{
+		if (event == null || event.url == null) return;
+		var value = StringTools.startsWith(event.url, "event:") ? event.url.substr(6) : event.url;
+		dispatchEvent(new TextEvent(TextEvent.LINK, true, false, value));
+	}
+
+	@:noCompletion private function __insertedText(previous:String, current:String):String
+	{
+		if (previous == null) previous = "";
+		var prefix = 0;
+		var limit = Std.int(Math.min(previous.length, current.length));
+		while (prefix < limit && previous.charCodeAt(prefix) == current.charCodeAt(prefix)) prefix++;
+		var suffix = 0;
+		while (suffix < previous.length - prefix && suffix < current.length - prefix
+			&& previous.charCodeAt(previous.length - suffix - 1) == current.charCodeAt(current.length - suffix - 1)) suffix++;
+		return current.substring(prefix, current.length - suffix);
 	}
 
 	@:noCompletion private function __flight_onTextFieldScroll():Void
@@ -384,7 +436,7 @@ class TextField extends InteractiveObject
 		FlightText.setRichTextHeight(__flightText, __fieldHeight);
 		FlightText.setRichTextMaxChars(__flightText, __maxChars == 0 ? -1 : __maxChars);
 		FlightText.setRichTextMouseWheelEnabled(__flightText, __mouseWheelEnabled);
-		FlightText.setRichTextMultiline(__flightText, __multiline);
+		FlightText.setRichTextMultiline(__flightText, __effectiveMultiline());
 		FlightText.setRichTextSelectable(__flightText, __selectable);
 		FlightText.setRichTextTextColor(__flightText, __toFlightColor(textColor));
 		FlightText.setRichTextWidth(__flightText, __fieldWidth);
@@ -395,9 +447,11 @@ class TextField extends InteractiveObject
 
 	@:noCompletion private function __syncFlightContent():Void
 	{
+		FlightText.setRichTextMultiline(__flightText, __effectiveMultiline());
 		FlightText.setRichTextString(__flightText, __text);
 		__syncFlightFormats();
 		FlightTextInput.setTextInputSelection(__flightText, __selectionIndex, __caretIndex);
+		__setRenderDirty();
 	}
 
 	@:noCompletion private function __syncFlightFormats():Void
@@ -409,6 +463,7 @@ class TextField extends InteractiveObject
 			var format = i < __formatByCharacter.length ? __formatByCharacter[i] : __textFormat;
 			FlightText.setRichTextFormatRange(__flightText, __toFlightTextFormat(format), i, i + 1);
 		}
+		__setRenderDirty();
 	}
 
 	@:noCompletion private function __syncFlightInputOptions():Void
@@ -469,10 +524,15 @@ class TextField extends InteractiveObject
 			width: __fieldWidth,
 			height: __fieldHeight,
 			measure: measure,
-			multiline: __multiline,
+			multiline: __effectiveMultiline(),
 			wordWrap: __wordWrap
 		});
 		return layout;
+	}
+
+	@:noCompletion private inline function __effectiveMultiline():Bool
+	{
+		return __multiline || __text.indexOf("\n") >= 0 || __text.indexOf("\r") >= 0;
 	}
 
 	@:noCompletion private function __toFlightTextFormat(format:TextFormat):FlightTextFormat
@@ -575,7 +635,7 @@ class TextField extends InteractiveObject
 		var output = "";
 		var formats:Array<TextFormat> = [];
 		var current = __textFormat.clone();
-		var stack:Array<TextFormat> = [];
+		var stack:Array<{tag:String, format:TextFormat}> = [];
 		var remaining = value;
 		var tag = ~/<([^>]*)>/;
 
@@ -589,25 +649,72 @@ class TextField extends InteractiveObject
 			var lower = markup.toLowerCase();
 			if (StringTools.startsWith(lower, "/"))
 			{
-				if (stack.length > 0) current = stack.pop();
+				var closing = StringTools.trim(lower.substr(1)).split(" ")[0];
+				if (closing == "p" && output != "" && !StringTools.endsWith(output, "\n"))
+				{
+					output += "\n";
+					formats.push(new TextFormat());
+				}
+				var index = stack.length - 1;
+				while (index >= 0 && stack[index].tag != closing) index--;
+				if (index >= 0)
+				{
+					current = stack[index].format;
+					stack.splice(index, stack.length - index);
+				}
 			}
 			else if (lower == "br" || lower == "br/")
 			{
 				output += "\n";
 				formats.push(current.clone());
 			}
-			else if (StringTools.startsWith(lower, "font") || lower == "b" || lower == "i" || lower == "u")
+			else
 			{
-				stack.push(current);
+				var tagName = lower.split(" ")[0];
+				if (StringTools.endsWith(tagName, "/")) tagName = tagName.substr(0, tagName.length - 1);
+				stack.push({tag: tagName, format: current});
 				current = current.clone();
-				if (lower == "b") current.bold = true;
-				else if (lower == "i") current.italic = true;
-				else if (lower == "u") current.underline = true;
-				else
+				if (__styleSheet != null)
 				{
-					var color = ~/color\s*=\s*["']?#([0-9A-Fa-f]+)/i;
-					if (color.match(markup)) current.color = Std.parseInt("0x" + color.matched(1));
+					__styleSheet.__applyStyle(tagName, current);
+					var className = __htmlAttribute(markup, "class");
+					if (className != null) for (name in ~/\s+/g.split(className))
+					{
+						__styleSheet.__applyStyle("." + name, current);
+						__styleSheet.__applyStyle(tagName + "." + name, current);
+					}
+					if (tagName == "a") __styleSheet.__applyStyle("a:link", current);
 				}
+				if (tagName == "b" || tagName == "strong") current.bold = true;
+				else if (tagName == "i" || tagName == "em") current.italic = true;
+				else if (tagName == "u") current.underline = true;
+				else if (tagName == "a") current.url = __htmlAttribute(markup, "href");
+				else if (tagName == "font")
+				{
+					var color = __htmlAttribute(markup, "color");
+					if (color != null && StringTools.startsWith(color, "#")) current.color = Std.parseInt("0x" + color.substr(1));
+					var face = __htmlAttribute(markup, "face");
+					if (face != null) current.font = face;
+					var size = __htmlAttribute(markup, "size");
+					if (size != null)
+					{
+						var parsedSize = Std.parseInt(size);
+						if (parsedSize != null) current.size = StringTools.startsWith(size, "+") || StringTools.startsWith(size, "-")
+							? Std.int((current.size == null ? 12 : current.size) + parsedSize) : parsedSize;
+					}
+				}
+				if (tagName == "p")
+				{
+					var align = __htmlAttribute(markup, "align");
+					if (align != null) current.align = switch (align.toLowerCase())
+					{
+						case "center": TextFormatAlign.CENTER;
+						case "right": TextFormatAlign.RIGHT;
+						case "justify": TextFormatAlign.JUSTIFY;
+						default: TextFormatAlign.LEFT;
+					};
+				}
+				else if (tagName == "li") current.bullet = true;
 			}
 
 			remaining = tag.matchedRight();
@@ -617,6 +724,18 @@ class TextField extends InteractiveObject
 		output += suffix;
 		for (_ in 0...suffix.length) formats.push(current.clone());
 		return {text: output, formats: formats};
+	}
+
+	@:noCompletion private function __htmlAttribute(markup:String, name:String):String
+	{
+		var expression = new EReg(name + "\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))", "i");
+		if (!expression.match(markup)) return null;
+		for (index in 1...4)
+		{
+			var value = expression.matched(index);
+			if (value != null) return value;
+		}
+		return null;
 	}
 
 	@:noCompletion private function __updateAutoSize():Void
@@ -633,6 +752,19 @@ class TextField extends InteractiveObject
 		__fieldHeight = textHeight + 4;
 		FlightText.setRichTextWidth(__flightText, __fieldWidth);
 		FlightText.setRichTextHeight(__flightText, __fieldHeight);
+		__setRenderDirty();
+	}
+
+	@:noCompletion private override function __getBounds(rect:Rectangle, matrix:Matrix):Void
+	{
+		var bounds = new Rectangle(0, 0, __fieldWidth, __fieldHeight);
+		bounds.__transform(bounds, matrix);
+		rect.copyFrom(bounds);
+	}
+
+	@:noCompletion private override function __hasBoundsContent():Bool
+	{
+		return __fieldWidth > 0 && __fieldHeight > 0;
 	}
 
 	@:noCompletion private function __withoutLineBreak(value:String):String
@@ -662,24 +794,28 @@ class TextField extends InteractiveObject
 	@:noCompletion private function set_background(value:Bool):Bool
 	{
 		FlightText.setRichTextBackground(__flightText, value);
+		__setRenderDirty();
 		return __background = value;
 	}
 	@:noCompletion private function get_backgroundColor():Int return __backgroundColor;
 	@:noCompletion private function set_backgroundColor(value:Int):Int
 	{
 		FlightText.setRichTextBackgroundColor(__flightText, __toFlightColor(value));
+		__setRenderDirty();
 		return __backgroundColor = value;
 	}
 	@:noCompletion private function get_border():Bool return __border;
 	@:noCompletion private function set_border(value:Bool):Bool
 	{
 		FlightText.setRichTextBorder(__flightText, value);
+		__setRenderDirty();
 		return __border = value;
 	}
 	@:noCompletion private function get_borderColor():Int return __borderColor;
 	@:noCompletion private function set_borderColor(value:Int):Int
 	{
 		FlightText.setRichTextBorderColor(__flightText, __toFlightColor(value));
+		__setRenderDirty();
 		return __borderColor = value;
 	}
 	@:noCompletion private function get_bottomScrollV():Int return Std.int(FlightTextLayout.computeRichTextBottomScrollV(__flightText.data, __createTextLayout()));
@@ -744,8 +880,10 @@ class TextField extends InteractiveObject
 	@:noCompletion private function get_multiline():Bool return __multiline;
 	@:noCompletion private function set_multiline(value:Bool):Bool
 	{
-		FlightText.setRichTextMultiline(__flightText, value);
-		return __multiline = value;
+		__multiline = value;
+		FlightText.setRichTextMultiline(__flightText, __effectiveMultiline());
+		__setRenderDirty();
+		return value;
 	}
 	@:noCompletion private function get_numLines():Int return Std.int(FlightTextLayout.computeRichTextLineCount(__createTextLayout()));
 	@:noCompletion private function get_restrict():String return __restrict;
@@ -771,6 +909,7 @@ class TextField extends InteractiveObject
 	@:noCompletion private function set_selectable(value:Bool):Bool
 	{
 		FlightText.setRichTextSelectable(__flightText, value);
+		__setRenderDirty();
 		return __selectable = value;
 	}
 	@:noCompletion private function get_selectionBeginIndex():Int return Std.int(Math.min(__caretIndex, __selectionIndex));
@@ -834,6 +973,7 @@ class TextField extends InteractiveObject
 		var scale = Math.abs(scaleY);
 		__fieldHeight = scale == 0 ? value : value / scale;
 		FlightText.setRichTextHeight(__flightText, __fieldHeight);
+		__setRenderDirty();
 		return value;
 	}
 	@:noCompletion private override function get_width():Float return __fieldWidth * Math.abs(scaleX);
@@ -842,6 +982,7 @@ class TextField extends InteractiveObject
 		var scale = Math.abs(scaleX);
 		__fieldWidth = scale == 0 ? value : value / scale;
 		FlightText.setRichTextWidth(__flightText, __fieldWidth);
+		__setRenderDirty();
 		return value;
 	}
 	@:noCompletion private override function get_x():Float return __transform.tx + __offsetX;
@@ -862,6 +1003,7 @@ class TextField extends InteractiveObject
 	@:noCompletion private function set_wordWrap(value:Bool):Bool
 	{
 		FlightText.setRichTextWordWrap(__flightText, value);
+		__setRenderDirty();
 		return __wordWrap = value;
 	}
 	@:noCompletion private function get_passwordChar():String return __passwordChar;

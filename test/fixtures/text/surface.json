@@ -1,0 +1,46 @@
+{
+  "layoutEdges": {
+    "text": "a-b\t c  \r\né😀",
+    "selection": [
+      0,
+      0
+    ],
+    "multilineCount": 3,
+    "singleLineCount": 3
+  },
+  "inputEvents": {
+    "bubbledChanges": 1,
+    "text": "ab",
+    "link": "open",
+    "cancelledRollback": true,
+    "changes": 1,
+    "textInputs": 2
+  },
+  "boundsAndInvalidation": {
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "height": 45,
+      "width": 125
+    },
+    "invalidated": true
+  },
+  "htmlStyles": {
+    "text": "Hi\nthere\n",
+    "last": {
+      "align": null,
+      "italic": null
+    },
+    "first": {
+      "color": 1193046,
+      "align": 0,
+      "bold": true
+    }
+  },
+  "formatRanges": {
+    "color": null,
+    "size": null,
+    "font": "Times New Roman",
+    "bold": null
+  }
+}

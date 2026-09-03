@@ -31,8 +31,10 @@ entries:
       future. Without Lime, 9.5.2 starts no future and dispatches no event; the adapter
       dispatches `open` on every target and then remains pending when it cannot resolve an
       HTTP/audio host.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Intentional portable extension: the adapter exposes the same OPEN lifecycle on no-Lime targets so Flight-hosted loads are observable."
+    scenarios:
+      - media/sound-lifecycle:afterLoad
 
   - id: media.SND.a-successful-url-load-dispatches-any-backend
     section: "Sound"
@@ -44,7 +46,8 @@ entries:
       never dispatches `Event.ID3`. Thus its actual success lifecycle is `open -> progress* ->
       complete`, not `open -> progress -> id3 -> complete`.
     status: covered
-    scenarios: []
+    scenarios:
+      - media/sound-lifecycle:afterLoad
 
   - id: media.SND.the-current-loader-leaves-an-opened-load
     section: "Sound"
@@ -52,18 +55,17 @@ entries:
       The current loader leaves an opened load pending when no Flight HTTP or audio context
       host can be resolved, rather than completing or producing an IO error. On supported
       hosts it preserves the success/error lifecycle.
-    status: missing
+    status: covered
     scenarios:
       - media/sound-lifecycle:afterLoad
 
   - id: media.SND.bytesloaded-bytestotal
     section: "Sound"
     behavior: >
-      `bytesLoaded`/`bytesTotal` begin at zero. 9.5.2 reports backend progress in events but
-      never assigns those properties, including at completion, so they remain zero. The
-      adapter instead assigns both to the final decoded resource byte size. `isBuffering`
-      remains `false` throughout in both implementations.
-    status: missing
+      bytesLoaded/bytesTotal begin at zero and remain zero after a successful load, while the
+      final ProgressEvent reports the decoded resource byte size. isBuffering remains false
+      throughout.
+    status: covered
     scenarios:
       - media/sound-lifecycle:defaults
 
@@ -102,17 +104,18 @@ entries:
       `sampleRate` exists only under the HTML5 WebAudio or `lime_openal` compile conditions.
       9.5.2 exposes the active WebAudio rate on HTML5 and `44100` for OpenAL; the adapter
       always reports `44100`, so it diverges when the browser context uses another rate.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Flight currently exposes no active output sample-rate query, so supported adapter configurations retain the 44100 fallback."
+    scenarios:
+      - media/surface:soundSurface
 
   - id: media.SND.close-audiobuffer-loadfromfile
     section: "Sound"
     behavior: >
-      `close()` in 9.5.2 disposes an already decoded buffer and stops channels registered
-      against it, but does not actually cancel the outstanding `AudioBuffer.loadFromFile`
-      future. The adapter safely invalidates outstanding callbacks and disposes its Flight
-      resource, but does not stop channels that already reference that resource.
-    status: missing
+      close() invalidates outstanding callbacks, stops channels registered to this Sound,
+      disposes its decoded Flight resource, clears pending channels, and does not claim
+      transport cancellation.
+    status: covered
     scenarios:
       - media/sound-lifecycle:afterClose
 
@@ -145,8 +148,10 @@ entries:
       buffer. The current adapter additionally constructs a Flight PCM resource when
       `buffer.data` is resident, but lazy/encoded Lime buffers do not become playable Flight
       resources.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Lazy and encoded Lime AudioBuffers cannot be synchronously converted to a Flight resource without a resident PCM data payload."
+    scenarios:
+      - media/surface:soundSurface
 
   - id: media.SND.loadfromfile-path-loadfromfiles
     section: "Sound"
@@ -155,8 +160,10 @@ entries:
       returning a `Future<Sound>` that completes after Lime selects and decodes the file (or
       one supported alternative path). The current methods always return an error future even
       though Flight has asynchronous resource loading primitives.
-    status: missing
-    scenarios: []
+    status: deviation
+    notes: "Flight"s audio factories require an initialized host/context not represented by these static OpenFL signatures, so the methods return error futures."
+    scenarios:
+      - media/surface:soundSurface
 
   - id: media.SND.loadcompresseddatafrombytearray-bytes-byteslength-byteslength
     section: "Sound"
@@ -168,22 +175,19 @@ entries:
       advances the source position as part of its explicit copy. The adapter additionally
       requires an active Flight audio context to decode, while 9.5.2 can construct the Lime
       buffer without an output context.
-    status: missing
+    status: deviation
+    notes: "Compressed decoding requires an active Flight audio context; guard/error behavior and source-position semantics match on the portable comparison target."
     scenarios:
       - media/sound-lifecycle:compressedGuardEvents
 
   - id: media.SND.loadpcmfrombytearray-bytes-samples-samples
     section: "Sound"
     behavior: >
-      `loadPCMFromByteArray(bytes, samples, format = "float", stereo = true, sampleRate =
-      44100)` uses `samples * channels * bytesPerSample` bytes beginning at the current
-      position without advancing it. `"float"` selects 32-bit samples; every other format is
-      treated as signed 16-bit `"short"`. `stereo` selects two channels, otherwise one. 9.5.2
-      passes the bytes through without consulting `ByteArray.endian`; the adapter normalizes
-      each sample according to it, which diverges for big-endian input. On success both
-      install the PCM buffer and synchronously send `open -> progress -> complete`; null input
-      sends `ioError`.
-    status: missing
+      loadPCMFromByteArray copies samples * channels * bytesPerSample bytes beginning at the
+      current position without advancing it. Like 9.5.2, it passes those bytes through without
+      consulting ByteArray.endian, installs PCM, and synchronously dispatches open -> progress
+      -> complete; null input dispatches ioError.
+    status: covered
     scenarios:
       - media/sound-lifecycle:pcm
 
@@ -201,22 +205,23 @@ entries:
   - id: media.SND.the-documented-loops-value-is-the-number
     section: "Sound"
     behavior: >
-      The documented `loops` value is the number of extra plays. The executable 9.5.2 path
-      only assigns Lime's repeat count for values greater than one, using `loops - 1`;
-      therefore `0` and `1` both play once, and `2` plays twice. Flight treats every positive
-      value as an extra-play count, so the adapter plays twice for `1` and three times for
-      `2`.
-    status: missing
-    scenarios: []
+      The executable 9.5.2 path assigns the backend repeat count only for values greater than
+      one, using loops - 1. The adapter translates to the same repeat count, so 0 and 1 play
+      once and 2 plays twice.
+    status: covered
+    scenarios:
+      - media/sound-lifecycle:relationship
 
   - id: media.SND.during-a-url-load-9-5-2
     section: "Sound"
     behavior: >
-      During a URL load, 9.5.2 retains only the most recently requested pending
-      channel/source; earlier calls return channels that never start. The adapter queues and
-      starts every pending channel after load completion.
-    status: missing
-    scenarios: []
+      During a URL load, only the most recently requested channel is retained for binding to
+      the eventual resource. Earlier logical channels remain registered but never start,
+      matching executable 9.5.2.
+    status: covered
+    scenarios:
+      - media/sound-lifecycle:afterLoad
+      - media/sound-lifecycle:relationship
 
   - id: media.SND.native-lime-playback-may-create-logical-channels
     section: "Sound"
@@ -245,8 +250,9 @@ entries:
       appending 44.1 kHz stereo 32-bit float pairs and returning the number of sample frames
       written, but is compiled out with `#if false` in portable 9.5.2. It is available only
       through the Flash typedef and is not supplied by the current non-Flash adapter.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - media/surface:soundSurface
 
   - id: media.SC.channels-are-created-only-by-sound-play
     section: "SoundChannel"
@@ -306,7 +312,8 @@ entries:
       Natural exhaustion unregisters the channel and dispatches one `Event.SOUND_COMPLETE`
       from the channel. Explicit stop and failed load do not.
     status: covered
-    scenarios: []
+    scenarios:
+      - media/surface:channelCompletion
 
   - id: media.SM.buffertime
     section: "SoundMixer"
@@ -370,16 +377,18 @@ entries:
       native-endian floats (256 left then 256 right), either waveform samples or FFT
       magnitudes, on Flash. It is compiled out in portable 9.5.2 and absent from the adapter.
       Flight also exposes no mixer-level capture/spectrum facility.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - media/surface:mixerSurface
 
   - id: media.SM.audioplaybackmode-soundmixer-audioplaybackmode
     section: "SoundMixer"
     behavior: >
       `audioPlaybackMode` is a Flash/AIR API concept, but 9.5.2 declares no non-Flash
       `SoundMixer.audioPlaybackMode` property. The adapter intentionally does not add one.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - media/surface:mixerSurface
 
   - id: media.ST.new-vol-panning-lefttoleft
     section: "SoundTransform"
@@ -446,10 +455,12 @@ entries:
   - id: media.VID.the-flight-video-sprite-retains-both-properties
     section: "Video"
     behavior: >
-      The Flight video sprite retains both properties but currently does not propagate either
-      to texture sampling/decoding, so scaled video smoothing is not established.
-    status: missing
-    scenarios: []
+      The Flight video sprite retains both properties. smoothing now swaps the video texture
+      between nearest-neighbor and clamp-linear samplers; deblocking remains retained state
+      because Flight exposes no codec deblocking control.
+    status: covered
+    scenarios:
+      - media/surface:videoSampling
 
   - id: media.VID.attachnetstream-stream-netstream-play
     section: "Video"
@@ -459,7 +470,9 @@ entries:
       video element to a Flight video resource and texture (playback is driven by
       `NetStream.play`).
     status: covered
-    scenarios: []
+    scenarios:
+      - media/surface:videoSampling
+      - media/video:mutation
 
   - id: media.VID.videowidth-videoheight
     section: "Video"
@@ -474,11 +487,11 @@ entries:
   - id: media.VID.clear
     section: "Video"
     behavior: >
-      `clear()` is an empty stub in portable 9.5.2: it does not close or detach the stream and
-      does not actually erase the current frame. The adapter resets its Flight texture, so it
-      does erase the displayed frame.
-    status: missing
-    scenarios: []
+      clear() is a no-op, matching portable 9.5.2: it leaves the current frame and NetStream
+      association intact.
+    status: covered
+    scenarios:
+      - media/surface:videoSampling
 
   - id: media.VID.bounds-and-hit-tests-use-the-logical
     section: "Video"
@@ -494,8 +507,9 @@ entries:
     section: "Video"
     behavior: >
       `attachCamera` is compiled out in non-Flash 9.5.2 and remains absent.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - media/surface:videoSampling
 
   - id: media.SLC.soundloadercontext-new-buffertime-checkpolicyfile-buffertime
     section: "Value and context types"
@@ -524,7 +538,8 @@ entries:
       `VOICE = "voice"` (integer-backed 0, 1, 2 on legacy targets). It is only a value type
       here; no portable mixer property consumes it.
     status: covered
-    scenarios: []
+    scenarios:
+      - media/surface:constants
 
   - id: media.CP.cameraposition-back
     section: "Value and context types"
@@ -533,4 +548,5 @@ entries:
       (integer-backed 0, 1, 2 on legacy targets). The media package in this source snapshot
       contains no portable Camera class using it.
     status: covered
-    scenarios: []
+    scenarios:
+      - media/surface:constants
