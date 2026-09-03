@@ -1245,6 +1245,10 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 			// alphaMultiplier is already represented by DisplayObject.alpha in this
 			// compatibility layer; do not apply it twice in the pixel adjustment.
 			colorScaleBias.alphaScale = 1;
+			colorScaleBias.redBias /= 255;
+			colorScaleBias.greenBias /= 255;
+			colorScaleBias.blueBias /= 255;
+			colorScaleBias.alphaBias /= 255;
 			adjustments.push(FlightAdjustments.createColorScaleBiasAdjustment(colorScaleBias));
 		}
 		if (__filters != null)
