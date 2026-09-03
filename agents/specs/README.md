@@ -1,13 +1,18 @@
 # Behavioral Specs
 
 YAML specifications of every observable OpenFL 9.5.2 behavior. Each entry
-has a stable ID, a prose description, and an implementation status.
+has a stable ID, a prose description, and provenance into the OpenFL source.
+
+These specs describe **what OpenFL does** — they carry no implementation
+status, no tracking of whether openfl-flight handles a behavior, and no
+Flight gap references. Conformance is derived mechanically: a spec entry
+has a scenario, the scenario has a fixture captured from real OpenFL, and
+the compare-mode harness reports pass or fail.
 
 ## Schema
 
 ```yaml
 # One file per OpenFL package (or logical group).
-# Top-level key is the package/group name.
 package: events
 
 entries:
@@ -17,20 +22,42 @@ entries:
       Listener identity is (type, callback, useCapture). Adding the same
       identity twice is a no-op, even when the second call supplies a
       different priority or weak-reference flag.
-    status: covered          # covered | missing | flight-gap | deviation
-    gap:                     # flight-gaps.md entry name, when status is flight-gap
-    scenarios:               # filled by coverage script or manually
+    source:                    # OpenFL 9.5.2 file(s) and member(s) this was inferred from
+      - events/EventDispatcher.hx:addEventListener
+    scenarios:                 # fixture-path:result-key references
       - events/dispatcher:listenerIdentity
-    notes:                   # optional — project decisions, quirks
+    notes:                     # optional — target conditions, quirks, edge cases
 ```
 
-## Status values
+## Removed fields
 
-- **covered**: our implementation handles this behavior
-- **missing**: not implemented, divergent, or needs a scenario capture
-- **flight-gap**: blocked on a named Flight capability (cite in `gap:`)
-- **deviation**: intentional project decision differing from OpenFL 9.5.2
-  (explain in `notes:`)
+The following fields are **no longer part of the schema** and should be
+stripped from all spec files:
+
+- `status` — was `covered | missing | flight-gap | deviation`. Conformance
+  is now derived: has scenario + scenario passes = conformant.
+- `gap` — was a flight-gaps.md entry name. Flight gaps are tracked in
+  `agents/flight-gaps.md`, not in the behavioral spec.
+
+If a behavior is an intentional project deviation from OpenFL 9.5.2, note
+it in `notes:` with the rationale. The spec still describes what OpenFL
+does; the deviation is openfl-flight's choice, not the spec's.
+
+## Source provenance
+
+Format: `<relative-path>:<member>` — the path under OpenFL's `src/openfl/`
+and the class member (method, property, field) the behavior was inferred
+from. Multiple sources are common (a behavior may span a public method and
+an internal helper).
+
+```yaml
+source:
+  - display/DisplayObject.hx:addChild
+  - display/DisplayObjectContainer.hx:__addChild
+```
+
+For target-conditional behaviors, include a `notes:` field naming which
+`#if` conditions apply (e.g., `notes: html5 only — #if html5 branch`).
 
 ## ID convention
 
@@ -105,8 +132,11 @@ Format: `<fixture-path>:<result-key>` — the fixture JSON path under
 that exercises this behavior. The coverage script matches these against
 the fixture files and scenario source.
 
-## Coverage script
+## Coverage tools
 
-`agents/specs/coverage.sh` parses all YAML spec files, collects IDs and
-their scenario references, cross-references against fixture files and
-scenario source, and reports coverage.
+- `agents/specs/coverage.sh` — parses all YAML spec files, reports
+  scenario mapping coverage and broken refs.
+- `agents/specs/api-surface.sh` — parses OpenFL 9.5.2 source, extracts
+  public API members, cross-references against spec `source:` fields to
+  flag public members with no behavioral entry and spec entries whose
+  source location no longer exists.
