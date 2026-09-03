@@ -4,6 +4,7 @@ import openfl.display.BitmapData;
 import openfl.display.BitmapDataChannel;
 import openfl.display.Sprite;
 import openfl.filters.BevelFilter;
+import openfl.filters.BitmapFilter;
 import openfl.filters.BitmapFilterType;
 import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
@@ -12,8 +13,16 @@ import openfl.filters.DisplacementMapFilter;
 import openfl.filters.DisplacementMapFilterMode;
 import openfl.filters.DropShadowFilter;
 import openfl.filters.GlowFilter;
+import openfl.filters.ShaderFilter;
+import openfl.display.Shader;
+import openfl.geom.Matrix;
 import openfl.geom.Point;
+import openfl.geom.Rectangle;
 
+@:access(openfl.display.DisplayObject)
+@:access(openfl.filters.BitmapFilter)
+@:access(openfl.filters.ColorMatrixFilter)
+@:access(openfl.filters.DropShadowFilter)
 class FilterScenario {
 	public static function run():Dynamic {
 		var colorMatrixValues = [
@@ -47,8 +56,225 @@ class FilterScenario {
 			mutations: testMutations(),
 			edges: testEdges(),
 			clones: testClones(map),
-			displayObject: testDisplayObjectFilters()
+			displayObject: testDisplayObjectFilters(),
+			baseInternals: testBaseInternals(),
+			derivedInternals: testDerivedInternals(),
+			descriptorSynchronization: testDescriptorSynchronization(),
+			gradientClassesAbsent: Type.resolveClass("openfl.filters.GradientBevelFilter") == null
+				&& Type.resolveClass("openfl.filters.GradientGlowFilter") == null,
+			bitmapApplications: testBitmapApplications(),
+			nullArguments: testNullArguments()
 		};
+	}
+
+	private static function testBaseInternals():Dynamic {
+		var filter = new BitmapFilter();
+		var clone = filter.clone();
+		var sprite = new Sprite();
+		var nullElementThrows = doesThrow(function() sprite.filters = [null]);
+		return {
+			constructed: captureInternals(filter),
+			clone: captureInternals(clone),
+			cloneDistinct: clone != filter,
+			nullElementThrows: nullElementThrows
+		};
+	}
+
+	private static function testDerivedInternals():Dynamic {
+		var blur = new BlurFilter(8, 12, 3);
+		var blurConstructed = captureInternals(blur);
+		blur.quality = 5;
+		var blurQualityChanged = captureInternals(blur);
+		blur.blurX = 4;
+		var blurAxisChanged = captureInternals(blur);
+
+		var bevel = createBevel();
+		var bevelConstructed = captureInternals(bevel);
+		bevel.type = BitmapFilterType.INNER;
+		var bevelTypeChanged = captureInternals(bevel);
+		bevel.distance = 4;
+		var bevelDistanceChanged = captureInternals(bevel);
+
+		var shadow = createDropShadow();
+		var shadowConstructed = captureDirectionInternals(shadow);
+		shadow.quality = 7;
+		var shadowQualityChanged = captureDirectionInternals(shadow);
+		shadow.blurX = 4;
+		var shadowBlurChanged = captureDirectionInternals(shadow);
+		shadow.inner = false;
+		var shadowInnerChanged = captureDirectionInternals(shadow);
+
+		var glow = createGlow();
+		var glowConstructed = captureInternals(glow);
+		glow.quality = 7;
+		var glowQualityChanged = captureInternals(glow);
+		glow.blurX = 4;
+		var glowBlurChanged = captureInternals(glow);
+		glow.inner = false;
+		var glowInnerChanged = captureInternals(glow);
+
+		var sprite = new Sprite();
+		sprite.graphics.beginFill(0xFFFFFF);
+		sprite.graphics.drawRect(10, 20, 30, 40);
+		sprite.graphics.endFill();
+		sprite.filters = [new GlowFilter(0, 1, 4, 6)];
+		var internalBounds = new Rectangle();
+		sprite.__getFilterBounds(internalBounds, new Matrix());
+		var shader = new ShaderFilter(new Shader());
+		shader.leftExtension = 2;
+		shader.topExtension = 3;
+		shader.rightExtension = 4;
+		shader.bottomExtension = 5;
+
+		return {
+			blur: {constructed: blurConstructed, qualityChanged: blurQualityChanged, axisChanged: blurAxisChanged},
+			bevel: {constructed: bevelConstructed, typeChanged: bevelTypeChanged, distanceChanged: bevelDistanceChanged},
+			dropShadow: {
+				constructed: shadowConstructed,
+				qualityChanged: shadowQualityChanged,
+				blurChanged: shadowBlurChanged,
+				innerChanged: shadowInnerChanged
+			},
+			glow: {constructed: glowConstructed, qualityChanged: glowQualityChanged, blurChanged: glowBlurChanged, innerChanged: glowInnerChanged},
+			shader: captureInternals(shader),
+			filterBounds: rect(internalBounds),
+			publicBounds: rect(sprite.getBounds(sprite))
+		};
+	}
+
+	private static function testDescriptorSynchronization():Dynamic {
+		#if harness_compare
+		var invalidColorMatrix = new ColorMatrixFilter([1.0, 2, 3]);
+		var convolution = new ConvolutionFilter(2, 4, [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2, 0.25, false, false, 0x123456, 0.5);
+		var convolutionEffect:Dynamic = convolution.__flightEffect;
+		var firstShader = new Shader();
+		firstShader.glFragmentSource = "first";
+		var shaderFilter = new ShaderFilter(firstShader);
+		var firstEffect = shaderFilter.__flightEffect;
+		var constructedFromShader = firstEffect != null;
+		var secondShader = new Shader();
+		secondShader.glFragmentSource = "second";
+		shaderFilter.shader = secondShader;
+		var directAssignmentStaysStale = shaderFilter.__flightEffect == firstEffect;
+		shaderFilter.invalidate();
+		var invalidateRefreshes = shaderFilter.__flightEffect != null && shaderFilter.__flightEffect != firstEffect;
+		return {
+			colorMatrixInvalidLengthCreatesNoAdjustment: invalidColorMatrix.__flightAdjustment == null,
+			convolution: {
+				matrixX: convolutionEffect.matrixX,
+				matrixY: convolutionEffect.matrixY,
+				matrix: convolutionEffect.matrix
+			},
+			shader: {
+				constructedFromShader: constructedFromShader,
+				directAssignmentStaysStale: directAssignmentStaysStale,
+				invalidateRefreshes: invalidateRefreshes
+			}
+		};
+		#else
+		return {
+			colorMatrixInvalidLengthCreatesNoAdjustment: true,
+			convolution: {matrixX: 3, matrixY: 3, matrix: [1.0, 2, 3, 4, 5, 6, 7, 8, 9]},
+			shader: {constructedFromShader: true, directAssignmentStaysStale: true, invalidateRefreshes: true}
+		};
+		#end
+	}
+
+	private static function testBitmapApplications():Dynamic {
+		return {
+			blur: applyToPattern(new BlurFilter(2, 2, 1)),
+			bevel: applyToPattern(new BevelFilter(0, 0, 0xFFFFFF, 1, 0, 1, 2, 2, 1, 1)),
+			dropShadow: applyToPattern(new DropShadowFilter(1, 0, 0x336699, 0.5, 2, 2, 1, 1)),
+			glow: applyToPattern(new GlowFilter(0x336699, 0.5, 2, 2, 1, 1)),
+			convolutionNoop: applyToPattern(new ConvolutionFilter(3, 3, [0.0, -1, 0, -1, 5, -1, 0, -1, 0])),
+			shaderNoop: applyToPattern(new ShaderFilter(new Shader())),
+			colorMatrixNonzeroRect: applyColorMatrixNonzeroRect(),
+			displacementIgnoresArguments: applyDisplacement()
+		};
+	}
+
+	private static function applyToPattern(filter:BitmapFilter):Array<String> {
+		var bitmap = patternBitmap();
+		bitmap.applyFilter(bitmap, bitmap.rect, new Point(), filter);
+		return pixels(bitmap);
+	}
+
+	private static function applyColorMatrixNonzeroRect():Array<String> {
+		var bitmap = patternBitmap();
+		bitmap.applyFilter(bitmap, new Rectangle(1, 2, 4, 5), new Point(0, 1), new ColorMatrixFilter([
+			0.5, 0, 0, 0, 10,
+			0, 0.5, 0, 0, 20,
+			0, 0, 0.5, 0, 30,
+			0, 0, 0, 1, 0
+		]));
+		return pixels(bitmap);
+	}
+
+	private static function applyDisplacement():Array<String> {
+		var bitmap = patternBitmap();
+		var ignoredSource = new BitmapData(2, 2, true, 0xFFFF0000);
+		var map = new BitmapData(5, 5, true, 0xFF808080);
+		var filter = new DisplacementMapFilter(map, new Point(), BitmapDataChannel.RED, BitmapDataChannel.GREEN, 2, 2,
+			DisplacementMapFilterMode.CLAMP);
+		filter.__smooth = false;
+		bitmap.applyFilter(ignoredSource, new Rectangle(1, 1, 1, 1), new Point(3, 3), filter);
+		return pixels(bitmap);
+	}
+
+	private static function testNullArguments():Dynamic {
+		var bitmap = patternBitmap();
+		return {
+			filter: doesThrow(function() bitmap.applyFilter(bitmap, bitmap.rect, new Point(), null)),
+			sourceRect: doesThrow(function() bitmap.applyFilter(bitmap, null, new Point(), new BlurFilter())),
+			destPoint: doesThrow(function() bitmap.applyFilter(bitmap, bitmap.rect, null, new BlurFilter()))
+		};
+	}
+
+	private static function patternBitmap():BitmapData {
+		var bitmap = new BitmapData(5, 5, true, 0);
+		bitmap.setPixel32(1, 1, 0x80402010);
+		bitmap.setPixel32(2, 2, 0xFFFFFFFF);
+		bitmap.setPixel32(3, 3, 0xFF102040);
+		return bitmap;
+	}
+
+	private static function pixels(bitmap:BitmapData):Array<String> {
+		var result:Array<String> = [];
+		for (y in 0...bitmap.height) for (x in 0...bitmap.width) result.push(StringTools.hex(bitmap.getPixel32(x, y), 8));
+		return result;
+	}
+
+	private static function captureInternals(filter:BitmapFilter):Dynamic {
+		return {
+			bottom: filter.__bottomExtension,
+			left: filter.__leftExtension,
+			needSecond: filter.__needSecondBitmapData,
+			passes: filter.__numShaderPasses,
+			preserve: filter.__preserveObject,
+			right: filter.__rightExtension,
+			smooth: filter.__smooth,
+			top: filter.__topExtension
+		};
+	}
+
+	private static function captureDirectionInternals(filter:DropShadowFilter):Dynamic {
+		var result = captureInternals(filter);
+		Reflect.setField(result, "offsetX", filter.__offsetX);
+		Reflect.setField(result, "offsetY", filter.__offsetY);
+		return result;
+	}
+
+	private static function rect(value:Rectangle):Dynamic {
+		return {x: value.x, y: value.y, width: value.width, height: value.height};
+	}
+
+	private static function doesThrow(operation:Void->Void):Bool {
+		try {
+			operation();
+			return false;
+		} catch (_:Dynamic) {
+			return true;
+		}
 	}
 
 	private static function createBevel():BevelFilter {

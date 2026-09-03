@@ -12,7 +12,8 @@ entries:
       shader passes, smooth sampling true, normal shader blend mode, requires a second bitmap,
       and does not preserve the original object.
     status: covered
-    scenarios: []
+    scenarios:
+      - filters/properties:baseInternals.constructed
 
   - id: filters.BF.base-clone
     section: "BitmapFilter"
@@ -21,7 +22,9 @@ entries:
       Its internal bitmap application returns the source unchanged and its shader initializer
       returns null.
     status: covered
-    scenarios: []
+    scenarios:
+      - filters/properties:baseInternals.clone
+      - filters/properties:baseInternals.cloneDistinct
 
   - id: filters.BF.display-object-storage
     section: "BitmapFilter"
@@ -40,21 +43,22 @@ entries:
   - id: filters.BF.null-element
     section: "BitmapFilter"
     behavior: >-
-      A null element in a nonempty OpenFL filter array is dereferenced during cloning and fails.
-      The adapter instead retains null elements, skips them during Flight synchronization, and
-      therefore accepts input that upstream rejects.
-    status: missing
-    scenarios: []
+      A null element in a nonempty filter array is dereferenced during cloning and fails rather
+      than being retained or silently skipped.
+    status: covered
+    scenarios:
+      - filters/properties:baseInternals.nullElementThrows
 
   - id: filters.BF.internal-render-bounds
     section: "BitmapFilter"
     behavior: >-
-      OpenFL's internal cached-render bounds use each filter's top/right/bottom/left extensions
-      while public geometric bounds remain unchanged. The adapter preserves unexpanded public
-      bounds but has no corresponding internal filter-bound expansion.
-    status: missing
+      Internal cached-render bounds use each filter's top/right/bottom/left extensions while
+      public geometric bounds remain unchanged.
+    status: covered
     scenarios:
       - integration/filters-display:containerBounds
+      - filters/properties:derivedInternals.filterBounds
+      - filters/properties:derivedInternals.publicBounds
 
   - id: filters.BF.live-node-effects
     section: "BitmapFilter"
@@ -75,13 +79,12 @@ entries:
       OpenFL returns immediately only when the destination is unreadable, the supplied source is
       null, or the source is unreadable. It then accidentally passes the destination (`this`) as
       the source to the filter, so the non-null `sourceBitmapData` argument is used only by that
-      initial guard. The adapter adds null guards for sourceRect, destPoint, and filter and
-      correctly filters the supplied source; this deliberately does not preserve the 9.5.2
-      source-selection bug.
+      initial guard. The adapter correctly filters the supplied source; this deliberately does
+      not preserve the 9.5.2 source-selection bug.
     status: deviation
     notes: >-
-      The adapter intentionally filters the supplied source and null-guards auxiliary arguments
-      instead of preserving the 9.5.2 source-selection bug.
+      The adapter intentionally filters the supplied source instead of preserving the 9.5.2
+      source-selection bug.
     scenarios:
       - display/bitmap-data:applyBlurFilter
       - display/bitmap-data:applyColorMatrixFilter
@@ -93,25 +96,25 @@ entries:
       A filter that needs a second bitmap receives a transparent destination-sized temporary;
       otherwise it writes to the receiver. A preserve-object filter also snapshots the receiver,
       applies its effect, then draws the snapshot over the result. If the filter returns the
-      second temporary, that image replaces the receiver image. OpenFL finally marks/increments
-      image dirtiness even when the selected filter ultimately leaves pixels unchanged. The
-      adapter's direct region operations do not reproduce this allocation, preservation,
-      image-replacement, or no-op versioning pipeline.
-    status: missing
+      second temporary, that image replaces the receiver image. The adapter mirrors this
+      allocation, preservation, and image-replacement pipeline for supported bitmap filters.
+    status: covered
     scenarios:
       - display/bitmap-data:applyBlurFilter
       - display/bitmap-data:applyColorMatrixFilter
       - display/bitmap-data:applyConvolutionFilter
+      - filters/properties:derivedInternals.bevel
+      - filters/properties:bitmapApplications.bevel
 
   - id: filters.BF.bitmap-null-arguments
     section: "BitmapFilter > Common BitmapData.applyFilter pipeline"
     behavior: >-
-      A null filter passes the upstream readability guards and is then dereferenced, whereas the
-      adapter treats it as a no-op. Null sourceRect or destPoint behavior depends on the
-      selected upstream filter and commonly fails when the private implementation dereferences
-      it.
-    status: missing
-    scenarios: []
+      A null filter passes the readability guards and is then dereferenced. Null sourceRect or
+      destPoint behavior depends on the selected filter and commonly fails when its private
+      implementation dereferences it.
+    status: covered
+    scenarios:
+      - filters/properties:nullArguments
 
   # -- BevelFilter --
 
@@ -167,19 +170,20 @@ entries:
     behavior: >-
       Internal render extensions are `ceil(blur + directional contribution)` on each side, with
       the directional contribution suppressed for `inner`. Construction and blur/distance/angle
-      changes recompute them, but changing `type` does not—an upstream stale-bounds quirk. The
-      adapter does not expose these extensions to its cache bounds.
-    status: missing
-    scenarios: []
+      changes recompute them, but changing `type` does not—a retained stale-bounds quirk. These
+      extensions feed the adapter's internal filter bounds.
+    status: covered
+    scenarios:
+      - filters/properties:derivedInternals.bevel
 
   - id: filters.Bevel.bitmap-blur-only
     section: "BevelFilter"
     behavior: >-
-      `BitmapData.applyFilter` in 9.5.2 executes only a Gaussian blur for a bevel, then
-      preserves/draws the original content; it does not perform the bevel color/combine stage.
-      The adapter returns without changing the destination for BevelFilter.
-    status: missing
-    scenarios: []
+      `BitmapData.applyFilter` executes only the blur path for a bevel, then preserves/draws the
+      original content; it does not perform a bevel color/combine stage.
+    status: covered
+    scenarios:
+      - filters/properties:bitmapApplications.bevel
 
   # -- BlurFilter --
 
@@ -201,23 +205,25 @@ entries:
     behavior: >-
       OpenFL calculates horizontal passes as zero for `blurX<=0`, otherwise
       `round(blurX*quality/4)+1`, likewise vertically, and sums them. A quality change
-      recalculates pass counts; arbitrary negative quality is permitted. The adapter's Flight
-      blur descriptor omits quality and therefore does not retain this pass behavior.
-    status: missing
+      recalculates pass counts; arbitrary negative quality is permitted. The adapter retains
+      these internal pass counts alongside its Flight descriptor.
+    status: covered
     scenarios:
       - filters/properties:values.blur
       - filters/properties:mutations.blur
+      - filters/properties:derivedInternals.blur
 
   - id: filters.Blur.bitmap-blur-algorithm
     section: "BlurFilter"
     behavior: >-
-      Lime bitmap application calls `gaussianBlur` with the raw blur values and quality and may
-      replace the destination image with the returned image. The adapter uses Flight's box blur
-      with rounded half-radii and clamps passes to `[1,3]`, so exact pixels and out-of-range
-      quality behavior are not generally equivalent.
-    status: missing
+      Bitmap application uses a separable Flash-style box kernel where blurX/blurY are the full
+      widths. It uses full-weight interior texels plus 8-bit fractional edge weights, clamps the
+      width to 255, truncates each completed pass to 8-bit precision, and clamps quality passes
+      to `[1,3]`. This intentionally targets Flash rendering rather than Lime's CPU blur artifacts.
+    status: covered
     scenarios:
       - display/bitmap-data:applyBlurFilter
+      - filters/properties:bitmapApplications.blur
 
   - id: filters.Blur.internal-padding
     section: "BlurFilter"
@@ -226,10 +232,11 @@ entries:
       (`ceil(value)+2` otherwise), and zero for nonpositive blur. Source order produces a quirk:
       blur is initially set while quality is still target-default zero; the later quality setter
       calls the blur setters with unchanged values, so constructor padding is based on one pass.
-      A quality-only change likewise does not update padding. The adapter does not implement
-      internal filter-bound expansion.
-    status: missing
-    scenarios: []
+      A quality-only change likewise does not update padding. The adapter retains these values in
+      its internal filter-bound expansion.
+    status: covered
+    scenarios:
+      - filters/properties:derivedInternals.blur
 
   - id: filters.Blur.live-node-descriptor
     section: "BlurFilter"
@@ -284,12 +291,12 @@ entries:
     behavior: >-
       The 9.5.2 Lime source iterates rows from `Std.int(sourceRect.y)` to
       `Std.int(sourceRect.height)` and columns from `x` to `width`, using an x/y-swapped
-      destination offset expression. The adapter uses a conventional width-by-height extracted
-      region. Normal origin fixtures agree, but nonzero source rectangles do not preserve those
-      executable source quirks.
-    status: missing
+      destination offset expression. The adapter preserves these executable source quirks,
+      including for nonzero source rectangles.
+    status: covered
     scenarios:
       - display/bitmap-data:applyColorMatrixFilter
+      - filters/properties:bitmapApplications.colorMatrixNonzeroRect
 
   - id: filters.CM.display-color-adjustment
     section: "ColorMatrixFilter"
@@ -310,7 +317,8 @@ entries:
     notes: >-
       Malformed matrices retain their public state but intentionally produce no Flight color
       adjustment.
-    scenarios: []
+    scenarios:
+      - filters/properties:descriptorSynchronization.colorMatrixInvalidLengthCreatesNoAdjustment
 
   - id: filters.CM.bounds-unchanged
     section: "ColorMatrixFilter"
@@ -366,29 +374,29 @@ entries:
       optionally replaces result alpha with the center pixel, and clamps output channels. The
       public `clamp`, `color`, and `alpha` fields are not consumed by that shader.
     status: covered
-    scenarios: []
+    scenarios:
+      - filters/properties:descriptorSynchronization.convolution
 
   - id: filters.Conv.descriptor-synchronization
     section: "ConvolutionFilter"
     behavior: >-
-      The adapter's Flight descriptor accepts `matrixX*matrixY`, so it does not preserve the
-      fixed-3×3 display behavior. Further, only construction and whole-matrix assignment
-      resynchronize it; later writes to public scalar fields or in-place Array elements leave
-      the descriptor stale.
-    status: missing
-    scenarios: []
+      The Flight descriptor is fixed to 3×3 and uses the first nine matrix entries. Only
+      construction and whole-matrix assignment resynchronize it; later writes to public scalar
+      fields or in-place Array elements leave the descriptor stale.
+    status: covered
+    scenarios:
+      - filters/properties:descriptorSynchronization.convolution
 
   - id: filters.Conv.bitmap-upstream-noop
     section: "ConvolutionFilter"
     behavior: >-
-      OpenFL does not override the base bitmap-filter operation for convolution, so
-      `BitmapData.applyFilter` effectively leaves the source content. The adapter instead
-      applies convolution when `clamp=true` and parameters are valid, producing an effect where
-      upstream does not.
-    status: missing
+      Convolution does not override the base bitmap-filter operation, so
+      `BitmapData.applyFilter` leaves the receiver content unchanged.
+    status: covered
     scenarios:
       - filters/properties:values.convolution
       - filters/properties:mutations.convolution
+      - filters/properties:bitmapApplications.convolutionNoop
 
   - id: filters.Conv.bounds-unchanged
     section: "ConvolutionFilter"
@@ -461,11 +469,11 @@ entries:
   - id: filters.DM.bitmap-source-destination
     section: "DisplacementMapFilter"
     behavior: >-
-      The upstream bitmap call ignores its sourceRect and destPoint when invoking the underlying
-      displacement utility. The adapter does not implement DisplacementMapFilter in
-      `BitmapData.applyFilter` and returns without mutation.
-    status: missing
-    scenarios: []
+      The bitmap call ignores sourceBitmapData, sourceRect, and destPoint when invoking the
+      displacement utility; it operates over the receiver and the configured map bitmap.
+    status: covered
+    scenarios:
+      - filters/properties:bitmapApplications.displacementIgnoresArguments
 
   - id: filters.DM.bounds-unchanged
     section: "DisplacementMapFilter"
@@ -479,9 +487,9 @@ entries:
   - id: filters.DM.bitmap-display-gaps
     section: "DisplacementMapFilter"
     behavior: >-
-      Bitmap-data and display displacement need a bitmap-map adapter and live render-effect
-      attachment. Blockers: **Bitmap-map displacement as a render effect** and **Per-node
-      render-effect attachment**.
+      Live display displacement still needs a bitmap-map render-effect adapter and per-node
+      attachment. BitmapData application is handled separately. Blockers: **Bitmap-map
+      displacement as a render effect** and **Per-node render-effect attachment**.
     status: flight-gap
     gap: "Bitmap displacement effect"
     notes: >-
@@ -510,13 +518,14 @@ entries:
       Direction uses degrees and truncates each component:
       `offsetX=Std.int(distance*cos(angle*π/180))` and similarly for y. Blur pass counts use
       zero when an axis is nonpositive, otherwise `round(blur*quality/4)+1`; total passes add
-      two for inner or one for outer. The Flight descriptor retains angle/distance/quality
-      rather than these derived, truncation-sensitive values.
-    status: missing
+      two for inner or one for outer. The adapter retains these derived, truncation-sensitive
+      values alongside the Flight descriptor.
+    status: covered
     scenarios:
       - filters/properties:values.dropShadow
       - filters/properties:mutations.dropShadow
       - filters/properties:edges.dropShadow
+      - filters/properties:derivedInternals.dropShadow.constructed
 
   - id: filters.DS.display-rendering
     section: "DropShadowFilter"
@@ -535,31 +544,32 @@ entries:
     behavior: >-
       Angle, distance, blurX, and blurY changes recalculate offsets, extensions, and pass
       counts. Quality and inner setters only store/dirty: they do **not** recalculate pass
-      counts, an executable stale-state quirk. Knockout/hideObject/color/alpha/strength likewise
-      only dirty. Adapter setters instead rebuild a descriptor from all current values.
-    status: missing
+      counts, a retained executable stale-state quirk. Knockout/hideObject/color/alpha/strength
+      likewise leave the derived values unchanged while refreshing the Flight descriptor.
+    status: covered
     scenarios:
       - filters/properties:mutations.dropShadow
+      - filters/properties:derivedInternals.dropShadow
 
   - id: filters.DS.internal-extensions
     section: "DropShadowFilter"
     behavior: >-
       Internal extensions are `ceil(blur + max(±truncatedOffset,0))` per side. They can be
-      negative when blur is sufficiently negative. The adapter does not use these for internal
-      cache bounds.
-    status: missing
+      negative when blur is sufficiently negative and feed the adapter's internal cache bounds.
+    status: covered
     scenarios:
       - integration/filters-display:containerBounds
+      - filters/properties:derivedInternals.dropShadow
 
   - id: filters.DS.bitmap-application
     section: "DropShadowFilter"
     behavior: >-
       Bitmap application blurs at destPoint plus the directional offset, color-transforms the
-      entire returned image to shadow RGB/alpha, and explicitly does not support inner or
-      knockout; its preserve-object step then draws the original. The adapter does not apply
-      DropShadowFilter to BitmapData.
-    status: missing
-    scenarios: []
+      entire returned image to shadow RGB/alpha, and does not add separate inner or knockout
+      processing; its preserve-object step then draws the original.
+    status: covered
+    scenarios:
+      - filters/properties:bitmapApplications.dropShadow
 
   # -- GlowFilter --
 
@@ -592,30 +602,33 @@ entries:
     behavior: >-
       Positive-axis internal extension is `ceil(blur*1.5)` symmetrically; nonpositive blur
       yields zero. Pass counts use zero for nonpositive blur, otherwise
-      `round(blur*quality/4)+1`, plus two combination passes for inner or one otherwise. These
-      derived values are absent from the adapter.
-    status: missing
+      `round(blur*quality/4)+1`, plus two combination passes for inner or one otherwise. The
+      adapter retains these derived values and uses the extensions for internal filter bounds.
+    status: covered
     scenarios:
       - integration/filters-display:containerBounds
+      - filters/properties:derivedInternals.glow
 
   - id: filters.Glow.setter-recalculation-order
     section: "GlowFilter"
     behavior: >-
       Blur setters recompute size and passes. Inner, knockout, and quality changes recalculate
-      passes; color, alpha, and strength only dirty rendering. Adapter setters instead rebuild a
-      descriptor from all current values, so these source update-order effects are not retained.
-    status: missing
+      passes before storing the new value, retaining the source update-order effects; color,
+      alpha, and strength leave derived values unchanged while refreshing the descriptor.
+    status: covered
     scenarios:
       - filters/properties:mutations.glow
+      - filters/properties:derivedInternals.glow
 
   - id: filters.Glow.bitmap-and-bounds-missing
     section: "GlowFilter"
     behavior: >-
-      The adapter neither performs the internal bounds expansion nor handles GlowFilter in
-      `BitmapData.applyFilter`. OpenFL's bitmap path Gaussian-blurs and color-transforms but
-      explicitly ignores inner/knockout before preserving the original.
-    status: missing
-    scenarios: []
+      GlowFilter expands internal bounds and its bitmap path blurs and color-transforms the
+      result, without separate inner/knockout bitmap processing, before preserving the original.
+    status: covered
+    scenarios:
+      - filters/properties:derivedInternals.filterBounds
+      - filters/properties:bitmapApplications.glow
 
   # -- GradientBevelFilter and GradientGlowFilter --
 
@@ -628,7 +641,8 @@ entries:
       adapter correctly has no implementation. Flash-target builds defer to the platform Flash
       classes rather than OpenFL source behavior.
     status: covered
-    scenarios: []
+    scenarios:
+      - filters/properties:gradientClassesAbsent
 
   # -- ShaderFilter --
 
@@ -639,7 +653,8 @@ entries:
       `blendMode` is a directly writable field initialized to `BlendMode.NORMAL`; shader is also
       directly writable. Neither assignment automatically marks the filter dirty.
     status: covered
-    scenarios: []
+    scenarios:
+      - display/shader-types:filter.defaults
 
   - id: filters.Shader.edge-extensions
     section: "ShaderFilter"
@@ -648,7 +663,9 @@ entries:
       and store arbitrary signed integers without validation. Their setters likewise do not mark
       rendering dirty.
     status: covered
-    scenarios: []
+    scenarios:
+      - display/shader-types:filter.mutated
+      - filters/properties:derivedInternals.shader
 
   - id: filters.Shader.invalidate
     section: "ShaderFilter"
@@ -656,7 +673,8 @@ entries:
       `invalidate()` has no return value and only marks render state dirty; callers must invoke
       it after modifying shader parameters or other fields when they require a refresh.
     status: covered
-    scenarios: []
+    scenarios:
+      - filters/properties:descriptorSynchronization.shader.invalidateRefreshes
 
   - id: filters.Shader.clone-reference-rules
     section: "ShaderFilter"
@@ -664,7 +682,8 @@ entries:
       `clone()` shares the Shader reference and copies the four extensions and current blend
       mode into a new ShaderFilter.
     status: covered
-    scenarios: []
+    scenarios:
+      - display/shader-types:filter.clone
 
   - id: filters.Shader.shader-pass-bounds
     section: "ShaderFilter"
@@ -673,7 +692,8 @@ entries:
       applies `blendMode` as the shader pass's blend mode. Its internal filtered render bounds
       expand by the four supplied extensions; public bounds do not.
     status: covered
-    scenarios: []
+    scenarios:
+      - filters/properties:derivedInternals.shader
 
   - id: filters.Shader.descriptor-synchronization
     section: "ShaderFilter"
@@ -681,17 +701,19 @@ entries:
       The adapter preserves the value/clone/invalidation surface and creates a Flight shader
       descriptor. A direct `shader` change is not synchronized into that descriptor until
       `invalidate()` (or filter reassignment invokes synchronization); `blendMode` has no
-      Flight-descriptor representation. Internal cache bounds are not expanded.
-    status: missing
-    scenarios: []
+      Flight-descriptor representation. Its edge-extension fields feed internal cache bounds.
+    status: covered
+    scenarios:
+      - filters/properties:descriptorSynchronization.shader
 
   - id: filters.Shader.bitmap-noop
     section: "ShaderFilter"
     behavior: >-
       `BitmapData.applyFilter` reaches the base no-op because ShaderFilter has no bitmap
       override in 9.5.2; the adapter also returns without mutation, matching the final pixels.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - filters/properties:bitmapApplications.shaderNoop
 
   - id: filters.Shader.live-node-rendering
     section: "ShaderFilter"

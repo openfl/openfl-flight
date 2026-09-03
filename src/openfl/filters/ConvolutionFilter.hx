@@ -46,15 +46,15 @@ class ConvolutionFilter extends BitmapFilter
 
 	@:noCompletion private override function __syncFlightEffect():Void
 	{
-		if (__matrix == null || matrixX <= 0 || matrixY <= 0 || __matrix.length != matrixX * matrixY)
+		if (__matrix == null || __matrix.length < 9)
 		{
 			__flightEffect = null;
 			return;
 		}
 		__flightEffect = FlightEffects.createConvolutionEffect({
-			matrixX: matrixX,
-			matrixY: matrixY,
-			matrix: __matrix,
+			matrixX: 3,
+			matrixY: 3,
+			matrix: __matrix.slice(0, 9),
 			divisor: divisor,
 			bias: bias,
 			preserveAlpha: preserveAlpha,

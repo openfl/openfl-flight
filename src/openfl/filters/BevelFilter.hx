@@ -34,12 +34,14 @@ import flight.Effects as FlightEffects;
 	@:noCompletion private var __distance:Float = 0;
 	@:noCompletion private var __highlightAlpha:Float = 0;
 	@:noCompletion private var __highlightColor:UInt = 0;
+	@:noCompletion private var __horizontalPasses:Int = 0;
 	@:noCompletion private var __knockout:Bool = false;
 	@:noCompletion private var __quality:Int = 0;
 	@:noCompletion private var __shadowAlpha:Float = 0;
 	@:noCompletion private var __shadowColor:UInt = 0;
 	@:noCompletion private var __strength:Float = 0;
 	@:noCompletion private var __type:String;
+	@:noCompletion private var __verticalPasses:Int = 0;
 
 	public function new(distance:Float = 4.0, angle:Float = 45, highlightColor:UInt = 0xFFFFFF, highlightAlpha:Float = 1.0, shadowColor:UInt = 0x000000,
 			shadowAlpha:Float = 1.0, blurX:Float = 4.0, blurY:Float = 4.0, strength:Float = 1, quality:Int = 1, type:String = "inner", knockout:Bool = false)
@@ -57,6 +59,7 @@ import flight.Effects as FlightEffects;
 		this.strength = strength;
 		this.knockout = knockout;
 		this.type = type;
+		__updateSize();
 		__needSecondBitmapData = true;
 		__preserveObject = true;
 		__renderDirty = true;
@@ -91,6 +94,8 @@ import flight.Effects as FlightEffects;
 	@:noCompletion private function set_blurX(value:Float):Float
 	{
 		__blurX = Math.max(0, Math.min(255, value));
+		__renderDirty = true;
+		__updateSize();
 		__syncFlightEffect();
 		return __blurX;
 	}
@@ -99,14 +104,16 @@ import flight.Effects as FlightEffects;
 	@:noCompletion private function set_blurY(value:Float):Float
 	{
 		__blurY = Math.max(0, Math.min(255, value));
+		__renderDirty = true;
+		__updateSize();
 		__syncFlightEffect();
 		return __blurY;
 	}
 
 	@:noCompletion private inline function get_distance():Float return __distance;
-	@:noCompletion private function set_distance(value:Float):Float { __distance = value; __syncFlightEffect(); return value; }
+	@:noCompletion private function set_distance(value:Float):Float { __distance = value; __renderDirty = true; __updateSize(); __syncFlightEffect(); return value; }
 	@:noCompletion private inline function get_angle():Float return __angle;
-	@:noCompletion private function set_angle(value:Float):Float { __angle = value; __syncFlightEffect(); return value; }
+	@:noCompletion private function set_angle(value:Float):Float { __angle = value; __renderDirty = true; __updateSize(); __syncFlightEffect(); return value; }
 	@:noCompletion private inline function get_highlightColor():UInt return __highlightColor;
 	@:noCompletion private function set_highlightColor(value:UInt):UInt
 	{
@@ -143,6 +150,9 @@ import flight.Effects as FlightEffects;
 	@:noCompletion private function set_quality(value:Int):Int
 	{
 		__quality = Std.int(Math.max(1, Math.min(15, value)));
+		__horizontalPasses = __blurX <= 0 ? 0 : Math.round(__blurX * (__quality / 4));
+		__verticalPasses = __blurY <= 0 ? 0 : Math.round(__blurY * (__quality / 4));
+		__numShaderPasses = __horizontalPasses + __verticalPasses + 1;
 		__syncFlightEffect();
 		return __quality;
 	}
@@ -165,6 +175,16 @@ import flight.Effects as FlightEffects;
 
 	@:noCompletion private inline function get_knockout():Bool return __knockout;
 	@:noCompletion private function set_knockout(value:Bool):Bool { __knockout = value; __syncFlightEffect(); return value; }
+
+	@:noCompletion private function __updateSize():Void
+	{
+		var offsetX = __type != "inner" ? Math.ceil(__distance * Math.cos(__angle * Math.PI / 180)) : 0;
+		var offsetY = __type != "inner" ? Math.ceil(__distance * Math.sin(__angle * Math.PI / 180)) : 0;
+		__topExtension = Math.ceil((offsetY < 0 ? -offsetY : 0) + __blurY);
+		__bottomExtension = Math.ceil((offsetY > 0 ? offsetY : 0) + __blurY);
+		__leftExtension = Math.ceil((offsetX < 0 ? -offsetX : 0) + __blurX);
+		__rightExtension = Math.ceil((offsetX > 0 ? offsetX : 0) + __blurX);
+	}
 }
 #else
 typedef BevelFilter = flash.filters.BevelFilter;

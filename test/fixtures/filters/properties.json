@@ -1,4 +1,28 @@
 {
+  "baseInternals": {
+    "clone": {
+      "needSecond": true,
+      "left": 0,
+      "top": 0,
+      "preserve": false,
+      "passes": 0,
+      "smooth": true,
+      "right": 0,
+      "bottom": 0
+    },
+    "nullElementThrows": true,
+    "constructed": {
+      "needSecond": true,
+      "left": 0,
+      "top": 0,
+      "preserve": false,
+      "passes": 0,
+      "smooth": true,
+      "right": 0,
+      "bottom": 0
+    },
+    "cloneDistinct": true
+  },
   "mutations": {
     "bevel": {
       "strength": 1,
@@ -199,6 +223,29 @@
       "scaleY": 0
     }
   },
+  "descriptorSynchronization": {
+    "convolution": {
+      "matrixY": 3,
+      "matrix": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "matrixX": 3
+    },
+    "colorMatrixInvalidLengthCreatesNoAdjustment": true,
+    "shader": {
+      "directAssignmentStaysStale": true,
+      "constructedFromShader": true,
+      "invalidateRefreshes": true
+    }
+  },
   "clones": {
     "shadow": {
       "strength": 2.5,
@@ -336,6 +383,7 @@
     "readsShareArray": false,
     "readsShareFilter": true
   },
+  "gradientClassesAbsent": true,
   "values": {
     "bevel": {
       "strength": 2.5,
@@ -439,6 +487,409 @@
       "componentX": 1,
       "mapHeight": 2,
       "scaleY": -8
+    }
+  },
+  "nullArguments": {
+    "destPoint": true,
+    "filter": true,
+    "sourceRect": true
+  },
+  "bitmapApplications": {
+    "bevel": [
+      "07000000",
+      "0F331100",
+      "07000000",
+      "00000000",
+      "00000000",
+      "0F331100",
+      "97492A1B",
+      "2FBEAEAE",
+      "0FFFFFFF",
+      "00000000",
+      "07000000",
+      "2FBEAEAE",
+      "FFFFFFFF",
+      "3F868E9E",
+      "0F001133",
+      "00000000",
+      "0FFFFFFF",
+      "3F868E9E",
+      "FF102040",
+      "1F00193A",
+      "00000000",
+      "00000000",
+      "0F001133",
+      "1F00193A",
+      "0F001133"
+    ],
+    "glow": [
+      "04004080",
+      "08206080",
+      "04004080",
+      "00000000",
+      "00000000",
+      "08206080",
+      "8C3E241A",
+      "182B6095",
+      "08206080",
+      "00000000",
+      "04004080",
+      "182B6095",
+      "FFFFFFFF",
+      "2030608F",
+      "08206080",
+      "00000000",
+      "08206080",
+      "2030608F",
+      "FF102040",
+      "10306080",
+      "00000000",
+      "00000000",
+      "08206080",
+      "10306080",
+      "08206080"
+    ],
+    "shaderNoop": [
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "80402010",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FFFFFFFF",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FF102040",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000"
+    ],
+    "dropShadow": [
+      "00000000",
+      "04004080",
+      "08206080",
+      "04004080",
+      "00000000",
+      "00000000",
+      "843E2111",
+      "182B6095",
+      "182B6095",
+      "08206080",
+      "00000000",
+      "04004080",
+      "FFFFFFFF",
+      "2B2A658E",
+      "2030608F",
+      "00000000",
+      "00000000",
+      "08206080",
+      "FF102040",
+      "28336699",
+      "00000000",
+      "00000000",
+      "00000000",
+      "08206080",
+      "10306080"
+    ],
+    "colorMatrixNonzeroRect": [
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FF89939D",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FF12243E",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FF102040",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000"
+    ],
+    "blur": [
+      "07240000",
+      "0F331100",
+      "07240000",
+      "00000000",
+      "00000000",
+      "0F331100",
+      "2F7D675C",
+      "2FBEB3AE",
+      "0FFFFFFF",
+      "00000000",
+      "07240000",
+      "2FBEB3AE",
+      "56C1C1C7",
+      "3F868E9E",
+      "0F001133",
+      "00000000",
+      "0FFFFFFF",
+      "3F868E9E",
+      "4F3D4A64",
+      "1F08193A",
+      "00000000",
+      "00000000",
+      "0F001133",
+      "1F08193A",
+      "0F001133"
+    ],
+    "displacementIgnoresArguments": [
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "80402010",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FFFFFFFF",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FF102040",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000"
+    ],
+    "convolutionNoop": [
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "80402010",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FFFFFFFF",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "FF102040",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000"
+    ]
+  },
+  "derivedInternals": {
+    "bevel": {
+      "constructed": {
+        "needSecond": true,
+        "left": 8,
+        "top": 9,
+        "preserve": true,
+        "passes": 14,
+        "smooth": true,
+        "right": 15,
+        "bottom": 13
+      },
+      "distanceChanged": {
+        "needSecond": true,
+        "left": 8,
+        "top": 9,
+        "preserve": true,
+        "passes": 14,
+        "smooth": true,
+        "right": 8,
+        "bottom": 9
+      },
+      "typeChanged": {
+        "needSecond": true,
+        "left": 8,
+        "top": 9,
+        "preserve": true,
+        "passes": 14,
+        "smooth": true,
+        "right": 15,
+        "bottom": 13
+      }
+    },
+    "glow": {
+      "qualityChanged": {
+        "needSecond": true,
+        "left": 15,
+        "top": 17,
+        "preserve": true,
+        "passes": 15,
+        "smooth": true,
+        "right": 15,
+        "bottom": 17
+      },
+      "blurChanged": {
+        "needSecond": true,
+        "left": 6,
+        "top": 17,
+        "preserve": true,
+        "passes": 30,
+        "smooth": true,
+        "right": 6,
+        "bottom": 17
+      },
+      "constructed": {
+        "needSecond": true,
+        "left": 15,
+        "top": 17,
+        "preserve": true,
+        "passes": 15,
+        "smooth": true,
+        "right": 15,
+        "bottom": 17
+      },
+      "innerChanged": {
+        "needSecond": true,
+        "left": 6,
+        "top": 17,
+        "preserve": true,
+        "passes": 30,
+        "smooth": true,
+        "right": 6,
+        "bottom": 17
+      }
+    },
+    "publicBounds": {
+      "x": 10,
+      "y": 20,
+      "height": 40,
+      "width": 30
+    },
+    "dropShadow": {
+      "qualityChanged": {
+        "needSecond": true,
+        "left": 8,
+        "top": 9,
+        "offsetX": 6,
+        "preserve": true,
+        "offsetY": 3,
+        "passes": 17,
+        "smooth": true,
+        "right": 14,
+        "bottom": 12
+      },
+      "blurChanged": {
+        "needSecond": true,
+        "left": 4,
+        "top": 9,
+        "offsetX": 6,
+        "preserve": true,
+        "offsetY": 3,
+        "passes": 27,
+        "smooth": true,
+        "right": 10,
+        "bottom": 12
+      },
+      "constructed": {
+        "needSecond": true,
+        "left": 8,
+        "top": 9,
+        "offsetX": 6,
+        "preserve": true,
+        "offsetY": 3,
+        "passes": 17,
+        "smooth": true,
+        "right": 14,
+        "bottom": 12
+      },
+      "innerChanged": {
+        "needSecond": true,
+        "left": 4,
+        "top": 9,
+        "offsetX": 6,
+        "preserve": true,
+        "offsetY": 3,
+        "passes": 27,
+        "smooth": true,
+        "right": 10,
+        "bottom": 12
+      }
+    },
+    "blur": {
+      "qualityChanged": {
+        "needSecond": true,
+        "left": 26,
+        "top": 38,
+        "preserve": false,
+        "passes": 27,
+        "smooth": true,
+        "right": 26,
+        "bottom": 38
+      },
+      "axisChanged": {
+        "needSecond": true,
+        "left": 62,
+        "top": 38,
+        "preserve": false,
+        "passes": 27,
+        "smooth": true,
+        "right": 62,
+        "bottom": 38
+      },
+      "constructed": {
+        "needSecond": true,
+        "left": 26,
+        "top": 38,
+        "preserve": false,
+        "passes": 17,
+        "smooth": true,
+        "right": 26,
+        "bottom": 38
+      }
+    },
+    "filterBounds": {
+      "x": 4,
+      "y": 11,
+      "height": 58,
+      "width": 42
+    },
+    "shader": {
+      "needSecond": true,
+      "left": 2,
+      "top": 3,
+      "preserve": false,
+      "passes": 1,
+      "smooth": true,
+      "right": 4,
+      "bottom": 5
     }
   },
   "edges": {

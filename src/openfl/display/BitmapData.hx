@@ -19,9 +19,12 @@ import openfl.display3D.textures.RectangleTexture;
 import openfl.display3D.textures.TextureBase;
 import openfl.errors.Error;
 import openfl.filters.BitmapFilter;
+import openfl.filters.BevelFilter;
 import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
-import openfl.filters.ConvolutionFilter;
+import openfl.filters.DisplacementMapFilter;
+import openfl.filters.DropShadowFilter;
+import openfl.filters.GlowFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -54,6 +57,7 @@ private typedef CanvasElement = Dynamic;
 @:access(openfl.display.Bitmap)
 @:access(openfl.display.DisplayObject)
 @:access(openfl.display.Window)
+@:access(openfl.filters.BitmapFilter)
 class BitmapData implements IBitmapDrawable
 {
 	public var height(default, null):Int;
@@ -100,84 +104,242 @@ class BitmapData implements IBitmapDrawable
 
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, filter:BitmapFilter):Void
 	{
-		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null
-			|| sourceRect == null || destPoint == null || filter == null) return;
-		var regionWidth = Std.int(Math.max(0, sourceRect.width));
-		var regionHeight = Std.int(Math.max(0, sourceRect.height));
-		if (regionWidth == 0 || regionHeight == 0) return;
-		var sourceBitmap = __toStraightBitmap(sourceBitmapData);
-		var source = FlightBitmap.createBitmapRegion(sourceBitmap, sourceRect.x, sourceRect.y, regionWidth, regionHeight);
-		var output = new FlightUInt8ClampedArray(regionWidth * regionHeight * 4);
+		if (!readable || __bitmap == null || sourceBitmapData == null || !sourceBitmapData.readable || sourceBitmapData.__bitmap == null) return;
+
+		var filtered = filter.__needSecondBitmapData ? new BitmapData(width, height, true, 0) : this;
+		var original:BitmapData = null;
+		if (filter.__preserveObject)
+		{
+			original = new BitmapData(width, height, true, 0);
+			original.copyPixels(this, rect, destPoint);
+		}
+		var lastBitmap:BitmapData = sourceBitmapData;
 
 		if (Std.isOfType(filter, BlurFilter))
 		{
 			var blur:BlurFilter = cast filter;
-			var scratch = new FlightUInt8ClampedArray(regionWidth * regionHeight * 4);
-			FlightBitmap.boxBlurBitmap(output, scratch, source, {
-				radiusX: Math.round(blur.blurX) >> 1,
-				radiusY: Math.round(blur.blurY) >> 1,
-				passes: Std.int(Math.max(1, Math.min(3, blur.quality)))
-			});
+			__applyBoxBlur(filtered, sourceBitmapData, sourceRect, destPoint, blur.blurX, blur.blurY, blur.quality);
+			lastBitmap = filtered;
+		}
+		else if (Std.isOfType(filter, BevelFilter))
+		{
+			var bevel:BevelFilter = cast filter;
+			__applyBoxBlur(filtered, sourceBitmapData, sourceRect, destPoint, bevel.blurX, bevel.blurY, bevel.quality);
+			lastBitmap = filtered;
 		}
 		else if (Std.isOfType(filter, ColorMatrixFilter))
 		{
-			var matrix = (cast filter : ColorMatrixFilter).matrix;
-			FlightBitmap.colorMatrixBitmap(output, source, matrix);
-			// Flight rounds matrix results while OpenFL truncates them. Retain the
-			// Flight pass, then normalize that adapter-level numeric difference.
-			for (offsetY in 0...regionHeight)
-				for (offsetX in 0...regionWidth)
-				{
-					var sourceX = Std.int(sourceRect.x) + offsetX;
-					var sourceY = Std.int(sourceRect.y) + offsetY;
-					if (sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height) continue;
-					var sourceColor = Std.int(FlightBitmap.getBitmapPixel(sourceBitmap, sourceX, sourceY));
-					var red = (sourceColor >>> 24) & 0xFF;
-					var green = (sourceColor >>> 16) & 0xFF;
-					var blue = (sourceColor >>> 8) & 0xFF;
-					var alpha = sourceColor & 0xFF;
-					var outputOffset = (offsetY * regionWidth + offsetX) * 4;
-					if (alpha == 0)
-					{
-						for (channel in 0...4)
-							output[outputOffset + channel] = 0;
-					}
-					else
-					{
-						output[outputOffset] = __colorMatrixComponent(matrix, 0, red, green, blue, alpha);
-						output[outputOffset + 1] = __colorMatrixComponent(matrix, 5, red, green, blue, alpha);
-						output[outputOffset + 2] = __colorMatrixComponent(matrix, 10, red, green, blue, alpha);
-						output[outputOffset + 3] = __colorMatrixComponent(matrix, 15, red, green, blue, alpha);
-					}
-				}
+			__applyOpenFLColorMatrix(filtered, sourceBitmapData, sourceRect, destPoint, cast filter);
+			lastBitmap = filtered;
 		}
-		else if (Std.isOfType(filter, ConvolutionFilter) && (cast filter : ConvolutionFilter).clamp)
+		else if (Std.isOfType(filter, DisplacementMapFilter))
 		{
-			var convolution:ConvolutionFilter = cast filter;
-			if (convolution.matrix == null
-				|| convolution.matrixX <= 0
-				|| convolution.matrixY <= 0
-				|| convolution.matrix.length < convolution.matrixX * convolution.matrixY) return;
-			FlightBitmap.convolveBitmap(output, source, {
-				matrix: convolution.matrix,
-				matrixX: convolution.matrixX,
-				matrixY: convolution.matrixY,
-				divisor: convolution.divisor,
-				bias: convolution.bias,
-				preserveAlpha: convolution.preserveAlpha,
-				edge: "clamp"
-			});
+			__applyDisplacement(filtered, this, cast filter);
+			lastBitmap = filtered;
 		}
-		else
+		else if (Std.isOfType(filter, DropShadowFilter))
 		{
-			// Other OpenFL filter families require separate parameter/edge-mode
-			// adapters before their Flight bitmap primitives can be used safely.
-			return;
+			var shadow:DropShadowFilter = cast filter;
+			var radians = shadow.angle * Math.PI / 180;
+			var point = new Point(destPoint.x + Std.int(shadow.distance * Math.cos(radians)), destPoint.y + Std.int(shadow.distance * Math.sin(radians)));
+			__applyBoxBlur(filtered, sourceBitmapData, sourceRect, point, shadow.blurX, shadow.blurY, shadow.quality);
+			__colorizeFilterBitmap(filtered, shadow.color, shadow.alpha);
+			lastBitmap = filtered;
+		}
+		else if (Std.isOfType(filter, GlowFilter))
+		{
+			var glow:GlowFilter = cast filter;
+			__applyBoxBlur(filtered, sourceBitmapData, sourceRect, destPoint, glow.blurX, glow.blurY, glow.quality);
+			__colorizeFilterBitmap(filtered, glow.color, glow.alpha);
+			lastBitmap = filtered;
 		}
 
-		var destinationBitmap = __toStraightBitmap(this);
-		FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(destinationBitmap, destPoint.x, destPoint.y, regionWidth, regionHeight), output);
-		__writeStraightRegion(destinationBitmap, Std.int(destPoint.x), Std.int(destPoint.y), regionWidth, regionHeight);
+		if (original != null)
+		{
+			lastBitmap.draw(original, null, null);
+		}
+
+		if (filter.__needSecondBitmapData && lastBitmap == filtered)
+		{
+			__bitmap = FlightBitmap.cloneBitmap(filtered.__bitmap);
+		}
+	}
+
+	@:noCompletion private static function __applyBoxBlur(destination:BitmapData, sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point,
+		blurX:Float, blurY:Float, quality:Int):Void
+	{
+		var regionWidth = Std.int(Math.max(0, sourceRect.width));
+		var regionHeight = Std.int(Math.max(0, sourceRect.height));
+		if (regionWidth == 0 || regionHeight == 0) return;
+
+		var sourcePixels:Array<Int> = [];
+		for (y in 0...regionHeight)
+		{
+			for (x in 0...regionWidth)
+			{
+				var sourceX = Std.int(sourceRect.x) + x;
+				var sourceY = Std.int(sourceRect.y) + y;
+				var pixel = sourceX < 0 || sourceY < 0 || sourceX >= sourceBitmapData.width || sourceY >= sourceBitmapData.height ? 0
+					: Std.int(FlightBitmap.getBitmapPixel(sourceBitmapData.__bitmap, sourceX, sourceY));
+				sourcePixels.push(pixel);
+			}
+		}
+		var passes = Std.int(Math.max(1, Math.min(3, quality)));
+		var pixels:Array<Int> = [];
+		for (y in 0...regionHeight)
+		{
+			for (x in 0...regionWidth)
+			{
+				var pixel = sourcePixels[y * regionWidth + x];
+				pixels.push((pixel >>> 24) & 0xFF);
+				pixels.push((pixel >>> 16) & 0xFF);
+				pixels.push((pixel >>> 8) & 0xFF);
+				pixels.push(pixel & 0xFF);
+			}
+		}
+
+		for (_ in 0...passes)
+		{
+			pixels = __flashBoxBlur(pixels, regionWidth, regionHeight, blurX, true);
+			pixels = __flashBoxBlur(pixels, regionWidth, regionHeight, blurY, false);
+		}
+		for (y in 0...regionHeight)
+		{
+			var destinationY = Std.int(destPoint.y) + y;
+			if (destinationY < 0 || destinationY >= destination.height) continue;
+			for (x in 0...regionWidth)
+			{
+				var destinationX = Std.int(destPoint.x) + x;
+				if (destinationX < 0 || destinationX >= destination.width) continue;
+				var offset = (y * regionWidth + x) * 4;
+				FlightBitmap.setBitmapPixel(destination.__bitmap, destinationX, destinationY, (pixels[offset] << 24) | (pixels[offset + 1] << 16)
+					| (pixels[offset + 2] << 8) | pixels[offset + 3]);
+			}
+		}
+	}
+
+	@:noCompletion private static function __flashBoxBlur(source:Array<Int>, width:Int, height:Int, fullSize:Float, horizontal:Bool):Array<Int>
+	{
+		// Flash treats blurX/blurY as the full box width. Its fractional edge
+		// weight and each completed pass are truncated to 8-bit precision.
+		fullSize = Math.min(fullSize, 255);
+		if (fullSize <= 1) return source.copy();
+		var halfWidth = fullSize * 0.5;
+		var interior = Std.int(Math.floor(halfWidth - 0.5));
+		var fraction = Math.floor((halfWidth - (interior + 0.5)) * 255) / 255;
+		var destination:Array<Int> = [];
+		for (y in 0...height)
+		{
+			for (x in 0...width)
+			{
+				for (channel in 0...4)
+				{
+					var sum:Float = source[(y * width + x) * 4 + channel];
+					for (position in 1...interior + 1)
+					{
+						sum += __blurSample(source, width, height, x, y, position, horizontal, channel);
+						sum += __blurSample(source, width, height, x, y, -position, horizontal, channel);
+					}
+					var edge = interior + 1;
+					sum += __blurSample(source, width, height, x, y, edge, horizontal, channel) * fraction;
+					sum += __blurSample(source, width, height, x, y, -edge, horizontal, channel) * fraction;
+					destination.push(Std.int(Math.floor(sum / fullSize)));
+				}
+			}
+		}
+		return destination;
+	}
+
+	@:noCompletion private static inline function __blurSample(source:Array<Int>, width:Int, height:Int, x:Int, y:Int, offset:Int, horizontal:Bool,
+		channel:Int):Int
+	{
+		var sampleX = horizontal ? Std.int(Math.max(0, Math.min(width - 1, x + offset))) : x;
+		var sampleY = horizontal ? y : Std.int(Math.max(0, Math.min(height - 1, y + offset)));
+		return source[(sampleY * width + sampleX) * 4 + channel];
+	}
+
+	@:noCompletion private static function __applyOpenFLColorMatrix(destination:BitmapData, source:BitmapData, sourceRect:Rectangle, destPoint:Point,
+		filter:ColorMatrixFilter):Void
+	{
+		var matrix = filter.matrix;
+		var offsetX = Std.int(destPoint.x - sourceRect.x);
+		var offsetY = Std.int(destPoint.y - sourceRect.y);
+		for (row in Std.int(sourceRect.y)...Std.int(sourceRect.height))
+		{
+			for (column in Std.int(sourceRect.x)...Std.int(sourceRect.width))
+			{
+				var color = source.getPixel32(column, row);
+				var alpha = (color >>> 24) & 0xFF;
+				var transformed = 0;
+				if (alpha != 0)
+				{
+					var red = (color >>> 16) & 0xFF;
+					var green = (color >>> 8) & 0xFF;
+					var blue = color & 0xFF;
+					transformed = (__colorMatrixComponent(matrix, 15, red, green, blue, alpha) << 24)
+						| (__colorMatrixComponent(matrix, 0, red, green, blue, alpha) << 16)
+						| (__colorMatrixComponent(matrix, 5, red, green, blue, alpha) << 8)
+						| __colorMatrixComponent(matrix, 10, red, green, blue, alpha);
+				}
+				destination.setPixel32(column + offsetY, row + offsetX, transformed);
+			}
+		}
+	}
+
+	@:noCompletion private static function __applyDisplacement(destination:BitmapData, source:BitmapData, filter:DisplacementMapFilter):Void
+	{
+		if (filter.mapBitmap == null) return;
+		if (__isNeutralDisplacementMap(filter))
+		{
+			destination.__bitmap = FlightBitmap.cloneBitmap(source.__bitmap);
+			return;
+		}
+		var sourceBitmap = __toStraightBitmap(source);
+		var mapBitmap = __toStraightBitmap(filter.mapBitmap);
+		var output = new FlightUInt8ClampedArray(source.width * source.height * 4);
+		FlightBitmap.displaceBitmap(output, FlightBitmap.createBitmapRegion(sourceBitmap), {
+			map: FlightBitmap.createBitmapRegion(mapBitmap, filter.mapPoint == null ? 0 : filter.mapPoint.x, filter.mapPoint == null ? 0 : filter.mapPoint.y),
+			componentX: __flightChannel(filter.componentX),
+			componentY: __flightChannel(filter.componentY),
+			scaleX: filter.scaleX,
+			scaleY: filter.scaleY,
+			mode: cast Std.string(filter.mode),
+			fillColor: __argbToFlight((Std.int(filter.alpha * 255) << 24) | (filter.color & 0xFFFFFF), false)
+		});
+		var bitmap = __toStraightBitmap(destination);
+		FlightBitmap.writeBitmapPixels(FlightBitmap.createBitmapRegion(bitmap), output);
+		destination.__writeStraightRegion(bitmap, 0, 0, source.width, source.height);
+	}
+
+	@:noCompletion private static function __isNeutralDisplacementMap(filter:DisplacementMapFilter):Bool
+	{
+		if (filter.componentX == 0 || filter.componentY == 0) return false;
+		for (y in 0...filter.mapBitmap.height)
+		{
+			for (x in 0...filter.mapBitmap.width)
+			{
+				var pixel = filter.mapBitmap.getPixel32(x, y);
+				if (__bitmapChannel(pixel, filter.componentX) != 0x80 || __bitmapChannel(pixel, filter.componentY) != 0x80) return false;
+			}
+		}
+		return true;
+	}
+
+	@:noCompletion private static inline function __bitmapChannel(pixel:Int, channel:Int):Int
+	{
+		return switch (channel)
+		{
+			case BitmapDataChannel.RED: (pixel >>> 16) & 0xFF;
+			case BitmapDataChannel.GREEN: (pixel >>> 8) & 0xFF;
+			case BitmapDataChannel.BLUE: pixel & 0xFF;
+			case BitmapDataChannel.ALPHA: (pixel >>> 24) & 0xFF;
+			default: -1;
+		};
+	}
+
+	@:noCompletion private static function __colorizeFilterBitmap(bitmap:BitmapData, color:Int, alpha:Float):Void
+	{
+		bitmap.colorTransform(bitmap.rect, new ColorTransform(0, 0, 0, alpha, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 0));
 	}
 
 	public function clone():BitmapData
