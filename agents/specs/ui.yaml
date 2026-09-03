@@ -110,7 +110,8 @@ entries:
       and `IBEAM` to `text`. Setting `AUTO` or an unknown value changes stored state but makes
       no host cursor assignment, leaving the previous host cursor in place.
     status: covered
-    scenarios: []
+    scenarios:
+      - ui/mouse:cursorReadBack
 
   - id: ui.Mouse.hide-no-stack
     section: "Mouse and MouseCursor"
@@ -142,7 +143,8 @@ entries:
       of the compiled non-Flash API. Extra private cursor names and string conversions do not
       expand the public MouseCursor constants.
     status: covered
-    scenarios: []
+    scenarios:
+      - ui/mouse:cursorRegistrationAbsent
 
   # -- GameInput --
 
@@ -168,13 +170,12 @@ entries:
   - id: ui.GI.host-attachment-timing
     section: "GameInput"
     behavior: >-
-      Upstream device tracking is wired from Stage's Lime gamepad callbacks and can populate the
-      global device list even before any GameInput instance is constructed; non-Lime builds have
-      no corresponding source callback path. The adapter initializes and attaches its Flight
-      input manager only from `new GameInput()`, but extends attachment to supported HTML5,
-      Clay, and Lime hosts, so both initialization timing and target coverage differ.
-    status: missing
-    scenarios: []
+      Device tracking is wired during static initialization on Lime, so the global device list can
+      populate before any GameInput instance is constructed. Non-Lime builds retain no equivalent
+      source callback path.
+    status: covered
+    scenarios:
+      - ui/game-input:hostAttachedBeforeInstance
 
   - id: ui.GI.device-indexing
     section: "GameInput"
@@ -215,12 +216,11 @@ entries:
   - id: ui.GI.unknown-device-event-order
     section: "GameInput"
     behavior: >-
-      In OpenFL, an axis/button update for an unknown host id creates the device silently;
-      DEVICE_ADDED is dispatched only by the later connect callback. The adapter's first
-      axis/button update routes through `__getDevice` and immediately dispatches DEVICE_ADDED,
-      changing event order/count.
-    status: missing
-    scenarios: []
+      An axis/button update for an unknown host id creates the device silently; DEVICE_ADDED is
+      dispatched only by the later connect callback.
+    status: covered
+    scenarios:
+      - ui/game-input:unknownDeviceEventOrder
 
   - id: ui.GI.control-update-events
     section: "GameInput"
@@ -238,13 +238,13 @@ entries:
   - id: ui.GI.button-value-normalization
     section: "GameInput"
     behavior: >-
-      OpenFL stores the host axis value verbatim, but normalizes a button-down callback to
-      exactly 1 and button-up to exactly 0. The adapter stores Flight's value from both button
-      signals; ordinary digital backends agree, but analog/noncanonical signal values differ.
-    status: missing
+      The host axis value is stored verbatim, while a button-down callback is normalized to
+      exactly 1 and button-up to exactly 0.
+    status: covered
     scenarios:
       - ui/game-input:device.axisValue
       - ui/game-input:device.buttonValue
+      - ui/game-input:device.buttonValues
 
   # -- GameInputDevice --
 
@@ -315,10 +315,10 @@ entries:
   - id: ui.GID.device-id-name-derivation
     section: "GameInputDevice"
     behavior: >-
-      The adapter creates devices through Flight host bridges, but its id/name derivation can
-      expose the same host identifier for both rather than preserving OpenFL's separate Lime id
-      and name values.
-    status: missing
+      Devices created through Flight host bridges retain the numeric gamepad id as `id` and the
+      host-provided identifier as `name`. A late connect updates the name of a device that an
+      earlier input event created silently.
+    status: covered
     scenarios:
       - ui/game-input:device.id
       - ui/game-input:device.name
@@ -376,12 +376,11 @@ entries:
   - id: ui.Multitouch.max-touch-points-static
     section: "Multitouch"
     behavior: >-
-      In OpenFL 9.5.2, read-only `maxTouchPoints` is initialized once to 2 and never changed.
-      The adapter starts at 2 but raises it to the greatest simultaneously observed touch count,
-      so later reads can differ.
-    status: missing
+      Read-only `maxTouchPoints` is initialized once to 2 and never changed by observed touches.
+    status: covered
     scenarios:
       - ui/multitouch:initial.maxTouchPoints
+      - ui/multitouch:maxAfterThreeTouches
 
   - id: ui.Multitouch.gesture-fields
     section: "Multitouch"
@@ -396,11 +395,9 @@ entries:
   - id: ui.Multitouch.touch-capability-platform-rules
     section: "Multitouch"
     behavior: >-
-      On JavaScript, `supportsTouchEvents` tests whether `ontouchstart` exists on the browser
-      document. On non-JS it is compile-time false on macOS and true on every other target. The
-      adapter instead asks Flight for dynamic touch capability where available, so host/backend
-      results can differ from those exact platform rules.
-    status: missing
+      On JavaScript, `supportsTouchEvents` tests browser touch fields. On non-JS it is compile-time
+      false on macOS and true on every other target; observed touch events do not mutate it.
+    status: covered
     scenarios:
       - ui/multitouch:initial.supportsTouchEvents
       - ui/multitouch:supportsAfterFlightTouch

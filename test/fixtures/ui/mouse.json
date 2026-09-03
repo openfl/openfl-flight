@@ -1,5 +1,6 @@
 {
   "cursorRestored": true,
+  "cursorRegistrationAbsent": true,
   "updateAfterEventDoesNotThrow": true,
   "hideDoesNotThrow": true,
   "nullCursorReadBack": "auto",

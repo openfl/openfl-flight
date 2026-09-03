@@ -98,12 +98,18 @@ import lime.app.Application as LimeApplication;
 	@:noCompletion private static var __flightInputSource:FlightInputSource;
 	@:noCompletion private static var __flightInputSourceResolved:Bool;
 
+	@:noCompletion private static function __init__():Void
+	{
+		#if (lime || harness_compare)
+		__initializeFlightInput();
+		#end
+	}
+
 	public function new()
 	{
 		super();
 
 		__instances.push(this);
-		__initializeFlightInput();
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
@@ -144,23 +150,22 @@ import lime.app.Application as LimeApplication;
 		return null;
 	}
 
-	@:noCompletion private static function __getDevice(gamepad:Int, id:String = null):GameInputDevice
+	@:noCompletion private static function __getDevice(gamepad:Int, name:String = null):GameInputDevice
 	{
-		if (!__devices.exists(gamepad))
+		if (__devices.exists(gamepad))
 		{
-			var resolvedID = id == null || id == "" ? Std.string(gamepad) : id;
-			var device = new GameInputDevice(resolvedID, resolvedID);
-			__deviceList.push(device);
-			__devices.set(gamepad, device);
-			numDevices = __deviceList.length;
-
-			for (instance in __instances)
-			{
-				instance.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device));
-			}
+			var device = __devices.get(gamepad);
+			if (name != null && name != "") device.name = name;
+			return device;
 		}
 
-		return __devices.get(gamepad);
+		var resolvedID = Std.string(gamepad);
+		var resolvedName = name == null || name == "" ? resolvedID : name;
+		var device = new GameInputDevice(resolvedID, resolvedName);
+		__deviceList.push(device);
+		__devices.set(gamepad, device);
+		numDevices = __deviceList.length;
+		return device;
 	}
 
 	@:noCompletion private static function __initializeFlightInput():Void
@@ -249,7 +254,7 @@ import lime.app.Application as LimeApplication;
 			}
 
 			var control = device.__button.get(button);
-			control.value = data.value;
+			control.value = 1;
 			control.dispatchEvent(new Event(Event.CHANGE));
 		}
 	}
@@ -271,7 +276,7 @@ import lime.app.Application as LimeApplication;
 			}
 
 			var control = device.__button.get(button);
-			control.value = data.value;
+			control.value = 0;
 			control.dispatchEvent(new Event(Event.CHANGE));
 		}
 	}
@@ -279,7 +284,13 @@ import lime.app.Application as LimeApplication;
 	@:noCompletion private static function __onGamepadConnect(data:FlightGamepadConnectData):Void
 	{
 		var gamepad = Std.int(data.gamepad);
-		__getDevice(gamepad, data.id);
+		var device = __getDevice(gamepad, data.id);
+		if (device == null) return;
+
+		for (instance in __instances)
+		{
+			instance.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device));
+		}
 	}
 
 	@:noCompletion private static function __onGamepadDisconnect(data:FlightGamepadConnectData):Void

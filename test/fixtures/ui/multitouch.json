@@ -1,5 +1,6 @@
 {
   "supportsAfterFlightTouch": true,
+  "maxAfterThreeTouches": 2,
   "modes": {
     "none": "none",
     "touchPoint": "touchPoint",

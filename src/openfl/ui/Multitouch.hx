@@ -2,7 +2,6 @@ package openfl.ui;
 
 #if !flash
 import flight.Input as FlightInput;
-import flight.Platform as FlightPlatform;
 import flight.Signals as FlightSignals;
 import flight.types.HasSystemPlatform as FlightPlatformHost;
 import flight.types.InputIngressSource as FlightInputSource;
@@ -131,7 +130,6 @@ import lime.app.Application as LimeApplication;
 	@:noCompletion private static var __flightInputSourceResolved:Bool;
 	@:noCompletion private static var __platformHost:FlightPlatformHost;
 	@:noCompletion private static var __platformHostResolved:Bool;
-	@:noCompletion private static var __supportsTouchEvents:Bool;
 
 	private static function __init__():Void
 	{
@@ -140,17 +138,6 @@ import lime.app.Application as LimeApplication;
 		supportsGestureEvents = false;
 		inputMode = MultitouchInputMode.TOUCH_POINT;
 		__activeTouchPoints = new Map();
-		var platformHost = __getFlightPlatformHost();
-		__supportsTouchEvents = platformHost != null && FlightPlatform.isPlatformTouch(platformHost);
-
-		#if (!js || !html5)
-		#if !mac
-		// Preserve OpenFL's non-Mac capability contract when the Flight host
-		// cannot report platform touch support.
-		if (!__supportsTouchEvents) __supportsTouchEvents = true;
-		#end
-		#end
-
 		__flightInputManager = FlightInput.createInputManager();
 		FlightSignals.connectSignal(__flightInputManager.onPointerDown, __onFlightPointerDown);
 		FlightSignals.connectSignal(__flightInputManager.onPointerMove, __onFlightPointerMove);
@@ -226,31 +213,33 @@ import lime.app.Application as LimeApplication;
 	// Getters & Setters
 	@:noCompletion private static function get_supportsTouchEvents():Bool
 	{
-		return __supportsTouchEvents;
+		#if (js && html5)
+		return Browser.supported && Browser.document != null && Browser.document.documentElement != null
+			&& (Reflect.hasField(Browser.document.documentElement, "ontouchstart")
+				|| (Reflect.hasField(Browser.window, "DocumentTouch") && Std.isOfType(Browser.document, Reflect.field(Browser.window, "DocumentTouch"))));
+		#elseif !mac
+		return true;
+		#else
+		return false;
+		#end
 	}
 
 	@:noCompletion private static function __onFlightPointerDown(data:FlightPointerData):Void
 	{
 		if (data.pointerType != "touch") return;
 
-		__supportsTouchEvents = true;
 		__activeTouchPoints.set(Std.int(data.pointerId), true);
-
-		var activeCount = 0;
-		for (_ in __activeTouchPoints.keys()) activeCount++;
-		if (activeCount > maxTouchPoints) maxTouchPoints = activeCount;
 	}
 
 	@:noCompletion private static function __onFlightPointerMove(data:FlightPointerData):Void
 	{
-		if (data.pointerType == "touch") __supportsTouchEvents = true;
+		// OpenFL reports a platform capability rather than learning it from input.
 	}
 
 	@:noCompletion private static function __onFlightPointerUp(data:FlightPointerData):Void
 	{
 		if (data.pointerType != "touch") return;
 
-		__supportsTouchEvents = true;
 		__activeTouchPoints.remove(Std.int(data.pointerId));
 	}
 }

@@ -41,12 +41,17 @@ class MultitouchScenario
 		target.dispatchEvent(touchEvent);
 
 		#if harness_compare
-		@:privateAccess Multitouch.__supportsTouchEvents = false;
 		var manager = @:privateAccess Multitouch.__flightInputManager;
 		FlightSignals.emitSignal(manager.onPointerDown, pointerData(7, "touch"));
+		FlightSignals.emitSignal(manager.onPointerDown, pointerData(8, "touch"));
+		FlightSignals.emitSignal(manager.onPointerDown, pointerData(9, "touch"));
+		var maxAfterThreeTouches = Multitouch.maxTouchPoints;
 		var supportsAfterFlightTouch = Multitouch.supportsTouchEvents;
 		FlightSignals.emitSignal(manager.onPointerUp, pointerData(7, "touch"));
+		FlightSignals.emitSignal(manager.onPointerUp, pointerData(8, "touch"));
+		FlightSignals.emitSignal(manager.onPointerUp, pointerData(9, "touch"));
 		#else
+		var maxAfterThreeTouches = Multitouch.maxTouchPoints;
 		var supportsAfterFlightTouch = Multitouch.supportsTouchEvents;
 		#end
 
@@ -86,7 +91,8 @@ class MultitouchScenario
 				commandKey: touchEvent.commandKey,
 				controlKey: touchEvent.controlKey
 			},
-			supportsAfterFlightTouch: supportsAfterFlightTouch
+			supportsAfterFlightTouch: supportsAfterFlightTouch,
+			maxAfterThreeTouches: maxAfterThreeTouches
 		};
 	}
 

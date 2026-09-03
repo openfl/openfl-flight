@@ -81,6 +81,7 @@ class MouseScenario
 			cursorReadBack: cursorReadBack,
 			nullCursorReadBack: nullCursorReadBack,
 			cursorRestored: Mouse.cursor == originalCursor,
+			cursorRegistrationAbsent: !Reflect.hasField(Mouse, "registerCursor") && !Reflect.hasField(Mouse, "unregisterCursor"),
 			capabilities: {
 				supportsCursor: Mouse.supportsCursor,
 				supportsNativeCursor: Mouse.supportsNativeCursor,

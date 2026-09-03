@@ -14,6 +14,12 @@ class GameInputScenario
 {
 	public static function run():Dynamic
 	{
+		#if harness_compare
+		var manager = @:privateAccess GameInput.__flightInputManager;
+		var hostAttachedBeforeInstance = manager != null;
+		#else
+		var hostAttachedBeforeInstance = true;
+		#end
 		var input = new GameInput();
 		var addedCount = 0;
 		var removedCount = 0;
@@ -38,7 +44,6 @@ class GameInputScenario
 		};
 
 		#if harness_compare
-		var manager = @:privateAccess GameInput.__flightInputManager;
 		FlightSignals.emitSignal(manager.onGamepadConnect, {
 			gamepad: 2,
 			id: "Harness Gamepad",
@@ -46,7 +51,7 @@ class GameInputScenario
 		});
 		var device = GameInput.getDeviceAt(0);
 		#else
-		var device = @:privateAccess new GameInputDevice("Harness Gamepad", "Harness Gamepad");
+		var device = @:privateAccess new GameInputDevice("2", "Harness Gamepad");
 		@:privateAccess GameInput.__deviceList.push(device);
 		@:privateAccess GameInput.numDevices = 1;
 		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device));
@@ -60,7 +65,7 @@ class GameInputScenario
 		});
 		var secondDevice = GameInput.getDeviceAt(1);
 		#else
-		var secondDevice = @:privateAccess new GameInputDevice("Second Gamepad", "Second Gamepad");
+		var secondDevice = @:privateAccess new GameInputDevice("5", "Second Gamepad");
 		@:privateAccess GameInput.__deviceList.push(secondDevice);
 		@:privateAccess GameInput.numDevices = 2;
 		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, secondDevice));
@@ -74,13 +79,17 @@ class GameInputScenario
 		var button = device.getControlAt(6);
 		var axisChanges = 0;
 		var buttonChanges = 0;
+		var buttonValues:Array<Float> = [];
 		axis.addEventListener(Event.CHANGE, function(_:Event):Void axisChanges++);
-		button.addEventListener(Event.CHANGE, function(_:Event):Void buttonChanges++);
+		button.addEventListener(Event.CHANGE, function(_:Event):Void {
+			buttonChanges++;
+			buttonValues.push(button.value);
+		});
 
 		#if harness_compare
 		FlightSignals.emitSignal(manager.onGamepadAxisMove, {axis: 0, gamepad: 2, timeStamp: 10, value: 0.5});
-		FlightSignals.emitSignal(manager.onGamepadButtonDown, {button: 0, gamepad: 2, timeStamp: 11, value: 1});
-		FlightSignals.emitSignal(manager.onGamepadButtonUp, {button: 0, gamepad: 2, timeStamp: 12, value: 0});
+		FlightSignals.emitSignal(manager.onGamepadButtonDown, {button: 0, gamepad: 2, timeStamp: 11, value: 0.25});
+		FlightSignals.emitSignal(manager.onGamepadButtonUp, {button: 0, gamepad: 2, timeStamp: 12, value: 0.75});
 		#else
 		@:privateAccess axis.value = 0.5;
 		axis.dispatchEvent(new Event(Event.CHANGE));
@@ -141,8 +150,30 @@ class GameInputScenario
 		var event = new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, device);
 		var clone = event.clone();
 		var samples = new ByteArray();
+		var regularAddedCount = addedCount;
+		var regularReplayedAddedCount = replayedAddedCount;
+
+		#if harness_compare
+		FlightSignals.emitSignal(manager.onGamepadAxisMove, {axis: 2, gamepad: 9, timeStamp: 20, value: 0.4});
+		var unknownDevice = GameInput.getDeviceAt(0);
+		var unknownAddedAfterAxis = addedCount - regularAddedCount;
+		FlightSignals.emitSignal(manager.onGamepadConnect, {gamepad: 9, id: "Late Gamepad", mapping: "standard"});
+		var unknownAddedAfterConnect = addedCount - regularAddedCount;
+		FlightSignals.emitSignal(manager.onGamepadDisconnect, {gamepad: 9, id: "Late Gamepad", mapping: "standard"});
+		#else
+		var unknownDevice = @:privateAccess new GameInputDevice("9", "Late Gamepad");
+		@:privateAccess GameInput.__deviceList.push(unknownDevice);
+		@:privateAccess GameInput.numDevices = 1;
+		var unknownAddedAfterAxis = addedCount - regularAddedCount;
+		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_ADDED, true, false, unknownDevice));
+		var unknownAddedAfterConnect = addedCount - regularAddedCount;
+		@:privateAccess GameInput.__deviceList.remove(unknownDevice);
+		@:privateAccess GameInput.numDevices = 0;
+		input.dispatchEvent(new GameInputEvent(GameInputEvent.DEVICE_REMOVED, true, false, unknownDevice));
+		#end
 
 		return {
+			hostAttachedBeforeInstance: hostAttachedBeforeInstance,
 			constants: {
 				deviceAdded: Std.string(GameInputEvent.DEVICE_ADDED),
 				deviceRemoved: Std.string(GameInputEvent.DEVICE_REMOVED),
@@ -152,7 +183,7 @@ class GameInputScenario
 			initial: initial,
 			enumeration: enumeration,
 			device: {
-				addedCount: addedCount,
+				addedCount: regularAddedCount,
 				addedFirstMatches: addedDevices[0] == device,
 				addedSecondMatches: addedDevices[1] == secondDevice,
 				axisChanges: axisChanges,
@@ -165,6 +196,7 @@ class GameInputScenario
 				buttonID: button.id,
 				buttonRange: [button.minValue, button.maxValue],
 				buttonValue: button.value,
+				buttonValues: buttonValues,
 				cachedSamples: device.getCachedSamples(samples),
 				cachedSamplesAppend: device.getCachedSamples(samples, true),
 				cachingDoesNotThrow: cachingDoesNotThrow,
@@ -176,9 +208,15 @@ class GameInputScenario
 				numControls: device.numControls,
 				numDevicesWhileConnected: numDevicesWhileConnected,
 				outOfRangeControlIsNull: device.getControlAt(device.numControls) == null,
-				replayedAddedCount: replayedAddedCount,
+				replayedAddedCount: regularReplayedAddedCount,
 				sampleIntervalAfter: device.sampleInterval,
 				sampleIntervalBefore: sampleIntervalBefore
+			},
+			unknownDeviceEventOrder: {
+				addedAfterAxis: unknownAddedAfterAxis,
+				addedAfterConnect: unknownAddedAfterConnect,
+				id: unknownDevice.id,
+				name: unknownDevice.name
 			},
 			disconnect: {
 				afterFirst: afterFirstDisconnect,

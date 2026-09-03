@@ -21,10 +21,14 @@
     "buttonChanges": 2,
     "buttonDeviceMatches": true,
     "numControls": 21,
-    "id": "Harness Gamepad",
+    "id": "2",
     "numDevicesWhileConnected": 2,
     "cachedSamples": 0,
     "addedFirstMatches": true,
+    "buttonValues": [
+      1,
+      0
+    ],
     "enabledBefore": null,
     "enabledAfter": true,
     "buttonValue": 0,
@@ -40,6 +44,7 @@
     "maxBufferSize": 32000,
     "deviceRemoved": "deviceRemoved"
   },
+  "hostAttachedBeforeInstance": true,
   "initial": {
     "missingDeviceIsNull": true,
     "negativeDeviceIsNull": true,
@@ -62,7 +67,7 @@
     },
     "numDevices": 0,
     "deviceIsGone": true,
-    "removedCount": 2,
+    "removedCount": 3,
     "removedSecondMatches": true
   },
   "event": {
@@ -70,5 +75,11 @@
     "cloneType": "deviceAdded",
     "cloneDeviceMatches": true,
     "type": "deviceAdded"
+  },
+  "unknownDeviceEventOrder": {
+    "name": "Late Gamepad",
+    "id": "9",
+    "addedAfterAxis": 0,
+    "addedAfterConnect": 1
   }
 }
