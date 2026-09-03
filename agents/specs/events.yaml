@@ -572,16 +572,17 @@ entries:
       FOCUS_IN.relatedObject is the old focus. Clearing focus supplies null to the
       old object.
     status: covered
-    scenarios: []
+    scenarios:
+      - "events/advanced:focusRoute"
 
   - id: events.FE.open-fl-routes-those-focus-events-through
     section: "Focus and tab behavior"
     behavior: >
-      OpenFL routes those focus events through Stage.__dispatchStack; the adapter
-      calls public dispatchEvent. Listener order is the same without cancellation,
-      but capture-phase stop behavior differs as described above.
-    status: missing
-    scenarios: []
+      Focus changes route through Stage.__dispatchStack, so propagation
+      cancellation is checked between capture nodes before the target.
+    status: covered
+    scenarios:
+      - "events/advanced:focusRoute"
 
   - id: events.FE.mouse-down-focus-changes-first-send-bubbling
     section: "Focus and tab behavior"
@@ -609,10 +610,10 @@ entries:
       OpenFL gathers tab candidates depth-first in child-index order. A container
       contributes itself when tabEnabled, then descends only when tabChildren is
       true. MovieClip.enabled == false suppresses that subtree's candidate logic.
-      Current DisplayObjectContainer has no recursive __tabTest, so Stage's
-      candidate list is effectively empty.
-    status: missing
-    scenarios: []
+      MovieClip.enabled == false suppresses that subtree's candidate logic.
+    status: covered
+    scenarios:
+      - "events/advanced:tabCandidates"
 
   - id: events.FE.candidates-sorted-ascending-tab-index-if-any
     section: "Focus and tab behavior"
@@ -641,19 +642,21 @@ entries:
     behavior: >
       ACTIVATE/DEACTIVATE are independent broadcast events, not substitutes for
       object FOCUS_IN/FOCUS_OUT. OpenFL broadcasts them on window focus in and
-      focus out (and deactivates on close/module exit). The adapter registers
-      broadcast listeners but does not wire Stage to Window focus/close signals,
-      so automatic activation events do not fire.
-    status: missing
-    scenarios: []
+      focus out (and deactivates on close/module exit). Stage wires these Window
+      signals separately from object FOCUS_IN/FOCUS_OUT changes.
+    status: covered
+    scenarios:
+      - "events/advanced:windowFocus"
 
   - id: events.FE.open-fl-caches-focus-around-mobile-window
     section: "Focus and tab behavior"
     behavior: >
       OpenFL caches focus around mobile/window focus loss and may restore it on
-      focus-in. The adapter has no cached-focus state.
-    status: missing
-    scenarios: []
+      focus-in. Desktop focus loss retains the cache without automatically
+      restoring object focus.
+    status: covered
+    scenarios:
+      - "events/advanced:windowFocus"
 
   - id: events.STG.activate-deactivate-frame-constructed-frame-render-listeners
     section: "Frame and render broadcasts"
@@ -662,7 +665,9 @@ entries:
       listeners place their DisplayObject into a static type registry; removing
       the final listener removes that object from the registry.
     status: covered
-    scenarios: []
+    scenarios:
+      - "events/advanced:broadcast"
+      - "events/advanced:frameAndRender"
 
   - id: events.STG.broadcast-order-registry-insertion-order-order-objects
     section: "Frame and render broadcasts"
@@ -672,27 +677,27 @@ entries:
       display list does not reorder the registry. Detached objects with stage ==
       null are eligible too.
     status: covered
-    scenarios: []
+    scenarios:
+      - "events/advanced:broadcast"
 
   - id: events.STG.open-fl-iterates-live-registry-invokes-private
     section: "Frame and render broadcasts"
     behavior: >
       OpenFL iterates the live registry and invokes the private local dispatcher
-      with one shared Event. The adapter iterates dispatchers.copy(), creates a
-      new Event per object, and calls public dispatchEvent(). Removal/addition
-      during a broadcast, Event identity/target retention, and mutation leakage
-      therefore differ.
-    status: missing
-    scenarios: []
+      with one shared Event. Removal and addition during a broadcast affect the
+      live iteration, and dispatch metadata is retained across local dispatches.
+    status: covered
+    scenarios:
+      - "events/advanced:broadcast"
 
   - id: events.STG.calling-public-dispatch-also-introduces-ancestor-capture
     section: "Frame and render broadcasts"
     behavior: >
-      Calling public dispatch also introduces ancestor capture listeners in the
-      adapter. OpenFL's private broadcast dispatch is local-only; broadcast events
+      Broadcast delivery uses the private local dispatcher, so broadcast events
       have neither capture nor bubble traversal.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - "events/advanced:broadcast"
 
   - id: events.STG.per-rendered-frame-source-order-frame-then
     section: "Frame and render broadcasts"
@@ -701,7 +706,8 @@ entries:
       then EXIT_FRAME, followed by the recursive internal __enterFrame(deltaTime)
       timeline advance. The adapter uses the same order.
     status: covered
-    scenarios: []
+    scenarios:
+      - "events/advanced:frameAndRender"
 
   - id: events.STG.invalidate-coalesces-boolean-one-render-broadcast-clears
     section: "Frame and render broadcasts"
@@ -709,17 +715,19 @@ entries:
       invalidate() coalesces in a Boolean. One RENDER broadcast clears it; callers
       must invalidate again for another event.
     status: covered
-    scenarios: []
+    scenarios:
+      - "events/advanced:frameAndRender"
 
   - id: events.STG.open-fl-sends-render-immediately-before-renderer
     section: "Frame and render broadcasts"
     behavior: >
       OpenFL sends RENDER immediately before renderer update/draw only when the
-      Stage is invalidated and that frame is actually eligible to render. The
-      adapter sends it from __advanceFrame before render-state preparation, even
-      if preparation later cancels the render.
-    status: missing
-    scenarios: []
+      Stage is invalidated and that frame is actually eligible to render. Frame
+      events advance first; RENDER is deferred until render-state preparation
+      succeeds and immediately precedes drawing.
+    status: covered
+    scenarios:
+      - "events/advanced:frameAndRender"
 
   - id: events.STG.automatic-beta-render-event-callbacks-individual-custom
     section: "Frame and render broadcasts"
@@ -799,11 +807,12 @@ entries:
     section: "Display-list lifecycle events"
     behavior: >
       OpenFL reuses one Event while recursively dispatching to descendants and
-      overwrites its target per direct child. The adapter creates a fresh base
-      Event for every child. Event identity, final target/currentTarget, default
-      state, and stop-propagation leakage across siblings therefore differ.
-    status: missing
-    scenarios: []
+      overwrites its target per direct child. Event identity, final
+      target/currentTarget, default state, and stop-propagation state are retained
+      across the recursive walk.
+    status: covered
+    scenarios:
+      - "events/advanced:lifecycleReuse"
 
   - id: events.DOC.implementations-traverse-live-child-arrays-retain-precomputed
     section: "Display-list lifecycle events"
@@ -812,20 +821,21 @@ entries:
       add/remove decisions across callbacks. A listener that removes, reparents,
       or inserts children during ADDED_TO_STAGE/REMOVED_FROM_STAGE can change
       which later descendants are visited or cause the outer operation to continue
-      with stale assumptions. Exact mutation cases need reference captures before
-      this behavior is frozen.
-    status: missing
-    scenarios: []
+      with stale assumptions. Removal during iteration and an outer add that
+      continues after reentrant removal are captured explicitly.
+    status: covered
+    scenarios:
+      - "events/advanced:lifecycleMutation"
 
   - id: events.DOC.open-fl-clears-stage-focus-directly-removed
     section: "Display-list lifecycle events"
     behavior: >
       OpenFL clears Stage focus when the directly removed child owns it before
-      finishing REMOVED_FROM_STAGE. The adapter removal path does not clear focus.
-      Descendant-focus behavior is unclear in the 9.5.2 source and should be
-      captured.
-    status: missing
-    scenarios: []
+      finishing REMOVED_FROM_STAGE. The source checks only the directly removed
+      child, not an arbitrary focused descendant.
+    status: covered
+    scenarios:
+      - "events/advanced:directFocusRemoval"
 
   - id: events.EV.s-event-subclass-clone-bodies-match-open
     section: "Event.clone() contract > Cross-cutting rules"
@@ -852,12 +862,12 @@ entries:
   - id: events.EV.requested-clone-should-not-preserve-target-current
     section: "Event.clone() contract > Cross-cutting rules"
     behavior: >
-      The requested “clone should not preserve target/currentTarget” contract
-      conflicts with the inspected 9.5.2 source and current captured MouseEvent
-      behavior. Any policy change requires a direct post-dispatch clone fixture;
-      it should not be made from documentation alone.
-    status: missing
-    scenarios: []
+      A direct post-dispatch clone confirms the 9.5.2 source contract: clone
+      preserves target, currentTarget, and eventPhase, despite contrary wording
+      in some API documentation.
+    status: covered
+    scenarios:
+      - "events/advanced:postDispatchClone"
 
   - id: events.EV.cancellation-flags-default-prevented-state-update-after
     section: "Event.clone() contract > Cross-cutting rules"

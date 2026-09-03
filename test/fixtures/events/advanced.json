@@ -1,0 +1,59 @@
+{
+  "lifecycleReuse": {
+    "removedFinalTarget": "grandchild",
+    "added": "root:true,child:true,grandchild:true",
+    "addedFinalTarget": "grandchild",
+    "addedFinalCurrentTarget": "grandchild",
+    "removed": "root:true,child:true,grandchild:true",
+    "removedFinalCurrentTarget": "grandchild"
+  },
+  "tabCandidates": {
+    "raw": [
+      "root",
+      "first",
+      "group",
+      "nested",
+      "closed"
+    ],
+    "indexed": [
+      "nested",
+      "group"
+    ]
+  },
+  "windowFocus": {
+    "log": "deactivate,activate",
+    "cached": "focused",
+    "focus": null
+  },
+  "directFocusRemoval": {
+    "childStageCleared": true,
+    "focusCleared": true
+  },
+  "lifecycleMutation": {
+    "removedParentIsNull": true,
+    "stale": "root,child-stage:false",
+    "staleParentIsNull": true,
+    "live": "first,last"
+  },
+  "postDispatchClone": {
+    "currentTarget": "parent",
+    "phase": 3,
+    "target": "child"
+  },
+  "broadcast": {
+    "captureCalls": 0,
+    "currentTarget": "late",
+    "phase": 2,
+    "target": "first",
+    "allShared": true,
+    "log": "first,child,late"
+  },
+  "frameAndRender": {
+    "afterDraw": "enter,constructed,exit,render",
+    "beforeDraw": "enter,constructed,exit"
+  },
+  "focusRoute": {
+    "log": "stage-first:new,stage-second,new-in:old",
+    "focus": "new"
+  }
+}

@@ -11,6 +11,7 @@ import openfl.events.FocusEvent;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.events.StageOrientationEvent;
+import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.geom.Transform;
@@ -644,13 +645,17 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private var __color:Null<Int>;
 	@:noCompletion private var __contentsScaleFactor:Float;
 	@:noCompletion private var __displayState:StageDisplayState;
+	@:noCompletion private var __displayMatrix:Matrix;
 	@:noCompletion private var __deltaTime:Int;
 	@:noCompletion private var __dragBounds:Rectangle;
 	@:noCompletion private var __dragObject:Sprite;
 	@:noCompletion private var __focus:InteractiveObject;
+	@:noCompletion private var __cacheFocus:InteractiveObject;
 	@:noCompletion private var __frameRate:Float;
 	@:noCompletion private var __fullScreenSourceRect:Rectangle;
 	@:noCompletion private var __invalidated:Bool;
+	@:noCompletion private var __logicalHeight:Int;
+	@:noCompletion private var __logicalWidth:Int;
 	@:noCompletion private var __mouseX:Float;
 	@:noCompletion private var __mouseY:Float;
 	@:noCompletion private var __primaryMouseButtonDown:Bool;
@@ -669,6 +674,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__color = 0xFFFFFFFF;
 		__contentsScaleFactor = 1;
 		__displayState = StageDisplayState.NORMAL;
+		__displayMatrix = new Matrix();
 		__frameRate = 60;
 		__mouseX = 0;
 		__mouseY = 0;
@@ -676,6 +682,8 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__orientation = StageOrientation.UNKNOWN;
 		__quality = StageQuality.HIGH;
 		__scaleMode = StageScaleMode.NO_SCALE;
+		__logicalWidth = 0;
+		__logicalHeight = 0;
 		align = StageAlign.TOP_LEFT;
 		allowsFullScreen = true;
 		allowsFullScreenInteractive = true;
@@ -796,13 +804,29 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	{
 		var dispatchers = DisplayObject.__broadcastEvents.get(event.type);
 		if (dispatchers == null) return;
-		for (dispatcher in dispatchers.copy())
+		for (dispatcher in dispatchers)
 		{
-			if (dispatcher.stage == this || dispatcher.stage == null) dispatcher.dispatchEvent(new Event(event.type, event.bubbles, event.cancelable));
+			if (dispatcher.stage == this || dispatcher.stage == null) dispatcher.__dispatch(event);
 		}
 	}
 
 	@:noCompletion private function __renderAfterEvent():Void {}
+
+	@:noCompletion private function __windowFocusIn():Void
+	{
+		__broadcastEvent(new Event(Event.ACTIVATE));
+		#if !desktop
+		focus = __cacheFocus;
+		#end
+	}
+
+	@:noCompletion private function __windowFocusOut():Void
+	{
+		__broadcastEvent(new Event(Event.DEACTIVATE));
+		var currentFocus = focus;
+		focus = null;
+		__cacheFocus = currentFocus;
+	}
 
 	@:noCompletion private function __advanceFrame():Void
 	{
@@ -811,6 +835,10 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__broadcastEvent(new Event(Event.EXIT_FRAME));
 		__enterFrame(__deltaTime);
 		__deltaTime = 0;
+	}
+
+	@:noCompletion private function __renderBeforeDraw():Void
+	{
 		if (__invalidated)
 		{
 			__invalidated = false;
@@ -872,6 +900,18 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		}
 	}
 
+	@:noCompletion private function __getEventStack(target:DisplayObject):Array<DisplayObject>
+	{
+		var stack:Array<DisplayObject> = [];
+		var current = target;
+		while (current != null)
+		{
+			stack.unshift(current);
+			current = current.parent;
+		}
+		return stack;
+	}
+
 	#if lime
 	@:noCompletion private function __registerLimeModule(application:Application):Void
 	{
@@ -879,6 +919,9 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		application.onUpdate.add(__onLimeUpdate);
 		if (window != null)
 		{
+			window.onClose.add(__onLimeWindowClose);
+			window.onFocusIn.add(__onLimeWindowFocusIn);
+			window.onFocusOut.add(__onLimeWindowFocusOut);
 			window.onKeyDown.add(__onLimeKeyDown);
 			window.onKeyUp.add(__onLimeKeyUp);
 			window.onMouseDown.add(__onLimeMouseDown);
@@ -892,6 +935,9 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		application.onUpdate.remove(__onLimeUpdate);
 		if (window != null)
 		{
+			window.onClose.remove(__onLimeWindowClose);
+			window.onFocusIn.remove(__onLimeWindowFocusIn);
+			window.onFocusOut.remove(__onLimeWindowFocusOut);
 			window.onKeyDown.remove(__onLimeKeyDown);
 			window.onKeyUp.remove(__onLimeKeyUp);
 			window.onMouseDown.remove(__onLimeMouseDown);
@@ -903,6 +949,21 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private function __onLimeUpdate(deltaTime:Int):Void
 	{
 		__deltaTime = deltaTime;
+	}
+
+	@:noCompletion private function __onLimeWindowClose():Void
+	{
+		__broadcastEvent(new Event(Event.DEACTIVATE));
+	}
+
+	@:noCompletion private function __onLimeWindowFocusIn():Void
+	{
+		__windowFocusIn();
+	}
+
+	@:noCompletion private function __onLimeWindowFocusOut():Void
+	{
+		__windowFocusOut();
 	}
 
 	@:noCompletion private function __dispatchKeyboardEvent(type:String, key:KeyCode, modifier:KeyModifier):Void
@@ -948,18 +1009,6 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			if (target != null) return target;
 		}
 		return this;
-	}
-
-	@:noCompletion private function __getEventStack(target:DisplayObject):Array<DisplayObject>
-	{
-		var stack:Array<DisplayObject> = [];
-		var current = target;
-		while (current != null)
-		{
-			stack.unshift(current);
-			current = current.parent;
-		}
-		return stack;
 	}
 
 	@:noCompletion private function __dispatchMouseEvent(type:String, x:Float, y:Float, buttonDown:Bool):Void
@@ -1032,11 +1081,18 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 	@:noCompletion private function set_focus(value:InteractiveObject):InteractiveObject
 	{
-		if (__focus == value) return value;
+		if (__focus == value && (value != null || __cacheFocus == null)) return value;
 		var oldFocus = __focus;
 		__focus = value;
-		if (oldFocus != null) oldFocus.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_OUT, true, false, value));
-		if (value != null) value.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN, true, false, oldFocus));
+		__cacheFocus = value;
+		if (oldFocus != null)
+		{
+			__dispatchStack(new FocusEvent(FocusEvent.FOCUS_OUT, true, false, value), __getEventStack(oldFocus));
+		}
+		if (value != null)
+		{
+			__dispatchStack(new FocusEvent(FocusEvent.FOCUS_IN, true, false, oldFocus), __getEventStack(value));
+		}
 		return value;
 	}
 
@@ -1064,6 +1120,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private function set_scaleMode(value:StageScaleMode):StageScaleMode
 	{
 		__scaleMode = value;
+		__resize();
 		return value;
 	}
 
@@ -1089,18 +1146,88 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		throw new IllegalOperationError("The " + property + " property cannot be set on the Stage.");
 	}
 
+	@:noCompletion private function __applyScaleAndAlign(windowWidth:Float, windowHeight:Float, scaleX:Float, scaleY:Float):Void
+	{
+		var visibleWidth = __logicalWidth - Math.round((__logicalWidth * scaleX - windowWidth) / scaleX);
+		var visibleHeight = __logicalHeight - Math.round((__logicalHeight * scaleY - windowHeight) / scaleY);
+		var visibleX = 0.0;
+		var visibleY = 0.0;
+		switch (align)
+		{
+			case null:
+				visibleX = Math.round((__logicalWidth - visibleWidth) / 2);
+				visibleY = Math.round((__logicalHeight - visibleHeight) / 2);
+			case StageAlign.BOTTOM_RIGHT:
+				visibleX = Math.round(__logicalWidth - visibleWidth);
+				visibleY = Math.round(__logicalHeight - visibleHeight);
+			case StageAlign.BOTTOM:
+				visibleX = Math.round((__logicalWidth - visibleWidth) / 2);
+				visibleY = Math.round(__logicalHeight - visibleHeight);
+			case StageAlign.BOTTOM_LEFT:
+				visibleY = Math.round(__logicalHeight - visibleHeight);
+			case StageAlign.RIGHT:
+				visibleX = Math.round(__logicalWidth - visibleWidth);
+				visibleY = Math.round((__logicalHeight - visibleHeight) / 2);
+			case StageAlign.LEFT:
+				visibleY = Math.round((__logicalHeight - visibleHeight) / 2);
+			case StageAlign.TOP_RIGHT:
+				visibleX = Math.round(__logicalWidth - visibleWidth);
+			case StageAlign.TOP:
+				visibleX = Math.round((__logicalWidth - visibleWidth) / 2);
+			default:
+		}
+		__displayMatrix.translate(-visibleX, -visibleY);
+		__displayMatrix.scale(scaleX, scaleY);
+	}
+
+	@:noCompletion private function __resize():Void
+	{
+		if (__displayMatrix == null || __scene == null) return;
+		var oldWidth = stageWidth;
+		var oldHeight = stageHeight;
+		var windowScale = window == null || window.scale <= 0 ? 1.0 : window.scale;
+		var windowWidth = window == null ? stageWidth : Math.round(window.width * windowScale);
+		var windowHeight = window == null ? stageHeight : Math.round(window.height * windowScale);
+		__displayMatrix.identity();
+		if (__logicalWidth == 0 || __logicalHeight == 0 || scaleMode == StageScaleMode.NO_SCALE || windowWidth == 0 || windowHeight == 0)
+		{
+			stageWidth = Math.round(windowWidth / windowScale);
+			stageHeight = Math.round(windowHeight / windowScale);
+			__displayMatrix.scale(windowScale, windowScale);
+		}
+		else
+		{
+			stageWidth = __logicalWidth;
+			stageHeight = __logicalHeight;
+			switch (scaleMode)
+			{
+				case StageScaleMode.EXACT_FIT:
+					__displayMatrix.scale(windowWidth / __logicalWidth, windowHeight / __logicalHeight);
+				case StageScaleMode.NO_BORDER:
+					var scale = Math.max(windowWidth / __logicalWidth, windowHeight / __logicalHeight);
+					__applyScaleAndAlign(windowWidth, windowHeight, scale, scale);
+				default:
+					var scale = Math.min(windowWidth / __logicalWidth, windowHeight / __logicalHeight);
+					__applyScaleAndAlign(windowWidth, windowHeight, scale, scale);
+			}
+		}
+		FlightScene2D.setScene2DSize(__scene, stageWidth, stageHeight);
+		if (oldWidth != stageWidth || oldHeight != stageHeight)
+		{
+			__setTransformDirty();
+			dispatchEvent(new Event(Event.RESIZE));
+		}
+	}
+
 	@:noCompletion private var __uncaughtErrorEvents:openfl.events.UncaughtErrorEvents;
 
 	@:noCompletion private function __handleError(e:Dynamic):Void {}
 
 	@:noCompletion private function __setLogicalSize(width:Int, height:Int):Void
 	{
-		if (stageWidth == width && stageHeight == height) return;
-		stageWidth = width;
-		stageHeight = height;
-		FlightScene2D.setScene2DSize(__scene, width, height);
-		__setTransformDirty();
-		dispatchEvent(new Event(Event.RESIZE));
+		__logicalWidth = width;
+		__logicalHeight = height;
+		__resize();
 	}
 }
 #else

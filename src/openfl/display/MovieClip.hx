@@ -236,6 +236,12 @@ class MovieClip extends Sprite #if (openfl_dynamic && haxe_ver < "4.0.0") implem
 		stop();
 	}
 
+	@:noCompletion private override function __tabTest(stack:Array<InteractiveObject>):Void
+	{
+		if (!__enabled) return;
+		super.__tabTest(stack);
+	}
+
 	@:noCompletion private function get_currentFrame():Int return __timeline == null ? 1 : __timeline.__getCurrentFrame();
 	@:noCompletion private function get_currentFrameLabel():String return __timeline == null ? null : __timeline.__currentFrameLabel;
 	@:noCompletion private function get_currentLabel():String return __timeline == null ? null : __timeline.__currentLabel;

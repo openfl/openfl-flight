@@ -361,6 +361,7 @@ class Window #if lime extends LimeWindow #end
 			onRender.cancel();
 			return;
 		}
+		stage.__renderBeforeDraw();
 
 		if (__usingCairo)
 		{

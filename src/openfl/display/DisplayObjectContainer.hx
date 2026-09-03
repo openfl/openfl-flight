@@ -354,8 +354,10 @@ class DisplayObjectContainer extends InteractiveObject
 		child.__dispatchWithCapture(new Event(Event.REMOVED, true, false));
 		if (child.stage != null)
 		{
-			child.__dispatchWithCapture(new Event(Event.REMOVED_FROM_STAGE, false, false));
-			child.__dispatchChildren(new Event(Event.REMOVED_FROM_STAGE, false, false));
+			if (stage != null && stage.focus == child) stage.focus = null;
+			var removedFromStage = new Event(Event.REMOVED_FROM_STAGE, false, false);
+			child.__dispatchWithCapture(removedFromStage);
+			child.__dispatchChildren(removedFromStage);
 			child.__setStageReference(null);
 		}
 		FlightNode.removeNodeChild(__flightNode, child.__flightNode);
@@ -530,9 +532,23 @@ class DisplayObjectContainer extends InteractiveObject
 	{
 		for (child in __children)
 		{
-			var childEvent = new Event(event.type, event.bubbles, event.cancelable);
-			child.__dispatchWithCapture(childEvent);
-			child.__dispatchChildren(childEvent);
+			event.target = child;
+			if (!child.__dispatchWithCapture(event)) break;
+			child.__dispatchChildren(event);
+		}
+	}
+
+	@:noCompletion private override function __tabTest(stack:Array<InteractiveObject>):Void
+	{
+		super.__tabTest(stack);
+		if (!tabChildren) return;
+		for (child in __children)
+		{
+			if ((child is InteractiveObject))
+			{
+				var interactive:InteractiveObject = cast child;
+				interactive.__tabTest(stack);
+			}
 		}
 	}
 

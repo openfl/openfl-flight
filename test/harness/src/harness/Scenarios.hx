@@ -24,6 +24,7 @@ import harness.scenarios.DisplayTransformScenario;
 import harness.scenarios.ErrorScenario;
 import harness.scenarios.ErrorSubclassesScenario;
 import harness.scenarios.EventConstructionScenario;
+import harness.scenarios.EventAdvancedScenario;
 import harness.scenarios.EventDispatcherCaptureScenario;
 import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
@@ -119,6 +120,10 @@ class Scenarios {
 			{
 				name: "events/propagation",
 				run: EventPropagationScenario.run
+			},
+			{
+				name: "events/advanced",
+				run: EventAdvancedScenario.run
 			},
 			{
 				name: "integration/display-events",
