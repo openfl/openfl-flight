@@ -1,4 +1,9 @@
 {
+  "drawWithQuality": {
+    "callerNearest": false,
+    "high": true,
+    "low": false
+  },
   "boundsEdges": {
     "ordinary": {
       "x": 2,

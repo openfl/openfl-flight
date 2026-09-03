@@ -64,5 +64,33 @@
     "locale": "fr-CA",
     "fontWeight": 0,
     "clearButtonMode": "always"
+  },
+  "lifecycle": {
+    "viewPortRetainsReference": true,
+    "completeAfterViewportChange": 3,
+    "detachedStageIsNull": true,
+    "attachedStageMatches": true,
+    "completeAfterReattach": 2,
+    "completeAfterStage": 1,
+    "completeBeforeStage": 0
+  },
+  "formatting": {
+    "fontPosture": 0,
+    "text": "formatted",
+    "color": 1193046,
+    "fontFamily": "Harness Serif",
+    "textAlign": 1,
+    "fontSize": 19,
+    "fontWeight": 0
+  },
+  "boundaries": {
+    "nullBitmapThrows": true,
+    "wrongBitmapThrows": true,
+    "focusesWhenNotEditable": true,
+    "selection": [
+      2,
+      5
+    ],
+    "textAfterDisposeThrows": true
   }
 }

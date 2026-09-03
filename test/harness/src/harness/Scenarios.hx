@@ -85,6 +85,7 @@ import harness.scenarios.TextFieldScenario;
 import harness.scenarios.TextFieldBehaviorScenario;
 import harness.scenarios.TextFormatScenario;
 import harness.scenarios.TextSurfaceScenario;
+import harness.scenarios.TextUnmappedScenario;
 import harness.scenarios.TimerScenario;
 import harness.scenarios.TimelineScenario;
 import harness.scenarios.TilesScenario;
@@ -438,6 +439,10 @@ class Scenarios {
 			{
 				name: "text/surface",
 				run: TextSurfaceScenario.run
+			},
+			{
+				name: "text/unmapped",
+				run: TextUnmappedScenario.run
 			},
 			{
 				name: "text/font-and-style",

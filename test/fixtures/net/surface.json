@@ -59,6 +59,11 @@
     "ipv4": "IPv4",
     "ipv6": "IPv6"
   },
+  "serverSocketListeners": {
+    "closeEventsAfterPollWasRemoved": 0,
+    "socketStillHasListener": true,
+    "isSupported": true
+  },
   "responder": {
     "statusStored": true,
     "resultStored": true
@@ -71,6 +76,13 @@
   "dynamicProperties": {
     "name": "value",
     "value": 7
+  },
+  "secureSocketBoundaries": {
+    "oversizePortThrows": true,
+    "initialStatus": "unknown",
+    "negativePortThrows": true,
+    "isSupported": true,
+    "statusAfterRejectedPorts": "unknown"
   },
   "requestSurface": {
     "authenticateAbsent": true,

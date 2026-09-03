@@ -2,7 +2,12 @@ package harness.scenarios;
 
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
+import openfl.display.BlendMode;
+import openfl.display.IBitmapDrawable;
+import openfl.display.StageQuality;
 import openfl.display.Sprite;
+import openfl.geom.ColorTransform;
+import openfl.geom.Matrix;
 import openfl.geom.Matrix3D;
 import openfl.geom.Rectangle;
 
@@ -14,8 +19,28 @@ class XPackageScenario
 		return {
 			rootDraw: testRootDraw(),
 			bitmapLifecycle: testBitmapLifecycle(),
+			drawWithQuality: testDrawWithQuality(),
 			transformAssignment: testTransformAssignment(),
 			boundsEdges: testBoundsEdges()
+		};
+	}
+
+	private static function testDrawWithQuality():Dynamic
+	{
+		var source = new BitmapData(2, 1, true, 0);
+		source.setPixel32(0, 0, 0xFFFF0000);
+		source.setPixel32(1, 0, 0xFF0000FF);
+		var probe = new DrawSmoothingProbe();
+		probe.drawWithQuality(source, null, null, null, null, true, StageQuality.LOW);
+		var low = probe.lastSmoothing;
+		probe.drawWithQuality(source, null, null, null, null, true, StageQuality.HIGH);
+		var high = probe.lastSmoothing;
+		probe.drawWithQuality(source, null, null, null, null, false, StageQuality.HIGH);
+		var callerNearest = probe.lastSmoothing;
+		return {
+			low: low,
+			high: high,
+			callerNearest: callerNearest
 		};
 	}
 
@@ -141,5 +166,21 @@ class XPackageScenario
 	private static function rect(value:Rectangle):Dynamic
 	{
 		return {x: value.x, y: value.y, width: value.width, height: value.height};
+	}
+}
+
+private class DrawSmoothingProbe extends BitmapData
+{
+	public var lastSmoothing:Bool;
+
+	public function new()
+	{
+		super(1, 1, true, 0);
+	}
+
+	override public function draw(source:IBitmapDrawable, matrix:Matrix = null, colorTransform:ColorTransform = null, blendMode:BlendMode = null,
+		clipRect:Rectangle = null, smoothing:Bool = false):Void
+	{
+		lastSmoothing = smoothing;
 	}
 }

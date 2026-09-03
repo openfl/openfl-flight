@@ -1,5 +1,8 @@
 package harness.scenarios;
 
+import openfl.Lib;
+import openfl.display.BitmapData;
+import openfl.events.Event;
 import openfl.geom.Rectangle;
 import openfl.text.AutoCapitalize;
 import openfl.text.ReturnKeyLabel;
@@ -121,12 +124,105 @@ class StageTextScenario
 		return {
 			defaults: defaultValues,
 			mutated: mutatedValues,
+			formatting: testFormatting(),
+			lifecycle: testLifecycle(),
+			boundaries: testBoundaries(),
 			initOptions: {
 				defaultMultiline: defaultOptions.multiline,
 				explicitMultiline: multilineBeforeMutation,
 				retainsOptionsReference: multiline.multiline == multilineOptions.multiline
 			}
 		};
+	}
+
+	private static function testFormatting():Dynamic
+	{
+		var stageText = new StageText();
+		stageText.text = "formatted";
+		stageText.color = 0x123456;
+		stageText.fontFamily = "Harness Serif";
+		stageText.fontPosture = FontPosture.ITALIC;
+		stageText.fontSize = 19;
+		stageText.fontWeight = FontWeight.BOLD;
+		stageText.textAlign = TextFormatAlign.END;
+		return {
+			text: stageText.text,
+			color: stageText.color,
+			fontFamily: stageText.fontFamily,
+			fontPosture: stageText.fontPosture,
+			fontSize: stageText.fontSize,
+			fontWeight: stageText.fontWeight,
+			textAlign: stageText.textAlign
+		};
+	}
+
+	private static function testLifecycle():Dynamic
+	{
+		var stageText = new StageText();
+		var stage = Lib.current.stage;
+		var completes = 0;
+		stageText.addEventListener(Event.COMPLETE, function(_:Event):Void completes++);
+		var viewport = new Rectangle(3, 4, 40, 20);
+		stageText.viewPort = viewport;
+		var viewPortRetainsReference = stageText.viewPort == viewport;
+		var completeBeforeStage = completes;
+		stageText.stage = stage;
+		var completeAfterStage = completes;
+		var attachedStageMatches = stageText.stage == stage;
+		stageText.stage = null;
+		stageText.stage = stage;
+		var completeAfterReattach = completes;
+		stageText.viewPort = new Rectangle(5, 6, 42, 22);
+		var completeAfterViewportChange = completes;
+		stageText.stage = null;
+		return {
+			completeBeforeStage: completeBeforeStage,
+			completeAfterStage: completeAfterStage,
+			completeAfterReattach: completeAfterReattach,
+			completeAfterViewportChange: completeAfterViewportChange,
+			viewPortRetainsReference: viewPortRetainsReference,
+			attachedStageMatches: attachedStageMatches,
+			detachedStageIsNull: stageText.stage == null
+		};
+	}
+
+	private static function testBoundaries():Dynamic
+	{
+		var stageText = new StageText();
+		var stage = Lib.current.stage;
+		stageText.text = "abcdef";
+		stageText.viewPort = new Rectangle(0, 0, 30, 15);
+		stageText.selectRange(5, 2);
+		var selection = [stageText.selectionAnchorIndex, stageText.selectionActiveIndex];
+		stageText.stage = stage;
+		stageText.editable = false;
+		stage.focus = null;
+		stageText.assignFocus();
+		var focusesWhenNotEditable = stage.focus != null;
+		var nullBitmapThrows = throws(function():Void stageText.drawViewPortToBitmapData(null));
+		var wrongBitmapThrows = throws(function():Void stageText.drawViewPortToBitmapData(new BitmapData(1, 1)));
+		stage.focus = null;
+		stageText.dispose();
+		return {
+			selection: selection,
+			focusesWhenNotEditable: focusesWhenNotEditable,
+			nullBitmapThrows: nullBitmapThrows,
+			wrongBitmapThrows: wrongBitmapThrows,
+			textAfterDisposeThrows: throws(function():Void { var ignored = stageText.text; })
+		};
+	}
+
+	private static function throws(operation:Void->Void):Bool
+	{
+		try
+		{
+			operation();
+		}
+		catch (_:Dynamic)
+		{
+			return true;
+		}
+		return false;
 	}
 
 	private static function captureRectangle(value:Rectangle):Dynamic

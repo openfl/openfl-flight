@@ -850,7 +850,8 @@ entries:
       - text/TextFormatAlign.hx:RIGHT
       - text/TextFormatAlign.hx:START
     notes: "On Flash these seven portable abstracts are replaced by their flash.text typedefs."
-    scenarios: []
+    scenarios:
+      - text/unmapped:coreValues
 
   - id: text.ENUM.stage-text-target-gated-value-contracts
     section: "Uncovered public value types"
@@ -893,7 +894,8 @@ entries:
       - text/engine/FontWeight.hx:BOLD
       - text/engine/FontWeight.hx:NORMAL
     notes: "All six types are absent on non-Flash, non-sys targets; Flash exposes them only for AIR through typedefs."
-    scenarios: []
+    scenarios:
+      - text/unmapped:stageValues
 
   - id: text.TF.uncovered-passive-rendering-property-defaults
     section: "TextField uncovered public properties"
@@ -924,7 +926,8 @@ entries:
       - text/TextField.hx:textColor
       - text/TextField.hx:new
     notes: "This is the non-Flash implementation; Flash uses flash.text.TextField."
-    scenarios: []
+    scenarios:
+      - text/unmapped:passiveProperties
 
   - id: text.TF.uncovered-derived-read-only-properties
     section: "TextField uncovered public properties"
@@ -946,8 +949,9 @@ entries:
       - text/TextField.hx:textHeight
       - text/TextField.hx:textWidth
       - text/TextField.hx:new
-    notes: "Metrics can differ by target/font backend; this entry records the portable public read contract that still needs explicit fixtures."
-    scenarios: []
+    notes: "The sys/eval fixture records these public reads; exact metrics can differ by target and font backend."
+    scenarios:
+      - text/unmapped:derivedProperties
 
   - id: text.TF.condensewhite-and-passwordchar-boundaries
     section: "TextField uncovered public properties"
@@ -965,7 +969,8 @@ entries:
       - text/TextField.hx:passwordChar
       - text/TextField.hx:new
     notes: "These behaviors are part of the non-Flash TextField implementation and are not target-backend rendering guarantees."
-    scenarios: []
+    scenarios:
+      - text/unmapped:condenseAndPassword
 
   - id: text.FNT.synchronous-and-asynchronous-factories
     section: "Font uncovered public methods"
@@ -993,7 +998,8 @@ entries:
       - text/TextField.hx:text
       - text/TextField.hx:new
     notes: "The factory declarations are portable non-Flash API, but their success/null/error behavior is compile-target dependent on lime and lime_cffi."
-    scenarios: []
+    scenarios:
+      - text/font-and-style:font
 
   - id: text.ST.constructor-and-basic-property-state
     section: "Uncovered StageText surface"
@@ -1024,7 +1030,9 @@ entries:
       - text/StageText.hx:visible
       - text/StageText.hx:new
     notes: "StageText exists only for non-Flash sys builds; Flash exposes the AIR typedef, and other portable targets have no StageText type."
-    scenarios: []
+    scenarios:
+      - text/stage-text:defaults
+      - text/stage-text:mutated
 
   - id: text.ST.formatting-properties-apply-to-existing-text
     section: "Uncovered StageText surface"
@@ -1043,7 +1051,8 @@ entries:
       - text/StageText.hx:text
       - text/StageText.hx:textAlign
     notes: "Non-Flash sys StageText implementation; device-native StageText formatting is not used."
-    scenarios: []
+    scenarios:
+      - text/stage-text:formatting
 
   - id: text.ST.stage-viewport-and-event-lifecycle
     section: "Uncovered StageText surface"
@@ -1062,7 +1071,8 @@ entries:
       - text/StageText.hx:viewPort
       - text/StageText.hx:new
     notes: "Only the non-Flash sys fallback has this display-list-backed lifecycle; AIR uses the native typedef."
-    scenarios: []
+    scenarios:
+      - text/stage-text:lifecycle
 
   - id: text.ST.focus-selection-bitmap-and-dispose-boundaries
     section: "Uncovered StageText surface"
@@ -1087,8 +1097,9 @@ entries:
       - text/StageText.hx:dispose
       - text/StageText.hx:drawViewPortToBitmapData
       - text/StageText.hx:selectRange
-    notes: "Non-Flash sys fallback behavior; platform-native AIR selection/focus rules can differ."
-    scenarios: []
+    notes: "The scenario covers public selection, focus, bitmap argument errors, and disposal; successful bitmap raster output is render-dependent. Platform-native AIR rules can differ."
+    scenarios:
+      - text/stage-text:boundaries
 
   - id: text.AUX.stagetextinitoptions-and-statictext
     section: "Uncovered auxiliary text classes"
@@ -1102,7 +1113,9 @@ entries:
       - text/StageTextInitOptions.hx:new
       - text/StaticText.hx:text
     notes: "StageTextInitOptions is non-Flash sys/AIR-only. StaticText is portable on non-Flash; Flash typedefs it and additionally exposes the StaticText2 alias."
-    scenarios: []
+    scenarios:
+      - text/stage-text:initOptions
+      - text/static-text:text
 
   - id: text.TLM.constructor-and-mutable-metrics
     section: "Uncovered auxiliary text classes"
@@ -1119,7 +1132,8 @@ entries:
       - text/TextLineMetrics.hx:x
       - text/TextLineMetrics.hx:new
     notes: "Portable non-Flash class; Flash uses flash.text.TextLineMetrics."
-    scenarios: []
+    scenarios:
+      - text/font-and-style:lineMetrics
 
   - id: text.SS.getstyle-and-stylenames-reference-aliasing
     section: "StyleSheet uncovered reference behavior"
@@ -1143,7 +1157,8 @@ entries:
       - text/TextField.hx:text
       - text/TextField.hx:new
     notes: "These are non-Flash 9.5.2 aliasing/cache quirks; Flash's native StyleSheet behavior may follow its documented copy contract."
-    scenarios: []
+    scenarios:
+      - text/style-sheet:aliasing
 
   - id: text.TFMT.constructor-and-tabstop-clone-aliasing
     section: "TextFormat ranges and defaults"
@@ -1175,7 +1190,10 @@ entries:
       - text/TextFormat.hx:underline
       - text/TextFormat.hx:url
     notes: "Portable non-Flash TextFormat behavior; Flash uses flash.text.TextFormat. clone() is public but marked @:noCompletion/@:dox(hide)."
-    scenarios: []
+    scenarios:
+      - text/text-format:defaults
+      - text/text-format:values
+      - text/text-format:cloneAliasing
 
   - id: text.TF.query-error-and-sentinel-boundaries
     section: "TextField selection, scrolling, interaction, and events"
@@ -1204,7 +1222,8 @@ entries:
       - text/TextField.hx:getLineText
       - text/TextField.hx:getParagraphLength
     notes: "These are the non-Flash 9.5.2 sentinel/error boundaries; Flash native behavior may follow the documented exception contracts."
-    scenarios: []
+    scenarios:
+      - text/unmapped:queryBoundaries
 
   - id: text.SURFACE.compiled-out-flash-text-members
     section: "Uncovered target-specific surface"

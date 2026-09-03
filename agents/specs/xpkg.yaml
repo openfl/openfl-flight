@@ -461,4 +461,5 @@ entries:
       - display/Bitmap.hx:smoothing
       - display/DisplayObject.hx:blendMode
     notes: "The behavior is present on the non-Flash BitmapData surface; Flash uses its native implementation."
-    scenarios: []
+    scenarios:
+      - integration/xpkg:drawWithQuality

@@ -412,7 +412,9 @@ entries:
     source:
       - utils/ByteArray.hx:new
     notes: 'Blocked on Flight gap "Public flight-hx UTF-8 byte codec binding".'
-    scenarios: []
+    scenarios:
+      - utils/byte-array:writeReadUTF
+      - utils/byte-array:utfBytes
 
   - id: utils.BA.compressionalgorithm-deflate
     section: "Compression and atomics"

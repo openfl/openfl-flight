@@ -54,6 +54,7 @@ class StyleSheetScenario
 		sheet.clear();
 
 		return {
+			aliasing: testAliasing(),
 			initialNames: initialNames,
 			missingIsNull: new StyleSheet().getStyle("missing") == null,
 			setStyle: {
@@ -105,6 +106,29 @@ class StyleSheetScenario
 			},
 			clearNames: sorted(sheet.styleNames),
 			nullTransform: captureFormat(sheet.transform(null))
+		};
+	}
+
+	private static function testAliasing():Dynamic
+	{
+		var sheet = new StyleSheet();
+		var cachedNames = sheet.styleNames;
+		var source:Object = cast {color: "#112233"};
+		sheet.setStyle(".first", source);
+		var namesAfterSet = sheet.styleNames;
+		var setDidNotDirtyCachedNames = namesAfterSet.length == 0;
+		var stored = sheet.getStyle(".FIRST");
+		stored.color = "#AABBCC";
+		var styleAliased = sheet.getStyle(".first").color;
+		cachedNames.push("caller-added");
+		var namesAliased = sheet.styleNames.copy();
+		sheet.clear();
+		return {
+			setDidNotDirtyCachedNames: setDidNotDirtyCachedNames,
+			getStyleReturnsStoredReference: styleAliased,
+			styleNamesReturnsCachedReference: namesAliased,
+			clearReplacesCachedArray: sheet.styleNames != cachedNames,
+			clearNames: sheet.styleNames
 		};
 	}
 

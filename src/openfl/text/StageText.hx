@@ -681,7 +681,7 @@ class StageText extends EventDispatcher
 	**/
 	public function assignFocus():Void
 	{
-		if (__textField.parent == null || !editable)
+		if (__textField.parent == null)
 		{
 			return;
 		}

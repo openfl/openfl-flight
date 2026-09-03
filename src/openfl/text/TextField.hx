@@ -114,7 +114,7 @@ class TextField extends InteractiveObject
 	{
 		super();
 
-		__antiAliasType = AntiAliasType.NORMAL;
+		__antiAliasType = null;
 		__autoSize = TextFieldAutoSize.NONE;
 		__autoSizeAnchor = 0;
 		__background = false;
@@ -283,6 +283,7 @@ class TextField extends InteractiveObject
 	public function getParagraphLength(charIndex:Int):Int
 	{
 		if (charIndex < 0 || charIndex > __text.length) return -1;
+		if (charIndex >= __text.length) return __text.length - getFirstCharInParagraph(charIndex) + 1;
 		return Std.int(FlightTextLayout.getRichTextParagraphLength(__text, charIndex));
 	}
 

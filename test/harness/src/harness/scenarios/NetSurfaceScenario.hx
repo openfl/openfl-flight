@@ -1,5 +1,6 @@
 package harness.scenarios;
 
+import openfl.Lib;
 import openfl.events.Event;
 import openfl.events.NetStatusEvent;
 import openfl.media.SoundTransform;
@@ -28,13 +29,36 @@ class NetSurfaceScenario
 			xmlSocketSurface: testXMLSocketSurface(),
 			datagramSurface: testDatagramSurface(),
 			serverSocketSurface: testServerSocketSurface(),
+			serverSocketListeners: testServerSocketListeners(),
 			secureSocketSurface: testSecureSocketSurface(),
+			secureSocketBoundaries: testSecureSocketBoundaries(),
 			netConnection: testNetConnection(),
 			responder: testResponder(),
 			netStream: testNetStream(),
 			encoding: testEncoding(),
 			dynamicProperties: testDynamicProperties(),
 			ipVersion: testIPVersion()
+		};
+	}
+
+	private static function testServerSocketListeners():Dynamic
+	{
+		var socket = new ServerSocket();
+		var first = function(_:Event):Void {};
+		var second = function(_:Event):Void {};
+		var closeEvents = 0;
+		socket.addEventListener(Event.CLOSE, function(_:Event):Void closeEvents++);
+		socket.addEventListener(Event.CONNECT, first);
+		socket.addEventListener(Event.CONNECT, second);
+		socket.removeEventListener(Event.CONNECT, first);
+		var socketStillHasListener = socket.hasEventListener(Event.CONNECT);
+		Lib.current.dispatchEvent(new Event(Event.ENTER_FRAME));
+		socket.removeEventListener(Event.CONNECT, second);
+		socket.close();
+		return {
+			isSupported: ServerSocket.isSupported,
+			socketStillHasListener: socketStillHasListener,
+			closeEventsAfterPollWasRemoved: closeEvents
 		};
 	}
 
@@ -105,6 +129,31 @@ class NetSurfaceScenario
 			connected: socket.connected,
 			certificateStatus: Std.string(socket.serverCertificateStatus)
 		};
+	}
+
+	private static function testSecureSocketBoundaries():Dynamic
+	{
+		var socket = new SecureSocket();
+		return {
+			isSupported: SecureSocket.isSupported,
+			initialStatus: Std.string(socket.serverCertificateStatus),
+			negativePortThrows: throws(function():Void socket.connect("localhost", -1)),
+			oversizePortThrows: throws(function():Void socket.connect("localhost", 65536)),
+			statusAfterRejectedPorts: Std.string(socket.serverCertificateStatus)
+		};
+	}
+
+	private static function throws(operation:Void->Void):Bool
+	{
+		try
+		{
+			operation();
+		}
+		catch (_:Dynamic)
+		{
+			return true;
+		}
+		return false;
 	}
 
 	private static function testNetConnection():Dynamic

@@ -20,6 +20,16 @@
     "italic": null,
     "bold": null
   },
+  "cloneAliasing": {
+    "distinctFormat": true,
+    "sharedTabStops": [
+      99,
+      40,
+      80
+    ],
+    "independentFont": "Verdana",
+    "sameTabStopsReference": true
+  },
   "values": {
     "letterSpacing": 1.75,
     "blockIndent": 7,

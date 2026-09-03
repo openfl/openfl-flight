@@ -767,8 +767,9 @@ entries:
       - net/SecureSocket.hx:isSupported
       - net/SecureSocket.hx:new
       - net/SecureSocket.hx:connect
-    notes: "Flash delegates to flash.net.SecureSocket; this missing entry covers the non-Flash sys versus non-sys compile/runtime split."
-    scenarios: []
+    notes: "The scenario covers sys status and invalid-port boundaries; the non-sys construction split still requires a compile fixture. Flash delegates to flash.net.SecureSocket."
+    scenarios:
+      - net/surface:secureSocketBoundaries
 
   - id: net.SS.target-availability-supported-and-listener-polling
     section: "ServerSocket and SecureSocket"
@@ -784,8 +785,9 @@ entries:
       - net/ServerSocket.hx:isSupported
       - net/ServerSocket.hx:addEventListener
       - net/ServerSocket.hx:removeEventListener
-    notes: "These non-Flash target gates and the two classes' distinct public listener override behaviors need compile/lifecycle fixtures."
-    scenarios: []
+    notes: "The scenario covers the sys ServerSocket listener/poll-removal lifecycle; the non-Flash target gates and DatagramSocket contrast still require cross-target compile/lifecycle fixtures."
+    scenarios:
+      - net/surface:serverSocketListeners
 
   - id: net.FR.a-new-reference-has-null-creationdate-creator
     section: "FileReference"
@@ -1317,7 +1319,7 @@ entries:
       - net/dns/DNSResolver.hx:isSupported
       - net/dns/DNSResolver.hx:lookup
       - net/dns/SRVRecord.hx:target
-    notes: "Compile and exception coverage is required for the non-Flash sys stub, non-sys absence, and AIR typedef paths."
+    notes: "Blocked on the Flight adapter gap for DNSResolver and the concrete DNS record types; cross-target compile checks are also required for the non-Flash sys stub, non-sys absence, and AIR typedef paths."
     scenarios: []
 
   - id: net.DNS.basic-resource-record-fields-and-defaults
@@ -1334,7 +1336,7 @@ entries:
       - net/dns/PTRRecord.hx:ptrdName
       - net/dns/ResourceRecord.hx:name
       - net/dns/ResourceRecord.hx:ttl
-    notes: "These concrete record constructors exist only on the non-Flash sys stub; AIR supplies native typedefs."
+    notes: "Blocked on the Flight adapter gap for the concrete DNS record types; these constructors exist only on the non-Flash sys stub and AIR supplies native typedefs."
     scenarios: []
 
   - id: net.DNS.mx-and-srv-resource-record-fields-and-defaults
@@ -1360,5 +1362,5 @@ entries:
       - net/dns/SRVRecord.hx:target
       - net/dns/SRVRecord.hx:weight
       - net/dns/SRVRecord.hx:new
-    notes: "Non-Flash sys stub behavior; the AIR typedef can have native population rules."
+    notes: "Blocked on the Flight adapter gap for MXRecord and SRVRecord; this is otherwise non-Flash sys stub behavior and the AIR typedef can have native population rules."
     scenarios: []

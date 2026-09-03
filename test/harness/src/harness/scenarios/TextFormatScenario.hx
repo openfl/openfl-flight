@@ -9,9 +9,23 @@ class TextFormatScenario {
 		return {
 			defaults: capture(new TextFormat()),
 			values: capture(createFormat()),
+			cloneAliasing: testCloneAliasing(),
 			defaultTextFormat: testDefaultTextFormat(),
 			partialRange: testPartialRange(),
 			nullMerge: testNullMerge()
+		};
+	}
+
+	private static function testCloneAliasing():Dynamic {
+		var source = createFormat();
+		var clone = source.clone();
+		clone.font = "Clone Font";
+		clone.tabStops[0] = 99;
+		return {
+			distinctFormat: clone != source,
+			independentFont: source.font,
+			sharedTabStops: source.tabStops,
+			sameTabStopsReference: clone.tabStops == source.tabStops
 		};
 	}
 

@@ -1,5 +1,14 @@
 {
   "clearNames": [],
+  "aliasing": {
+    "clearReplacesCachedArray": true,
+    "clearNames": [],
+    "styleNamesReturnsCachedReference": [
+      "caller-added"
+    ],
+    "setDidNotDirtyCachedNames": true,
+    "getStyleReturnsStoredReference": "#AABBCC"
+  },
   "css": {
     "names": [
       ".a, .b",

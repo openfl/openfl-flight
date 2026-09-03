@@ -1,0 +1,331 @@
+{
+  "condenseAndPassword": {
+    "defaultPasswordChar": "*",
+    "password": {
+      "passwordChar": "##",
+      "text": "secret",
+      "length": 6
+    },
+    "condensed": {
+      "text": "alpha beta gamma",
+      "htmlText": "<b>alpha beta</b> gamma"
+    },
+    "afterFlagChange": {
+      "text": "alpha beta gamma",
+      "htmlText": "<b>alpha beta</b> gamma"
+    }
+  },
+  "queryBoundaries": {
+    "lineTextNegativeThrows": true,
+    "lineOfCharPastEnd": -1,
+    "lineLengthPastEnd": 0,
+    "paragraphPastEnd": -1,
+    "charIndexOutside": -1,
+    "lineOffsetPastEnd": -1,
+    "lineOfCharNegative": -1,
+    "charBoundariesAtLengthIsNull": true,
+    "firstParagraphNegative": -1,
+    "emptyParagraphAtEnd": 1,
+    "lineTextPastEndIsNull": true,
+    "firstParagraphPastEnd": -1,
+    "lineIndexOutside": -1,
+    "paragraphAtEnd": 3,
+    "charBoundariesNegativeIsNull": true,
+    "paragraphNegative": -1,
+    "lineOffsetNegativeThrows": true,
+    "lineLengthNegative": 0
+  },
+  "stageValues": {
+    "fontPosture": [
+      {
+        "string": "italic",
+        "raw": 0
+      },
+      {
+        "string": "normal",
+        "raw": 1
+      }
+    ],
+    "returnKey": [
+      {
+        "string": "default",
+        "raw": 0
+      },
+      {
+        "string": "done",
+        "raw": 1
+      },
+      {
+        "string": "go",
+        "raw": 2
+      },
+      {
+        "string": "next",
+        "raw": 3
+      },
+      {
+        "string": "search",
+        "raw": 4
+      }
+    ],
+    "autoCapitalize": [
+      {
+        "string": "all",
+        "raw": 0
+      },
+      {
+        "string": "none",
+        "raw": 1
+      },
+      {
+        "string": "sentence",
+        "raw": 2
+      },
+      {
+        "string": "word",
+        "raw": 3
+      }
+    ],
+    "softKeyboard": [
+      {
+        "string": "contact",
+        "raw": 0
+      },
+      {
+        "string": "decimalpad",
+        "raw": 1
+      },
+      {
+        "string": "default",
+        "raw": 2
+      },
+      {
+        "string": "email",
+        "raw": 3
+      },
+      {
+        "string": "number",
+        "raw": 4
+      },
+      {
+        "string": "phone",
+        "raw": 5
+      },
+      {
+        "string": "punctuation",
+        "raw": 6
+      },
+      {
+        "string": "url",
+        "raw": 7
+      }
+    ],
+    "clearButton": [
+      {
+        "string": "always",
+        "raw": 0
+      },
+      {
+        "string": "never",
+        "raw": 1
+      },
+      {
+        "string": "unlessEditing",
+        "raw": 2
+      },
+      {
+        "string": "whileEditing",
+        "raw": 3
+      }
+    ],
+    "fontWeight": [
+      {
+        "string": "bold",
+        "raw": 0
+      },
+      {
+        "string": "normal",
+        "raw": 1
+      }
+    ]
+  },
+  "coreValues": {
+    "autoSize": [
+      {
+        "string": "center",
+        "raw": 0
+      },
+      {
+        "string": "left",
+        "raw": 1
+      },
+      {
+        "string": "none",
+        "raw": 2
+      },
+      {
+        "string": "right",
+        "raw": 3
+      }
+    ],
+    "gridFit": [
+      {
+        "string": "none",
+        "raw": 0
+      },
+      {
+        "string": "pixel",
+        "raw": 1
+      },
+      {
+        "string": "subpixel",
+        "raw": 2
+      }
+    ],
+    "fontStyle": [
+      {
+        "string": "bold",
+        "raw": 0
+      },
+      {
+        "string": "boldItalic",
+        "raw": 1
+      },
+      {
+        "string": "italic",
+        "raw": 2
+      },
+      {
+        "string": "regular",
+        "raw": 3
+      }
+    ],
+    "antiAlias": [
+      {
+        "string": "advanced",
+        "raw": 0
+      },
+      {
+        "string": "normal",
+        "raw": 1
+      }
+    ],
+    "fieldType": [
+      {
+        "string": "dynamic",
+        "raw": 0
+      },
+      {
+        "string": "input",
+        "raw": 1
+      }
+    ],
+    "align": [
+      {
+        "string": "center",
+        "raw": 0
+      },
+      {
+        "string": "end",
+        "raw": 1
+      },
+      {
+        "string": "justify",
+        "raw": 2
+      },
+      {
+        "string": "left",
+        "raw": 3
+      },
+      {
+        "string": "right",
+        "raw": 4
+      },
+      {
+        "string": "start",
+        "raw": 5
+      }
+    ],
+    "fontType": [
+      {
+        "string": "device",
+        "raw": 0
+      },
+      {
+        "string": "embedded",
+        "raw": 1
+      },
+      {
+        "string": "embeddedCFF",
+        "raw": 2
+      }
+    ]
+  },
+  "passiveProperties": {
+    "defaults": {
+      "background": false,
+      "backgroundColor": 16777215,
+      "selectable": true,
+      "sharpness": 0,
+      "textColor": 0,
+      "antiAliasType": null,
+      "embedFonts": false,
+      "borderColor": 0,
+      "mouseWheelEnabled": true,
+      "gridFitType": {
+        "string": "pixel",
+        "raw": 1
+      },
+      "height": 100,
+      "condenseWhite": false,
+      "border": false,
+      "width": 100
+    },
+    "mutated": {
+      "background": true,
+      "backgroundColor": 1193046,
+      "selectable": false,
+      "sharpness": 800,
+      "textColor": 11259375,
+      "antiAliasType": {
+        "string": "advanced",
+        "raw": 0
+      },
+      "embedFonts": true,
+      "borderColor": 6636321,
+      "mouseWheelEnabled": false,
+      "gridFitType": {
+        "string": "subpixel",
+        "raw": 2
+      },
+      "height": 100,
+      "condenseWhite": true,
+      "border": true,
+      "width": 100
+    }
+  },
+  "derivedProperties": {
+    "defaults": {
+      "scrollV": 1,
+      "maxScrollH": 0,
+      "length": 0,
+      "textWidth": 0,
+      "numLines": 1,
+      "bottomScrollV": 1,
+      "maxScrollV": 1,
+      "textHeight": 0,
+      "scrollH": 0
+    },
+    "populated": {
+      "scrollV": 1,
+      "maxScrollH": 0,
+      "length": 16,
+      "textWidth": 0,
+      "numLines": 2,
+      "bottomScrollV": 1,
+      "maxScrollV": 2,
+      "textHeight": 30,
+      "scrollH": 0
+    }
+  }
+}
