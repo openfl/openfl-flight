@@ -101,7 +101,9 @@ entries:
     behavior: >
       applicationID reads Lib.application.meta["packageName"] in the 9.5.2 source.
       The adapter always returns null.
-    status: missing
+    status: covered
+    scenarios:
+      - desktop/native-application:applicationIdentity
     scenarios: []
 
   - id: desktop.NA.start-login-ordinary-mutable-boolean-field-therefore
@@ -111,7 +113,9 @@ entries:
       default false, but a write is observable even though the support flag is
       false). The adapter getter always returns false and ignores writes while
       supportsStartAtLogin is false.
-    status: missing
+    status: covered
+    scenarios:
+      - desktop/native-application:mutated
     scenarios: []
 
   - id: desktop.NA.application-descriptor-publisher-id-runtime-version-runtime
@@ -131,7 +135,11 @@ entries:
       idleThreshold is an adapter-only property initialized to 300 seconds. Its
       setter accepts 5 through 86400 inclusive and otherwise throws ArgumentError;
       the reference has no such member or idle timer.
-    status: missing
+    status: deviation
+    notes: >-
+      Intentional adapter extension retained for host idle policy configuration; range validation and mutation are captured.
+    scenarios:
+      - desktop/native-application:defaults
     scenarios: []
 
   - id: desktop.NA.menu-only-mutable-dynamic-initialized-null-there
@@ -162,7 +170,11 @@ entries:
       Reference exit(code = 0) calls Lime System.exit(code). The adapter requests
       host application quit when supported, ignores code, and otherwise does
       nothing.
-    status: missing
+    status: deviation
+    notes: >-
+      Lime builds now forward the exit code to System.exit exactly; other Flight hosts use their native quit request, whose API has no numeric exit-code parameter.
+    scenarios:
+      - desktop/native-application:commands
     scenarios: []
 
   - id: desktop.NA.set-default-application-always-returns-false-set
@@ -190,7 +202,11 @@ entries:
       Adapter-only activate(window = null) asks the supported host to focus the
       application, then calls window.activate() when supplied. The reference has
       no application-level activate method.
-    status: missing
+    status: deviation
+    notes: >-
+      Intentional Flight-host extension: activate focuses the application and optional window where the host exposes that operation.
+    scenarios:
+      - desktop/native-application:activateThrows
     scenarios: []
 
   - id: desktop.NA.only-clear-copy-cut-paste-select-all
@@ -210,7 +226,11 @@ entries:
       windows cause application ACTIVATE and DEACTIVATE; the adapter additionally
       dispatches ACTIVATE from Flight's app activation signal, so a host/window
       activation may be observable through more than one ingress.
-    status: missing
+    status: deviation
+    notes: >-
+      The adapter accepts Flight application lifecycle signals in addition to window-derived lifecycle events so non-Lime hosts remain observable.
+    scenarios:
+      - desktop/native-application:flightApplicationHandle
     scenarios: []
 
   - id: desktop.NA.dispatches-non-bubbling-cancelable-exiting-flight-quit
@@ -262,7 +282,9 @@ entries:
       Reference isSupported is true only for a sys && desktop build. The adapter
       reports true for every configuration in which this sys-gated class compiles.
       supportsMenu and supportsTransparency are false in both.
-    status: missing
+    status: covered
+    scenarios:
+      - desktop/native-window:windowStatic
     scenarios: []
 
   - id: desktop.NW.constructor-dereferences-init-options-so-new-native
@@ -271,7 +293,9 @@ entries:
       The reference constructor dereferences initOptions, so new
       NativeWindow(null) fails. The adapter substitutes a new default options
       object.
-    status: missing
+    status: covered
+    scenarios:
+      - desktop/native-window:window
     scenarios: []
 
   - id: desktop.NW.created-secondary-window-begins-hidden-pixels-current
@@ -283,7 +307,9 @@ entries:
       application window with the same size and resizable/chrome intent,
       additionally passes requested transparency, and creates a compatibility
       Window/Stage shell when it is not wrapping an existing Window.
-    status: missing
+    status: covered
+    scenarios:
+      - desktop/native-window:window
     scenarios: []
 
   - id: desktop.NW.type-remains-private-default-normal-even-another
@@ -291,7 +317,9 @@ entries:
     behavior: >
       Reference type remains its private default NORMAL even when another option
       value was supplied. The adapter returns the supplied option type.
-    status: missing
+    status: covered
+    scenarios:
+      - desktop/native-window:window
     scenarios: []
 
   - id: desktop.NW.construction-installs-stage-s-native-window-appends
@@ -397,7 +425,11 @@ entries:
       activate() makes the window visible and asks the host to focus it. The
       reference waits for the host focus callback before changing active state;
       the adapter calls its focus-in handler synchronously after the request.
-    status: missing
+    status: deviation
+    notes: >-
+      Flight's fallback host does not emit a focus callback, so activate synchronizes active state after requesting focus; real host callbacks remain idempotent.
+    scenarios:
+      - desktop/native-window:window
     scenarios: []
 
   - id: desktop.NW.minimize-maximize-restore-issue-host-state-changes
@@ -545,7 +577,9 @@ entries:
       adapter accepts a non-null handler for any supported format, reports that
       format present, resolves it once on first getData, and routes the result
       through setData. A null handler or unsupported format returns false.
-    status: missing
+    status: covered
+    scenarios:
+      - desktop/clipboard:handlerSet
     scenarios: []
 
   - id: desktop.CB.only-supports-file-promise-always-false-actual
@@ -553,7 +587,11 @@ entries:
     behavior: >
       Adapter-only supportsFilePromise is always false; the actual 9.5.2 Clipboard
       has no such public member.
-    status: missing
+    status: deviation
+    notes: >-
+      Intentional compatibility extension: the adapter exposes the AIR-style capability query and consistently reports false.
+    scenarios:
+      - desktop/clipboard:supportsFilePromise
     scenarios: []
 
   - id: desktop.NP.sys-haxe-implementation-reports-supported-true-launches

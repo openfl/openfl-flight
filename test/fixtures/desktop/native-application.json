@@ -18,17 +18,17 @@
     "systemIdleMode": "keepAwake",
     "autoExit": false,
     "idleThreshold": 120,
-    "startAtLogin": false
+    "startAtLogin": true
   },
-  "activateThrows": false,
   "applicationIdentity": {
-    "applicationDescriptorIsNull": true,
     "applicationDescriptorReadable": true,
     "applicationID": null,
+    "applicationDescriptorIsNull": true,
     "applicationIDReadable": true,
     "publisherID": null,
     "publisherIDReadable": true
   },
+  "activateThrows": false,
   "idleBelowMinimumThrows": true,
   "commands": {
     "copy": false,
@@ -37,17 +37,17 @@
     "paste": false,
     "clear": false
   },
-  "defaultApplication": {
-    "getIsNull": true,
-    "isSet": false,
-    "removeDidNotThrow": true,
-    "setDidNotThrow": true
-  },
   "flightApplicationHandle": {
-    "available": true,
-    "sameForSingleton": true,
     "systemPauseDidNotThrow": true,
-    "systemResumeDidNotThrow": true
+    "available": true,
+    "systemResumeDidNotThrow": true,
+    "sameForSingleton": true
+  },
+  "defaultApplication": {
+    "setDidNotThrow": true,
+    "removeDidNotThrow": true,
+    "getIsNull": true,
+    "isSet": false
   },
   "supports": {
     "systemTrayIcon": false,

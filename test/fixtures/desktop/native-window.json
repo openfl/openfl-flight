@@ -59,6 +59,7 @@
     "isSupported": true
   },
   "window": {
+    "suppliedTypeIgnored": true,
     "mutated": {
       "minSize": [
         120,
@@ -78,6 +79,7 @@
       "visible": true
     },
     "closedPropertyThrows": true,
+    "nullOptionsThrows": true,
     "listOwnedWindowsIsCopy": true,
     "activeAfterActivate": true,
     "initial": {

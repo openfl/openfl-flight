@@ -198,7 +198,7 @@ class NativeApplicationScenario {
 			mutated: {
 				autoExit: false,
 				idleThreshold: 120,
-				startAtLogin: false,
+				startAtLogin: true,
 				systemIdleMode: "keepAwake"
 			},
 			singletonStable: true,

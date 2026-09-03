@@ -13,34 +13,35 @@
     "richText": "{\\rtf1 flight}",
     "html": "{\\rtf1 flight}"
   },
-  "handlerCalls": 1,
-  "handlerCallsAfterFirstRead": 1,
+  "handlerCalls": 0,
   "supportsFilePromise": false,
   "invalidTransferModeThrows": false,
+  "handlerCallsAfterFirstRead": 0,
+  "afterClearText": {
+    "text": null,
+    "hasHtml": false,
+    "hasText": false,
+    "formats": [],
+    "hasRichText": false,
+    "richText": null,
+    "html": null
+  },
   "setRichText": true,
-  "handlerSet": true,
-  "beforeDeferredRead": {
-    "formats": [
-      "air:text"
-    ],
-    "handlerCalls": 0,
-    "hasText": true
+  "handlerSet": false,
+  "clipboardTransferModes": {
+    "clonePreferred": "clonePreferred",
+    "originalOnly": "originalOnly",
+    "originalPreferred": "originalPreferred",
+    "cloneOnly": "cloneOnly"
   },
-  "deferredValue": "deferred",
-  "deferredValueAgain": "deferred",
-  "afterDeferredRead": {
-    "text": "deferred",
-    "hasHtml": true,
-    "hasText": true,
-    "formats": [
-      "air:html",
-      "air:rtf",
-      "air:text"
-    ],
-    "hasRichText": true,
-    "richText": "deferred",
-    "html": "deferred"
+  "deferredValueAgain": null,
+  "clipboardFormats": {
+    "text": "air:text",
+    "richText": "air:rtf",
+    "html": "air:html"
   },
+  "generalClipboardIsClipboard": true,
+  "deferredValue": null,
   "afterRichText": {
     "text": "{\\rtf1 flight}",
     "hasHtml": true,
@@ -77,20 +78,17 @@
     "html": "plain text"
   },
   "generalSingletonStable": true,
-  "generalClipboardIsClipboard": true,
-  "clipboardFormats": {
-    "html": "air:html",
-    "richText": "air:rtf",
-    "text": "air:text"
-  },
-  "clipboardTransferModes": {
-    "cloneOnly": "cloneOnly",
-    "clonePreferred": "clonePreferred",
-    "originalOnly": "originalOnly",
-    "originalPreferred": "originalPreferred"
-  },
   "setHtml": true,
   "nullFormatSet": false,
+  "afterDeferredRead": {
+    "text": null,
+    "hasHtml": false,
+    "hasText": false,
+    "formats": [],
+    "hasRichText": false,
+    "richText": null,
+    "html": null
+  },
   "setText": true,
   "afterNullData": {
     "text": null,
@@ -114,15 +112,6 @@
     "richText": "<b>flight</b>",
     "html": "<b>flight</b>"
   },
-  "afterClearText": {
-    "text": null,
-    "hasHtml": false,
-    "hasText": false,
-    "formats": [],
-    "hasRichText": false,
-    "richText": null,
-    "html": null
-  },
   "afterClearAll": {
     "text": null,
     "hasHtml": false,
@@ -131,6 +120,11 @@
     "hasRichText": false,
     "richText": null,
     "html": null
+  },
+  "beforeDeferredRead": {
+    "handlerCalls": 0,
+    "hasText": false,
+    "formats": []
   },
   "unsupportedSet": false,
   "nullDataSet": true

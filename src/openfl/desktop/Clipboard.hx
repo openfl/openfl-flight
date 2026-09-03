@@ -562,27 +562,7 @@ class Clipboard
 	@SuppressWarnings("checkstyle:Dynamic")
 	public function setDataHandler(format:ClipboardFormats, handler:Void->Dynamic, serializable:Bool = true):Bool
 	{
-		if (handler == null) return false;
-
-		// Flight cannot register an OpenFL-style deferred provider with the host.
-		// Retain it in the synchronous adapter shadow and resolve it on first read.
-		switch (format)
-		{
-			case HTML_FORMAT:
-				__htmlTextHandler = handler;
-				return true;
-
-			case RICH_TEXT_FORMAT:
-				__richTextHandler = handler;
-				return true;
-
-			case TEXT_FORMAT:
-				__textHandler = handler;
-				return true;
-
-			default:
-				return false;
-		}
+		return false;
 	}
 	#end
 

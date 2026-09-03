@@ -10,6 +10,7 @@ import flight.types.Application as FlightApplicationData;
 import flight.types.Host as FlightHost;
 import openfl.display.Application;
 import openfl.display.NativeWindow;
+import openfl.Lib;
 import openfl.errors.ArgumentError;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
@@ -211,8 +212,12 @@ class NativeApplication extends EventDispatcher
 
 	@:noCompletion private function get_applicationID():String
 	{
-		// Flight exposes application name and version, but no application ID.
-		return null;
+		var application = Lib.application;
+		if (application == null) return null;
+		var meta:Dynamic = Reflect.field(application, "meta");
+		if (meta == null) return null;
+		var getter = Reflect.field(meta, "get");
+		return getter == null ? Reflect.field(meta, "packageName") : Reflect.callMethod(meta, getter, ["packageName"]);
 	}
 
 	/**
@@ -360,20 +365,7 @@ class NativeApplication extends EventDispatcher
 
 		@see `NativeApplication.supportsStartAtLogin`
 	**/
-	public var startAtLogin(get, set):Bool;
-
-	@:noCompletion private function get_startAtLogin():Bool
-	{
-		if (!supportsStartAtLogin) return false;
-		return FlightApp.getAppLoginItem(cast __flightHost).openAtLogin;
-	}
-
-	@:noCompletion private function set_startAtLogin(value:Bool):Bool
-	{
-		if (!supportsStartAtLogin) return false;
-		FlightApp.setAppLoginItem(cast __flightHost, {openAtLogin: value});
-		return get_startAtLogin();
-	}
+	public var startAtLogin:Bool = false;
 
 	/**
 		Controls whether the host system may enter its normal idle mode.
@@ -455,7 +447,11 @@ class NativeApplication extends EventDispatcher
 	**/
 	public function exit(code:Int = 0):Void
 	{
+		#if lime
+		lime.system.System.exit(code);
+		#else
 		if (__hasFlightAppQuitHost()) FlightApp.quitApp(cast __flightHost);
+		#end
 	}
 
 	@:noCompletion private static inline function __hasFlightAppFocusHost():Bool

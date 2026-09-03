@@ -161,6 +161,7 @@ class DesktopScenario {
 				y: 0
 			},
 			listOwnedWindowsIsCopy: true,
+			nullOptionsThrows: true,
 			mutated: {
 				bounds: [10, -3, 321, 199],
 				maxSize: [900, 700],
@@ -168,9 +169,12 @@ class DesktopScenario {
 				title: "Flight window",
 				visible: true
 			},
-			openedWindowCountAfterClose: 0
+			openedWindowCountAfterClose: 0,
+			suppliedTypeIgnored: true
 		};
 		#else
+		var nullOptionsThrows = false;
+		try new NativeWindow(null) catch (_:Dynamic) nullOptionsThrows = true;
 		var owner = new NativeWindow(new NativeWindowInitOptions());
 		var initial = {
 			height: owner.height,
@@ -211,8 +215,10 @@ class DesktopScenario {
 
 		var childOptions = new NativeWindowInitOptions();
 		childOptions.owner = owner;
+		childOptions.type = NativeWindowType.UTILITY;
 		var child = new NativeWindow(childOptions);
 		var childOwnerMatches = child.owner == owner;
+		var suppliedTypeIgnored = child.type == NativeWindowType.NORMAL;
 		var owned = owner.listOwnedWindows();
 		owned.pop();
 		var listOwnedWindowsIsCopy = owner.listOwnedWindows().length == 1;
@@ -234,7 +240,9 @@ class DesktopScenario {
 			initial: initial,
 			listOwnedWindowsIsCopy: listOwnedWindowsIsCopy,
 			mutated: mutated,
-			openedWindowCountAfterClose: NativeApplication.nativeApplication.openedWindows.length
+			nullOptionsThrows: nullOptionsThrows,
+			openedWindowCountAfterClose: NativeApplication.nativeApplication.openedWindows.length,
+			suppliedTypeIgnored: suppliedTypeIgnored
 		};
 		#end
 	}

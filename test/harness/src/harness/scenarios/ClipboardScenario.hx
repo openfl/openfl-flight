@@ -38,18 +38,6 @@ class ClipboardScenario {
 			handlerCalls++;
 			return "deferred";
 		};
-		#if harness_capture
-		var handlerSet = true;
-		var beforeDeferredRead = {
-			formats: [Std.string(ClipboardFormats.TEXT_FORMAT)],
-			handlerCalls: handlerCalls,
-			hasText: true
-		};
-		var deferredValue = handler();
-		clipboard.setData(ClipboardFormats.TEXT_FORMAT, deferredValue);
-		var handlerCallsAfterFirstRead = handlerCalls;
-		var deferredValueAgain = clipboard.getData(ClipboardFormats.TEXT_FORMAT);
-		#else
 		var handlerSet = clipboard.setDataHandler(ClipboardFormats.TEXT_FORMAT, handler);
 		var beforeDeferredRead = {
 			formats: clipboard.formats.map(function(format):String return Std.string(format)),
@@ -59,7 +47,6 @@ class ClipboardScenario {
 		var deferredValue = clipboard.getData(ClipboardFormats.TEXT_FORMAT);
 		var handlerCallsAfterFirstRead = handlerCalls;
 		var deferredValueAgain = clipboard.getData(ClipboardFormats.TEXT_FORMAT);
-		#end
 		var afterDeferredRead = state(clipboard);
 		var invalidTransferModeThrows = false;
 		try {

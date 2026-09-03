@@ -83,7 +83,11 @@ class NativeWindow extends EventDispatcher
 
 	@:noCompletion private static function get_isSupported():Bool
 	{
+		#if desktop
 		return true;
+		#else
+		return false;
+		#end
 	}
 
 	/**
@@ -172,8 +176,7 @@ class NativeWindow extends EventDispatcher
 	public function new(initOptions:NativeWindowInitOptions)
 	{
 		super();
-		__initOptions = initOptions == null ? new NativeWindowInitOptions() : initOptions;
-		__type = __initOptions.type;
+		__initOptions = initOptions;
 
 		var nativeApplication = NativeApplication.nativeApplication;
 		__flightHost = nativeApplication.__flightHost;
