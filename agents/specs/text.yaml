@@ -119,9 +119,10 @@ entries:
   - id: text.TF.setselection-caretindex
     section: "TextField selection, scrolling, interaction, and events"
     behavior: >
-      `setSelection`, selection getters, and `caretIndex` retain OpenFL 9.5.2's raw indices,
-      including reversed and out-of-range values, while forwarding the selection to Flight
-      TextInput.
+      `setSelection(beginIndex,endIndex)` retains both raw, unclamped indexes internally and
+      forwards them to Flight TextInput. `caretIndex` returns the raw end index, while
+      `selectionBeginIndex` and `selectionEndIndex` normalize a reversed selection with
+      `min`/`max`; out-of-range values remain out of range.
     status: covered
     scenarios:
       - text/text-field:selection
@@ -661,3 +662,236 @@ entries:
     scenarios:
       - text/surface:inputEvents
       - display/stage:focus
+
+  - id: text.ENUM.core-public-value-contracts
+    section: "Uncovered public value types"
+    behavior: >
+      The portable value types have exact integer-backed constants on non-`openfljs` targets
+      (with canonical string conversions) and string-backed constants on `openfljs`:
+      `AntiAliasType` is `ADVANCED=0/"advanced"`, `NORMAL=1/"normal"`; `FontStyle` is
+      `BOLD=0/"bold"`, `BOLD_ITALIC=1/"boldItalic"`, `ITALIC=2/"italic"`,
+      `REGULAR=3/"regular"`; `FontType` is `DEVICE=0/"device"`,
+      `EMBEDDED=1/"embedded"`, `EMBEDDED_CFF=2/"embeddedCFF"`; and `GridFitType` is
+      `NONE=0/"none"`, `PIXEL=1/"pixel"`, `SUBPIXEL=2/"subpixel"`.
+      `TextFieldAutoSize` is `CENTER=0/"center"`, `LEFT=1/"left"`, `NONE=2/"none"`,
+      `RIGHT=3/"right"`; `TextFieldType` is `DYNAMIC=0/"dynamic"`,
+      `INPUT=1/"input"`; and `TextFormatAlign` is `CENTER=0/"center"`, `END=1/"end"`,
+      `JUSTIFY=2/"justify"`, `LEFT=3/"left"`, `RIGHT=4/"right"`,
+      `START=5/"start"`. On the integer-backed variants, unknown string-to-enum
+      conversions return null; the `openfljs` string-backed abstracts accept String values
+      directly.
+    status: missing
+    notes: "On Flash these seven portable abstracts are replaced by their flash.text typedefs."
+    scenarios: []
+
+  - id: text.ENUM.stage-text-target-gated-value-contracts
+    section: "Uncovered public value types"
+    behavior: >
+      The StageText-related value types exist on non-Flash `sys` builds (and as AIR typedefs
+      on Flash). Their non-`openfljs` integer orders and `openfljs` strings are:
+      `AutoCapitalize` ALL/NONE/SENTENCE/WORD = 0..3 and
+      `"all"/"none"/"sentence"/"word"`; `ReturnKeyLabel` DEFAULT/DONE/GO/NEXT/SEARCH =
+      0..4 and matching lowercase strings; `SoftKeyboardType`
+      CONTACT/DECIMAL/DEFAULT/EMAIL/NUMBER/PHONE/PUNCTUATION/URL = 0..7, with DECIMAL's
+      string specifically `"decimalpad"`; and `StageTextClearButtonMode`
+      ALWAYS/NEVER/UNLESS_EDITING/WHILE_EDITING = 0..3, whose strings are surprisingly
+      `"default"`, `"done"`, `"unlessEditing"`, and `"whileEditing"`. The engine types
+      `FontPosture` expose ITALIC/NORMAL = 0/1 or `"italic"/"normal"`, and `FontWeight`
+      exposes BOLD/NORMAL = 0/1 or `"bold"/"normal"`.
+    status: missing
+    notes: "All six types are absent on non-Flash, non-sys targets; Flash exposes them only for AIR through typedefs."
+    scenarios: []
+
+  - id: text.TF.uncovered-passive-rendering-property-defaults
+    section: "TextField uncovered public properties"
+    behavior: >
+      A new portable `TextField` is 100 by 100 with `antiAliasType = null` (despite the
+      documentation's NORMAL default), `gridFitType = PIXEL`, `sharpness = 0`,
+      `background = false`, `backgroundColor = 0xFFFFFF`, `border = false`,
+      `borderColor = 0x000000`, `condenseWhite = false`, `embedFonts = false`,
+      `mouseWheelEnabled = true`, `selectable = true`, and `textColor = 0x000000`. The
+      anti-alias, grid-fit,
+      sharpness, colors, and Boolean accessors store supplied values without enum/range/color
+      validation; in particular sharpness is not clamped to the documented -400..400 range.
+      In 9.5.2, changing `antiAliasType`, `gridFitType`, or `embedFonts` also performs no
+      layout/render invalidation in these setters.
+    status: missing
+    notes: "This is the non-Flash implementation; Flash uses flash.text.TextField."
+    scenarios: []
+
+  - id: text.TF.uncovered-derived-read-only-properties
+    section: "TextField uncovered public properties"
+    behavior: >
+      `length` is the current text's character length (zero for null internal text), while
+      `numLines`, `textWidth`, `textHeight`, `bottomScrollV`, `maxScrollH`, and `maxScrollV`
+      force a layout update before returning the engine's derived values. New fields begin
+      with one logical line, `scrollH = 0`, and `scrollV = 1`; exact metrics include the
+      portable engine's gutter and active font-measurement behavior.
+    status: missing
+    notes: "Metrics can differ by target/font backend; this entry records the portable public read contract that still needs explicit fixtures."
+    scenarios: []
+
+  - id: text.TF.condensewhite-and-passwordchar-boundaries
+    section: "TextField uncovered public properties"
+    behavior: >
+      `condenseWhite` is a public field consulted only when `htmlText` is assigned: 9.5.2
+      replaces every run matching `\\s+` with one space before retaining/parsing the HTML.
+      Changing the flag after an assignment does not reparse existing content. A new field's
+      `passwordChar` is `"*"`; the setter accepts an arbitrary string, rebuilds displayed
+      password text when changed, and does not alter the underlying `text` or `length`.
+    status: missing
+    notes: "These behaviors are part of the non-Flash TextField implementation and are not target-backend rendering guarantees."
+    scenarios: []
+
+  - id: text.FNT.synchronous-and-asynchronous-factories
+    section: "Font uncovered public methods"
+    behavior: >
+      `new(name = null)` forwards the name only when Lime is present; without Lime,
+      `fontName` reads null and its setter returns but does not retain the value. The public
+      `fontStyle` and `fontType` fields otherwise begin null and accept direct assignment.
+      `Font.fromBytes(bytes)` and `Font.fromFile(path)` construct synchronously through Lime;
+      `fromFile(null)` returns null before construction. On `lime_cffi`, a failed decode
+      returns null; on other targets with no usable decoder the methods can return an empty
+      Font object. `loadFromBytes`, `loadFromFile`, and `loadFromName` forward to the matching
+      Lime Future and wrap the completed Lime font. Without Lime they return error Futures
+      with the exact messages `"Cannot load font from bytes"`, `"Cannot load font from
+      file"`, and `"Cannot load font from name"`.
+    status: missing
+    notes: "The factory declarations are portable non-Flash API, but their success/null/error behavior is compile-target dependent on lime and lime_cffi."
+    scenarios: []
+
+  - id: text.ST.constructor-and-basic-property-state
+    section: "Uncovered StageText surface"
+    behavior: >
+      `new(initOptions = null)` substitutes `StageTextInitOptions(false)`, creates an INPUT
+      TextField, copies the option into both `multiline` and `wordWrap`, and starts with empty
+      text, black 11-pixel normal text, `autoCapitalize = NONE`, `autoCorrect = false`,
+      `clearButtonMode = WHILE_EDITING`, `locale = "en"`, `returnKeyLabel = DEFAULT`,
+      `softKeyboardType = DEFAULT`, a zero viewport, and `textAlign = START`. The plain public
+      hint fields retain assigned values without validation. `text`, `displayAsPassword`,
+      `maxChars`, `restrict`, and `visible` delegate directly to the internal TextField;
+      `editable` maps true/false to INPUT/DYNAMIC.
+    status: missing
+    notes: "StageText exists only for non-Flash sys builds; Flash exposes the AIR typedef, and other portable targets have no StageText type."
+    scenarios: []
+
+  - id: text.ST.formatting-properties-apply-to-existing-text
+    section: "Uncovered StageText surface"
+    behavior: >
+      `color`, `fontFamily`, `fontPosture`, `fontSize`, and `fontWeight` read through one
+      retained TextFormat. A changed value updates the internal field's default format and
+      calls `setTextFormat` across its current text. Posture maps only ITALIC to true and
+      weight maps only BOLD to true. `textAlign` retains START/END for readback but applies
+      them internally as LEFT/RIGHT; other alignment values pass through.
+    status: missing
+    notes: "Non-Flash sys StageText implementation; device-native StageText formatting is not used."
+    scenarios: []
+
+  - id: text.ST.stage-viewport-and-event-lifecycle
+    section: "Uncovered StageText surface"
+    behavior: >
+      Assigning `stage` removes the internal TextField from its old parent and adds it directly
+      to the new Stage. `viewPort` stores and returns the supplied Rectangle by reference,
+      copies its coordinates/dimensions to that field, rejects null or a negative width or
+      height with `RangeError`, and accepts zero dimensions. `Event.COMPLETE` is dispatched
+      once both a non-null stage and non-empty viewport exist; detaching or assigning any
+      viewport resets completion so the next valid combination dispatches again. CHANGE,
+      FOCUS_IN/OUT, and KEY_DOWN/UP from the internal field are redispatched, while
+      KEY_FOCUS_CHANGE is prevented and stopped.
+    status: missing
+    notes: "Only the non-Flash sys fallback has this display-list-backed lifecycle; AIR uses the native typedef."
+    scenarios: []
+
+  - id: text.ST.focus-selection-bitmap-and-dispose-boundaries
+    section: "Uncovered StageText surface"
+    behavior: >
+      `assignFocus()` is a no-op only while the internal field has no parent; contrary to its
+      documentation it does not check `editable` before assigning Stage focus.
+      `selectRange(anchor,active)` delegates to TextField selection;
+      `selectionAnchorIndex`/`selectionActiveIndex` return its normalized begin/end indexes
+      rather than returning -1 solely because focus is absent.
+      `drawViewPortToBitmapData(null)` throws Error; a bitmap whose dimensions
+      do not exactly equal the viewport throws ArgumentError; otherwise it draws the internal
+      field. `dispose()` detaches and nulls the internal field/format, so subsequent dependent
+      property or method access is not guarded and may fault.
+    status: missing
+    notes: "Non-Flash sys fallback behavior; platform-native AIR selection/focus rules can differ."
+    scenarios: []
+
+  - id: text.AUX.stagetextinitoptions-and-statictext
+    section: "Uncovered auxiliary text classes"
+    behavior: >
+      `StageTextInitOptions.new(multiline = false)` stores its sole mutable Boolean verbatim.
+      Portable `StaticText` has only a read-only-by-convention `text` field and a private
+      constructor, so application code cannot instantiate it; its internal constructor leaves
+      text null until authoring/import code supplies content.
+    status: missing
+    notes: "StageTextInitOptions is non-Flash sys/AIR-only. StaticText is portable on non-Flash; Flash typedefs it and additionally exposes the StaticText2 alias."
+    scenarios: []
+
+  - id: text.TLM.constructor-and-mutable-metrics
+    section: "Uncovered auxiliary text classes"
+    behavior: >
+      `TextLineMetrics.new(x,width,height,ascent,descent,leading)` assigns all six Float
+      arguments verbatim to the corresponding public mutable fields. It performs no ordering,
+      finiteness, or non-negative validation, and later field writes are independent.
+    status: missing
+    notes: "Portable non-Flash class; Flash uses flash.text.TextLineMetrics."
+    scenarios: []
+
+  - id: text.SS.getstyle-and-stylenames-reference-aliasing
+    section: "StyleSheet uncovered reference behavior"
+    behavior: >
+      `getStyle(name)` lowercases the name but returns the stored style object itself, not the
+      copy promised by the documentation, so callers can mutate registered state through the
+      result. `styleNames` likewise returns its mutable cached Array by reference. `setStyle`
+      copies its input object, but does not dirty an already-built name cache when adding,
+      replacing, or removing a style; `parseCSS` dirties that cache only when it creates a new
+      selector, and `clear()` resets it to be rebuilt as an empty array.
+      `transform(formatObject)` always allocates a new TextFormat; null yields an all-null
+      format and a non-null object maps only the supported CSS-style fields.
+    status: missing
+    notes: "These are non-Flash 9.5.2 aliasing/cache quirks; Flash's native StyleSheet behavior may follow its documented copy contract."
+    scenarios: []
+
+  - id: text.TFMT.constructor-and-tabstop-clone-aliasing
+    section: "TextFormat ranges and defaults"
+    behavior: >
+      The 13 constructor arguments assign `font`, `size`, `color`, `bold`, `italic`,
+      `underline`, `url`, `target`, `align`, `leftMargin`, `rightMargin`, `indent`, and
+      `leading` verbatim; `blockIndent`, `bullet`, `kerning`, `letterSpacing`, `strikethrough`,
+      and `tabStops` remain null until assigned. The public hidden `clone()` copies every
+      public field, but assigns the same `tabStops` Array rather than cloning it, so mutations
+      through either format are shared.
+    status: missing
+    notes: "Portable non-Flash TextFormat behavior; Flash uses flash.text.TextFormat. clone() is public but marked @:noCompletion/@:dox(hide)."
+    scenarios: []
+
+  - id: text.TF.query-error-and-sentinel-boundaries
+    section: "TextField selection, scrolling, interaction, and events"
+    behavior: >
+      Query failures do not consistently follow their documented RangeErrors.
+      `getCharBoundaries` returns null outside `0...length`; `getCharIndexAtPoint` and
+      `getLineIndexAtPoint` return -1 outside the field/gutter or when no layout group
+      matches; and `getLineIndexOfChar` returns -1 below zero or above `length`.
+      `getFirstCharInParagraph` and `getParagraphLength` also return -1 below zero or above
+      `length`, with the latter counting a conceptual trailing delimiter when
+      `charIndex == length`. `getLineLength` returns 0 for an invalid line;
+      `getLineOffset`/`getLineText` throw RangeError only for negative indexes but return -1
+      or null above the last line. `getLineMetrics` performs no index guard before reading
+      its metric arrays, leaving invalid-index failure/coercion target-dependent.
+    status: missing
+    notes: "These are the non-Flash 9.5.2 sentinel/error boundaries; Flash native behavior may follow the documented exception contracts."
+    scenarios: []
+
+  - id: text.SURFACE.compiled-out-flash-text-members
+    section: "Uncovered target-specific surface"
+    behavior: >
+      The portable 9.5.2 source does not declare `Font.hasGlyphs` or TextField's
+      `alwaysShowSelection`, `textInteractionMode`, `useRichTextClipboard`,
+      `getImageReference`, and static `isFontCompatible`: each apparent declaration is
+      commented inside `#if false`. They must remain absent from the non-Flash API even though
+      the corresponding native Flash typedefs can expose them.
+    status: missing
+    notes: "This is compile-surface behavior: validate absence on non-Flash and native availability only through Flash typedefs."
+    scenarios: []

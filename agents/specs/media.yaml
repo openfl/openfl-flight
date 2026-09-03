@@ -536,9 +536,10 @@ entries:
   - id: media.APM.audioplaybackmode-ambient
     section: "Value and context types"
     behavior: >
-      `AudioPlaybackMode` has string values `AMBIENT = "ambient"`, `MEDIA = "media"`, and
-      `VOICE = "voice"` (integer-backed 0, 1, 2 on legacy targets). It is only a value type
-      here; no portable mixer property consumes it.
+      On `openfljs`, `AudioPlaybackMode` has string values `AMBIENT = "ambient"`,
+      `MEDIA = "media"`, and `VOICE = "voice"`; on every non-`openfljs` portable branch it
+      is integer-backed as 0, 1, and 2 with canonical string conversions. It is only a value
+      type here; no portable mixer property consumes it.
     status: covered
     scenarios:
       - media/surface:constants
@@ -546,9 +547,22 @@ entries:
   - id: media.CP.cameraposition-back
     section: "Value and context types"
     behavior: >
-      `CameraPosition` has `BACK = "back"`, `FRONT = "front"`, and `UNKNOWN = "unknown"`
-      (integer-backed 0, 1, 2 on legacy targets). The media package in this source snapshot
-      contains no portable Camera class using it.
+      On `openfljs`, `CameraPosition` has `BACK = "back"`, `FRONT = "front"`, and
+      `UNKNOWN = "unknown"`; on every non-`openfljs` portable branch it is integer-backed as
+      0, 1, and 2 with canonical string conversions. The media package in this source
+      snapshot contains no portable Camera class using it.
     status: covered
     scenarios:
       - media/surface:constants
+
+  - id: media.ENUM.mobile-value-type-target-availability
+    section: "Value and context types"
+    behavior: >
+      `AudioPlaybackMode` and `CameraPosition` are not unconditional media-package types:
+      their portable declarations exist only when `!flash && sys &&
+      (!flash_doc_gen || air_doc_gen)`. In the outer fallback they typedef the Flash types
+      only when `air` is defined; non-sys non-Flash targets therefore expose neither type,
+      even though the source contains `openfljs` string-backed branches.
+    status: missing
+    notes: "Compile-surface coverage is required on non-Flash sys, non-sys, and Flash/AIR configurations."
+    scenarios: []

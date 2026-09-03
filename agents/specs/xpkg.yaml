@@ -290,8 +290,9 @@ entries:
     section: "BitmapData.draw and Bitmap display interaction"
     behavior: >
       Calls made directly on disposed BitmapData generally return the same inert/null/zero
-      forms enforced by the current readable/handle guards; the outstanding defect is
-      propagation to display objects that already reference it.
+      forms enforced by the current readable/handle guards. Propagation to Bitmap display
+      objects that already reference it is covered by the preceding lifecycle contract; it
+      is no longer an outstanding defect.
     status: covered
     scenarios:
       - display/bitmap-data:dispose
@@ -319,3 +320,15 @@ entries:
       - integration/xpkg:rootDraw
       - integration/xpkg:bitmapLifecycle
       - display/rendering-composition:bitmapDraw
+
+  - id: xpkg.BMD-draw.drawwithquality-low-disables-smoothing
+    section: "BitmapData.draw and Bitmap display interaction"
+    behavior: >
+      `BitmapData.drawWithQuality(source,matrix,colorTransform,blendMode,clipRect,smoothing,
+      quality)` delegates to `draw`, but OpenFL 9.5.2 forces the effective smoothing argument
+      to false when `quality == StageQuality.LOW`; for null or every other quality it forwards
+      the caller's smoothing value. This quality/smoothing interaction has no explicit
+      cross-package coverage.
+    status: missing
+    notes: "The behavior is present on the non-Flash BitmapData surface; Flash uses its native implementation."
+    scenarios: []

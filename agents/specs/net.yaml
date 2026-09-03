@@ -180,8 +180,9 @@ entries:
   - id: net.UL.urlloaderdataformat-binary
     section: "URLLoader"
     behavior: >
-      `URLLoaderDataFormat` string values are `BINARY = "binary"`, `TEXT = "text"`, and
-      `VARIABLES = "variables"` (legacy integer values 0, 1, 2).
+      `URLLoaderDataFormat` is integer-backed as BINARY/TEXT/VARIABLES = 0/1/2 on every
+      non-`openfljs` portable target, with canonical string conversions. On `openfljs` the
+      constants are the strings `"binary"`, `"text"`, and `"variables"` directly.
     status: covered
     scenarios:
       - net/url-loader-request:loaderDefaults
@@ -462,9 +463,12 @@ entries:
   - id: net.DS.the-class-exists-only-for-non-html5
     section: "DatagramSocket"
     behavior: >
-      The class exists only for non-HTML5 sys builds. `isSupported` is true there and
-      false/absent on unsupported targets. Flight has no UDP capability, so the adapter
-      retains `sys.net.UdpSocket`; see **UDP datagram sockets**.
+      The portable declaration is gated by `!flash && !html5`, not by `sys` itself.
+      `isSupported` is true when `!js` and false on a JavaScript build that does not define
+      `html5`; on HTML5 the class is absent, while AIR uses the Flash typedef. The actual
+      implementation references sys UDP types and is usable on the non-JavaScript sys path.
+      Flight has no UDP capability, so the adapter retains `sys.net.UdpSocket`; see **UDP
+      datagram sockets**.
     status: flight-gap
     gap: "UDP datagram sockets"
     scenarios:
@@ -542,15 +546,44 @@ entries:
   - id: net.SEC.securesocket-issupported
     section: "ServerSocket and SecureSocket"
     behavior: >
-      `SecureSocket` extends Socket using a native sys TLS socket. `isSupported` reports
-      platform TLS support; `connect` performs certificate validation before `Event.CONNECT`,
-      otherwise emits `ioError`. `serverCertificate` converts the peer certificate's subject,
-      issuer, and validity dates and throws on an invalid socket; `serverCertificateStatus` is
-      `UNKNOWN`, then `TRUSTED` or `INVALID`. The public `addBinaryChainBuildingCertificate`
-      declaration follows the platform's supported/no-op or `ArgumentError` behavior.
+      `SecureSocket` extends Socket on every non-Flash target, using a native sys TLS socket
+      when available. `isSupported` is exactly true on `sys` and false otherwise; construction
+      itself throws `IllegalOperationError("Not supported")` when `!sys`. On sys, `connect`
+      performs certificate validation before `Event.CONNECT`, otherwise emits `ioError`.
+      `serverCertificate` converts the peer certificate's subject, issuer, and validity dates
+      and throws on an invalid socket; `serverCertificateStatus` is `UNKNOWN`, then `TRUSTED`
+      or `INVALID`. `addBinaryChainBuildingCertificate` unconditionally throws
+      `ArgumentError("Not supported")` in the portable 9.5.2 implementation.
     status: covered
     scenarios:
       - net/surface:secureSocketSurface
+
+  - id: net.SEC.unsupported-target-construction-and-status-boundaries
+    section: "ServerSocket and SecureSocket"
+    behavior: >
+      The non-sys `SecureSocket` declaration can be referenced and reports
+      `isSupported == false`, but `new SecureSocket()` throws before an instance is returned.
+      On sys, a fresh instance reports certificate status UNKNOWN; `close()` does not reset a
+      status already produced by a connection attempt, while the next `connect()` resets it
+      to UNKNOWN before resolving the host. Invalid ports below zero or above 65535 throw
+      `SecurityError` synchronously.
+    status: missing
+    notes: "Flash delegates to flash.net.SecureSocket; this missing entry covers the non-Flash sys versus non-sys compile/runtime split."
+    scenarios: []
+
+  - id: net.SS.target-availability-supported-and-listener-polling
+    section: "ServerSocket and SecureSocket"
+    behavior: >
+      `ServerSocket` is declared under `!flash && !html5` and reports `isSupported == true`
+      throughout that declaration; HTML5 has no class and AIR uses the Flash typedef. Its
+      implementation relies on sys socket types. Adding a CONNECT listener installs its
+      enter-frame accept poll, but removing any CONNECT listener removes that poll even when
+      other CONNECT listeners remain. DatagramSocket has a different override: only the first
+      DATA listener installs polling, and only removal of the last DATA listener removes it;
+      `receive()` merely enables processing once that listener-driven poll runs.
+    status: missing
+    notes: "These non-Flash target gates and the two classes' distinct public listener override behaviors need compile/lifecycle fixtures."
+    scenarios: []
 
   - id: net.FR.a-new-reference-has-null-creationdate-creator
     section: "FileReference"
@@ -749,9 +782,10 @@ entries:
   - id: net.SO.sharedobjectflushstatus-flushed
     section: "Shared objects"
     behavior: >
-      `SharedObjectFlushStatus` values are `FLUSHED = "flushed"` and `PENDING = "pending"`
-      (legacy 0 and 1). `ObjectEncoding.defaultObjectEncoding` is mutable and defaults to
-      `HXSF` off Flash.
+      `SharedObjectFlushStatus` is integer-backed as FLUSHED/PENDING = 0/1 on every
+      non-`openfljs` portable target, with canonical string conversions; on `openfljs` the
+      constants are `"flushed"` and `"pending"`. `SharedObject.defaultObjectEncoding` is
+      mutable and defaults to `HXSF` off Flash.
     status: covered
     scenarios:
       - net/shared-object:defaults
@@ -921,8 +955,60 @@ entries:
   - id: net.IPV.ipversion-ipv4
     section: "Encoding and small value contracts"
     behavior: >
-      `IPVersion` values are `IPV4 = "IPv4"` and `IPV6 = "IPv6"` (legacy 0, 1). These are
-      selectors only; socket address-family validation remains a transport concern.
+      `IPVersion` is integer-backed as IPV4/IPV6 = 0/1 on the non-`openfljs` portable branch,
+      with canonical `"IPv4"`/`"IPv6"` conversions; on `openfljs` the constants are those
+      strings directly. These are selectors only; socket address-family validation remains a
+      transport concern.
     status: covered
     scenarios:
       - net/surface:ipVersion
+
+  - id: net.TYPE.filereferencelist-and-ipversion-target-availability
+    section: "Encoding and small value contracts"
+    behavior: >
+      Portable `FileReferenceList` is declared only by its `desktop` branch or its fallback
+      `js` branch; on a non-Flash target with neither define the file declares no type. The
+      desktop implementation uses native file dialogs/stat metadata, while the JavaScript
+      implementation uses an HTML file input when available. `IPVersion` is separately gated
+      to non-Flash `sys` (subject to its documentation flags), and otherwise exists only as
+      an AIR typedef; non-sys portable targets have no `IPVersion` declaration.
+    status: missing
+    notes: "Flash typedefs FileReferenceList unconditionally; IPVersion's Flash typedef is AIR-only. Compile-surface checks are needed for all branches."
+    scenarios: []
+
+  - id: net.DNS.target-availability-and-resolver-stub
+    section: "Uncovered openfl.net.dns package"
+    behavior: >
+      All seven `openfl.net.dns` types are declared only under `!flash && sys &&
+      (!flash_doc_gen || air_doc_gen)`; the fallback supplies AIR typedefs, and non-sys
+      portable targets expose no DNS types. Portable `DNSResolver.isSupported` always returns
+      false. Its constructor calls EventDispatcher construction and then always throws
+      `IllegalOperationError("Not supported")`; `lookup(host,recordType)` has an empty body,
+      and ordinary public code cannot reach it because no resolver instance can be created.
+    status: missing
+    notes: "Compile and exception coverage is required for the non-Flash sys stub, non-sys absence, and AIR typedef paths."
+    scenarios: []
+
+  - id: net.DNS.basic-resource-record-fields-and-defaults
+    section: "Uncovered openfl.net.dns package"
+    behavior: >
+      `ResourceRecord` has a private empty constructor plus mutable `name:String` and
+      `ttl:Int` fields. Public `ARecord` and `AAAARecord` constructors call that base and add
+      mutable `address:String`; `PTRRecord` similarly adds mutable `ptrdName:String`.
+      Construction leaves all String fields null and `ttl` at zero, and every field accepts
+      later assignment without validation, address-family checking, or TTL bounds.
+    status: missing
+    notes: "These concrete record constructors exist only on the non-Flash sys stub; AIR supplies native typedefs."
+    scenarios: []
+
+  - id: net.DNS.mx-and-srv-resource-record-fields-and-defaults
+    section: "Uncovered openfl.net.dns package"
+    behavior: >
+      `MXRecord.new()` exposes mutable `exchange:String` and `preference:Int` in addition to
+      inherited `name`/`ttl`; `SRVRecord.new()` exposes mutable `port:Int`, `priority:Int`,
+      `target:String`, and `weight:Int`. Their constructors only call the empty base
+      constructor, so String fields start null and Int fields start zero. The portable value
+      objects do not enforce valid ports, non-negative priority/weight, or DNS name syntax.
+    status: missing
+    notes: "Non-Flash sys stub behavior; the AIR typedef can have native population rules."
+    scenarios: []

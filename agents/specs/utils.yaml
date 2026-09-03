@@ -308,8 +308,9 @@ entries:
   - id: utils.BA.compressionalgorithm-deflate
     section: "Compression and atomics"
     behavior: >
-      `CompressionAlgorithm` values are `DEFLATE = "deflate"`, `LZMA = "lzma"`, and `ZLIB =
-      "zlib"` (legacy integer values 0, 1, 2).
+      `CompressionAlgorithm` is integer-backed as DEFLATE/LZMA/ZLIB = 0/1/2 on every
+      non-`openfljs` portable target, with canonical string conversions. On `openfljs` the
+      constants are `"deflate"`, `"lzma"`, and `"zlib"` directly.
     status: covered
     scenarios:
       - utils/byte-array:lzmaCompression
@@ -773,9 +774,11 @@ entries:
   - id: utils.END.endian-big-little-endian
     section: "Remaining public utility types"
     behavior: >
-      `Endian.BIG_ENDIAN = "bigEndian"` means most-significant byte first; `LITTLE_ENDIAN =
-      "littleEndian"` means least-significant byte first (legacy integer values 0 and 1). The
-      constants do not themselves change host order.
+      On every non-`openfljs` portable target, `Endian` is integer-backed as BIG_ENDIAN = 0
+      and LITTLE_ENDIAN = 1, with canonical `"bigEndian"`/`"littleEndian"` conversions; on
+      `openfljs` those strings are the constants directly. BIG_ENDIAN means most-significant
+      byte first and LITTLE_ENDIAN means least-significant byte first. The constants do not
+      themselves change host order.
     status: covered
     scenarios:
       - utils/byte-array:endianness
@@ -795,7 +798,10 @@ entries:
     behavior: >
       `Namespace` exposes read-only `prefix` and `uri`. No args produces two empty strings;
       one Namespace copies it; one QName produces null prefix and its URI; another single
-      value becomes URI with null prefix. With two args, prefix is stringified and becomes
+      value becomes URI with null prefix. Because Haxe optional arguments do not preserve an
+      explicit-argument count here, `new(nonNullValue, null)` also follows that one-value
+      branch rather than the documented two-value branch. Otherwise with two args, prefix is
+      stringified and becomes
       null if nonempty/invalid XML name, while a QName second arg contributes its URI;
       otherwise the URI is stringified.
     status: covered
@@ -806,9 +812,10 @@ entries:
     section: "Remaining public utility types"
     behavior: >
       `QName` exposes read-only `uri` and `localName`. No args produces empty strings; one
-      QName copies it; another single value becomes local name with an empty URI. With two
-      args, Namespace contributes URI (null stays null), QName contributes localName, and
-      other values stringify.
+      QName copies it; another single value becomes local name with an empty URI.
+      `new(nonNullValue, null)` is likewise indistinguishable from the one-value form and
+      follows it. Otherwise with two args, Namespace contributes URI (null stays null), QName
+      contributes localName, and other values stringify.
     status: covered
     scenarios:
       - utils/surface:qname
@@ -875,10 +882,25 @@ entries:
     section: "Remaining public utility types"
     behavior: >
       `Promise` owns a read-only Future. `complete` wins unless already errored, `error` wins
-      unless already completed, both synchronously notify the appropriate listeners, and
-      `progress` notifies only while pending. `completeWith` forwards another Future's
-      complete/error/progress. Methods return the same Promise; `isComplete/isError` mirror
-      the Future.
+      unless already completed, and `progress` runs listener loops only while pending.
+      Repeated resolution in the same state is not rejected. In stock no-Lime 9.5.2,
+      however, the Future's public `onComplete`/`onError`/`onProgress` methods never populate
+      those private listener arrays, so no listener notification is observable through the
+      public API; the adapter's listener delivery is the intentional deviation recorded
+      above. `completeWith` attaches through those same Future methods. Methods return the
+      same Promise; `isComplete/isError` mirror the Future.
     status: covered
     scenarios:
       - utils/surface:promise
+
+  - id: utils.TMR.target-scheduler-and-delay-truncation
+    section: "Timer"
+    behavior: >
+      Each `start()` truncates the Float delay with `Std.int` before scheduling. On
+      `js && html5`, 9.5.2 uses `window.setInterval` and clears its integer ID; all other
+      non-Flash targets use `haxe.Timer` and stop that object. Consequently fractional delays
+      share the truncated interval, and a delay setter while running replaces the active
+      target-specific scheduler rather than preserving elapsed phase.
+    status: missing
+    notes: "Flash uses flash.utils.Timer; portable target parity needs both html5 and non-html5 scheduling fixtures."
+    scenarios: []
