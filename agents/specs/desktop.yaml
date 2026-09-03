@@ -1,727 +1,921 @@
 package: desktop
-
 entries:
-
   - id: desktop.PKG.non-flash-desktop-package-contains-exactly-clipboard
-    section: "Actual package boundary"
-    behavior: >
-      The non-Flash openfl.desktop package contains exactly Clipboard,
-      ClipboardFormats, ClipboardTransferMode, DockIcon, Icon, InteractiveIcon,
-      InvokeEventReason, NativeApplication, NativeProcess,
-      NativeProcessStartupInfo, NotificationType, SystemIdleMode, SystemTrayIcon,
-      and Updater. The native-window classes are in openfl.display, not
-      openfl.desktop.
-    status: covered
+    section: Actual package boundary
+    behavior: >-
+      The non-Flash openfl.desktop package contains exactly Clipboard, ClipboardFormats,
+      ClipboardTransferMode, DockIcon, Icon, InteractiveIcon, InvokeEventReason, NativeApplication,
+      NativeProcess, NativeProcessStartupInfo, NotificationType, SystemIdleMode, SystemTrayIcon, and
+      Updater. The native-window classes are in openfl.display, not openfl.desktop.
+    source:
+      - desktop/Clipboard.hx:formats
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
+      - desktop/DockIcon.hx:new
+      - desktop/InteractiveIcon.hx:new
+      - desktop/InvokeEventReason.hx:NOTIFICATION
+      - desktop/NativeApplication.hx:icon
+      - desktop/NativeApplication.hx:nativeApplication
+      - desktop/NativeProcess.hx:new
+      - desktop/NativeProcessStartupInfo.hx:new
+      - desktop/NotificationType.hx:CRITICAL
+      - desktop/SystemIdleMode.hx:KEEP_AWAKE
+      - desktop/SystemTrayIcon.hx:new
+      - desktop/Updater.hx:new
     scenarios:
-      - "desktop/native-window:application"
-      - "desktop/native-window:clipboard"
-      - "desktop/native-window:constants"
-      - "desktop/native-window:icons"
-      - "desktop/native-window:process"
-      - "desktop/native-window:updaterSupported"
-      - "desktop/native-window:windowOptions"
-      - "desktop/native-window:windowStatic"
-
+      - desktop/native-window:application
+      - desktop/native-window:clipboard
+      - desktop/native-window:constants
+      - desktop/native-window:icons
+      - desktop/native-window:process
+      - desktop/native-window:updaterSupported
+      - desktop/native-window:windowOptions
+      - desktop/native-window:windowStatic
+    notes: "Target conditions: #if !flash, #if desktop."
   - id: desktop.PKG.native-menu-native-menu-item-native-drag
-    section: "Actual package boundary"
-    behavior: >
-      NativeMenu, NativeMenuItem, NativeDragManager, DragManager, and
-      NativeDragOptions do not exist anywhere in the OpenFL 9.5.2 source tree. The
-      adapter does not invent them. The same is true of AIR's StorageVolume and
-      StorageVolumeInfo names.
-    status: covered
+    section: Actual package boundary
+    behavior: >-
+      NativeMenu, NativeMenuItem, NativeDragManager, DragManager, and NativeDragOptions do not exist
+      anywhere in the OpenFL 9.5.2 source tree. The adapter does not invent them. The same is true
+      of AIR's StorageVolume and StorageVolumeInfo names.
+    source:
+      - desktop/Clipboard.hx:generalClipboard
     scenarios:
-      - "desktop/native-window:constants"
-
+      - desktop/native-window:constants
   - id: desktop.PKG.desktop-only-air-compatibility-types-compile-gated
-    section: "Actual package boundary"
-    behavior: >
-      Desktop-only AIR compatibility types are compile-gated by sys and the AIR
-      documentation condition. On Flash/AIR they become typedefs to the Flash
-      classes; on unsupported non-Flash configurations they are absent rather than
-      runtime stubs.
-    status: covered
-    scenarios:
-      - "desktop/native-window:windowStatic"
-
-  - id: desktop.NA.native-application-lazily-constructs-one-private-instance
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      nativeApplication lazily constructs one private instance and returns that
-      same identity thereafter.
-    status: covered
-    scenarios:
-      - "desktop/native-application:singletonStable"
-
-  - id: desktop.NA.supports-default-application-supports-dock-icon-supports
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      supportsDefaultApplication, supportsDockIcon, supportsMenu,
-      supportsStartAtLogin, and supportsSystemTrayIcon are always false in the
-      9.5.2 non-Flash source and in the adapter.
-    status: covered
-    scenarios:
-      - "desktop/native-application:supports"
-
-  - id: desktop.NA.active-window-returns-private-active-window-slot
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      activeWindow returns the private active-window slot. A NativeWindow focus-in
-      sets the slot before application/window ACTIVATE dispatch; focus-out clears
-      it before application DEACTIVATE, but only if that window still owns the
-      slot.
-    status: covered
-    scenarios:
-      - "desktop/native-application:defaults"
-      - "desktop/native-window:application"
-
-  - id: desktop.NA.opened-windows-returns-fresh-array-copy-window
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      openedWindows returns a fresh array copy. Window construction appends the
-      window; final close removes it. Mutating the returned array cannot alter
-      application state.
-    status: covered
-    scenarios:
-      - "desktop/native-application:defaults"
-      - "desktop/native-window:application"
-
-  - id: desktop.NA.auto-exit-mutable-field-initialized-true-flight
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      autoExit is a mutable field initialized to true. The Flight adapter quits on
-      its all-windows-closed signal and also after the last adapter window
-      completes closing; setting it to false suppresses those paths.
-    status: covered
-    scenarios:
-      - "desktop/native-application:defaults"
-      - "desktop/native-window:application"
-
-  - id: desktop.NA.icon-read-only-null-compiled-aot-always
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      icon is read-only and null; isCompiledAOT is always false.
-    status: covered
-    scenarios:
-      - "desktop/native-application:defaults"
-      - "desktop/native-window:application"
-
-  - id: desktop.NA.application-id-reads-lib-application-meta-package
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      applicationID reads Lib.application.meta["packageName"], supporting both a
-      map-style get method and a direct dynamic packageName field, and returns
-      null when the application or metadata is absent.
-    status: covered
-    scenarios:
-      - desktop/native-application:applicationIdentity
-
-  - id: desktop.NA.start-login-ordinary-mutable-boolean-field-therefore
-    section: "NativeApplication > Singleton, capabilities, and window lists"
-    behavior: >
-      startAtLogin is an ordinary mutable Boolean field: it defaults to false and
-      a write is observable even though supportsStartAtLogin remains false.
-    status: covered
-    scenarios:
-      - desktop/native-application:mutated
-
-  - id: desktop.NA.application-descriptor-publisher-id-runtime-version-runtime
-    section: "NativeApplication > Adapter-only AIR surface"
-    behavior: >
-      applicationDescriptor, publisherID, runtimeVersion, and runtimePatchLevel
-      are not public members of the actual 9.5.2 class. The adapter adds
-      deterministic values null, null, null, and 0; Flight has no corresponding
-      metadata. Blocked by Desktop application metadata and shell capabilities.
-    status: flight-gap
-    gap: "Desktop application metadata and shell capabilities"
-    scenarios: []
-
-  - id: desktop.NA.idle-threshold-only-property-initialized-seconds-setter
-    section: "NativeApplication > Adapter-only AIR surface"
-    behavior: >
-      idleThreshold is an adapter-only property initialized to 300 seconds. Its
-      setter accepts 5 through 86400 inclusive and otherwise throws ArgumentError;
-      the reference has no such member or idle timer.
-    status: deviation
-    notes: >-
-      Intentional adapter extension retained for host idle policy configuration; range validation and mutation are captured.
-    scenarios:
-      - desktop/native-application:defaults
-
-  - id: desktop.NA.menu-only-mutable-dynamic-initialized-null-there
-    section: "NativeApplication > Adapter-only AIR surface"
-    behavior: >
-      menu is an adapter-only mutable Dynamic initialized to null; there is no
-      NativeMenu type or host conversion. Blocked by Desktop application metadata
-      and shell capabilities.
-    status: flight-gap
-    gap: "Desktop application metadata and shell capabilities"
-    scenarios: []
-
-  - id: desktop.NA.system-idle-mode-only-state-initialized-normal
-    section: "NativeApplication > Adapter-only AIR surface"
-    behavior: >
-      systemIdleMode is adapter-only state initialized to NORMAL. It accepts only
-      NORMAL and KEEP_AWAKE, throwing ArgumentError otherwise; the web host also
-      acquires/releases Flight's display-sleep lock. Other targets retain state
-      without a host effect. The missing cross-host contract belongs to Desktop
-      application metadata and shell capabilities.
-    status: flight-gap
-    gap: "Desktop application metadata and shell capabilities"
-    scenarios: []
-
-  - id: desktop.NA.exit-calls-lime-system-exit-requests-host
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      Reference exit(code = 0) calls Lime System.exit(code). The adapter requests
-      host application quit when supported, ignores code, and otherwise does
-      nothing.
-    status: deviation
-    notes: >-
-      Lime builds now forward the exit code to System.exit exactly; other Flight hosts use their native quit request, whose API has no numeric exit-code parameter.
-    scenarios:
-      - desktop/native-application:commands
-
-  - id: desktop.NA.set-default-application-always-returns-false-set
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      isSetAsDefaultApplication(extension) always returns false;
-      setAsDefaultApplication and removeAsDefaultApplication are no-ops.
-    status: covered
-    scenarios:
-      - "desktop/native-application:defaultApplication"
-
-  - id: desktop.NA.only-get-default-application-returns-null-implementing
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      Adapter-only getDefaultApplication(extension) returns null. Implementing all
-      four association operations is blocked by Desktop application metadata and
-      shell capabilities.
-    status: flight-gap
-    gap: "Desktop application metadata and shell capabilities"
-    scenarios: []
-
-  - id: desktop.NA.only-activate-asks-supported-host-focus-application
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      Adapter-only activate(window = null) asks the supported host to focus the
-      application, then calls window.activate() when supplied. The reference has
-      no application-level activate method.
-    status: deviation
-    notes: >-
-      Intentional Flight-host extension: activate focuses the application and optional window where the host exposes that operation.
-    scenarios:
-      - desktop/native-application:activateThrows
-
-  - id: desktop.NA.only-clear-copy-cut-paste-select-all
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      Adapter-only clear, copy, cut, paste, and selectAll always return false;
-      there is no focused edit-command router. Blocked by Desktop application
-      metadata and shell capabilities.
-    status: flight-gap
-    gap: "Desktop application metadata and shell capabilities"
-    scenarios: []
-
-  - id: desktop.NA.class-itself-does-not-connect-host-lifecycle
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      The reference class itself does not connect host lifecycle signals. Its
-      windows cause application ACTIVATE and DEACTIVATE; the adapter additionally
-      dispatches ACTIVATE from Flight's app activation signal, so a host/window
-      activation may be observable through more than one ingress.
-    status: deviation
-    notes: >-
-      The adapter accepts Flight application lifecycle signals in addition to window-derived lifecycle events so non-Lime hosts remain observable.
-    scenarios:
-      - desktop/native-application:flightApplicationHandle
-
-  - id: desktop.NA.dispatches-non-bubbling-cancelable-exiting-flight-quit
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      The adapter dispatches a non-bubbling, cancelable EXITING on Flight quit
-      request and cancels that Flight signal when preventDefault() makes dispatch
-      return false. This is useful AIR behavior but is not present in the actual
-      9.5.2 NativeApplication.exit() source, whose direct call exits immediately.
-    status: deviation
-    notes: >
-      Keep the cancellable Flight quit hook as an intentional AIR-compatible
-      extension.
-    scenarios:
-      - "desktop/native-application:flightApplicationHandle"
-
-  - id: desktop.NA.listeners-invoke-idle-present-present-change-can
-    section: "NativeApplication > Commands and lifecycle events"
-    behavior: >
-      Listeners for INVOKE, IDLE, PRESENT, USER_PRESENT, and NETWORK_CHANGE can be
-      registered through inherited EventDispatcher, but neither implementation
-      automatically emits those events. There is likewise no automatic EXITING
-      event in the reference source.
-    status: covered
-    scenarios:
-      - "desktop/native-application:commands"
-
-  - id: desktop.NWIO.new-performs-no-work-beyond-field-initializers
-    section: "NativeWindowInitOptions"
-    behavior: >
-      new() performs no work beyond field initializers. Defaults are maximizable =
-      true, minimizable = true, owner = null, renderMode = null, resizable = true,
-      systemChrome = STANDARD, transparent = false, and type = NORMAL.
-    status: covered
-    scenarios:
-      - "desktop/native-window:windowOptions"
-
-  - id: desktop.NWIO.all-fields-mutable-option-records-private-window
-    section: "NativeWindowInitOptions"
-    behavior: >
-      All fields are mutable option records. The private __window slot lets OpenFL
-      wrap its initial application window; no validation or normalization is
-      performed by the options object itself.
-    status: covered
-    scenarios:
-      - "desktop/native-window:windowOptions"
-
-  - id: desktop.NW.supported-true-only-sys-desktop-build-reports
-    section: "NativeWindow > Availability and construction"
-    behavior: >
-      isSupported is true only when desktop is defined within the sys-gated class;
-      supportsMenu and supportsTransparency are false on every non-Flash target.
-    status: covered
+    section: Actual package boundary
+    behavior: >-
+      Desktop-only AIR compatibility types are compile-gated by sys and the AIR documentation
+      condition. On Flash/AIR they become typedefs to the Flash classes; on unsupported non-Flash
+      configurations they are absent rather than runtime stubs.
+    source:
+      - desktop/Clipboard.hx:generalClipboard
     scenarios:
       - desktop/native-window:windowStatic
-
+    notes: "Target conditions: #if !flash, #if sys, #if desktop."
+  - id: desktop.NA.native-application-lazily-constructs-one-private-instance
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: >-
+      nativeApplication lazily constructs one private instance and returns that same identity
+      thereafter.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:singletonStable
+  - id: desktop.NA.supports-default-application-supports-dock-icon-supports
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: >-
+      supportsDefaultApplication, supportsDockIcon, supportsMenu, supportsStartAtLogin, and
+      supportsSystemTrayIcon are always false in the 9.5.2 non-Flash source and in the adapter.
+    source:
+      - desktop/DockIcon.hx:new
+      - desktop/NativeApplication.hx:icon
+      - desktop/NativeApplication.hx:nativeApplication
+      - desktop/NativeApplication.hx:startAtLogin
+      - desktop/NativeApplication.hx:supportsDefaultApplication
+      - desktop/NativeApplication.hx:supportsDockIcon
+      - desktop/NativeApplication.hx:supportsMenu
+      - desktop/NativeApplication.hx:supportsStartAtLogin
+      - desktop/NativeApplication.hx:supportsSystemTrayIcon
+      - desktop/SystemTrayIcon.hx:new
+    scenarios:
+      - desktop/native-application:supports
+    notes: "Target conditions: #if !flash."
+  - id: desktop.NA.active-window-returns-private-active-window-slot
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: >-
+      activeWindow returns the private active-window slot. A NativeWindow focus-in sets the slot
+      before application/window ACTIVATE dispatch; focus-out clears it before application
+      DEACTIVATE, but only if that window still owns the slot.
+    source:
+      - desktop/NativeApplication.hx:activeWindow
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:defaults
+      - desktop/native-window:application
+  - id: desktop.NA.opened-windows-returns-fresh-array-copy-window
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: >-
+      openedWindows returns a fresh array copy. Window construction appends the window; final close
+      removes it. Mutating the returned array cannot alter application state.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+      - desktop/NativeApplication.hx:openedWindows
+    scenarios:
+      - desktop/native-application:defaults
+      - desktop/native-window:application
+  - id: desktop.NA.auto-exit-mutable-field-initialized-true-flight
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: >-
+      autoExit is a mutable field initialized to true. The Flight adapter quits on its
+      all-windows-closed signal and also after the last adapter window completes closing; setting it
+      to false suppresses those paths.
+    source:
+      - desktop/NativeApplication.hx:autoExit
+      - desktop/NativeApplication.hx:exit
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:defaults
+      - desktop/native-window:application
+  - id: desktop.NA.icon-read-only-null-compiled-aot-always
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: icon is read-only and null; isCompiledAOT is always false.
+    source:
+      - desktop/NativeApplication.hx:icon
+      - desktop/NativeApplication.hx:isCompiledAOT
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:defaults
+      - desktop/native-window:application
+  - id: desktop.NA.application-id-reads-lib-application-meta-package
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: >-
+      applicationID reads Lib.application.meta["packageName"], supporting both a map-style get
+      method and a direct dynamic packageName field, and returns null when the application or
+      metadata is absent.
+    source:
+      - desktop/NativeApplication.hx:applicationID
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:applicationIdentity
+  - id: desktop.NA.start-login-ordinary-mutable-boolean-field-therefore
+    section: NativeApplication > Singleton, capabilities, and window lists
+    behavior: >-
+      startAtLogin is an ordinary mutable Boolean field: it defaults to false and a write is
+      observable even though supportsStartAtLogin remains false.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+      - desktop/NativeApplication.hx:startAtLogin
+      - desktop/NativeApplication.hx:supportsStartAtLogin
+    scenarios:
+      - desktop/native-application:mutated
+  - id: desktop.NA.application-descriptor-publisher-id-runtime-version-runtime
+    section: NativeApplication > Adapter-only AIR surface
+    behavior: >-
+      applicationDescriptor, publisherID, runtimeVersion, and runtimePatchLevel are not public
+      members of the actual 9.5.2 class. The adapter adds deterministic values null, null, null, and
+      0; Flight has no corresponding metadata.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios: []
+    notes: Blocked on Flight gap "Desktop application metadata and shell capabilities".
+  - id: desktop.NA.idle-threshold-only-property-initialized-seconds-setter
+    section: NativeApplication > Adapter-only AIR surface
+    behavior: >-
+      idleThreshold is an adapter-only property initialized to 300 seconds. Its setter accepts 5
+      through 86400 inclusive and otherwise throws ArgumentError; the reference has no such member
+      or idle timer.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:defaults
+    notes: >-
+      Intentional adapter extension retained for host idle policy configuration; range validation
+      and mutation are captured.
+  - id: desktop.NA.menu-only-mutable-dynamic-initialized-null-there
+    section: NativeApplication > Adapter-only AIR surface
+    behavior: >-
+      menu is an adapter-only mutable Dynamic initialized to null; there is no NativeMenu type or
+      host conversion.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios: []
+    notes: Blocked on Flight gap "Desktop application metadata and shell capabilities".
+  - id: desktop.NA.system-idle-mode-only-state-initialized-normal
+    section: NativeApplication > Adapter-only AIR surface
+    behavior: >-
+      systemIdleMode is adapter-only state initialized to NORMAL. It accepts only NORMAL and
+      KEEP_AWAKE, throwing ArgumentError otherwise; the web host also acquires/releases Flight's
+      display-sleep lock. Other targets retain state without a host effect. The missing cross-host
+      contract belongs to Desktop application metadata and shell capabilities.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+      - desktop/SystemIdleMode.hx:KEEP_AWAKE
+      - desktop/SystemIdleMode.hx:NORMAL
+    scenarios: []
+    notes: >-
+      Blocked on Flight gap "Desktop application metadata and shell capabilities". Target
+      conditions: #if desktop.
+  - id: desktop.NA.exit-calls-lime-system-exit-requests-host
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      Reference exit(code = 0) calls Lime System.exit(code). The adapter requests host application
+      quit when supported, ignores code, and otherwise does nothing.
+    source:
+      - desktop/NativeApplication.hx:exit
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:commands
+    notes: >-
+      Lime builds now forward the exit code to System.exit exactly; other Flight hosts use their
+      native quit request, whose API has no numeric exit-code parameter. Target conditions: #if
+      lime.
+  - id: desktop.NA.set-default-application-always-returns-false-set
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      isSetAsDefaultApplication(extension) always returns false; setAsDefaultApplication and
+      removeAsDefaultApplication are no-ops.
+    source:
+      - desktop/NativeApplication.hx:isSetAsDefaultApplication
+      - desktop/NativeApplication.hx:nativeApplication
+      - desktop/NativeApplication.hx:removeAsDefaultApplication
+      - desktop/NativeApplication.hx:setAsDefaultApplication
+    scenarios:
+      - desktop/native-application:defaultApplication
+  - id: desktop.NA.only-get-default-application-returns-null-implementing
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      Adapter-only getDefaultApplication(extension) returns null. Implementing all four association
+      operations is
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios: []
+    notes: Blocked on Flight gap "Desktop application metadata and shell capabilities".
+  - id: desktop.NA.only-activate-asks-supported-host-focus-application
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      Adapter-only activate(window = null) asks the supported host to focus the application, then
+      calls window.activate() when supplied. The reference has no application-level activate method.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:activateThrows
+    notes: >-
+      Intentional Flight-host extension: activate focuses the application and optional window where
+      the host exposes that operation.
+  - id: desktop.NA.only-clear-copy-cut-paste-select-all
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      Adapter-only clear, copy, cut, paste, and selectAll always return false; there is no focused
+      edit-command router.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios: []
+    notes: Blocked on Flight gap "Desktop application metadata and shell capabilities".
+  - id: desktop.NA.class-itself-does-not-connect-host-lifecycle
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      The reference class itself does not connect host lifecycle signals. Its windows cause
+      application ACTIVATE and DEACTIVATE; the adapter additionally dispatches ACTIVATE from
+      Flight's app activation signal, so a host/window activation may be observable through more
+      than one ingress.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:flightApplicationHandle
+    notes: >-
+      The adapter accepts Flight application lifecycle signals in addition to window-derived
+      lifecycle events so non-Lime hosts remain observable.
+  - id: desktop.NA.dispatches-non-bubbling-cancelable-exiting-flight-quit
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      The adapter dispatches a non-bubbling, cancelable EXITING on Flight quit request and cancels
+      that Flight signal when preventDefault() makes dispatch return false. This is useful AIR
+      behavior but is not present in the actual 9.5.2 NativeApplication.exit() source, whose direct
+      call exits immediately.
+    source:
+      - desktop/NativeApplication.hx:exit
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:flightApplicationHandle
+    notes: Keep the cancellable Flight quit hook as an intentional AIR-compatible extension.
+  - id: desktop.NA.listeners-invoke-idle-present-present-change-can
+    section: NativeApplication > Commands and lifecycle events
+    behavior: >-
+      Listeners for INVOKE, IDLE, PRESENT, USER_PRESENT, and NETWORK_CHANGE can be registered
+      through inherited EventDispatcher, but neither implementation automatically emits those
+      events. There is likewise no automatic EXITING event in the reference source.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+    scenarios:
+      - desktop/native-application:commands
+  - id: desktop.NWIO.new-performs-no-work-beyond-field-initializers
+    section: NativeWindowInitOptions
+    behavior: >-
+      new() performs no work beyond field initializers. Defaults are maximizable = true, minimizable
+      = true, owner = null, renderMode = null, resizable = true, systemChrome = STANDARD,
+      transparent = false, and type = NORMAL.
+    source:
+      - desktop/Clipboard.hx:generalClipboard
+    scenarios:
+      - desktop/native-window:windowOptions
+  - id: desktop.NWIO.all-fields-mutable-option-records-private-window
+    section: NativeWindowInitOptions
+    behavior: >-
+      All fields are mutable option records. The private __window slot lets OpenFL wrap its initial
+      application window; no validation or normalization is performed by the options object itself.
+    source:
+      - desktop/Clipboard.hx:generalClipboard
+    scenarios:
+      - desktop/native-window:windowOptions
+  - id: desktop.NW.supported-true-only-sys-desktop-build-reports
+    section: NativeWindow > Availability and construction
+    behavior: >-
+      isSupported is true only when desktop is defined within the sys-gated class; supportsMenu and
+      supportsTransparency are false on every non-Flash target.
+    source:
+      - display/NativeWindow.hx:isSupported
+      - display/NativeWindow.hx:new
+      - display/NativeWindow.hx:supportsMenu
+      - display/NativeWindow.hx:supportsTransparency
+      - display/NativeWindowInitOptions.hx:new
+    scenarios:
+      - desktop/native-window:windowStatic
+    notes: "Target conditions: #if !flash, #if sys, #if desktop."
   - id: desktop.NW.constructor-dereferences-init-options-so-new-native
-    section: "NativeWindow > Availability and construction"
-    behavior: >
-      The constructor dereferences initOptions immediately, so new
-      NativeWindow(null) fails rather than substituting default options.
-    status: covered
+    section: NativeWindow > Availability and construction
+    behavior: >-
+      The constructor dereferences initOptions immediately, so new NativeWindow(null) fails rather
+      than substituting default options.
+    source:
+      - display/NativeWindow.hx:new
+      - display/NativeWindowInitOptions.hx:new
     scenarios:
       - desktop/native-window:window
-
   - id: desktop.NW.created-secondary-window-begins-hidden-pixels-current
-    section: "NativeWindow > Availability and construction"
-    behavior: >
-      A reference-created secondary window begins hidden at 400 by 228 pixels on
-      current Lime, uses software rendering, takes resizable and borderless chrome
-      from the options, and records ownership. The adapter opens a hidden Flight
-      application window with the same size and resizable/chrome intent,
-      additionally passes requested transparency, and creates a compatibility
-      Window/Stage shell when it is not wrapping an existing Window.
-    status: covered
+    section: NativeWindow > Availability and construction
+    behavior: >-
+      A reference-created secondary window begins hidden at 400 by 228 pixels on current Lime, uses
+      software rendering, takes resizable and borderless chrome from the options, and records
+      ownership. The adapter opens a hidden Flight application window with the same size and
+      resizable/chrome intent, additionally passes requested transparency, and creates a
+      compatibility Window/Stage shell when it is not wrapping an existing Window.
+    source:
+      - display/NativeWindow.hx:new
+      - display/NativeWindow.hx:resizable
+      - display/NativeWindow.hx:stage
+      - display/NativeWindowInitOptions.hx:new
+      - display/NativeWindowInitOptions.hx:resizable
     scenarios:
       - desktop/native-window:window
-
+    notes: "Target conditions: #if lime."
   - id: desktop.NW.type-remains-private-default-normal-even-another
-    section: "NativeWindow > Availability and construction"
-    behavior: >
-      type remains the private default NORMAL even when a different option value
-      was supplied; construction does not copy NativeWindowInitOptions.type into
-      that slot.
-    status: covered
+    section: NativeWindow > Availability and construction
+    behavior: >-
+      type remains the private default NORMAL even when a different option value was supplied;
+      construction does not copy NativeWindowInitOptions.type into that slot.
+    source:
+      - display/NativeWindow.hx:new
+      - display/NativeWindow.hx:type
+      - display/NativeWindowInitOptions.hx:new
+      - display/NativeWindowInitOptions.hx:type
     scenarios:
       - desktop/native-window:window
-
   - id: desktop.NW.construction-installs-stage-s-native-window-appends
-    section: "NativeWindow > Availability and construction"
-    behavior: >
-      Construction installs the stage's nativeWindow, appends to
-      NativeApplication.openedWindows, records the child in its owner's private
-      list, snapshots initial bounds/state, and connects host activation, focus,
-      move, resize, minimize, maximize, restore, and close notifications.
-    status: covered
+    section: NativeWindow > Availability and construction
+    behavior: >-
+      Construction installs the stage's nativeWindow, appends to NativeApplication.openedWindows,
+      records the child in its owner's private list, snapshots initial bounds/state, and connects
+      host activation, focus, move, resize, minimize, maximize, restore, and close notifications.
+    source:
+      - desktop/NativeApplication.hx:nativeApplication
+      - desktop/NativeApplication.hx:openedWindows
+      - display/NativeWindow.hx:bounds
+      - display/NativeWindow.hx:close
+      - display/NativeWindow.hx:maximize
+      - display/NativeWindow.hx:minimize
+      - display/NativeWindow.hx:new
+      - display/NativeWindow.hx:owner
+      - display/NativeWindow.hx:restore
+      - display/NativeWindow.hx:stage
+      - display/NativeWindowInitOptions.hx:new
+      - display/NativeWindowInitOptions.hx:owner
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.closed-only-property-that-remains-freely-queryable
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      closed is the only property that remains freely queryable after close. Every
-      other property getter/setter and every public operation checks the closed
-      flag and throws openfl.errors.Error with error ID 3200 and message Cannot
-      perform operation on closed window.
-    status: covered
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      closed is the only property that remains freely queryable after close. Every other property
+      getter/setter and every public operation checks the closed flag and throws openfl.errors.Error
+      with error ID 3200 and message Cannot perform operation on closed window.
+    source:
+      - display/NativeWindow.hx:close
+      - display/NativeWindow.hx:closed
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.stage-immutable-type-system-chrome-maximizable-minimizable
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      stage and immutable type, systemChrome, maximizable, minimizable, owner,
-      renderMode, and resizable expose the captured window/options values.
-      listOwnedWindows() returns a defensive vector copy.
-    status: covered
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      stage and immutable type, systemChrome, maximizable, minimizable, owner, renderMode, and
+      resizable expose the captured window/options values. listOwnedWindows() returns a defensive
+      vector copy.
+    source:
+      - display/NativeWindow.hx:closed
+      - display/NativeWindow.hx:listOwnedWindows
+      - display/NativeWindow.hx:maximizable
+      - display/NativeWindow.hx:minimizable
+      - display/NativeWindow.hx:owner
+      - display/NativeWindow.hx:renderMode
+      - display/NativeWindow.hx:resizable
+      - display/NativeWindow.hx:stage
+      - display/NativeWindow.hx:systemChrome
+      - display/NativeWindow.hx:type
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.x-y-width-height-read-host-state
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      x, y, width, and height read host state. Writes truncate with Std.int,
-      request the corresponding host move/resize, and return the host's resulting
-      value.
-    status: covered
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      x, y, width, and height read host state. Writes truncate with Std.int, request the
+      corresponding host move/resize, and return the host's resulting value.
+    source:
+      - display/NativeWindow.hx:closed
+      - display/NativeWindow.hx:height
+      - display/NativeWindow.hx:width
+      - display/NativeWindow.hx:x
+      - display/NativeWindow.hx:y
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.bounds-returns-new-rectangle-assignment-performs-position
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      bounds returns a new Rectangle. Assignment performs position before size,
-      truncates all four components, and returns a new rectangle of the resulting
-      host state.
-    status: covered
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      bounds returns a new Rectangle. Assignment performs position before size, truncates all four
+      components, and returns a new rectangle of the resulting host state.
+    source:
+      - display/NativeWindow.hx:bounds
+      - display/NativeWindow.hx:closed
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.title-reads-writes-host-title-visible-reads
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      title reads/writes the host title. visible reads host visibility and shows
-      or hides through Flight; the current reference delegates to Lime.
-    status: covered
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      title reads/writes the host title. visible reads host visibility and shows or hides through
+      Flight; the current reference delegates to Lime.
+    source:
+      - display/NativeWindow.hx:closed
+      - display/NativeWindow.hx:title
+      - display/NativeWindow.hx:visible
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
+    notes: "Target conditions: #if lime."
   - id: desktop.NW.display-state-chooses-minimized-first-then-maximized
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      displayState chooses MINIMIZED first, then MAXIMIZED, otherwise NORMAL. It
-      is read-only; state changes use the methods below.
-    status: covered
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      displayState chooses MINIMIZED first, then MAXIMIZED, otherwise NORMAL. It is read-only; state
+      changes use the methods below.
+    source:
+      - display/NativeWindow.hx:closed
+      - display/NativeWindow.hx:displayState
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.active-maintained-focus-activation-callbacks-also-treats
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      active is maintained by focus/activation callbacks. The adapter also treats
-      Flight's current focused flag as active.
-    status: covered
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      active is maintained by focus/activation callbacks. The adapter also treats Flight's current
+      focused flag as active.
+    source:
+      - display/NativeWindow.hx:active
+      - display/NativeWindow.hx:closed
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.transparent-always-returns-false-implementations-regardless-native
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
       transparent always returns false in both implementations, regardless of
       NativeWindowInitOptions.transparent.
-    status: covered
-    scenarios:
-      - "desktop/native-window:window"
-
-  - id: desktop.NW.min-size-max-size-return-new-point
-    section: "NativeWindow > Properties and closed-window rule"
-    behavior: >
-      minSize and maxSize return new Point values and setters truncate and forward
-      both components. In the reference these members exist only with Lime 8.1 or
-      newer; the adapter exposes them unconditionally within the class gate.
-    status: missing
-    scenarios: []
-
-  - id: desktop.NW.activate-makes-window-visible-asks-host-focus
-    section: "NativeWindow > Operations and event order"
-    behavior: >
-      activate() makes the window visible and asks the host to focus it. The
-      reference waits for the host focus callback before changing active state;
-      the adapter calls its focus-in handler synchronously after the request.
-    status: deviation
-    notes: >-
-      Flight's fallback host does not emit a focus callback, so activate synchronizes active state after requesting focus; real host callbacks remain idempotent.
+    source:
+      - display/NativeWindow.hx:closed
+      - display/NativeWindow.hx:transparent
+      - display/NativeWindowInitOptions.hx:transparent
     scenarios:
       - desktop/native-window:window
-
+  - id: desktop.NW.min-size-max-size-return-new-point
+    section: NativeWindow > Properties and closed-window rule
+    behavior: >-
+      minSize and maxSize return new Point values and setters truncate and forward both components.
+      In the reference these members exist only with Lime 8.1 or newer; the adapter exposes them
+      unconditionally within the class gate.
+    source:
+      - display/NativeWindow.hx:closed
+      - display/NativeWindow.hx:maxSize
+      - display/NativeWindow.hx:minSize
+    scenarios: []
+    notes: "Target conditions: #if lime."
+  - id: desktop.NW.activate-makes-window-visible-asks-host-focus
+    section: NativeWindow > Operations and event order
+    behavior: >-
+      activate() makes the window visible and asks the host to focus it. The reference waits for the
+      host focus callback before changing active state; the adapter calls its focus-in handler
+      synchronously after the request.
+    source:
+      - display/NativeWindow.hx:activate
+      - display/NativeWindow.hx:active
+      - display/NativeWindow.hx:visible
+    scenarios:
+      - desktop/native-window:window
+    notes: >-
+      Flight's fallback host does not emit a focus callback, so activate synchronizes active state
+      after requesting focus; real host callbacks remain idempotent.
   - id: desktop.NW.minimize-maximize-restore-issue-host-state-changes
-    section: "NativeWindow > Operations and event order"
-    behavior: >
-      minimize(), maximize(), and restore() issue host state changes. The adapter
-      explicitly restores the opposite extreme before minimizing or maximizing;
-      restore() returns to normal.
-    status: covered
+    section: NativeWindow > Operations and event order
+    behavior: >-
+      minimize(), maximize(), and restore() issue host state changes. The adapter explicitly
+      restores the opposite extreme before minimizing or maximizing; restore() returns to normal.
+    source:
+      - display/NativeWindow.hx:maximize
+      - display/NativeWindow.hx:minimize
+      - display/NativeWindow.hx:restore
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.first-focus-sets-active-application-active-window
-    section: "NativeWindow > Operations and event order"
-    behavior: >
-      A first focus-in sets active and application activeWindow, then dispatches
-      window ACTIVATE followed by application ACTIVATE. Repeated activation while
-      active is ignored. Focus-out clears state, dispatches application DEACTIVATE
-      when this was the active window, then dispatches the window's DEACTIVATE;
-      repeated deactivation is ignored.
-    status: covered
+    section: NativeWindow > Operations and event order
+    behavior: >-
+      A first focus-in sets active and application activeWindow, then dispatches window ACTIVATE
+      followed by application ACTIVATE. Repeated activation while active is ignored. Focus-out
+      clears state, dispatches application DEACTIVATE when this was the active window, then
+      dispatches the window's DEACTIVATE; repeated deactivation is ignored.
+    source:
+      - display/NativeWindow.hx:activate
+      - display/NativeWindow.hx:active
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.host-move-resize-events-carry-native-window
-    section: "NativeWindow > Operations and event order"
-    behavior: >
-      Host move/resize events carry NativeWindowBoundsEvent.MOVE or .RESIZE with
-      the saved old rectangle and current new rectangle, then update the saved
-      coordinates/dimensions. The adapter also updates its compatibility Window
-      and Stage logical size on resize.
-    status: covered
+    section: NativeWindow > Operations and event order
+    behavior: >-
+      Host move/resize events carry NativeWindowBoundsEvent.MOVE or .RESIZE with the saved old
+      rectangle and current new rectangle, then update the saved coordinates/dimensions. The adapter
+      also updates its compatibility Window and Stage logical size on resize.
+    source:
+      - display/NativeWindow.hx:bounds
+      - display/NativeWindow.hx:stage
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.minimize-maximize-restore-callbacks-dispatch-only-native
-    section: "NativeWindow > Operations and event order"
-    behavior: >
+    section: NativeWindow > Operations and event order
+    behavior: >-
       Minimize/maximize/restore callbacks dispatch only
-      NativeWindowDisplayStateEvent.DISPLAY_STATE_CHANGE, using the previously
-      observed state and respectively MINIMIZED, MAXIMIZED, or NORMAL. The 9.5.2
-      source does not dispatch the AIR DISPLAY_STATE_CHANGING event.
-    status: covered
+      NativeWindowDisplayStateEvent.DISPLAY_STATE_CHANGE, using the previously observed state and
+      respectively MINIMIZED, MAXIMIZED, or NORMAL. The 9.5.2 source does not dispatch the AIR
+      DISPLAY_STATE_CHANGING event.
+    source:
+      - display/NativeWindow.hx:displayState
+      - display/NativeWindow.hx:maximize
+      - display/NativeWindow.hx:minimize
+      - display/NativeWindow.hx:restore
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.programmatic-close-sets-skip-flag-before-requesting
-    section: "NativeWindow > Operations and event order"
-    behavior: >
-      Programmatic close() sets a skip flag before requesting close, so it does
-      not dispatch cancellable CLOSING. A user/host close request dispatches
-      non-bubbling, cancelable CLOSING; prevention cancels the host request.
-    status: covered
+    section: NativeWindow > Operations and event order
+    behavior: >-
+      Programmatic close() sets a skip flag before requesting close, so it does not dispatch
+      cancellable CLOSING. A user/host close request dispatches non-bubbling, cancelable CLOSING;
+      prevention cancels the host request.
+    source:
+      - display/NativeWindow.hx:close
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.accepted-close-owned-children-popped-closed-reverse
-    section: "NativeWindow > Operations and event order"
-    behavior: >
-      On accepted close, owned children are popped and closed in reverse ownership
-      order, the window becomes closed, it is removed from owner and application
-      lists, and CLOSE is dispatched last. The adapter additionally
-      unregisters/disposes the Flight handle and applies autoExit after the last
-      window.
-    status: covered
+    section: NativeWindow > Operations and event order
+    behavior: >-
+      On accepted close, owned children are popped and closed in reverse ownership order, the window
+      becomes closed, it is removed from owner and application lists, and CLOSE is dispatched last.
+      The adapter additionally unregisters/disposes the Flight handle and applies autoExit after the
+      last window.
+    source:
+      - display/NativeWindow.hx:close
+      - display/NativeWindow.hx:closed
+      - display/NativeWindow.hx:owner
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.actual-class-no-always-front-menu-order
-    section: "NativeWindow > AIR window operations not in 9.5.2"
-    behavior: >
-      The actual class has no alwaysInFront, menu, orderToFront, orderToBack,
-      orderInFrontOf, orderInBackOf, startMove, startResize, or globalToScreen
-      member. Mentions of startMove/startResize in comments do not create methods.
-      The adapter correctly does not claim these APIs.
-    status: covered
+    section: NativeWindow > AIR window operations not in 9.5.2
+    behavior: >-
+      The actual class has no alwaysInFront, menu, orderToFront, orderToBack, orderInFrontOf,
+      orderInBackOf, startMove, startResize, or globalToScreen member. Mentions of
+      startMove/startResize in comments do not create methods. The adapter correctly does not claim
+      these APIs.
+    source:
+      - display/NativeWindow.hx:new
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
   - id: desktop.NW.there-consequently-no-automatic-moving-resizing-changing
-    section: "NativeWindow > AIR window operations not in 9.5.2"
-    behavior: >
-      There are consequently no automatic MOVING, RESIZING,
-      DISPLAY_STATE_CHANGING, or menu/select behaviors to specify for the actual
-      9.5.2 non-Flash surface.
-    status: covered
+    section: NativeWindow > AIR window operations not in 9.5.2
+    behavior: >-
+      There are consequently no automatic MOVING, RESIZING, DISPLAY_STATE_CHANGING, or menu/select
+      behaviors to specify for the actual 9.5.2 non-Flash surface.
+    source:
+      - display/NativeWindow.hx:displayState
     scenarios:
-      - "desktop/native-window:window"
-
+      - desktop/native-window:window
+    notes: "Target conditions: #if !flash."
   - id: desktop.CB.general-clipboard-lazy-singleton-flagged-system-clipboard
-    section: "Clipboard"
-    behavior: >
-      generalClipboard is a lazy singleton flagged as the system clipboard;
-      Clipboard cannot be directly constructed publicly.
-    status: covered
+    section: Clipboard
+    behavior: >-
+      generalClipboard is a lazy singleton flagged as the system clipboard; Clipboard cannot be
+      directly constructed publicly.
+    source:
+      - desktop/Clipboard.hx:generalClipboard
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
     scenarios:
-      - "desktop/clipboard:generalSingletonStable"
-      - "desktop/clipboard:generalClipboardIsClipboard"
-
+      - desktop/clipboard:generalSingletonStable
+      - desktop/clipboard:generalClipboardIsClipboard
   - id: desktop.CB.synchronously-maps-all-three-supported-formats-lime
-    section: "Clipboard"
-    behavior: >
-      The reference synchronously maps all three supported formats to Lime's one
-      text slot. The adapter shadows its own writes so getData() and hasFormat()
-      remain synchronous, but cannot observe external host changes. Blocked by
-      Synchronous desktop clipboard reads.
-    status: flight-gap
-    gap: "Synchronous desktop clipboard reads"
+    section: Clipboard
+    behavior: >-
+      The reference synchronously maps all three supported formats to Lime's one text slot. The
+      adapter shadows its own writes so getData() and hasFormat() remain synchronous, but cannot
+      observe external host changes.
+    source:
+      - desktop/Clipboard.hx:formats
+      - desktop/Clipboard.hx:getData
+      - desktop/Clipboard.hx:hasFormat
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
     scenarios: []
-
+    notes: "Blocked on Flight gap \"Synchronous desktop clipboard reads\". Target conditions: #if lime."
   - id: desktop.CB.formats-newly-allocated-array-ordered-html-rich
-    section: "Clipboard"
-    behavior: >
-      formats is a newly allocated array ordered HTML, rich text, text and
-      includes each format for which hasFormat is true.
-    status: covered
+    section: Clipboard
+    behavior: >-
+      formats is a newly allocated array ordered HTML, rich text, text and includes each format for
+      which hasFormat is true.
+    source:
+      - desktop/Clipboard.hx:formats
+      - desktop/Clipboard.hx:hasFormat
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
     scenarios:
-      - "desktop/clipboard:formatsIsCopy"
-      - "desktop/clipboard:afterText"
-
+      - desktop/clipboard:formatsIsCopy
+      - desktop/clipboard:afterText
   - id: desktop.CB.clear-clears-all-three-local-values-host
-    section: "Clipboard"
-    behavior: >
-      clear() clears all three local values and the host clipboard. clearData()
-      clears just one format for a local clipboard, but any supported format
-      clears the entire system clipboard. Flight has the same whole-clipboard
-      limitation recorded in Synchronous desktop clipboard reads.
-    status: flight-gap
-    gap: "Synchronous desktop clipboard reads"
+    section: Clipboard
+    behavior: >-
+      clear() clears all three local values and the host clipboard. clearData() clears just one
+      format for a local clipboard, but any supported format clears the entire system clipboard.
+      Flight has the same whole-clipboard limitation recorded in Synchronous desktop clipboard
+      reads.
+    source:
+      - desktop/Clipboard.hx:clear
+      - desktop/Clipboard.hx:clearData
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
     scenarios: []
-
+    notes: "Blocked on Flight gap \"Synchronous desktop clipboard reads\". Target conditions: #if desktop."
   - id: desktop.CB.get-data-treats-null-transfer-mode-preferred
-    section: "Clipboard"
-    behavior: >
-      getData(format, transferMode = null) treats null transfer mode as
-      ORIGINAL_PREFERRED, but otherwise ignores transfer mode. Unsupported formats
-      return null. setData ignores serializable; supported text-like formats
-      return true and unsupported formats return false.
-    status: covered
+    section: Clipboard
+    behavior: >-
+      getData(format, transferMode = null) treats null transfer mode as ORIGINAL_PREFERRED, but
+      otherwise ignores transfer mode. Unsupported formats return null. setData ignores
+      serializable; supported text-like formats return true and unsupported formats return false.
+    source:
+      - desktop/Clipboard.hx:formats
+      - desktop/Clipboard.hx:getData
+      - desktop/Clipboard.hx:setData
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:ORIGINAL_PREFERRED
     scenarios:
-      - "desktop/clipboard:setText"
-      - "desktop/clipboard:setHtml"
-      - "desktop/clipboard:setRichText"
-      - "desktop/clipboard:unsupportedSet"
-
+      - desktop/clipboard:setText
+      - desktop/clipboard:setHtml
+      - desktop/clipboard:setRichText
+      - desktop/clipboard:unsupportedSet
   - id: desktop.CB.set-data-handler-calls-not-implemented-returns
-    section: "Clipboard"
-    behavior: >
-      The reference setDataHandler calls notImplemented() and returns false. The
-      adapter accepts a non-null handler for any supported format, reports that
-      format present, resolves it once on first getData, and routes the result
-      through setData. A null handler or unsupported format returns false.
-    status: covered
+    section: Clipboard
+    behavior: >-
+      The reference setDataHandler calls notImplemented() and returns false. The adapter accepts a
+      non-null handler for any supported format, reports that format present, resolves it once on
+      first getData, and routes the result through setData. A null handler or unsupported format
+      returns false.
+    source:
+      - desktop/Clipboard.hx:getData
+      - desktop/Clipboard.hx:setData
+      - desktop/Clipboard.hx:setDataHandler
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
     scenarios:
       - desktop/clipboard:handlerSet
-
   - id: desktop.CB.only-supports-file-promise-always-false-actual
-    section: "Clipboard"
-    behavior: >
-      Adapter-only supportsFilePromise is always false; the actual 9.5.2 Clipboard
-      has no such public member.
-    status: deviation
-    notes: >-
-      Intentional compatibility extension: the adapter exposes the AIR-style capability query and consistently reports false.
+    section: Clipboard
+    behavior: >-
+      Adapter-only supportsFilePromise is always false; the actual 9.5.2 Clipboard has no such
+      public member.
+    source:
+      - desktop/Clipboard.hx:generalClipboard
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
     scenarios:
       - desktop/clipboard:supportsFilePromise
-
+    notes: >-
+      Intentional compatibility extension: the adapter exposes the AIR-style capability query and
+      consistently reports false.
   - id: desktop.NP.sys-haxe-implementation-reports-supported-true-launches
-    section: "NativeProcess and startup records"
-    behavior: >
-      The reference sys/Haxe-4 implementation reports isSupported = true, launches
-      sys.io.Process, exposes working standard pipes, polls output/error on worker
-      threads, and delivers progress, IO-error, and exit events on ENTER_FRAME.
-      The adapter reports false and start(info) is a no-op. Blocked by Native
-      child-process flight-hx binding.
-    status: flight-gap
-    gap: "Native child-process flight-hx binding"
+    section: NativeProcess and startup records
+    behavior: >-
+      The reference sys/Haxe-4 implementation reports isSupported = true, launches sys.io.Process,
+      exposes working standard pipes, polls output/error on worker threads, and delivers progress,
+      IO-error, and exit events on ENTER_FRAME. The adapter reports false and start(info) is a
+      no-op.
+    source:
+      - desktop/NativeProcess.hx:exit
+      - desktop/NativeProcess.hx:isSupported
+      - desktop/NativeProcess.hx:output
+      - desktop/NativeProcess.hx:start
     scenarios: []
-
+    notes: "Blocked on Flight gap \"Native child-process flight-hx binding\". Target conditions: #if sys."
   - id: desktop.NP.newly-constructed-process-running-false-stable-standard
-    section: "NativeProcess and startup records"
-    behavior: >
-      A newly constructed adapter process has running == false and stable
-      standardInput, standardOutput, and standardError wrapper identities.
-      closeInput() and exit(force = false) do nothing when no process is active;
-      force is ignored even by the reference implementation.
-    status: covered
+    section: NativeProcess and startup records
+    behavior: >-
+      A newly constructed adapter process has running == false and stable standardInput,
+      standardOutput, and standardError wrapper identities. closeInput() and exit(force = false) do
+      nothing when no process is active; force is ignored even by the reference implementation.
+    source:
+      - desktop/NativeProcess.hx:closeInput
+      - desktop/NativeProcess.hx:exit
+      - desktop/NativeProcess.hx:input
+      - desktop/NativeProcess.hx:new
+      - desktop/NativeProcess.hx:output
+      - desktop/NativeProcess.hx:running
+      - desktop/NativeProcess.hx:standardError
+      - desktop/NativeProcess.hx:standardInput
+      - desktop/NativeProcess.hx:standardOutput
     scenarios:
-      - "desktop/native-process:process"
-
+      - desktop/native-process:process
   - id: desktop.NP.reading-writing-wrappers-before-process-active-throws
-    section: "NativeProcess and startup records"
-    behavior: >
-      Reading/writing the wrappers before a process is active throws Error ID
-      3212. With process support absent they never become usable in the adapter.
-    status: covered
+    section: NativeProcess and startup records
+    behavior: >-
+      Reading/writing the wrappers before a process is active throws Error ID 3212. With process
+      support absent they never become usable in the adapter.
+    source:
+      - desktop/NativeProcess.hx:mutex
+      - desktop/NativeProcess.hx:new
     scenarios:
-      - "desktop/native-process:process"
-
+      - desktop/native-process:process
   - id: desktop.NP.native-process-startup-info-new-leaves-public
-    section: "NativeProcess and startup records"
-    behavior: >
-      NativeProcessStartupInfo.new() leaves its public arguments, executable, and
-      workingDirectory fields at null. Reference start copies arguments in order,
-      temporarily applies workingDirectory, then restores the caller's current
-      directory.
-    status: covered
+    section: NativeProcess and startup records
+    behavior: >-
+      NativeProcessStartupInfo.new() leaves its public arguments, executable, and workingDirectory
+      fields at null. Reference start copies arguments in order, temporarily applies
+      workingDirectory, then restores the caller's current directory.
+    source:
+      - desktop/NativeProcess.hx:start
+      - desktop/NativeProcessStartupInfo.hx:arguments
+      - desktop/NativeProcessStartupInfo.hx:executable
+      - desktop/NativeProcessStartupInfo.hx:workingDirectory
     scenarios:
-      - "desktop/native-process:startupInfo"
-
+      - desktop/native-process:startupInfo
   - id: desktop.NP.process-object-io-supports-amf-0-amf
-    section: "NativeProcess and startup records"
-    behavior: >
-      Reference process object IO supports AMF0/AMF3/HXSF/JSON. The unreachable
-      adapter wrappers retain HXSF/JSON but not AMF. This narrower serialization
-      issue is also covered by Object wire formats.
-    status: flight-gap
-    gap: "Object wire formats"
+    section: NativeProcess and startup records
+    behavior: >-
+      Reference process object IO supports AMF0/AMF3/HXSF/JSON. The unreachable adapter wrappers
+      retain HXSF/JSON but not AMF. This narrower serialization issue is also covered by Object wire
+      formats.
+    source:
+      - desktop/NativeProcess.hx:bytesAvailable
+      - desktop/NativeProcess.hx:endian
+      - desktop/NativeProcess.hx:new
+      - desktop/NativeProcess.hx:objectEncoding
+      - desktop/NativeProcess.hx:readBoolean
+      - desktop/NativeProcess.hx:readByte
+      - desktop/NativeProcess.hx:readBytes
+      - desktop/NativeProcess.hx:readDouble
+      - desktop/NativeProcess.hx:readFloat
+      - desktop/NativeProcess.hx:readInt
+      - desktop/NativeProcess.hx:readMultiByte
+      - desktop/NativeProcess.hx:readObject
+      - desktop/NativeProcess.hx:readShort
+      - desktop/NativeProcess.hx:readUTF
+      - desktop/NativeProcess.hx:readUTFBytes
+      - desktop/NativeProcess.hx:readUnsignedByte
+      - desktop/NativeProcess.hx:readUnsignedInt
+      - desktop/NativeProcess.hx:readUnsignedShort
+      - desktop/NativeProcess.hx:writeBoolean
+      - desktop/NativeProcess.hx:writeByte
+      - desktop/NativeProcess.hx:writeBytes
+      - desktop/NativeProcess.hx:writeDouble
+      - desktop/NativeProcess.hx:writeFloat
+      - desktop/NativeProcess.hx:writeInt
+      - desktop/NativeProcess.hx:writeMultiByte
+      - desktop/NativeProcess.hx:writeObject
+      - desktop/NativeProcess.hx:writeShort
+      - desktop/NativeProcess.hx:writeUTF
+      - desktop/NativeProcess.hx:writeUTFBytes
+      - desktop/NativeProcess.hx:writeUnsignedInt
     scenarios: []
-
+    notes: Blocked on Flight gap "Object wire formats".
   - id: desktop.ICO.icon-event-dispatcher-new-creates-directly-mutable
-    section: "Icons and updater"
-    behavior: >
-      Icon is an EventDispatcher; new() creates a directly mutable empty
-      bitmaps:Array<BitmapData>. The implementation does not clone the array or
-      synchronize it to a host icon.
-    status: covered
+    section: Icons and updater
+    behavior: >-
+      Icon is an EventDispatcher; new() creates a directly mutable empty bitmaps:Array<BitmapData>.
+      The implementation does not clone the array or synchronize it to a host icon.
+    source:
+      - desktop/DockIcon.hx:new
+      - desktop/Icon.hx:bitmaps
+      - desktop/InteractiveIcon.hx:new
+      - desktop/SystemTrayIcon.hx:new
+      - desktop/Updater.hx:new
     scenarios:
-      - "desktop/native-window:icons"
-
+      - desktop/native-window:icons
   - id: desktop.ICO.interactive-icon-publicly-constructible-despite-documentation-contrary
-    section: "Icons and updater"
-    behavior: >
-      InteractiveIcon is publicly constructible despite documentation to the
-      contrary. Its read-only width and height are both permanently zero.
-    status: covered
+    section: Icons and updater
+    behavior: >-
+      InteractiveIcon is publicly constructible despite documentation to the contrary. Its read-only
+      width and height are both permanently zero.
+    source:
+      - desktop/DockIcon.hx:new
+      - desktop/Icon.hx:new
+      - desktop/InteractiveIcon.hx:height
+      - desktop/InteractiveIcon.hx:width
+      - desktop/SystemTrayIcon.hx:new
+      - desktop/Updater.hx:new
     scenarios:
-      - "desktop/native-window:icons"
-
+      - desktop/native-window:icons
   - id: desktop.ICO.dock-icon-publicly-constructible-bounce-always-throws
-    section: "Icons and updater"
-    behavior: >
-      DockIcon is publicly constructible. bounce(priority = INFORMATIONAL) always
-      throws IllegalOperationError("Not supported"); it has no menu member.
-    status: covered
+    section: Icons and updater
+    behavior: >-
+      DockIcon is publicly constructible. bounce(priority = INFORMATIONAL) always throws
+      IllegalOperationError("Not supported"); it has no menu member.
+    source:
+      - desktop/DockIcon.hx:bounce
+      - desktop/Icon.hx:new
+      - desktop/InteractiveIcon.hx:new
+      - desktop/SystemTrayIcon.hx:new
+      - desktop/Updater.hx:new
     scenarios:
-      - "desktop/native-window:icons"
-
+      - desktop/native-window:icons
   - id: desktop.ICO.system-tray-icon-length-construction-succeeds-tooltip
-    section: "Icons and updater"
-    behavior: >
-      SystemTrayIcon.MAX_TIP_LENGTH is 63. Construction succeeds and tooltip is an
-      unconstrained public string field; no truncation, icon host, click behavior,
-      or menu surface is implemented.
-    status: covered
+    section: Icons and updater
+    behavior: >-
+      SystemTrayIcon.MAX_TIP_LENGTH is 63. Construction succeeds and tooltip is an unconstrained
+      public string field; no truncation, icon host, click behavior, or menu surface is implemented.
+    source:
+      - desktop/DockIcon.hx:new
+      - desktop/Icon.hx:new
+      - desktop/InteractiveIcon.hx:new
+      - desktop/SystemTrayIcon.hx:MAX_TIP_LENGTH
+      - desktop/SystemTrayIcon.hx:new
+      - desktop/SystemTrayIcon.hx:tooltip
+      - desktop/Updater.hx:new
     scenarios:
-      - "desktop/native-window:icons"
-
+      - desktop/native-window:icons
   - id: desktop.ICO.updater-supported-false-new-succeeds-update-always
-    section: "Icons and updater"
-    behavior: >
-      Updater.isSupported is false. new() succeeds and update(airFile, version)
-      always throws IllegalOperationError("Not supported").
-    status: covered
+    section: Icons and updater
+    behavior: >-
+      Updater.isSupported is false. new() succeeds and update(airFile, version) always throws
+      IllegalOperationError("Not supported").
+    source:
+      - desktop/DockIcon.hx:new
+      - desktop/Icon.hx:new
+      - desktop/InteractiveIcon.hx:new
+      - desktop/SystemTrayIcon.hx:new
+      - desktop/Updater.hx:isSupported
+      - desktop/Updater.hx:update
     scenarios:
-      - "desktop/native-window:updaterSupported"
-
+      - desktop/native-window:updaterSupported
   - id: desktop.VAL.non-openfljs-builds-use-nullable-integer-backed
-    section: "Desktop value types"
-    behavior: >
-      Non-openfljs builds use nullable integer-backed abstracts with string
-      conversions; openfljs uses the strings directly. Unknown strings convert to
-      null. Values are: ; ClipboardFormats: HTML_FORMAT = "air:html",
-      RICH_TEXT_FORMAT = "air:rtf", TEXT_FORMAT = "air:text". ;
-      ClipboardTransferMode: CLONE_ONLY = "cloneOnly", CLONE_PREFERRED =
-      "clonePreferred", ORIGINAL_ONLY = "originalOnly", ORIGINAL_PREFERRED =
-      "originalPreferred". ; InvokeEventReason: LOGIN = "login", NOTIFICATION =
-      "notification", OPEN_URL = "openURL", STANDARD = "standard". ;
-      NotificationType: CRITICAL = "critical", INFORMATIONAL = "informational". ;
-      SystemIdleMode: KEEP_AWAKE = "keepAwake", NORMAL = "normal".
-    status: covered
+    section: Desktop value types
+    behavior: >-
+      Non-openfljs builds use nullable integer-backed abstracts with string conversions; openfljs
+      uses the strings directly. Unknown strings convert to null. Values are: ; ClipboardFormats:
+      HTML_FORMAT = "air:html", RICH_TEXT_FORMAT = "air:rtf", TEXT_FORMAT = "air:text". ;
+      ClipboardTransferMode: CLONE_ONLY = "cloneOnly", CLONE_PREFERRED = "clonePreferred",
+      ORIGINAL_ONLY = "originalOnly", ORIGINAL_PREFERRED = "originalPreferred". ; InvokeEventReason:
+      LOGIN = "login", NOTIFICATION = "notification", OPEN_URL = "openURL", STANDARD = "standard". ;
+      NotificationType: CRITICAL = "critical", INFORMATIONAL = "informational". ; SystemIdleMode:
+      KEEP_AWAKE = "keepAwake", NORMAL = "normal".
+    source:
+      - desktop/Clipboard.hx:formats
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardFormats.hx:RICH_TEXT_FORMAT
+      - desktop/ClipboardFormats.hx:TEXT_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
+      - desktop/ClipboardTransferMode.hx:CLONE_PREFERRED
+      - desktop/ClipboardTransferMode.hx:ORIGINAL_ONLY
+      - desktop/ClipboardTransferMode.hx:ORIGINAL_PREFERRED
+      - desktop/InvokeEventReason.hx:LOGIN
+      - desktop/InvokeEventReason.hx:NOTIFICATION
+      - desktop/InvokeEventReason.hx:OPEN_URL
+      - desktop/InvokeEventReason.hx:STANDARD
+      - desktop/NotificationType.hx:CRITICAL
+      - desktop/NotificationType.hx:INFORMATIONAL
+      - desktop/SystemIdleMode.hx:KEEP_AWAKE
+      - desktop/SystemIdleMode.hx:NORMAL
+      - display/NativeWindowDisplayState.hx:NORMAL
+      - display/NativeWindowSystemChrome.hx:STANDARD
+      - display/NativeWindowType.hx:NORMAL
     scenarios:
-      - "desktop/native-window:constants"
-      - "desktop/native-window:clipboard"
-
+      - desktop/native-window:constants
+      - desktop/native-window:clipboard
+    notes: "Target conditions: #if openfljs."
   - id: desktop.VAL.native-window-abstracts-these-string-conversions-native
-    section: "Desktop value types"
-    behavior: >
-      Native-window abstracts have these string conversions:
-      NativeWindowDisplayState is normal, maximized, minimized (integer values 0,
-      1, 2 respectively); NativeWindowSystemChrome is alternate, none, standard
-      (0, 1, 2); and NativeWindowType is lightweight, normal, utility (0, 1, 2).
-    status: covered
+    section: Desktop value types
+    behavior: >-
+      Native-window abstracts have these string conversions: NativeWindowDisplayState is normal,
+      maximized, minimized (integer values 0, 1, 2 respectively); NativeWindowSystemChrome is
+      alternate, none, standard (0, 1, 2); and NativeWindowType is lightweight, normal, utility (0,
+      1, 2).
+    source:
+      - desktop/ClipboardFormats.hx:HTML_FORMAT
+      - desktop/ClipboardTransferMode.hx:CLONE_ONLY
+      - desktop/InvokeEventReason.hx:STANDARD
+      - desktop/NotificationType.hx:CRITICAL
+      - desktop/SystemIdleMode.hx:NORMAL
+      - display/NativeWindowDisplayState.hx:MAXIMIZED
+      - display/NativeWindowDisplayState.hx:MINIMIZED
+      - display/NativeWindowDisplayState.hx:NORMAL
+      - display/NativeWindowSystemChrome.hx:ALTERNATE
+      - display/NativeWindowSystemChrome.hx:NONE
+      - display/NativeWindowSystemChrome.hx:STANDARD
+      - display/NativeWindowType.hx:LIGHTWEIGHT
+      - display/NativeWindowType.hx:NORMAL
+      - display/NativeWindowType.hx:UTILITY
     scenarios:
-      - "desktop/native-window:constants"
-      - "desktop/native-window:clipboard"
+      - desktop/native-window:constants
+      - desktop/native-window:clipboard

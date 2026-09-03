@@ -16,10 +16,12 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 SPEC_DIR="agents/specs"
 OPENFL_SRC=""
 
-# Find OpenFL source
+# Find OpenFL source. `haxelib path` may print compiler flags before the path,
+# so select its first absolute directory rather than blindly taking line one.
+haxelib_root="$(haxelib path openfl 2>/dev/null | awk '/^\// { print; exit }')"
 for candidate in \
   /home/agent/.haxelib/openfl/9,5,2/src/openfl \
-  "$(haxelib path openfl 2>/dev/null | head -1)openfl" \
+  "${haxelib_root%/}/openfl" \
   ; do
   if [[ -d "$candidate" ]]; then
     OPENFL_SRC="$candidate"
@@ -100,11 +102,16 @@ pkg_dirs = {
     'errors': 'errors',
 }
 
-public_members = {}  # 'relative/path.hx:member' -> True
+remaining_packages = {
+    'errors', 'external', 'filesystem', 'printing', 'profiler', 'sensors',
+    'security', 'globalization', 'permissions'
+}
+selected_packages = remaining_packages if filter_pkg == 'remaining' else {filter_pkg}
+
+all_public_members = {}       # all packages, used to validate cross-package provenance
+selected_public_members = {}  # requested package/logical group, used for uncovered reporting
 
 for pkg_name, pkg_subdir in sorted(pkg_dirs.items()):
-    if filter_pkg and pkg_name != filter_pkg:
-        continue
     pkg_path = os.path.join(openfl_src, pkg_subdir)
     if not os.path.isdir(pkg_path):
         continue
@@ -123,7 +130,9 @@ for pkg_name, pkg_subdir in sorted(pkg_dirs.items()):
                 if name.startswith('__') or name.startswith('_'):
                     continue
                 key = f'{rel}:{name}'
-                public_members[key] = True
+                all_public_members[key] = True
+                if not filter_pkg or pkg_name in selected_packages:
+                    selected_public_members[key] = True
 
 # Step 2: Collect source refs from specs
 spec_sources = {}  # 'relative/path.hx:member' -> [entry_id, ...]
@@ -144,15 +153,15 @@ for path in sorted(glob.glob(os.path.join(spec_dir, '*.yaml'))):
 
 # Step 3: Report
 if do_uncovered:
-    uncovered = [k for k in sorted(public_members) if k not in spec_sources]
-    print(f'=== Uncovered public members: {len(uncovered)} of {len(public_members)} ===')
+    uncovered = [k for k in sorted(selected_public_members) if k not in spec_sources]
+    print(f'=== Uncovered public members: {len(uncovered)} of {len(selected_public_members)} ===')
     print()
     for k in uncovered:
         print(f'  {k}')
     print()
 
 if do_stale:
-    stale = [k for k in sorted(spec_sources) if k not in public_members]
+    stale = [k for k in sorted(spec_sources) if k not in all_public_members]
     print(f'=== Stale source refs: {len(stale)} ===')
     print()
     for k in stale:
@@ -161,11 +170,11 @@ if do_stale:
     print()
 
 # Summary
-covered_count = len([k for k in public_members if k in spec_sources])
-print(f'Public members: {len(public_members)}')
+covered_count = len([k for k in selected_public_members if k in spec_sources])
+print(f'Public members: {len(selected_public_members)}')
 print(f'Covered by spec: {covered_count}')
-print(f'Uncovered: {len(public_members) - covered_count}')
-print(f'Stale refs: {len([k for k in spec_sources if k not in public_members])}')
+print(f'Uncovered: {len(selected_public_members) - covered_count}')
+print(f'Stale refs: {len([k for k in spec_sources if k not in all_public_members])}')
 " "$OPENFL_SRC" "$SPEC_DIR" "$filter_pkg" \
   "$($show_uncovered && echo 1 || echo 0)" \
   "$($show_stale && echo 1 || echo 0)"

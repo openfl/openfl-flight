@@ -1,649 +1,887 @@
 package: display3d
-
 entries:
-
   - id: display3d.S3D.stage-creates-stage-3-ds-eagerly-creates
-    section: "Stage3D"
-    behavior: >
-      Stage creates its stage3Ds eagerly: two on a mobile build and four
-      otherwise.
+    section: Stage3D
+    behavior: >-
+      Stage creates its stage3Ds eagerly: two on a mobile build and four otherwise.
       Stage3D.new(stage) itself is private/package-controlled.
-    status: covered
+    source:
+      - display/Stage.hx:stage3Ds
+      - display/Stage3D.hx:context3D
     scenarios:
       - display3d/core:stage3D
-
+    notes: "Target conditions: #if mobile."
   - id: display3d.S3D.new-instance-context-3-d-null-visible
-    section: "Stage3D"
-    behavior: >
-      A new instance has context3D == null, visible == true, and x == y == 0.
-      context3D is externally read-only; visible, x, and y are mutable.
-    status: covered
-    scenarios:
-      - "display3d/core:stage3D"
-
-  - id: display3d.S3D.x-y-changes-rebuild-stage-3-d
-    section: "Stage3D"
-    behavior: >
-      x/y changes rebuild the Stage3D render transform from the device-scaled
-      translation and projection matrix without replacing the public numeric
-      values.
-    status: covered
+    section: Stage3D
+    behavior: >-
+      A new instance has context3D == null, visible == true, and x == y == 0. context3D is
+      externally read-only; visible, x, and y are mutable.
+    source:
+      - display/Stage.hx:context3D
+      - display/Stage3D.hx:context3D
+      - display/Stage3D.hx:visible
+      - display/Stage3D.hx:x
+      - display/Stage3D.hx:y
+      - display3D/Context3D.hx:clear
     scenarios:
       - display3d/core:stage3D
-
-  - id: display3d.S3D.request-context-3-d-marks-one-request
-    section: "Stage3D"
-    behavior: >
-      Reference requestContext3D(renderMode = AUTO, profile = BASELINE) marks one
-      request pending and schedules creation after 1 ms. It shares or creates a
-      hardware context for OpenGL, can create a WebGL canvas for a DOM renderer,
-      and reports ErrorEvent.ERROR("Context3D not available") for unsupported
-      renderers. The adapter always takes that asynchronous error path and never
-      populates context3D. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
-    scenarios: []
-
-  - id: display3d.S3D.second-request-while-one-pending-ignored-if
-    section: "Stage3D"
-    behavior: >
-      A second request while one is pending is ignored. If a context already
-      exists, the reference asynchronously re-dispatches CONTEXT3D_CREATE rather
-      than creating another one. Request completion clears the pending flag before
-      dispatch.
-    status: covered
+  - id: display3d.S3D.x-y-changes-rebuild-stage-3-d
+    section: Stage3D
+    behavior: >-
+      x/y changes rebuild the Stage3D render transform from the device-scaled translation and
+      projection matrix without replacing the public numeric values.
+    source:
+      - display/Stage.hx:new
+      - display/Stage3D.hx:x
+      - display/Stage3D.hx:y
     scenarios:
-      - "display3d/core:acquisition"
-
-  - id: display3d.S3D.request-context-3-d-matching-profiles-ignores
-    section: "Stage3D"
-    behavior: >
-      requestContext3DMatchingProfiles(profiles) ignores the vector and calls
-      requestContext3D() in both sources; neither validates entries or chooses the
-      highest supplied profile as the API prose promises.
-    status: covered
+      - display3d/core:stage3D
+  - id: display3d.S3D.request-context-3-d-marks-one-request
+    section: Stage3D
+    behavior: >-
+      Reference requestContext3D(renderMode = AUTO, profile = BASELINE) marks one request pending
+      and schedules creation after 1 ms. It shares or creates a hardware context for OpenGL, can
+      create a WebGL canvas for a DOM renderer, and reports ErrorEvent.ERROR("Context3D not
+      available") for unsupported renderers. The adapter always takes that asynchronous error path
+      and never populates context3D.
+    source:
+      - display/Stage.hx:context3D
+      - display/Stage3D.hx:context3D
+      - display/Stage3D.hx:requestContext3D
+      - display3D/Context3D.hx:profile
+    scenarios: []
+    notes: Blocked on Flight gap "Raw Context3D command model".
+  - id: display3d.S3D.second-request-while-one-pending-ignored-if
+    section: Stage3D
+    behavior: >-
+      A second request while one is pending is ignored. If a context already exists, the reference
+      asynchronously re-dispatches CONTEXT3D_CREATE rather than creating another one. Request
+      completion clears the pending flag before dispatch.
+    source:
+      - display/Stage.hx:context3D
+      - display/Stage3D.hx:context3D
+      - display3D/Context3D.hx:clear
     scenarios:
       - display3d/core:acquisition
-
+  - id: display3d.S3D.request-context-3-d-matching-profiles-ignores
+    section: Stage3D
+    behavior: >-
+      requestContext3DMatchingProfiles(profiles) ignores the vector and calls requestContext3D() in
+      both sources; neither validates entries or chooses the highest supplied profile as the API
+      prose promises.
+    source:
+      - display/Stage.hx:context3D
+      - display/Stage3D.hx:context3D
+      - display/Stage3D.hx:requestContext3D
+      - display/Stage3D.hx:requestContext3DMatchingProfiles
+      - display3D/Context3D.hx:profile
+    scenarios:
+      - display3d/core:acquisition
   - id: display3d.S3D.resize-updates-optional-dom-canvas-projection-matrix
-    section: "Stage3D"
-    behavior: >
-      Resize updates width/height, the projection matrix, and the device-scaled
-      render translation; the reference additionally resizes an optional DOM
-      canvas when that backend exists.
-    status: covered
+    section: Stage3D
+    behavior: >-
+      Resize updates width/height, the projection matrix, and the device-scaled render translation;
+      the reference additionally resizes an optional DOM canvas when that backend exists.
+    source:
+      - display/Stage.hx:new
+      - display/Stage3D.hx:context3D
     scenarios:
       - display3d/core:stage3D
-
   - id: display3d.S3D.context-loss-disposes-context-remembers-that-recreation
-    section: "Stage3D"
-    behavior: >
-      On context loss the reference disposes the context and remembers that a
-      recreation is pending; restoration creates it and emits the creation event.
-      The adapter nulls context3D, but restoration can only emit the unavailable
-      error. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Stage3D
+    behavior: >-
+      On context loss the reference disposes the context and remembers that a recreation is pending;
+      restoration creates it and emits the creation event. The adapter nulls context3D, but
+      restoration can only emit the unavailable error.
+    source:
+      - display/Stage.hx:context3D
+      - display/Stage3D.hx:context3D
+      - display3D/Context3D.hx:clear
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.context-3-d-final-cannot-publicly-constructed
-    section: "Context3D > Construction and properties"
-    behavior: >
-      Context3D is final and cannot be publicly constructed. The reference
-      constructor captures Stage/Stage3D and a real GL context, allocates command
-      state and AGAL constant registers, queries GL capabilities, and creates its
-      shared quad index buffer. The adapter constructor creates only a resource
-      shell. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Construction and properties
+    behavior: >-
+      Context3D is final and cannot be publicly constructed. The reference constructor captures
+      Stage/Stage3D and a real GL context, allocates command state and AGAL constant registers,
+      queries GL capabilities, and creates its shared quad index buffer. The adapter constructor
+      creates only a resource shell.
+    source:
+      - display3D/Context3D.hx:clear
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.supports-video-texture-true-only-js-html
-    section: "Context3D > Construction and properties"
-    behavior: >
-      supportsVideoTexture is true only for js && html5 in both sources.
-    status: covered
+    section: Context3D > Construction and properties
+    behavior: supportsVideoTexture is true only for js && html5 in both sources.
+    source:
+      - display3D/Context3D.hx:supportsVideoTexture
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/VideoTexture.hx:attachNetStream
     scenarios:
-      - "display3d/core:context"
-
+      - display3d/core:context
+    notes: "Target conditions: #if html5."
   - id: display3d.C3D.back-buffer-width-back-buffer-height-begin
-    section: "Context3D > Construction and properties"
-    behavior: >
-      backBufferWidth and backBufferHeight begin at zero in both. Reference
-      configureBackBuffer may DPI-scale its arguments and builds real back/front
-      targets; the adapter only assigns the two requested integers.
-    status: deviation
-    notes: >-
-      Observable dimensions and configuration state match; Flight exposes no Context3D render-target seam for OpenFL's private back/front attachment allocation.
+    section: Context3D > Construction and properties
+    behavior: >-
+      backBufferWidth and backBufferHeight begin at zero in both. Reference configureBackBuffer may
+      DPI-scale its arguments and builds real back/front targets; the adapter only assigns the two
+      requested integers.
+    source:
+      - display3D/Context3D.hx:backBufferHeight
+      - display3D/Context3D.hx:backBufferWidth
+      - display3D/Context3D.hx:configureBackBuffer
     scenarios:
       - display3d/core:context
-
+    notes: >-
+      Observable dimensions and configuration state match; Flight exposes no Context3D render-target
+      seam for OpenFL's private back/front attachment allocation.
   - id: display3d.C3D.driver-info-starts-open-gl-direct-blitting
-    section: "Context3D > Construction and properties"
-    behavior: >
-      driverInfo starts as "OpenGL (Direct blitting)", but the reference replaces
-      it with queried vendor/version/renderer/GLSL details and appends "
-      (Disposed)" on internal disposal. The adapter never changes the default.
-    status: deviation
-    notes: >-
-      The initial and disposed suffix contracts match, but Flight does not expose the active GL vendor/version query used by the reference.
+    section: Context3D > Construction and properties
+    behavior: >-
+      driverInfo starts as "OpenGL (Direct blitting)", but the reference replaces it with queried
+      vendor/version/renderer/GLSL details and appends " (Disposed)" on internal disposal. The
+      adapter never changes the default.
+    source:
+      - display3D/Context3D.hx:driverInfo
     scenarios:
       - display3d/core:context
-
+    notes: >-
+      The initial and disposed suffix contracts match, but Flight does not expose the active GL
+      vendor/version query used by the reference.
   - id: display3d.C3D.max-back-buffer-width-max-back-buffer
-    section: "Context3D > Construction and properties"
-    behavior: >
-      maxBackBufferWidth and maxBackBufferHeight are the queried maximum GL
-      viewport dimension in the reference; they are zero in the adapter.
-    status: deviation
-    notes: >-
-      The zero fallback is covered; Flight exposes no Context3D viewport-limit query, so a live GL maximum cannot replace it.
+    section: Context3D > Construction and properties
+    behavior: >-
+      maxBackBufferWidth and maxBackBufferHeight are the queried maximum GL viewport dimension in
+      the reference; they are zero in the adapter.
+    source:
+      - display3D/Context3D.hx:backBufferHeight
+      - display3D/Context3D.hx:backBufferWidth
+      - display3D/Context3D.hx:maxBackBufferHeight
+      - display3D/Context3D.hx:maxBackBufferWidth
     scenarios:
       - display3d/core:context
-
+    notes: >-
+      The zero fallback is covered; Flight exposes no Context3D viewport-limit query, so a live GL
+      maximum cannot replace it.
   - id: display3d.C3D.profile-externally-read-only-defaults-standard
-    section: "Context3D > Construction and properties"
-    behavior: >
-      profile is externally read-only and defaults to STANDARD in both.
-    status: covered
+    section: Context3D > Construction and properties
+    behavior: profile is externally read-only and defaults to STANDARD in both.
+    source:
+      - display3D/Context3D.hx:profile
     scenarios:
-      - "display3d/core:context"
-
+      - display3d/core:context
   - id: display3d.C3D.enable-error-checking-local-mutable-boolean-state
-    section: "Context3D > Construction and properties"
-    behavior: >
-      enableErrorChecking is adapter-local mutable Boolean state defaulting to
-      false in both public implementations.
-    status: covered
+    section: Context3D > Construction and properties
+    behavior: >-
+      enableErrorChecking is adapter-local mutable Boolean state defaulting to false in both public
+      implementations.
+    source:
+      - display3D/Context3D.hx:enableErrorChecking
     scenarios:
-      - "display3d/core:context"
-
+      - display3d/core:context
   - id: display3d.C3D.total-gpu-memory-returns-difference-between-total
-    section: "Context3D > Construction and properties"
-    behavior: >
-      totalGPUMemory returns the difference between total/current NVX memory in
-      bytes when that extension exists, otherwise zero. The adapter always returns
-      zero.
-    status: deviation
-    notes: >-
-      The portable zero fallback is covered; Flight exposes no NVX GPU-memory extension query.
+    section: Context3D > Construction and properties
+    behavior: >-
+      totalGPUMemory returns the difference between total/current NVX memory in bytes when that
+      extension exists, otherwise zero. The adapter always returns zero.
+    source:
+      - display3D/Context3D.hx:totalGPUMemory
     scenarios:
       - display3d/core:context
-
+    notes: The portable zero fallback is covered; Flight exposes no NVX GPU-memory extension query.
   - id: display3d.C3D.create-program-create-index-buffer-create-vertex
-    section: "Context3D > Resource factories"
-    behavior: >
-      createProgram(format = AGAL), createIndexBuffer(numIndices, usage =
-      STATIC_DRAW), and createVertexBuffer(numVertices, data32PerVertex, usage =
-      STATIC_DRAW) return private-constructed resource objects retaining their
-      context, sizes/stride inputs, and format/usage intent.
-    status: covered
+    section: Context3D > Resource factories
+    behavior: >-
+      createProgram(format = AGAL), createIndexBuffer(numIndices, usage = STATIC_DRAW), and
+      createVertexBuffer(numVertices, data32PerVertex, usage = STATIC_DRAW) return
+      private-constructed resource objects retaining their context, sizes/stride inputs, and
+      format/usage intent.
+    source:
+      - display3D/Context3D.hx:createIndexBuffer
+      - display3D/Context3D.hx:createProgram
+      - display3D/Context3D.hx:createVertexBuffer
     scenarios:
-      - "display3d/core:context"
-
+      - display3d/core:context
   - id: display3d.C3D.create-texture-create-rectangle-texture-create-cube
-    section: "Context3D > Resource factories"
-    behavior: >
-      createTexture(width, height, format, optimizeForRenderToTexture,
-      streamingLevels = 0), createRectangleTexture(width, height, format,
-      optimizeForRenderToTexture), and createCubeTexture(size, format,
-      optimizeForRenderToTexture, streamingLevels = 0) return the corresponding
-      texture subclasses. The adapter retains dimensions/options internally and
+    section: Context3D > Resource factories
+    behavior: >-
+      createTexture(width, height, format, optimizeForRenderToTexture, streamingLevels = 0),
+      createRectangleTexture(width, height, format, optimizeForRenderToTexture), and
+      createCubeTexture(size, format, optimizeForRenderToTexture, streamingLevels = 0) return the
+      corresponding texture subclasses. The adapter retains dimensions/options internally and
       creates a Flight texture handle.
-    status: covered
+    source:
+      - display3D/Context3D.hx:createCubeTexture
+      - display3D/Context3D.hx:createRectangleTexture
+      - display3D/Context3D.hx:createTexture
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
     scenarios:
-      - "display3d/core:context"
-
+      - display3d/core:context
   - id: display3d.C3D.create-video-texture-returns-texture-only-html
-    section: "Context3D > Resource factories"
-    behavior: >
-      createVideoTexture() returns a texture only on js && html5 and otherwise
-      throws Error("Video textures are not supported on this platform"), matching
-      supportsVideoTexture.
-    status: covered
+    section: Context3D > Resource factories
+    behavior: >-
+      createVideoTexture() returns a texture only on js && html5 and otherwise throws Error("Video
+      textures are not supported on this platform"), matching supportsVideoTexture.
+    source:
+      - display3D/Context3D.hx:createVideoTexture
+      - display3D/Context3D.hx:supportsVideoTexture
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/VideoTexture.hx:attachNetStream
     scenarios:
       - display3d/core:context
-
+    notes: "Target conditions: #if html5."
   - id: display3d.C3D.clear-applies-exactly-selected-context-3-d
-    section: "Context3D > Back buffer, draw, and presentation commands"
-    behavior: >
-      clear(red, green, blue, alpha, depth, stencil, mask) applies exactly the
-      selected Context3DClearMask attachments, temporarily forces writable masks,
-      and clears the active framebuffer. The adapter is a no-op. Blocked by Raw
-      Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Back buffer, draw, and presentation commands
+    behavior: >-
+      clear(red, green, blue, alpha, depth, stencil, mask) applies exactly the selected
+      Context3DClearMask attachments, temporarily forces writable masks, and clears the active
+      framebuffer. The adapter is a no-op.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/Context3DClearMask.hx:DEPTH
+      - display3D/Context3DClearMask.hx:STENCIL
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.configure-back-buffer-retains-all-requested-state
-    section: "Context3D > Back buffer, draw, and presentation commands"
-    behavior: >
+    section: Context3D > Back buffer, draw, and presentation commands
+    behavior: >-
       configureBackBuffer(width, height, antiAlias, enableDepthAndStencil = true,
-      wantsBestResolution = false, wantsBestResolutionOnBrowserZoom = false)
-      retains all requested state and creates/resizes Stage3D double buffers in
-      the reference. Only width/height are retained by the adapter; GPU
-      configuration is blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+      wantsBestResolution = false, wantsBestResolutionOnBrowserZoom = false) retains all requested
+      state and creates/resizes Stage3D double buffers in the reference. Only width/height are
+      retained by the adapter; GPU configuration is
+    source:
+      - display3D/Context3D.hx:backBufferWidth
+      - display3D/Context3D.hx:configureBackBuffer
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.draw-triangles-flushes-pending-render-state-program
-    section: "Context3D > Back buffer, draw, and presentation commands"
-    behavior: >
-      drawTriangles(indexBuffer, firstIndex = 0, numTriangles = -1) flushes
-      pending render state/program constants, binds the index buffer, and calls
-      indexed triangle drawing for all indices or numTriangles * 3, with a
-      two-byte offset per first index. The adapter is a no-op. Blocked by Raw
-      Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Back buffer, draw, and presentation commands
+    behavior: >-
+      drawTriangles(indexBuffer, firstIndex = 0, numTriangles = -1) flushes pending render
+      state/program constants, binds the index buffer, and calls indexed triangle drawing for all
+      indices or numTriangles * 3, with a two-byte offset per first index. The adapter is a no-op.
+    source:
+      - display3D/Context3D.hx:drawTriangles
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.present-returns-back-buffer-performs-implicit-transparent
-    section: "Context3D > Back buffer, draw, and presentation commands"
-    behavior: >
-      present() returns to the back buffer, performs an implicit transparent clear
-      if necessary, swaps Stage3D front/back textures, and marks the context for
-      presentation. The adapter is a no-op. Blocked by Raw Context3D command
-      model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Back buffer, draw, and presentation commands
+    behavior: >-
+      present() returns to the back buffer, performs an implicit transparent clear if necessary,
+      swaps Stage3D front/back textures, and marks the context for presentation. The adapter is a
+      no-op.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/Context3D.hx:present
+      - display3D/textures/Texture.hx:uploadFromBitmapData
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.draw-bitmap-data-null-destination-no-op
-    section: "Context3D > Back buffer, draw, and presentation commands"
-    behavior: >
-      drawToBitmapData(destination, srcRect = null, destPoint = null) is a
-      null-destination no-op; otherwise it copies host-window pixels for the Stage
-      context or reads the Stage3D framebuffer and restores its former render
-      target. The adapter never changes the destination. Blocked by Context3D
-      texture bridges.
-    status: flight-gap
-    gap: "Context3D texture bridges"
+    section: Context3D > Back buffer, draw, and presentation commands
+    behavior: >-
+      drawToBitmapData(destination, srcRect = null, destPoint = null) is a null-destination no-op;
+      otherwise it copies host-window pixels for the Stage context or reads the Stage3D framebuffer
+      and restores its former render target. The adapter never changes the destination.
+    source:
+      - display3D/Context3D.hx:drawToBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
     scenarios: []
-
+    notes: Blocked on Flight gap "Context3D texture bridges".
   - id: display3d.C3D.dispose-nulls-gl-handle-releases-context-3
-    section: "Context3D > Back buffer, draw, and presentation commands"
-    behavior: >
-      dispose(recreate = true) nulls the GL handle, appends the disposed driver
-      marker once, clears Stage3D buffer/context ownership, and releases Stage and
-      Stage3D references; recreate is not otherwise inspected.
-    status: covered
+    section: Context3D > Back buffer, draw, and presentation commands
+    behavior: >-
+      dispose(recreate = true) nulls the GL handle, appends the disposed driver marker once, clears
+      Stage3D buffer/context ownership, and releases Stage and Stage3D references; recreate is not
+      otherwise inspected.
+    source:
+      - display3D/Context3D.hx:dispose
     scenarios:
       - display3d/core:context
-
   - id: display3d.C3D.set-blend-factors-uses-same-factors-rgb
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setBlendFactors(sourceFactor, destinationFactor) uses the same factors for
-      RGB and alpha with add blending. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setBlendFactors(sourceFactor, destinationFactor) uses the same factors for RGB and alpha with
+      add blending.
+    source:
+      - display3D/Context3D.hx:setBlendFactors
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-color-mask-controls-four-attachment-write
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setColorMask(red, green, blue, alpha) controls four attachment write
-      channels. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: setColorMask(red, green, blue, alpha) controls four attachment write channels.
+    source:
+      - display3D/Context3D.hx:setColorMask
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-culling-selects-no-back-front-face
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setCulling(triangleFaceToCull) selects no/back/front/both-face culling;
-      invalid values fail when flushed. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setCulling(triangleFaceToCull) selects no/back/front/both-face culling; invalid values fail
+      when flushed.
+    source:
+      - display3D/Context3D.hx:setCulling
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-depth-test-retains-depth-write-compare
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setDepthTest(depthMask, passCompareMode) retains depth write and compare
-      state; actual writes are also gated by the selected target's depth/stencil
-      capability. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setDepthTest(depthMask, passCompareMode) retains depth write and compare state; actual writes
+      are also gated by the selected target's depth/stencil capability.
+    source:
+      - display3D/Context3D.hx:setDepthTest
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-program-selects-agal-glsl-program-copies
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setProgram(program) selects the AGAL/GLSL program and copies its sampler
-      defaults into still-unset sampler slots. Blocked by Raw Context3D command
-      model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setProgram(program) selects the AGAL/GLSL program and copies its sampler defaults into
+      still-unset sampler slots.
+    source:
+      - display3D/Context3D.hx:setProgram
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-program-constants-byte-array-set-program
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setProgramConstantsFromByteArray(programType, firstRegister, numRegisters,
-      data, byteArrayOffset), setProgramConstantsFromMatrix(..., transposedMatrix
-      = false), and setProgramConstantsFromVector(..., numRegisters = -1) populate
-      vertex/fragment register banks and dirty the selected range; zero registers
-      is a no-op and -1 derives a count. The adapter retains no constants. Blocked
-      by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setProgramConstantsFromByteArray(programType, firstRegister, numRegisters, data,
+      byteArrayOffset), setProgramConstantsFromMatrix(..., transposedMatrix = false), and
+      setProgramConstantsFromVector(..., numRegisters = -1) populate vertex/fragment register banks
+      and dirty the selected range; zero registers is a no-op and -1 derives a count. The adapter
+      retains no constants.
+    source:
+      - display3D/Context3D.hx:setProgram
+      - display3D/Context3D.hx:setProgramConstantsFromByteArray
+      - display3D/Context3D.hx:setProgramConstantsFromMatrix
+      - display3D/Context3D.hx:setProgramConstantsFromVector
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-render-back-buffer-clears-active-texture
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setRenderToBackBuffer() clears the active texture target;
-      setRenderToTexture(texture, enableDepthAndStencil = false, antiAlias = 0,
-      surfaceSelector = 0) retains all target options. Both adapter methods are
-      no-ops. The latter is also blocked by Context3D texture bridges.
-    status: flight-gap
-    gap: "Context3D texture bridges"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setRenderToBackBuffer() clears the active texture target; setRenderToTexture(texture,
+      enableDepthAndStencil = false, antiAlias = 0, surfaceSelector = 0) retains all target options.
+      Both adapter methods are no-ops. The latter is also
+    source:
+      - display3D/Context3D.hx:setRenderToBackBuffer
+      - display3D/Context3D.hx:setRenderToTexture
+      - display3D/textures/Texture.hx:uploadFromBitmapData
     scenarios: []
-
+    notes: Blocked on Flight gap "Context3D texture bridges".
   - id: display3d.C3D.set-sampler-state-creates-reuses-one-sampler
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setSamplerStateAt(sampler, wrap, filter, mipfilter) creates/reuses one
-      sampler-state record per slot. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setSamplerStateAt(sampler, wrap, filter, mipfilter) creates/reuses one sampler-state record
+      per slot.
+    source:
+      - display3D/Context3D.hx:setSamplerStateAt
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-scissor-rectangle-copies-non-null-rectangle
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setScissorRectangle(rectangle) copies a non-null rectangle and enables
-      scissoring; null disables it. The copy prevents later caller mutation from
-      changing the state. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setScissorRectangle(rectangle) copies a non-null rectangle and enables scissoring; null
+      disables it. The copy prevents later caller mutation from changing the state.
+    source:
+      - display3D/Context3D.hx:setScissorRectangle
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-stencil-actions-set-stencil-value-retain
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setStencilActions(triangleFace = FRONT_AND_BACK, compareMode = ALWAYS,
-      actionOnBothPass = KEEP, actionOnDepthFail = KEEP,
-      actionOnDepthPassStencilFail = KEEP) and
-      setStencilReferenceValue(referenceValue, readMask = 0xFF, writeMask = 0xFF)
-      retain the complete stencil state. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setStencilActions(triangleFace = FRONT_AND_BACK, compareMode = ALWAYS, actionOnBothPass =
+      KEEP, actionOnDepthFail = KEEP, actionOnDepthPassStencilFail = KEEP) and
+      setStencilReferenceValue(referenceValue, readMask = 0xFF, writeMask = 0xFF) retain the
+      complete stencil state.
+    source:
+      - display3D/Context3D.hx:setStencilActions
+      - display3D/Context3D.hx:setStencilReferenceValue
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-texture-assigns-or-clears-texture-slot
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setTextureAt(sampler, texture) assigns or clears a texture slot. Blocked by
-      Raw Context3D command model and, for render-target/raw uploads, by Context3D
-      texture bridges.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: setTextureAt(sampler, texture) assigns or clears a texture slot.
+    source:
+      - display3D/Context3D.hx:setTextureAt
+      - display3D/textures/Texture.hx:uploadFromBitmapData
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-vertex-buffer-no-op-negative-index
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setVertexBufferAt(index, buffer, bufferOffset = 0, format = FLOAT_4) is a
-      no-op for a negative index, disables that attribute for null buffer, and
-      otherwise binds a 1-4 float or normalized four-byte view with byte offset
-      bufferOffset * 4; invalid format throws IllegalOperationError. The adapter
-      performs none of this. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setVertexBufferAt(index, buffer, bufferOffset = 0, format = FLOAT_4) is a no-op for a negative
+      index, disables that attribute for null buffer, and otherwise binds a 1-4 float or normalized
+      four-byte view with byte offset bufferOffset * 4; invalid format throws IllegalOperationError.
+      The adapter performs none of this.
+    source:
+      - display3D/Context3D.hx:setVertexBufferAt
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.C3D.set-fill-mode-not-part-open-fl
-    section: "Context3D > Pipeline state and binding commands"
-    behavior: >
-      setFillMode is not part of the OpenFL 9.5.2 Context3D surface and the
-      adapter correctly does not add it.
-    status: covered
+    section: Context3D > Pipeline state and binding commands
+    behavior: >-
+      setFillMode is not part of the OpenFL 9.5.2 Context3D surface and the adapter correctly does
+      not add it.
+    source:
+      - display3D/Context3D.hx:clear
     scenarios:
-      - "display3d/core:context"
-
+      - display3d/core:context
   - id: display3d.P3D.program-3-d-final-private-constructed-agal
-    section: "Programs and buffers > Program3D"
-    behavior: >
-      Program3D is final/private-constructed. Reference AGAL construction creates
-      sampler/uniform registries; GLSL construction creates attribute, sampler,
-      uniform-name/type/location arrays. Adapter construction retains only context
-      and requested format. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Programs and buffers > Program3D
+    behavior: >-
+      Program3D is final/private-constructed. Reference AGAL construction creates sampler/uniform
+      registries; GLSL construction creates attribute, sampler, uniform-name/type/location arrays.
+      Adapter construction retains only context and requested format.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/IndexBuffer3D.hx:uploadFromVector
+      - display3D/Program3D.hx:context
+      - display3D/Program3D.hx:location
+      - display3D/Program3D.hx:name
+      - display3D/Program3D.hx:new
+      - display3D/Program3D.hx:type
+      - display3D/VertexBuffer3D.hx:uploadFromVector
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.P3D.agal-get-attribute-index-get-constant-index
-    section: "Programs and buffers > Program3D"
-    behavior: >
-      For AGAL, getAttributeIndex("vaN") and getConstantIndex("vcN"|"fcN") return
-      Std.parseInt(N), including a null runtime value for a matching non-numeric
-      suffix despite the declared Int return; other prefixes return -1.
-    status: covered
+    section: Programs and buffers > Program3D
+    behavior: >-
+      For AGAL, getAttributeIndex("vaN") and getConstantIndex("vcN"|"fcN") return Std.parseInt(N),
+      including a null runtime value for a matching non-numeric suffix despite the declared Int
+      return; other prefixes return -1.
+    source:
+      - display3D/IndexBuffer3D.hx:uploadFromVector
+      - display3D/Program3D.hx:flush
+      - display3D/Program3D.hx:getAttributeIndex
+      - display3D/Program3D.hx:getConstantIndex
+      - display3D/Program3D.hx:isDirty
+      - display3D/Program3D.hx:markAllDirty
+      - display3D/Program3D.hx:markDirty
+      - display3D/Program3D.hx:regCount
+      - display3D/Program3D.hx:regData
+      - display3D/Program3D.hx:regDataPointer
+      - display3D/Program3D.hx:regIndex
+      - display3D/Program3D.hx:size
+      - display3D/VertexBuffer3D.hx:uploadFromVector
     scenarios:
       - display3d/core:context
-
   - id: display3d.P3D.glsl-methods-search-linked-attribute-names-or
-    section: "Programs and buffers > Program3D"
-    behavior: >
-      For GLSL, the reference methods search linked attribute names or return the
-      stored uniform location cast to an integer. The adapter always returns -1
-      because it never links a program. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Programs and buffers > Program3D
+    behavior: >-
+      For GLSL, the reference methods search linked attribute names or return the stored uniform
+      location cast to an integer. The adapter always returns -1 because it never links a program.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/IndexBuffer3D.hx:uploadFromVector
+      - display3D/Program3D.hx:location
+      - display3D/VertexBuffer3D.hx:uploadFromVector
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.P3D.upload-acts-only-agal-it-converts-bytecodes
-    section: "Programs and buffers > Program3D"
-    behavior: >
-      upload(vertexProgram, fragmentProgram) acts only for AGAL: it converts both
-      bytecodes to GLSL, deletes prior shaders, compiles/links, builds uniform
-      mappings, and adopts converted sampler state. uploadSources(vertexSource,
-      fragmentSource) acts only for GLSL: it prefixes precision declarations,
-      skips identical sources, parses declared attributes/uniforms/samplers, then
+    section: Programs and buffers > Program3D
+    behavior: >-
+      upload(vertexProgram, fragmentProgram) acts only for AGAL: it converts both bytecodes to GLSL,
+      deletes prior shaders, compiles/links, builds uniform mappings, and adopts converted sampler
+      state. uploadSources(vertexSource, fragmentSource) acts only for GLSL: it prefixes precision
+      declarations, skips identical sources, parses declared attributes/uniforms/samplers, then
       compiles/links and resolves locations. Both are no-ops in the adapter.
-      Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/IndexBuffer3D.hx:uploadFromVector
+      - display3D/Program3D.hx:upload
+      - display3D/Program3D.hx:uploadSources
+      - display3D/VertexBuffer3D.hx:uploadFromVector
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.P3D.dispose-deletes-shader-resources-it-no-op
-    section: "Programs and buffers > Program3D"
-    behavior: >
-      dispose() deletes reference shader resources; it is a no-op in the adapter.
-      Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Programs and buffers > Program3D
+    behavior: dispose() deletes reference shader resources; it is a no-op in the adapter.
+    source:
+      - display3D/Context3D.hx:dispose
+      - display3D/IndexBuffer3D.hx:dispose
+      - display3D/Program3D.hx:dispose
+      - display3D/VertexBuffer3D.hx:dispose
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.P3D.construction-creates-gl-buffer-selects-dynamic-static
-    section: "Programs and buffers > IndexBuffer3D and VertexBuffer3D"
-    behavior: >
-      Reference construction creates a GL buffer and selects dynamic/static GL
-      usage. IndexBuffer3D retains index count; VertexBuffer3D retains vertex
-      count, 32-bit values per vertex, and byte stride. Adapter shells retain the
-      counts (and vertex size) but allocate no buffer. Blocked by Raw Context3D
-      command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Programs and buffers > IndexBuffer3D and VertexBuffer3D
+    behavior: >-
+      Reference construction creates a GL buffer and selects dynamic/static GL usage. IndexBuffer3D
+      retains index count; VertexBuffer3D retains vertex count, 32-bit values per vertex, and byte
+      stride. Adapter shells retain the counts (and vertex size) but allocate no buffer.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/IndexBuffer3D.hx:uploadFromVector
+      - display3D/VertexBuffer3D.hx:uploadFromVector
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.P3D.each-dispose-deletes-gl-buffer-no-op
-    section: "Programs and buffers > IndexBuffer3D and VertexBuffer3D"
-    behavior: >
-      Each dispose() deletes its GL buffer in the reference and is a no-op in the
-      adapter. Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Programs and buffers > IndexBuffer3D and VertexBuffer3D
+    behavior: Each dispose() deletes its GL buffer in the reference and is a no-op in the adapter.
+    source:
+      - display3D/Context3D.hx:dispose
+      - display3D/IndexBuffer3D.hx:dispose
+      - display3D/VertexBuffer3D.hx:dispose
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.P3D.index-upload-byte-array-views-count-u
-    section: "Programs and buffers > IndexBuffer3D and VertexBuffer3D"
-    behavior: >
-      Index uploadFromByteArray(data, byteArrayOffset, startOffset, count) views
-      count UInt16s beginning at byteArrayOffset + startOffset * 2;
-      uploadFromVector(data, startOffset, count) copies that slice to a reusable
-      UInt16 array. Vertex equivalents use byteArrayOffset + startVertex * stride
-      and copy numVertices * data32PerVertex floats. Adapter methods are no-ops.
-      Blocked by Raw Context3D command model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Programs and buffers > IndexBuffer3D and VertexBuffer3D
+    behavior: >-
+      Index uploadFromByteArray(data, byteArrayOffset, startOffset, count) views count UInt16s
+      beginning at byteArrayOffset + startOffset * 2; uploadFromVector(data, startOffset, count)
+      copies that slice to a reusable UInt16 array. Vertex equivalents use byteArrayOffset +
+      startVertex * stride and copy numVertices * data32PerVertex floats. Adapter methods are
+      no-ops.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/IndexBuffer3D.hx:uploadFromByteArray
+      - display3D/IndexBuffer3D.hx:uploadFromVector
+      - display3D/VertexBuffer3D.hx:uploadFromByteArray
+      - display3D/VertexBuffer3D.hx:uploadFromVector
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.P3D.upload-typed-array-methods-ignore-byte-length
-    section: "Programs and buffers > IndexBuffer3D and VertexBuffer3D"
-    behavior: >
-      Both uploadFromTypedArray(data, byteLength = -1) methods ignore byteLength,
-      return for null, bind their GL target, and upload the whole view using
-      recorded usage. Adapter methods are no-ops. Blocked by Raw Context3D command
-      model.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    section: Programs and buffers > IndexBuffer3D and VertexBuffer3D
+    behavior: >-
+      Both uploadFromTypedArray(data, byteLength = -1) methods ignore byteLength, return for null,
+      bind their GL target, and upload the whole view using recorded usage. Adapter methods are
+      no-ops.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/IndexBuffer3D.hx:uploadFromTypedArray
+      - display3D/VertexBuffer3D.hx:uploadFromTypedArray
     scenarios: []
-
+    notes: Blocked on Flight gap "Raw Context3D command model".
   - id: display3d.TEX.texture-base-event-dispatcher-private-construction-instances
-    section: "Textures > Shared TextureBase"
-    behavior: >
-      TextureBase is an EventDispatcher with private construction. Reference
-      instances own GL texture/framebuffer/renderbuffer/sampler state; dispose()
-      recursively disposes an alpha texture and deletes GPU resources. Adapter
-      instances retain dimensions/options and a Flight texture handle; base
-      dispose() only nulls that handle. Full parity is blocked by Context3D
-      texture bridges.
-    status: flight-gap
-    gap: "Context3D texture bridges"
+    section: Textures > Shared TextureBase
+    behavior: >-
+      TextureBase is an EventDispatcher with private construction. Reference instances own GL
+      texture/framebuffer/renderbuffer/sampler state; dispose() recursively disposes an alpha
+      texture and deletes GPU resources. Adapter instances retain dimensions/options and a Flight
+      texture handle; base dispose() only nulls that handle. Full parity is
+    source:
+      - display3D/Context3D.hx:dispose
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
     scenarios: []
-
+    notes: Blocked on Flight gap "Context3D texture bridges".
   - id: display3d.TEX.construction-does-create-flight-d-rectangle-cube
-    section: "Textures > Texture, RectangleTexture, and CubeTexture"
-    behavior: >
-      Adapter construction does create Flight 2D, rectangle, and cube texture
-      resources and applies a mipmap sampler when streamingLevels > 0, but ignores
-      the requested Context3D texture format and render-target optimization.
-    status: deviation
-    notes: >-
-      Flight 2D, rectangle, and cube resources plus mipmap samplers are created, but Flight's public factories do not accept OpenFL texture format or render-target optimization hints.
+    section: Textures > Texture, RectangleTexture, and CubeTexture
+    behavior: >-
+      Adapter construction does create Flight 2D, rectangle, and cube texture resources and applies
+      a mipmap sampler when streamingLevels > 0, but ignores the requested Context3D texture format
+      and render-target optimization.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
     scenarios:
       - display3d/core:context
-
+    notes: >-
+      Flight 2D, rectangle, and cube resources plus mipmap samplers are created, but Flight's public
+      factories do not accept OpenFL texture format or render-target optimization hints.
   - id: display3d.TEX.base-mip-upload-bitmap-data-maps-bitmap
-    section: "Textures > Texture, RectangleTexture, and CubeTexture"
-    behavior: >
-      Base-mip uploadFromBitmapData maps a BitmapData Flight bitmap into a 2D or
-      rectangle texture; cube upload maps the requested numeric face. Null sources
-      are no-ops, 2D mip dimensions are normalized, and cube faces above five
-      throw, but Flight still cannot attach nonzero mip levels or honor
-      generateMipmap.
-    status: deviation
-    notes: >-
-      Null, base-level sizing, 2D/rectangle mapping, and cube face validation are implemented; Flight exposes no arbitrary mip-level upload or generateMipmap control.
+    section: Textures > Texture, RectangleTexture, and CubeTexture
+    behavior: >-
+      Base-mip uploadFromBitmapData maps a BitmapData Flight bitmap into a 2D or rectangle texture;
+      cube upload maps the requested numeric face. Null sources are no-ops, 2D mip dimensions are
+      normalized, and cube faces above five throw, but Flight still cannot attach nonzero mip levels
+      or honor generateMipmap.
+    source:
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
     scenarios:
       - display3d/core:context
-
+    notes: >-
+      Null, base-level sizing, 2D/rectangle mapping, and cube face validation are implemented;
+      Flight exposes no arbitrary mip-level upload or generateMipmap control.
   - id: display3d.TEX.texture-upload-byte-array-upload-typed-array
-    section: "Textures > Texture, RectangleTexture, and CubeTexture"
-    behavior: >
-      Texture.uploadFromByteArray, .uploadFromTypedArray, and
-      .uploadCompressedTextureFromByteArray; the corresponding rectangle methods;
-      and the cube byte/typed/compressed methods are all adapter no-ops. Reference
-      raw uploads apply byte offsets and mip dimensions; compressed upload parses
-      ATF and, when async, dispatches TEXTURE_READY after a 1 ms timer. Blocked by
-      Context3D texture bridges.
-    status: flight-gap
-    gap: "Context3D texture bridges"
+    section: Textures > Texture, RectangleTexture, and CubeTexture
+    behavior: >-
+      Texture.uploadFromByteArray, .uploadFromTypedArray, and .uploadCompressedTextureFromByteArray;
+      the corresponding rectangle methods; and the cube byte/typed/compressed methods are all
+      adapter no-ops. Reference raw uploads apply byte offsets and mip dimensions; compressed upload
+      parses ATF and, when async, dispatches TEXTURE_READY after a 1 ms timer.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/textures/CubeTexture.hx:uploadCompressedTextureFromByteArray
+      - display3D/textures/CubeTexture.hx:uploadFromByteArray
+      - display3D/textures/CubeTexture.hx:uploadFromTypedArray
+      - display3D/textures/RectangleTexture.hx:uploadFromByteArray
+      - display3D/textures/RectangleTexture.hx:uploadFromTypedArray
+      - display3D/textures/Texture.hx:uploadCompressedTextureFromByteArray
+      - display3D/textures/Texture.hx:uploadFromByteArray
+      - display3D/textures/Texture.hx:uploadFromTypedArray
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
     scenarios: []
-
+    notes: Blocked on Flight gap "Context3D texture bridges".
   - id: display3d.TEX.texture-subclasses-can-create-framebuffer-attachments-render
-    section: "Textures > Texture, RectangleTexture, and CubeTexture"
-    behavior: >
-      Reference texture subclasses can create framebuffer attachments for
-      render-to-texture, including selecting a cube face. The Flight resources
-      cannot be used that way by Context3D. Blocked by Context3D texture bridges.
-    status: flight-gap
-    gap: "Context3D texture bridges"
+    section: Textures > Texture, RectangleTexture, and CubeTexture
+    behavior: >-
+      Reference texture subclasses can create framebuffer attachments for render-to-texture,
+      including selecting a cube face. The Flight resources cannot be used that way by Context3D.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
     scenarios: []
-
+    notes: Blocked on Flight gap "Context3D texture bridges".
   - id: display3d.TEX.video-width-video-height-initialize-zero-html
-    section: "Textures > VideoTexture"
-    behavior: >
-      videoWidth and videoHeight initialize to zero. On HTML5, reference
-      attachNetStream waits for playable media, tracks changing video time,
-      uploads the current frame on texture access, updates dimensions, and
-      dispatches TEXTURE_READY. The adapter attaches the NetStream HTML video to a
-      Flight video resource and snapshots dimensions immediately, but emits no
+    section: Textures > VideoTexture
+    behavior: >-
+      videoWidth and videoHeight initialize to zero. On HTML5, reference attachNetStream waits for
+      playable media, tracks changing video time, uploads the current frame on texture access,
+      updates dimensions, and dispatches TEXTURE_READY. The adapter attaches the NetStream HTML
+      video to a Flight video resource and snapshots dimensions immediately, but emits no
       ready/dimension event and does not refresh those dimensions later.
-    status: deviation
-    notes: >-
-      Zero defaults and HTML video attachment are implemented, but Flight exposes no per-frame readiness callback from which to mirror OpenFL's TEXTURE_READY timing and later dimension changes.
+    source:
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
+      - display3D/textures/VideoTexture.hx:videoHeight
+      - display3D/textures/VideoTexture.hx:videoWidth
     scenarios:
       - display3d/core:context
-
-  - id: display3d.TEX.outside-html-5-retains-stream-but-no
-    section: "Textures > VideoTexture"
-    behavior: >
-      Outside HTML5, the adapter retains the stream but has no decoded source to
-      attach. Blocked by Cross-target NetStream video source.
-    status: flight-gap
-    gap: "Cross-target NetStream video source"
-    scenarios: []
-
-  - id: display3d.TEX.attach-net-stream-detaches-old-association-dispose
-    section: "Textures > VideoTexture"
-    behavior: >
-      attachNetStream(null) detaches the old association. Adapter dispose() clears
-      the stream, destroys the Flight video texture, disposes the video resource,
-      then nulls the base handle.
-    status: covered
-    scenarios:
-      - "display3d/core:context"
-
-  - id: display3d.VAL.except-context-3-d-clear-mask-non
-    section: "Context3D value types"
-    behavior: >
-      Except for Context3DClearMask, non-openfljs value types are nullable
-      integer-backed abstracts with private string conversion; openfljs uses the
-      strings directly. Unknown strings map to null. Public string values are: ;
-      Context3DBlendFactor: destinationAlpha, destinationColor, one,
-      oneMinusDestinationAlpha, oneMinusDestinationColor, oneMinusSourceAlpha,
-      oneMinusSourceColor, sourceAlpha, sourceColor, zero. ; Context3DBufferUsage:
-      dynamicDraw, staticDraw. ; Context3DCompareMode: always, equal, greater,
-      greaterEqual, less, lessEqual, never, notEqual. ; Context3DMipFilter:
-      miplinear, mipnearest, mipnone. ; Context3DProfile: baseline,
-      baselineConstrained, baselineExtended, standard, standardConstrained,
-      standardExtended. ; Context3DProgramFormat: agal, glsl. ;
-      Context3DProgramType: fragment, vertex. ; Context3DRenderMode: auto,
-      software. ; Context3DStencilAction: decrementSaturate, decrementWrap,
-      incrementSaturate, incrementWrap, invert, keep, set, zero. ;
-      Context3DTextureFilter: anisotropic16x, anisotropic2x, anisotropic4x,
-      anisotropic8x, linear, nearest. ; Context3DTextureFormat: bgrPacked565,
-      bgra, bgraPacked4444, compressed, compressedAlpha, rgbaHalfFloat. ;
-      Context3DTriangleFace: back, front, frontAndBack, none. ;
-      Context3DVertexBufferFormat: bytes4, float1, float2, float3, float4. ;
-      Context3DWrapMode: clamp, clamp_u_repeat_v, repeat, repeat_u_clamp_v.
-    status: covered
-    scenarios:
-      - "display3d/core:clearMask"
-
-  - id: display3d.VAL.context-3-d-clear-mask-u-int
-    section: "Context3D value types"
-    behavior: >
-      Context3DClearMask is a UInt bit mask: COLOR = 0x01, DEPTH = 0x02, STENCIL =
-      0x04, and ALL = 0x07.
-    status: covered
-    scenarios:
-      - "display3d/core:clearMask"
-
-  - id: display3d.VAL.preserves-all-constants-string-mappings-but-removes
-    section: "Context3D value types"
-    behavior: >
-      The adapter preserves all constants and string mappings, but removes the
-      reference's explicit nullable-value equality/inequality overloads for the C#
-      target. Other targets have equivalent value behavior.
-    status: deviation
     notes: >-
-      Runtime constant values and string mappings match; the removed C#-specific nullable operator overloads are a compile-time surface distinction.
+      Zero defaults and HTML video attachment are implemented, but Flight exposes no per-frame
+      readiness callback from which to mirror OpenFL's TEXTURE_READY timing and later dimension
+      changes. Target conditions: #if html5.
+  - id: display3d.TEX.outside-html-5-retains-stream-but-no
+    section: Textures > VideoTexture
+    behavior: Outside HTML5, the adapter retains the stream but has no decoded source to attach.
+    source:
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
+    scenarios: []
+    notes: "Blocked on Flight gap \"Cross-target NetStream video source\". Target conditions: #if html5."
+  - id: display3d.TEX.attach-net-stream-detaches-old-association-dispose
+    section: Textures > VideoTexture
+    behavior: >-
+      attachNetStream(null) detaches the old association. Adapter dispose() clears the stream,
+      destroys the Flight video texture, disposes the video resource, then nulls the base handle.
+    source:
+      - display3D/textures/CubeTexture.hx:uploadFromBitmapData
+      - display3D/textures/RectangleTexture.hx:uploadFromBitmapData
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+      - display3D/textures/TextureBase.hx:dispose
+      - display3D/textures/VideoTexture.hx:attachNetStream
+    scenarios:
+      - display3d/core:context
+  - id: display3d.VAL.except-context-3-d-clear-mask-non
+    section: Context3D value types
+    behavior: >-
+      Except for Context3DClearMask, non-openfljs value types are nullable integer-backed abstracts
+      with private string conversion; openfljs uses the strings directly. Unknown strings map to
+      null. Public string values are: ; Context3DBlendFactor: destinationAlpha, destinationColor,
+      one, oneMinusDestinationAlpha, oneMinusDestinationColor, oneMinusSourceAlpha,
+      oneMinusSourceColor, sourceAlpha, sourceColor, zero. ; Context3DBufferUsage: dynamicDraw,
+      staticDraw. ; Context3DCompareMode: always, equal, greater, greaterEqual, less, lessEqual,
+      never, notEqual. ; Context3DMipFilter: miplinear, mipnearest, mipnone. ; Context3DProfile:
+      baseline, baselineConstrained, baselineExtended, standard, standardConstrained,
+      standardExtended. ; Context3DProgramFormat: agal, glsl. ; Context3DProgramType: fragment,
+      vertex. ; Context3DRenderMode: auto, software. ; Context3DStencilAction: decrementSaturate,
+      decrementWrap, incrementSaturate, incrementWrap, invert, keep, set, zero. ;
+      Context3DTextureFilter: anisotropic16x, anisotropic2x, anisotropic4x, anisotropic8x, linear,
+      nearest. ; Context3DTextureFormat: bgrPacked565, bgra, bgraPacked4444, compressed,
+      compressedAlpha, rgbaHalfFloat. ; Context3DTriangleFace: back, front, frontAndBack, none. ;
+      Context3DVertexBufferFormat: bytes4, float1, float2, float3, float4. ; Context3DWrapMode:
+      clamp, clamp_u_repeat_v, repeat, repeat_u_clamp_v.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/Context3DBlendFactor.hx:DESTINATION_ALPHA
+      - display3D/Context3DBlendFactor.hx:DESTINATION_COLOR
+      - display3D/Context3DBlendFactor.hx:ONE
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_DESTINATION_ALPHA
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_DESTINATION_COLOR
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_SOURCE_ALPHA
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_SOURCE_COLOR
+      - display3D/Context3DBlendFactor.hx:SOURCE_ALPHA
+      - display3D/Context3DBlendFactor.hx:SOURCE_COLOR
+      - display3D/Context3DBlendFactor.hx:ZERO
+      - display3D/Context3DBufferUsage.hx:DYNAMIC_DRAW
+      - display3D/Context3DBufferUsage.hx:STATIC_DRAW
+      - display3D/Context3DClearMask.hx:COLOR
+      - display3D/Context3DClearMask.hx:STENCIL
+      - display3D/Context3DCompareMode.hx:ALWAYS
+      - display3D/Context3DCompareMode.hx:EQUAL
+      - display3D/Context3DCompareMode.hx:GREATER
+      - display3D/Context3DCompareMode.hx:GREATER_EQUAL
+      - display3D/Context3DCompareMode.hx:LESS
+      - display3D/Context3DCompareMode.hx:LESS_EQUAL
+      - display3D/Context3DCompareMode.hx:NEVER
+      - display3D/Context3DCompareMode.hx:NOT_EQUAL
+      - display3D/Context3DMipFilter.hx:MIPLINEAR
+      - display3D/Context3DMipFilter.hx:MIPNEAREST
+      - display3D/Context3DMipFilter.hx:MIPNONE
+      - display3D/Context3DProfile.hx:BASELINE
+      - display3D/Context3DProfile.hx:BASELINE_CONSTRAINED
+      - display3D/Context3DProfile.hx:BASELINE_EXTENDED
+      - display3D/Context3DProfile.hx:STANDARD
+      - display3D/Context3DProfile.hx:STANDARD_CONSTRAINED
+      - display3D/Context3DProfile.hx:STANDARD_EXTENDED
+      - display3D/Context3DProgramFormat.hx:AGAL
+      - display3D/Context3DProgramFormat.hx:GLSL
+      - display3D/Context3DProgramType.hx:FRAGMENT
+      - display3D/Context3DProgramType.hx:VERTEX
+      - display3D/Context3DRenderMode.hx:AUTO
+      - display3D/Context3DRenderMode.hx:SOFTWARE
+      - display3D/Context3DStencilAction.hx:DECREMENT_SATURATE
+      - display3D/Context3DStencilAction.hx:DECREMENT_WRAP
+      - display3D/Context3DStencilAction.hx:INCREMENT_SATURATE
+      - display3D/Context3DStencilAction.hx:INCREMENT_WRAP
+      - display3D/Context3DStencilAction.hx:INVERT
+      - display3D/Context3DStencilAction.hx:KEEP
+      - display3D/Context3DStencilAction.hx:SET
+      - display3D/Context3DStencilAction.hx:ZERO
+      - display3D/Context3DTextureFilter.hx:LINEAR
+      - display3D/Context3DTextureFilter.hx:NEAREST
+      - display3D/Context3DTextureFormat.hx:BGRA
+      - display3D/Context3DTextureFormat.hx:BGRA_PACKED
+      - display3D/Context3DTextureFormat.hx:BGR_PACKED
+      - display3D/Context3DTextureFormat.hx:COMPRESSED
+      - display3D/Context3DTextureFormat.hx:COMPRESSED_ALPHA
+      - display3D/Context3DTextureFormat.hx:RGBA_HALF_FLOAT
+      - display3D/Context3DTriangleFace.hx:BACK
+      - display3D/Context3DTriangleFace.hx:FRONT
+      - display3D/Context3DTriangleFace.hx:FRONT_AND_BACK
+      - display3D/Context3DTriangleFace.hx:NONE
+      - display3D/Context3DVertexBufferFormat.hx:BYTES_4
+      - display3D/Context3DWrapMode.hx:CLAMP
+      - display3D/Context3DWrapMode.hx:CLAMP_U_REPEAT_V
+      - display3D/Context3DWrapMode.hx:REPEAT
+      - display3D/Context3DWrapMode.hx:REPEAT_U_CLAMP_V
+      - display3D/textures/Texture.hx:uploadFromBitmapData
+    scenarios:
+      - display3d/core:clearMask
+    notes: "Target conditions: #if openfljs."
+  - id: display3d.VAL.context-3-d-clear-mask-u-int
+    section: Context3D value types
+    behavior: >-
+      Context3DClearMask is a UInt bit mask: COLOR = 0x01, DEPTH = 0x02, STENCIL = 0x04, and ALL =
+      0x07.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/Context3DBlendFactor.hx:DESTINATION_ALPHA
+      - display3D/Context3DBufferUsage.hx:DYNAMIC_DRAW
+      - display3D/Context3DClearMask.hx:ALL
+      - display3D/Context3DClearMask.hx:COLOR
+      - display3D/Context3DClearMask.hx:DEPTH
+      - display3D/Context3DClearMask.hx:STENCIL
+      - display3D/Context3DCompareMode.hx:ALWAYS
+      - display3D/Context3DMipFilter.hx:MIPLINEAR
+      - display3D/Context3DProfile.hx:BASELINE
+      - display3D/Context3DProgramFormat.hx:AGAL
+      - display3D/Context3DProgramType.hx:FRAGMENT
+      - display3D/Context3DRenderMode.hx:AUTO
+      - display3D/Context3DStencilAction.hx:DECREMENT_SATURATE
+      - display3D/Context3DTextureFilter.hx:ANISOTROPIC16X
+      - display3D/Context3DTextureFormat.hx:BGR_PACKED
+      - display3D/Context3DTriangleFace.hx:BACK
+      - display3D/Context3DVertexBufferFormat.hx:BYTES_4
+      - display3D/Context3DWrapMode.hx:CLAMP
+    scenarios:
+      - display3d/core:clearMask
+  - id: display3d.VAL.preserves-all-constants-string-mappings-but-removes
+    section: Context3D value types
+    behavior: >-
+      The adapter preserves all constants and string mappings, but removes the reference's explicit
+      nullable-value equality/inequality overloads for the C# target. Other targets have equivalent
+      value behavior.
+    source:
+      - display3D/Context3D.hx:clear
+      - display3D/Context3DBlendFactor.hx:DESTINATION_ALPHA
+      - display3D/Context3DBlendFactor.hx:DESTINATION_COLOR
+      - display3D/Context3DBlendFactor.hx:ONE
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_DESTINATION_ALPHA
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_DESTINATION_COLOR
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_SOURCE_ALPHA
+      - display3D/Context3DBlendFactor.hx:ONE_MINUS_SOURCE_COLOR
+      - display3D/Context3DBlendFactor.hx:SOURCE_ALPHA
+      - display3D/Context3DBlendFactor.hx:SOURCE_COLOR
+      - display3D/Context3DBlendFactor.hx:ZERO
+      - display3D/Context3DBufferUsage.hx:DYNAMIC_DRAW
+      - display3D/Context3DBufferUsage.hx:STATIC_DRAW
+      - display3D/Context3DClearMask.hx:ALL
+      - display3D/Context3DClearMask.hx:COLOR
+      - display3D/Context3DClearMask.hx:DEPTH
+      - display3D/Context3DClearMask.hx:STENCIL
+      - display3D/Context3DCompareMode.hx:ALWAYS
+      - display3D/Context3DCompareMode.hx:EQUAL
+      - display3D/Context3DCompareMode.hx:GREATER
+      - display3D/Context3DCompareMode.hx:GREATER_EQUAL
+      - display3D/Context3DCompareMode.hx:LESS
+      - display3D/Context3DCompareMode.hx:LESS_EQUAL
+      - display3D/Context3DCompareMode.hx:NEVER
+      - display3D/Context3DCompareMode.hx:NOT_EQUAL
+      - display3D/Context3DMipFilter.hx:MIPLINEAR
+      - display3D/Context3DMipFilter.hx:MIPNEAREST
+      - display3D/Context3DMipFilter.hx:MIPNONE
+      - display3D/Context3DProfile.hx:BASELINE
+      - display3D/Context3DProfile.hx:BASELINE_CONSTRAINED
+      - display3D/Context3DProfile.hx:BASELINE_EXTENDED
+      - display3D/Context3DProfile.hx:STANDARD
+      - display3D/Context3DProfile.hx:STANDARD_CONSTRAINED
+      - display3D/Context3DProfile.hx:STANDARD_EXTENDED
+      - display3D/Context3DProgramFormat.hx:AGAL
+      - display3D/Context3DProgramFormat.hx:GLSL
+      - display3D/Context3DProgramType.hx:FRAGMENT
+      - display3D/Context3DProgramType.hx:VERTEX
+      - display3D/Context3DRenderMode.hx:AUTO
+      - display3D/Context3DRenderMode.hx:SOFTWARE
+      - display3D/Context3DStencilAction.hx:DECREMENT_SATURATE
+      - display3D/Context3DStencilAction.hx:DECREMENT_WRAP
+      - display3D/Context3DStencilAction.hx:INCREMENT_SATURATE
+      - display3D/Context3DStencilAction.hx:INCREMENT_WRAP
+      - display3D/Context3DStencilAction.hx:INVERT
+      - display3D/Context3DStencilAction.hx:KEEP
+      - display3D/Context3DStencilAction.hx:SET
+      - display3D/Context3DStencilAction.hx:ZERO
+      - display3D/Context3DTextureFilter.hx:ANISOTROPIC16X
+      - display3D/Context3DTextureFilter.hx:ANISOTROPIC2X
+      - display3D/Context3DTextureFilter.hx:ANISOTROPIC4X
+      - display3D/Context3DTextureFilter.hx:ANISOTROPIC8X
+      - display3D/Context3DTextureFilter.hx:LINEAR
+      - display3D/Context3DTextureFilter.hx:NEAREST
+      - display3D/Context3DTextureFormat.hx:BGRA
+      - display3D/Context3DTextureFormat.hx:BGRA_PACKED
+      - display3D/Context3DTextureFormat.hx:BGR_PACKED
+      - display3D/Context3DTextureFormat.hx:COMPRESSED
+      - display3D/Context3DTextureFormat.hx:COMPRESSED_ALPHA
+      - display3D/Context3DTextureFormat.hx:RGBA_HALF_FLOAT
+      - display3D/Context3DTriangleFace.hx:BACK
+      - display3D/Context3DTriangleFace.hx:FRONT
+      - display3D/Context3DTriangleFace.hx:FRONT_AND_BACK
+      - display3D/Context3DTriangleFace.hx:NONE
+      - display3D/Context3DVertexBufferFormat.hx:BYTES_4
+      - display3D/Context3DVertexBufferFormat.hx:FLOAT_1
+      - display3D/Context3DVertexBufferFormat.hx:FLOAT_2
+      - display3D/Context3DVertexBufferFormat.hx:FLOAT_3
+      - display3D/Context3DVertexBufferFormat.hx:FLOAT_4
+      - display3D/Context3DWrapMode.hx:CLAMP
+      - display3D/Context3DWrapMode.hx:CLAMP_U_REPEAT_V
+      - display3D/Context3DWrapMode.hx:REPEAT
+      - display3D/Context3DWrapMode.hx:REPEAT_U_CLAMP_V
     scenarios:
       - display3d/core:constants
+    notes: >-
+      Runtime constant values and string mappings match; the removed C#-specific nullable operator
+      overloads are a compile-time surface distinction.

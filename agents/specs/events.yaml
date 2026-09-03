@@ -1,1398 +1,1828 @@
 package: events
-
 entries:
-
-  # ── EventDispatcher core > Listener registration ──
-
   - id: events.ED.listener-identity
     section: EventDispatcher core > Listener registration
-    behavior: >
-      Listener identity is (type, callback, useCapture). Adding the same
-      identity twice is a no-op, even when the second call supplies a
-      different priority or weak-reference flag.
-    status: covered
+    behavior: >-
+      Listener identity is (type, callback, useCapture). Adding the same identity twice is a no-op,
+      even when the second call supplies a different priority or weak-reference flag.
+    source:
+      - events/EventDispatcher.hx:callback
+      - events/EventDispatcher.hx:priority
+      - events/EventDispatcher.hx:useCapture
+      - events/EventDispatcher.hx:useWeakReference
     scenarios:
       - events/dispatcher:duplicateListener
-
   - id: events.ED.capture-distinct
     section: EventDispatcher core > Listener registration
-    behavior: >
-      Capture and non-capture registrations are distinct. The same callback
-      may be registered once for each, and removal must use the matching
-      useCapture value.
-    status: covered
+    behavior: >-
+      Capture and non-capture registrations are distinct. The same callback may be registered once
+      for each, and removal must use the matching useCapture value.
+    source:
+      - events/EventDispatcher.hx:callback
+      - events/EventDispatcher.hx:useCapture
     scenarios:
       - events/dispatcher-capture:captureSameListener
-
   - id: events.ED.priority-order
     section: EventDispatcher core > Listener registration
-    behavior: >
-      Priority is descending signed Int; equal-priority listeners retain
-      insertion order. Changing priority requires remove then add.
-    status: covered
+    behavior: >-
+      Priority is descending signed Int; equal-priority listeners retain insertion order. Changing
+      priority requires remove then add.
+    source:
+      - events/EventDispatcher.hx:priority
+      - events/EventDispatcher.hx:remove
     scenarios:
       - events/dispatcher:priority
-
   - id: events.ED.capture-phase-only
     section: EventDispatcher core > Listener registration
-    behavior: >
-      Capture listeners run only in CAPTURING_PHASE; they do not run on the
-      target. Non-capture listeners run at the target and during bubbling.
-      A plain EventDispatcher dispatch starts at AT_TARGET, so its capture
-      listeners do not run.
-    status: covered
+    behavior: >-
+      Capture listeners run only in CAPTURING_PHASE; they do not run on the target. Non-capture
+      listeners run at the target and during bubbling. A plain EventDispatcher dispatch starts at
+      AT_TARGET, so its capture listeners do not run.
+    source:
+      - events/EventDispatcher.hx:addEventListener
     scenarios:
       - events/dispatcher-capture:captureVsNormal
-
   - id: events.ED.null-listener-noop
     section: EventDispatcher core > Listener registration
-    behavior: >
-      Adding or removing a null listener is a no-op.
-    status: covered
+    behavior: Adding or removing a null listener is a no-op.
+    source:
+      - events/EventDispatcher.hx:addEventListener
     scenarios:
       - events/dispatcher-capture:nullListener
-
   - id: events.ED.remove-matching
     section: EventDispatcher core > Listener registration
-    behavior: >
-      removeEventListener ignores priority and removes at most the one
-      registration matching callback plus capture flag. Removing the final
-      listener also removes the type bucket.
-    status: covered
+    behavior: >-
+      removeEventListener ignores priority and removes at most the one registration matching
+      callback plus capture flag. Removing the final listener also removes the type bucket.
+    source:
+      - events/EventDispatcher.hx:callback
+      - events/EventDispatcher.hx:priority
+      - events/EventDispatcher.hx:remove
+      - events/EventDispatcher.hx:removeEventListener
     scenarios:
       - events/dispatcher:removeListener
       - events/dispatcher-capture:removeCaptureFlagMatch
-
   - id: events.ED.has-local
     section: EventDispatcher core > Listener registration
-    behavior: >
-      hasEventListener is local and true for either capture or non-capture
-      registrations.
-    status: covered
+    behavior: hasEventListener is local and true for either capture or non-capture registrations.
+    source:
+      - events/EventDispatcher.hx:hasEventListener
     scenarios:
       - events/dispatcher:hasEventListener
-
   - id: events.ED.weak-js-only
     section: EventDispatcher core > Listener registration
-    behavior: >
-      Weak callbacks are weak only on JS/HTML5 when JavaScript WeakRef
-      exists. Other non-Flash targets retain a strong callback. A collected
-      callback is removed lazily while dispatching; before that cleanup the
-      type bucket can still make hasEventListener true.
-    status: covered
+    behavior: >-
+      Weak callbacks are weak only on JS/HTML5 when JavaScript WeakRef exists. Other non-Flash
+      targets retain a strong callback. A collected callback is removed lazily while dispatching;
+      before that cleanup the type bucket can still make hasEventListener true.
+    source:
+      - events/EventDispatcher.hx:callback
+      - events/EventDispatcher.hx:hasEventListener
+      - events/EventDispatcher.hx:weakRefCallback
     scenarios:
       - events/dispatcher-capture:weakReferenceFallback
-
+    notes: "Target conditions: #if html5, #if !flash."
   - id: events.ED.will-trigger-deviation
     section: EventDispatcher core > Listener registration
-    behavior: >
-      OpenFL 9.5.2 source implements willTrigger(type) as local
-      hasEventListener(type), despite documentation promising an ancestor
-      search. The adapter deliberately searches DisplayObject ancestors.
-    status: deviation
-    notes: >
-      Intentional project decision: adapter follows documented behavior
-      (ancestor search) rather than 9.5.2 source behavior (local-only).
-      Recorded by events/dispatcher-capture fixture.
+    behavior: >-
+      OpenFL 9.5.2 source implements willTrigger(type) as local hasEventListener(type), despite
+      documentation promising an ancestor search. The adapter deliberately searches DisplayObject
+      ancestors.
+    source:
+      - events/EventDispatcher.hx:hasEventListener
+      - events/EventDispatcher.hx:willTrigger
     scenarios:
       - events/dispatcher-capture:willTrigger
-
-  # ── EventDispatcher core > Mutation and reentrancy ──
-
+    notes: >-
+      Intentional project decision: adapter follows documented behavior (ancestor search) rather
+      than 9.5.2 source behavior (local-only). Recorded by events/dispatcher-capture fixture.
   - id: events.ED.add-during-dispatch-snapshot
     section: EventDispatcher core > Mutation and reentrancy
-    behavior: >
-      Adding a listener while an iterator for that type is active snapshots
-      the active frame first. The new listener is excluded from that phase
-      but is available to a later phase or a nested dispatch.
-    status: covered
+    behavior: >-
+      Adding a listener while an iterator for that type is active snapshots the active frame first.
+      The new listener is excluded from that phase but is available to a later phase or a nested
+      dispatch.
+    source:
+      - events/EventDispatcher.hx:active
     scenarios:
       - events/dispatcher:listenerDuringDispatch
-
   - id: events.ED.remove-not-yet-visited
     section: EventDispatcher core > Mutation and reentrancy
-    behavior: >
-      Removing a not-yet-visited listener during dispatch suppresses it in
-      the active frame. Removing an already-visited listener adjusts the
-      live iterator so the following listener is not skipped.
-    status: covered
+    behavior: >-
+      Removing a not-yet-visited listener during dispatch suppresses it in the active frame.
+      Removing an already-visited listener adjusts the live iterator so the following listener is
+      not skipped.
+    source:
+      - events/EventDispatcher.hx:active
+      - events/EventDispatcher.hx:remove
     scenarios:
       - events/dispatcher:removeDuringDispatch
-
   - id: events.ED.nested-same-type
     section: EventDispatcher core > Mutation and reentrancy
-    behavior: >
-      A nested dispatch of the same type gets a separate iterator. It
-      observes the then-current live registry without corrupting the outer
-      iterator. The existing mutation fixture records the sequence a(abc)c.
-    status: covered
+    behavior: >-
+      A nested dispatch of the same type gets a separate iterator. It observes the then-current live
+      registry without corrupting the outer iterator. The existing mutation fixture records the
+      sequence a(abc)c.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
     scenarios:
       - events/dispatcher:nestedDispatchMutation
-
   - id: events.ED.remove-readd-during-dispatch
     section: EventDispatcher core > Mutation and reentrancy
-    behavior: >
-      Duplicate detection still applies during dispatch. Remove then re-add
-      creates a new registration at its priority position and does not
-      restore it to the active snapshot.
-    status: covered
+    behavior: >-
+      Duplicate detection still applies during dispatch. Remove then re-add creates a new
+      registration at its priority position and does not restore it to the active snapshot.
+    source:
+      - events/EventDispatcher.hx:active
+      - events/EventDispatcher.hx:dispatchEvent
+      - events/EventDispatcher.hx:priority
+      - events/EventDispatcher.hx:remove
     scenarios:
       - events/dispatcher-capture:removeReaddDuringDispatch
-
   - id: events.ED.mutation-safe-signal
     section: EventDispatcher core > Mutation and reentrancy
-    behavior: >
-      Replacing the adapter-owned DispatchIterator with Flight signals
-      while retaining snapshot, skip, and nested-dispatch guarantees
-      requires a mutation-safe, per-emission Flight signal frame.
-    status: flight-gap
-    gap: "Signals: mutation-safe iteration during emit"
+    behavior: >-
+      Replacing the adapter-owned DispatchIterator with Flight signals while retaining snapshot,
+      skip, and nested-dispatch guarantees requires a mutation-safe, per-emission Flight signal
+      frame.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
     scenarios: []
-
-  # ── EventDispatcher core > Targeting, phases, cancellation ──
-
+    notes: "Blocked on Flight gap \"Signals: mutation-safe iteration during emit\"."
   - id: events.ED.aggregate-target
     section: EventDispatcher core > Targeting and phases
-    behavior: >
-      A generic dispatcher uses its optional aggregate object as
-      event.target; event.currentTarget remains the dispatcher actually
-      invoking the listener.
-    status: covered
+    behavior: >-
+      A generic dispatcher uses its optional aggregate object as event.target; event.currentTarget
+      remains the dispatcher actually invoking the listener.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
     scenarios:
       - events/dispatcher:aggregatedTarget
-
   - id: events.ED.capture-bubble-order
     section: EventDispatcher core > Targeting and phases
-    behavior: >
-      Programmatic display dispatch snapshots the ancestor chain before
-      capture, visits root to immediate parent, visits only non-capture
-      listeners at the target, then (when bubbles) recurses immediate
-      parent to root.
-    status: covered
+    behavior: >-
+      Programmatic display dispatch snapshots the ancestor chain before capture, visits root to
+      immediate parent, visits only non-capture listeners at the target, then (when bubbles)
+      recurses immediate parent to root.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
     scenarios:
       - events/dispatcher-capture:eventPhases
-
   - id: events.ED.reparent-during-capture
     section: EventDispatcher core > Targeting and phases
-    behavior: >
-      Reparenting during capture does not change the capture stack. Bubbling
-      is less static: each node caches its immediate parent before invoking
-      its own listeners, then calls that cached parent.
-    status: covered
+    behavior: >-
+      Reparenting during capture does not change the capture stack. Bubbling is less static: each
+      node caches its immediate parent before invoking its own listeners, then calls that cached
+      parent.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
     scenarios:
       - events/dispatcher-capture:reparentDuringCapture
-
   - id: events.ED.capture-without-bubbles
     section: EventDispatcher core > Targeting and phases
-    behavior: >
-      Capture occurs even when bubbles == false; that flag suppresses only
-      the upward bubbling phase.
-    status: covered
+    behavior: >-
+      Capture occurs even when bubbles == false; that flag suppresses only the upward bubbling
+      phase.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
     scenarios:
       - events/dispatcher-capture:captureVsNormal
-
   - id: events.ED.target-currentTarget-stable
     section: EventDispatcher core > Targeting and phases
-    behavior: >
-      target is stable for the normal route. currentTarget changes only
-      when a dispatcher invokes listeners, and eventPhase is capture,
-      target, or bubble for that invocation. These values are not reset
-      after dispatch.
-    status: covered
+    behavior: >-
+      target is stable for the normal route. currentTarget changes only when a dispatcher invokes
+      listeners, and eventPhase is capture, target, or bubble for that invocation. These values are
+      not reset after dispatch.
+    source:
+      - events/EventDispatcher.hx:reset
+      - events/EventPhase.hx:AT_TARGET
     scenarios:
       - events/dispatcher-capture:postDispatchState
-
   - id: events.ED.stop-propagation-capture-quirk
     section: EventDispatcher core > Cancellation
-    behavior: >
-      stopPropagation lets all listeners on the current node finish and
-      prevents the later bubble route. In programmatic DisplayObject
-      capture, however, the per-node cancellation result is ignored: later
-      capture ancestors and the target still run, after which bubbling is
-      suppressed. This is an OpenFL 9.5.2 source quirk.
-    status: covered
+    behavior: >-
+      stopPropagation lets all listeners on the current node finish and prevents the later bubble
+      route. In programmatic DisplayObject capture, however, the per-node cancellation result is
+      ignored: later capture ancestors and the target still run, after which bubbling is suppressed.
+      This is an OpenFL 9.5.2 source quirk.
+    source:
+      - events/EventDispatcher.hx:stop
     scenarios:
       - events/dispatcher-capture:stopPropagationDuringCapture
-
   - id: events.ED.stop-immediate
     section: EventDispatcher core > Cancellation
-    behavior: >
-      stopImmediatePropagation sets both cancellation flags and stops the
-      remaining listeners on the current node. The flags persist for the
-      Event instance; reusing a stopped Event does not reset them.
-    status: covered
+    behavior: >-
+      stopImmediatePropagation sets both cancellation flags and stops the remaining listeners on the
+      current node. The flags persist for the Event instance; reusing a stopped Event does not reset
+      them.
+    source:
+      - events/Event.hx:stopImmediatePropagation
+      - events/EventDispatcher.hx:reset
+      - events/EventDispatcher.hx:stop
     scenarios:
       - events/dispatcher-capture:stopImmediatePropagation
-
   - id: events.ED.prevent-default
     section: EventDispatcher core > Cancellation
-    behavior: >
-      preventDefault changes state only when cancelable is true and does
-      not stop propagation. A target/capture prevention makes the outer
-      dispatch result false.
-    status: covered
+    behavior: >-
+      preventDefault changes state only when cancelable is true and does not stop propagation. A
+      target/capture prevention makes the outer dispatch result false.
+    source:
+      - events/Event.hx:preventDefault
+      - events/EventDispatcher.hx:new
+      - events/EventDispatcher.hx:stop
     scenarios:
       - events/propagation:preventDefault
-
   - id: events.ED.bubble-prevent-ignored
     section: EventDispatcher core > Cancellation
-    behavior: >
-      A bubble ancestor's preventDefault updates the Event, but the
-      DisplayObject bubble recursion ignores the ancestor's return value.
-      The original target dispatch can therefore return true even though the
-      Event is default-prevented afterward.
-    status: covered
+    behavior: >-
+      A bubble ancestor's preventDefault updates the Event, but the DisplayObject bubble recursion
+      ignores the ancestor's return value. The original target dispatch can therefore return true
+      even though the Event is default-prevented afterward.
+    source:
+      - events/Event.hx:isDefaultPrevented
+      - events/EventDispatcher.hx:new
     scenarios:
       - events/dispatcher-capture:bubblePreventDefault
-
   - id: events.ED.redispatch-no-clone
     section: EventDispatcher core > Cancellation
-    behavior: >
-      Public redispatch does not clone an already-targeted Event despite API
-      documentation. Both generic and DisplayObject dispatch overwrite
-      target and reuse the same instance; cancellation/default state also
-      carries into the new dispatch.
-    status: covered
+    behavior: >-
+      Public redispatch does not clone an already-targeted Event despite API documentation. Both
+      generic and DisplayObject dispatch overwrite target and reuse the same instance;
+      cancellation/default state also carries into the new dispatch.
+    source:
+      - events/EventDispatcher.hx:new
     scenarios:
       - events/redispatch:nested
       - events/redispatch:originalAfterDispatch
-
   - id: events.ED.mouse-stagexY-recompute
     section: EventDispatcher core > Targeting and phases
-    behavior: >
-      Programmatically dispatching a MouseEvent or TouchEvent from a
-      DisplayObject recomputes stageX/stageY from that object's local
-      coordinates before routing.
-    status: covered
+    behavior: >-
+      Programmatically dispatching a MouseEvent or TouchEvent from a DisplayObject recomputes
+      stageX/stageY from that object's local coordinates before routing.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
+      - events/MouseEvent.hx:stageX
+      - events/MouseEvent.hx:stageY
+      - events/TouchEvent.hx:stageX
+      - events/TouchEvent.hx:stageY
     scenarios:
       - ui/mouse:mouseEvent
-
   - id: events.ED.null-event-dispatch
     section: EventDispatcher core > Targeting and phases
-    behavior: >
-      DisplayObject.dispatchEvent(null) and generic EventDispatcher dispatch
-      both dereference null and fail before reaching the private null guard.
-    status: covered
+    behavior: >-
+      DisplayObject.dispatchEvent(null) and generic EventDispatcher dispatch both dereference null
+      and fail before reaching the private null guard.
+    source:
+      - events/EventDispatcher.hx:dispatchEvent
     scenarios:
       - events/dispatcher-capture:nullDispatch
-
   - id: events.ED.uncaught-error-boundary
     section: EventDispatcher core > Cancellation
-    behavior: >
-      When Stage uncaught-error handling is enabled, OpenFL catches listener
-      failures (except an UncaughtErrorEvent loop) and forwards them through
-      the Stage error handler. The adapter lets them escape.
-    status: flight-gap
-    gap: Application event-error boundary
+    behavior: >-
+      When Stage uncaught-error handling is enabled, OpenFL catches listener failures (except an
+      UncaughtErrorEvent loop) and forwards them through the Stage error handler. The adapter lets
+      them escape.
+    source:
+      - events/ErrorEvent.hx:ERROR
+      - events/EventDispatcher.hx:dispatchEvent
+      - events/UncaughtErrorEvent.hx:UNCAUGHT_ERROR
+      - events/UncaughtErrorEvent.hx:error
     scenarios: []
-
-  # ── Native Stage router ──
-
+    notes: Blocked on Flight gap "Application event-error boundary".
   - id: events.STG.dispatch-stack-router
     section: Native Stage router
-    behavior: >
-      OpenFL Stage.__dispatchStack uses a stack ordered root through target,
-      assigns target from the last element, and checks propagation
-      cancellation between every capture and bubble node.
-    status: covered
+    behavior: >-
+      OpenFL Stage.__dispatchStack uses a stack ordered root through target, assigns target from the
+      last element, and checks propagation cancellation between every capture and bubble node.
+    source:
+      - display/Stage.hx:element
+      - events/Event.hx:CANCEL
+      - events/Event.hx:OPEN
+      - events/Event.hx:target
     scenarios:
       - integration/display-events:stageDispatchStack
-
   - id: events.STG.native-uses-programmatic
     section: Native Stage router
-    behavior: >
-      Native mouse and keyboard handlers route through __dispatchStack,
-      selecting the stricter Stage behavior with propagation cancellation
-      checked between every capture and bubble node.
-    status: covered
+    behavior: >-
+      Native mouse and keyboard handlers route through __dispatchStack, selecting the stricter Stage
+      behavior with propagation cancellation checked between every capture and bubble node.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:CANCEL
+      - events/Event.hx:SELECT
+      - events/KeyboardEvent.hx:new
     scenarios:
       - integration/display-events:nativeKeyboardRouter
-
-  # ── Remaining checklist-events.md sections 2 through 7 ──
-
   - id: events.ME.open-fl-walks-child-arrays-highest-index
-    section: "Mouse event dispatch > Hit testing and target selection"
-    behavior: >
-      OpenFL walks child arrays from highest index to zero, so visually frontmost
-      children are considered first. The adapter's getObjectsUnderPoint collection
-      also descends from highest index and returns front-to-back results.
-    status: covered
+    section: Mouse event dispatch > Hit testing and target selection
+    behavior: >-
+      OpenFL walks child arrays from highest index to zero, so visually frontmost children are
+      considered first. The adapter's getObjectsUnderPoint collection also descends from highest
+      index and returns front-to-back results.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:new
     scenarios:
-      - "display/hit-test:objects"
-      - "display/container:objectsUnderPoint"
-
+      - display/hit-test:objects
+      - display/container:objectsUnderPoint
   - id: events.ME.basic-mouse-enabled-mouse-children-targeting-represented
-    section: "Mouse event dispatch > Hit testing and target selection"
-    behavior: >
-      Basic mouseEnabled/mouseChildren targeting is represented: a disabled leaf
-      can fall back to an enabled ancestor, and mouseChildren == false makes the
-      enabled container the target. If both container flags disable interaction,
-      the hit falls through. The cross-package display/events fixture covers the
-      expected flag combinations, although it does not invoke the native Stage
+    section: Mouse event dispatch > Hit testing and target selection
+    behavior: >-
+      Basic mouseEnabled/mouseChildren targeting is represented: a disabled leaf can fall back to an
+      enabled ancestor, and mouseChildren == false makes the enabled container the target. If both
+      container flags disable interaction, the hit falls through. The cross-package display/events
+      fixture covers the expected flag combinations, although it does not invoke the native Stage
       handler itself.
-    status: covered
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:new
     scenarios:
-      - "integration/display-events:mouseTargeting"
-      - "display/hit-test:mouseEnabled"
-
+      - integration/display-events:mouseTargeting
+      - display/hit-test:mouseEnabled
   - id: events.ME.open-fl-performs-those-checks-during-one
-    section: "Mouse event dispatch > Hit testing and target selection"
-    behavior: >
-      OpenFL performs those checks during one recursive hit walk, including masks,
-      scroll rectangles, Sprite hitArea, visibility, and non-interactive
-      descendants. The adapter first calls getObjectsUnderPoint and resolves flags
-      afterward. Stage now performs a single recursive interactive walk so masks,
-      scroll rectangles, hit areas, visibility, mouseChildren, and non-interactive
-      descendants participate in target resolution together.
-    status: covered
+    section: Mouse event dispatch > Hit testing and target selection
+    behavior: >-
+      OpenFL performs those checks during one recursive hit walk, including masks, scroll
+      rectangles, Sprite hitArea, visibility, and non-interactive descendants. The adapter first
+      calls getObjectsUnderPoint and resolves flags afterward. Stage now performs a single recursive
+      interactive walk so masks, scroll rectangles, hit areas, visibility, mouseChildren, and
+      non-interactive descendants participate in target resolution together.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:new
     scenarios:
-      - "events/advanced:mouseHitTesting"
-
+      - events/advanced:mouseHitTesting
   - id: events.ME.if-no-interactive-display-object-hit-stage
-    section: "Mouse event dispatch > Hit testing and target selection"
-    behavior: >
-      If no interactive display object is hit, Stage is the fallback target and
-      the stack is [stage].
-    status: covered
+    section: Mouse event dispatch > Hit testing and target selection
+    behavior: >-
+      If no interactive display object is hit, Stage is the fallback target and the stack is
+      [stage].
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:new
     scenarios:
-      - "events/advanced:mouseRoute"
-
+      - events/advanced:mouseRoute
   - id: events.ME.open-fl-transforms-window-coordinates-through-stage
-    section: "Mouse event dispatch > Hit testing and target selection"
-    behavior: >
-      OpenFL transforms window coordinates through Stage's inverse display matrix
-      before hit testing (scale mode, alignment, DPI). The resulting logical
-      coordinates drive both hit selection and stageX/stageY.
-    status: covered
+    section: Mouse event dispatch > Hit testing and target selection
+    behavior: >-
+      OpenFL transforms window coordinates through Stage's inverse display matrix before hit testing
+      (scale mode, alignment, DPI). The resulting logical coordinates drive both hit selection and
+      stageX/stageY.
+    source:
+      - display/Stage.hx:scaleMode
+      - display/Stage.hx:window
+      - events/MouseEvent.hx:stageX
+      - events/MouseEvent.hx:stageY
     scenarios:
-      - "events/advanced:mouseRoute"
-
+      - events/advanced:mouseRoute
   - id: events.ME.raw-stage-mouse-event-local-x-local
-    section: "Mouse event dispatch > Raw mouse fields and route"
-    behavior: >
-      For a raw Stage mouse event, localX/localY are computed once in the selected
-      target's coordinate space. They remain target-local while ancestors receive
-      the event; currentTarget does not cause coordinate recomputation.
-    status: covered
+    section: Mouse event dispatch > Raw mouse fields and route
+    behavior: >-
+      For a raw Stage mouse event, localX/localY are computed once in the selected target's
+      coordinate space. They remain target-local while ancestors receive the event; currentTarget
+      does not cause coordinate recomputation.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:localX
+      - events/MouseEvent.hx:localY
+      - events/TouchEvent.hx:localX
     scenarios:
-      - "events/advanced:mouseRoute"
-
+      - events/advanced:mouseRoute
   - id: events.ME.supplies-local-x-local-y-stage-x
-    section: "Mouse event dispatch > Raw mouse fields and route"
-    behavior: >
-      Raw Stage mouse events supply localX/localY, stageX/stageY, primary
-      buttonDown, modifier keys with command/control distinctions, and the native
-      clickCount for down/up events.
-    status: covered
+    section: Mouse event dispatch > Raw mouse fields and route
+    behavior: >-
+      Raw Stage mouse events supply localX/localY, stageX/stageY, primary buttonDown, modifier keys
+      with command/control distinctions, and the native clickCount for down/up events.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:CLICK
+      - events/MouseEvent.hx:buttonDown
+      - events/MouseEvent.hx:clickCount
+      - events/MouseEvent.hx:localX
+      - events/MouseEvent.hx:localY
+      - events/MouseEvent.hx:stageX
+      - events/MouseEvent.hx:stageY
+      - events/TouchEvent.hx:localY
     scenarios:
-      - "events/advanced:mouseRoute"
-
+      - events/advanced:mouseRoute
   - id: events.ME.only-mouse-down-move-up-wired-current
-    section: "Mouse event dispatch > Raw mouse fields and route"
-    behavior: >
-      Stage wires down, move, up, wheel, relative-motion, leave, and resize
-      signals. It coalesces moves, resolves cursors, cancels disabled context-menu
-      defaults, dispatches wheel/leave events, and handles release-outside; the
-      upstream relative-motion callback intentionally remains a no-op.
-    status: covered
+    section: Mouse event dispatch > Raw mouse fields and route
+    behavior: >-
+      Stage wires down, move, up, wheel, relative-motion, leave, and resize signals. It coalesces
+      moves, resolves cursors, cancels disabled context-menu defaults, dispatches wheel/leave
+      events, and handles release-outside; the upstream relative-motion callback intentionally
+      remains a no-op.
+    source:
+      - display/Stage.hx:new
+      - events/ContextMenuEvent.hx:new
+      - events/MouseEvent.hx:MOUSE_DOWN
+      - events/MouseEvent.hx:RELEASE_OUTSIDE
+      - events/MouseEvent.hx:new
     scenarios:
-      - "events/advanced:mousePendingAndWheel"
-
+      - events/advanced:mousePendingAndWheel
   - id: events.ME.open-fl-can-cancel-originating-lime-signal
-    section: "Mouse event dispatch > Raw mouse fields and route"
-    behavior: >
-      OpenFL can cancel the originating Lime signal after a cancelable event is
-      default-prevented. Flight DOM input currently decides preventDefault before
-      emitting and exposes no deferred native-default callback; see
-      agents/flight-upstream.md, “Input: dynamic preventDefault support.”
-    status: flight-gap
-    gap: "Event system bridging"
+    section: Mouse event dispatch > Raw mouse fields and route
+    behavior: >-
+      OpenFL can cancel the originating Lime signal after a cancelable event is default-prevented.
+      Flight DOM input currently decides preventDefault before emitting and exposes no deferred
+      native-default callback; see agents/flight-upstream.md, “Input: dynamic preventDefault
+      support.”
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:new
     scenarios: []
-
+    notes: "Blocked on Flight gap \"Event system bridging\". Target conditions: #if lime."
   - id: events.ME.open-fl-remembers-down-target-separately-left
-    section: "Mouse event dispatch > Click and double-click synthesis"
-    behavior: >
-      OpenFL remembers the down target separately for left, middle, and right
-      buttons. Up on the same target generates CLICK, MIDDLE_CLICK, or
-      RIGHT_CLICK; left up elsewhere dispatches RELEASE_OUTSIDE to the original
-      down target. The adapter generates none of these. Flight Interaction owns
-      this state but lacks the required one-shot pre-bubble ingress hook.
-    status: flight-gap
-    gap: "Event system bridging"
+    section: Mouse event dispatch > Click and double-click synthesis
+    behavior: >-
+      OpenFL remembers the down target separately for left, middle, and right buttons. Up on the
+      same target generates CLICK, MIDDLE_CLICK, or RIGHT_CLICK; left up elsewhere dispatches
+      RELEASE_OUTSIDE to the original down target. The adapter generates none of these. Flight
+      Interaction owns this state but lacks the required one-shot pre-bubble ingress hook.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:CLICK
+      - events/MouseEvent.hx:DOUBLE_CLICK
+      - events/MouseEvent.hx:MIDDLE_CLICK
+      - events/MouseEvent.hx:RELEASE_OUTSIDE
+      - events/MouseEvent.hx:RIGHT_CLICK
     scenarios: []
-
+    notes: Blocked on Flight gap "Event system bridging".
   - id: events.ME.left-double-click-requires-target-double-click
-    section: "Mouse event dispatch > Click and double-click synthesis"
-    behavior: >
-      Left double-click requires target.doubleClickEnabled, the same target as the
-      previous click, and elapsed time strictly below 500 ms. There is no
-      coordinate-distance threshold. A successful double-click clears the stored
-      target/time; a non-enabled target also clears them. Flight has no per-node
-      equivalent for doubleClickEnabled, and resolved interaction ingress remains
-      unavailable.
-    status: flight-gap
-    gap: "Per-object interaction metadata"
+    section: Mouse event dispatch > Click and double-click synthesis
+    behavior: >-
+      Left double-click requires target.doubleClickEnabled, the same target as the previous click,
+      and elapsed time strictly below 500 ms. There is no coordinate-distance threshold. A
+      successful double-click clears the stored target/time; a non-enabled target also clears them.
+      Flight has no per-node equivalent for doubleClickEnabled, and resolved interaction ingress
+      remains unavailable.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:CLICK
+      - events/MouseEvent.hx:DOUBLE_CLICK
     scenarios: []
-
+    notes: Blocked on Flight gap "Per-object interaction metadata".
   - id: events.ME.lime-raw-down-up-events-may-receive
-    section: "Mouse event dispatch > Click and double-click synthesis"
-    behavior: >
-      On Lime 8.1+, raw down/up events may receive window.clickCount; synthesized
-      click/double-click events in this source are created with clickCount == 0.
-      Stage carries the Window count only on the raw event.
-    status: covered
+    section: Mouse event dispatch > Click and double-click synthesis
+    behavior: >-
+      On Lime 8.1+, raw down/up events may receive window.clickCount; synthesized click/double-click
+      events in this source are created with clickCount == 0. Stage carries the Window count only on
+      the raw event.
+    source:
+      - display/Stage.hx:window
+      - events/MouseEvent.hx:CLICK
+      - events/MouseEvent.hx:DOUBLE_CLICK
+      - events/MouseEvent.hx:clickCount
     scenarios:
-      - "events/advanced:mouseRoute"
-
+      - events/advanced:mouseRoute
+    notes: "Target conditions: #if lime."
   - id: events.ME.open-fl-dispatch-order-original-down-up
-    section: "Mouse event dispatch > Click and double-click synthesis"
-    behavior: >
-      OpenFL dispatch order is the original down/up/move event first, then any
-      synthesized click, then hover-transition events.
-    status: covered
+    section: Mouse event dispatch > Click and double-click synthesis
+    behavior: >-
+      OpenFL dispatch order is the original down/up/move event first, then any synthesized click,
+      then hover-transition events.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:CLICK
+      - events/MouseEvent.hx:DOUBLE_CLICK
     scenarios:
-      - "events/advanced:mouseRoute"
-      - "events/advanced:mouseTransitions"
-
+      - events/advanced:mouseRoute
+      - events/advanced:mouseTransitions
   - id: events.ME.hit-target-changes-open-fl-dispatches-bubbling
-    section: "Mouse event dispatch > Over/out and roll transitions"
-    behavior: >
-      When the hit target changes, OpenFL dispatches bubbling MOUSE_OUT on the old
-      stack, direct non-bubbling ROLL_OUT on departed stack members, direct
-      non-bubbling ROLL_OVER on newly entered members, then bubbling MOUSE_OVER on
-      the new stack. The explicit source comment requires MOUSE_OVER after
-      ROLL_OVER. None of this state or dispatch exists in the adapter; Flight's
-      direct roll signals cannot be observed exactly once through its current
-      bubble-only API.
-    status: flight-gap
-    gap: "Event system bridging"
+    section: Mouse event dispatch > Over/out and roll transitions
+    behavior: >-
+      When the hit target changes, OpenFL dispatches bubbling MOUSE_OUT on the old stack, direct
+      non-bubbling ROLL_OUT on departed stack members, direct non-bubbling ROLL_OVER on newly
+      entered members, then bubbling MOUSE_OVER on the new stack. The explicit source comment
+      requires MOUSE_OVER after ROLL_OVER. None of this state or dispatch exists in the adapter;
+      Flight's direct roll signals cannot be observed exactly once through its current bubble-only
+      API.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:MOUSE_OUT
+      - events/MouseEvent.hx:MOUSE_OVER
+      - events/MouseEvent.hx:ROLL_OUT
+      - events/MouseEvent.hx:ROLL_OVER
     scenarios: []
-
+    notes: Blocked on Flight gap "Event system bridging".
   - id: events.ME.source-semantics-distinguish-transitions-over-out-propagate
-    section: "Mouse event dispatch > Over/out and roll transitions"
-    behavior: >
-      Source semantics distinguish the transitions: MOUSE_OVER/MOUSE_OUT propagate
-      through the Stage stack; ROLL_OVER/ROLL_OUT target each changed object
-      directly with bubbles == false.
-    status: covered
+    section: Mouse event dispatch > Over/out and roll transitions
+    behavior: >-
+      Source semantics distinguish the transitions: MOUSE_OVER/MOUSE_OUT propagate through the Stage
+      stack; ROLL_OVER/ROLL_OUT target each changed object directly with bubbles == false.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:MOUSE_OUT
+      - events/MouseEvent.hx:MOUSE_OVER
+      - events/MouseEvent.hx:ROLL_OUT
+      - events/MouseEvent.hx:ROLL_OVER
     scenarios:
-      - "events/advanced:mouseTransitions"
-
+      - events/advanced:mouseTransitions
   - id: events.ME.generated-over-out-events-leave-related-object
-    section: "Mouse event dispatch > Over/out and roll transitions"
-    behavior: >
-      Generated over/out events leave relatedObject null in the 9.5.2 source.
-      Roll-event localX/localY are computed in the old/new leaf target's space
-      even when the roll event targets an ancestor.
-    status: covered
+    section: Mouse event dispatch > Over/out and roll transitions
+    behavior: >-
+      Generated over/out events leave relatedObject null in the 9.5.2 source. Roll-event
+      localX/localY are computed in the old/new leaf target's space even when the roll event targets
+      an ancestor.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:localX
+      - events/MouseEvent.hx:localY
+      - events/MouseEvent.hx:relatedObject
     scenarios:
-      - "events/advanced:mouseTransitions"
-
+      - events/advanced:mouseTransitions
   - id: events.ME.open-fl-rechecks-existing-hover-target-pending
-    section: "Mouse event dispatch > Over/out and roll transitions"
-    behavior: >
-      OpenFL rechecks an existing hover target on pending mouse processing when it
-      is transformed, removed, hidden, disabled, or placed below an ancestor whose
-      mouseChildren becomes false. Pending processing re-runs hit selection even
-      without a new native move so transition events remain accurate.
-    status: covered
+    section: Mouse event dispatch > Over/out and roll transitions
+    behavior: >-
+      OpenFL rechecks an existing hover target on pending mouse processing when it is transformed,
+      removed, hidden, disabled, or placed below an ancestor whose mouseChildren becomes false.
+      Pending processing re-runs hit selection even without a new native move so transition events
+      remain accurate.
+    source:
+      - display/Stage.hx:new
+      - events/MouseEvent.hx:new
     scenarios:
-      - "events/advanced:mousePendingAndWheel"
-
+      - events/advanced:mousePendingAndWheel
   - id: events.KE.open-fl-targets-keyboard-input-stage-focus
-    section: "Keyboard and text input dispatch"
-    behavior: >
-      OpenFL targets keyboard input at Stage.focus when non-null and at Stage
-      otherwise. There is no separate focusManager field in the 9.5.2 Stage
-      source. The adapter uses the same focus-or-Stage choice.
-    status: covered
+    section: Keyboard and text input dispatch
+    behavior: >-
+      OpenFL targets keyboard input at Stage.focus when non-null and at Stage otherwise. There is no
+      separate focusManager field in the 9.5.2 Stage source. The adapter uses the same
+      focus-or-Stage choice.
+    source:
+      - display/Stage.hx:focus
+      - events/FocusEvent.hx:new
+      - events/KeyboardEvent.hx:new
     scenarios:
-      - "events/advanced:keyboard"
-
+      - events/advanced:keyboard
   - id: events.KE.down-up-constructed-bubbles-true-cancelable-true
-    section: "Keyboard and text input dispatch"
-    behavior: >
-      KEY_DOWN and KEY_UP are constructed with bubbles == true and cancelable ==
-      true in this source, despite an adjacent source comment about Flash Player
-      events. Character code, converted key code, and key location are derived
-      before routing.
-    status: covered
+    section: Keyboard and text input dispatch
+    behavior: >-
+      KEY_DOWN and KEY_UP are constructed with bubbles == true and cancelable == true in this
+      source, despite an adjacent source comment about Flash Player events. Character code,
+      converted key code, and key location are derived before routing.
+    source:
+      - display/Stage.hx:new
+      - events/KeyboardEvent.hx:KEY_DOWN
+      - events/KeyboardEvent.hx:KEY_UP
+      - events/KeyboardEvent.hx:keyCode
+      - events/KeyboardEvent.hx:keyLocation
+      - events/KeyboardEvent.hx:new
     scenarios:
-      - "events/event-subclass-construction:keyboardEvent"
-      - "ui/keyboard:keyboardEvent"
-
+      - events/event-subclass-construction:keyboardEvent
+      - ui/keyboard:keyboardEvent
+    notes: "Target conditions: #if flash."
   - id: events.KE.does-not-reproduce-open-fl-s-mac
-    section: "Keyboard and text input dispatch"
-    behavior: >
-      macOS control/command folding sets ctrlKey when either Control or Command
-      is active, while preserving the raw controlKey and commandKey values. Key
-      events route through the strict Stage stack.
-    status: covered
+    section: Keyboard and text input dispatch
+    behavior: >-
+      macOS control/command folding sets ctrlKey when either Control or Command is active, while
+      preserving the raw controlKey and commandKey values. Key events route through the strict Stage
+      stack.
+    source:
+      - display/Stage.hx:new
+      - events/KeyboardEvent.hx:commandKey
+      - events/KeyboardEvent.hx:controlKey
+      - events/KeyboardEvent.hx:ctrlKey
     scenarios:
-      - "events/advanced:keyboard"
-
+      - events/advanced:keyboard
   - id: events.KE.keyboard-event-default-prevented-open-fl-cancels
-    section: "Keyboard and text input dispatch"
-    behavior: >
-      When a keyboard event is default-prevented, OpenFL cancels the matching Lime
-      onKeyDown or onKeyUp signal, preventing the matching host default action.
-    status: covered
+    section: Keyboard and text input dispatch
+    behavior: >-
+      When a keyboard event is default-prevented, OpenFL cancels the matching Lime onKeyDown or
+      onKeyUp signal, preventing the matching host default action.
+    source:
+      - display/Stage.hx:new
+      - events/KeyboardEvent.hx:KEY_DOWN
+      - events/KeyboardEvent.hx:KEY_UP
+      - events/KeyboardEvent.hx:new
     scenarios:
-      - "events/advanced:keyboard"
-
+      - events/advanced:keyboard
+    notes: "Target conditions: #if lime."
   - id: events.KE.up-space-or-enter-synthesizes-mouse-click
-    section: "Keyboard and text input dispatch"
-    behavior: >
-      On KEY_UP, Space or Enter synthesizes a mouse CLICK for a focused Sprite
-      when buttonMode is true and focusRect == true. The click is dispatched
-      before the KEY_UP event and uses the current Stage mouse coordinates.
-    status: covered
+    section: Keyboard and text input dispatch
+    behavior: >-
+      On KEY_UP, Space or Enter synthesizes a mouse CLICK for a focused Sprite when buttonMode is
+      true and focusRect == true. The click is dispatched before the KEY_UP event and uses the
+      current Stage mouse coordinates.
+    source:
+      - display/Stage.hx:focus
+      - events/KeyboardEvent.hx:KEY_UP
+      - events/MouseEvent.hx:CLICK
     scenarios:
-      - "events/advanced:keyboard"
-
+      - events/advanced:keyboard
   - id: events.KE.after-unprevented-down-open-fl-generates-bubbling
-    section: "Keyboard and text input dispatch"
-    behavior: >
-      After an unprevented KEY_DOWN, OpenFL generates bubbling/cancelable COPY,
-      CUT, PASTE, or SELECT_ALL events for the matching Ctrl/Command shortcut on a
-      focused non-TextField. A prevented keyboard event suppresses this shortcut
-      synthesis.
-    status: covered
+    section: Keyboard and text input dispatch
+    behavior: >-
+      After an unprevented KEY_DOWN, OpenFL generates bubbling/cancelable COPY, CUT, PASTE, or
+      SELECT_ALL events for the matching Ctrl/Command shortcut on a focused non-TextField. A
+      prevented keyboard event suppresses this shortcut synthesis.
+    source:
+      - display/Stage.hx:new
+      - events/KeyboardEvent.hx:KEY_DOWN
     scenarios:
-      - "events/advanced:keyboard"
-
+      - events/advanced:keyboard
   - id: events.KE.input-not-synthesized-inside-key-open-fl
-    section: "Keyboard and text input dispatch"
-    behavior: >
-      TEXT_INPUT is not synthesized inside __onKey; OpenFL receives the platform's
-      separate text-input callback, constructs TextEvent(TEXT_INPUT, true, true,
-      text), routes it to focus or Stage, and cancels the platform callback when
-      prevented. The current Window exposes a text-input signal but Stage does not
-      register or route it. The intended Flight architecture also lacks Stage
-      ownership of a host-local InputManager; see agents/flight-gaps.md,
-      “TextField and StageText host input ownership.”
-    status: flight-gap
-    gap: "TextField and StageText host input ownership"
+    section: Keyboard and text input dispatch
+    behavior: >-
+      TEXT_INPUT is not synthesized inside __onKey; OpenFL receives the platform's separate
+      text-input callback, constructs TextEvent(TEXT_INPUT, true, true, text), routes it to focus or
+      Stage, and cancels the platform callback when prevented. The current Window exposes a
+      text-input signal but Stage does not register or route it. The intended Flight architecture
+      also lacks Stage ownership of a host-local InputManager; see agents/flight-gaps.md, “TextField
+      and StageText host input ownership.”
+    source:
+      - display/Stage.hx:focus
+      - display/Stage.hx:window
+      - events/KeyboardEvent.hx:new
+      - events/TextEvent.hx:TEXT_INPUT
+      - events/TextEvent.hx:text
     scenarios: []
-
+    notes: Blocked on Flight gap "TextField and StageText host input ownership".
   - id: events.FE.programmatically-changing-stage-focus-dispatches-out-old
-    section: "Focus and tab behavior"
-    behavior: >
-      Programmatically changing Stage.focus dispatches FOCUS_OUT on the old object
-      before FOCUS_IN on the new object. Both bubble, neither is cancelable, and
-      both use the full display route in the normal case.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      Programmatically changing Stage.focus dispatches FOCUS_OUT on the old object before FOCUS_IN
+      on the new object. Both bubble, neither is cancelable, and both use the full display route in
+      the normal case.
+    source:
+      - display/Stage.hx:focus
+      - events/FocusEvent.hx:FOCUS_IN
+      - events/FocusEvent.hx:FOCUS_OUT
     scenarios:
-      - "display/stage:focus"
-
+      - display/stage:focus
   - id: events.FE.old-object-s-out-related-object-new
-    section: "Focus and tab behavior"
-    behavior: >
+    section: Focus and tab behavior
+    behavior: >-
       The old object's FOCUS_OUT.relatedObject is the new focus; the new object's
-      FOCUS_IN.relatedObject is the old focus. Clearing focus supplies null to the
-      old object.
-    status: covered
+      FOCUS_IN.relatedObject is the old focus. Clearing focus supplies null to the old object.
+    source:
+      - display/Stage.hx:focus
+      - events/FocusEvent.hx:FOCUS_IN
+      - events/FocusEvent.hx:FOCUS_OUT
+      - events/FocusEvent.hx:relatedObject
     scenarios:
-      - "events/advanced:focusRoute"
-
+      - events/advanced:focusRoute
   - id: events.FE.open-fl-routes-those-focus-events-through
-    section: "Focus and tab behavior"
-    behavior: >
-      Focus changes route through Stage.__dispatchStack, so propagation
-      cancellation is checked between capture nodes before the target.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      Focus changes route through Stage.__dispatchStack, so propagation cancellation is checked
+      between capture nodes before the target.
+    source:
+      - display/Stage.hx:focus
+      - events/FocusEvent.hx:new
     scenarios:
-      - "events/advanced:focusRoute"
-
+      - events/advanced:focusRoute
   - id: events.FE.mouse-down-focus-changes-first-send-bubbling
-    section: "Focus and tab behavior"
-    behavior: >
-      Mouse-down focus changes first send a bubbling/cancelable MOUSE_FOCUS_CHANGE
-      to the old focus with the proposed target as relatedObject. Only if it is
-      not prevented does OpenFL apply the target's mouseEnabled && tabEnabled
-      focus eligibility.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      Mouse-down focus changes first send a bubbling/cancelable MOUSE_FOCUS_CHANGE to the old focus
+      with the proposed target as relatedObject. Only if it is not prevented does OpenFL apply the
+      target's mouseEnabled && tabEnabled focus eligibility.
+    source:
+      - display/Stage.hx:focus
+      - events/FocusEvent.hx:MOUSE_FOCUS_CHANGE
+      - events/FocusEvent.hx:relatedObject
+      - events/MouseEvent.hx:MOUSE_DOWN
+      - events/MouseEvent.hx:relatedObject
     scenarios:
-      - "events/advanced:mouseRoute"
-
+      - events/advanced:mouseRoute
   - id: events.FE.tab-focus-changes-first-send-bubbling-cancelable
-    section: "Focus and tab behavior"
-    behavior: >
-      Tab focus changes first send bubbling/cancelable KEY_FOCUS_CHANGE on the old
-      focus with the proposed next object and Shift state. Preventing it retains
-      focus and cancels the platform Tab.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      Tab focus changes first send bubbling/cancelable KEY_FOCUS_CHANGE on the old focus with the
+      proposed next object and Shift state. Preventing it retains focus and cancels the platform
+      Tab.
+    source:
+      - display/Stage.hx:focus
+      - events/FocusEvent.hx:KEY_FOCUS_CHANGE
     scenarios:
-      - "events/advanced:keyboard"
-
+      - events/advanced:keyboard
   - id: events.FE.open-fl-gathers-tab-candidates-depth-first
-    section: "Focus and tab behavior"
-    behavior: >
-      OpenFL gathers tab candidates depth-first in child-index order. A container
-      contributes itself when tabEnabled, then descends only when tabChildren is
-      true. MovieClip.enabled == false suppresses that subtree's candidate logic.
-      MovieClip.enabled == false suppresses that subtree's candidate logic.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      OpenFL gathers tab candidates depth-first in child-index order. A container contributes itself
+      when tabEnabled, then descends only when tabChildren is true. MovieClip.enabled == false
+      suppresses that subtree's candidate logic. MovieClip.enabled == false suppresses that
+      subtree's candidate logic.
+    source:
+      - display/Stage.hx:focus
+      - events/FocusEvent.hx:new
     scenarios:
-      - "events/advanced:tabCandidates"
-
+      - events/advanced:tabCandidates
   - id: events.FE.candidates-sorted-ascending-tab-index-if-any
-    section: "Focus and tab behavior"
-    behavior: >
-      Candidates are sorted by ascending tabIndex. If any nonnegative index
-      exists, all -1 candidates are discarded. Forward/Shift-Tab traversal wraps,
-      tries siblings when the current focus is outside the candidate list, and
-      avoids selecting the current object again.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      Candidates are sorted by ascending tabIndex. If any nonnegative index exists, all -1
+      candidates are discarded. Forward/Shift-Tab traversal wraps, tries siblings when the current
+      focus is outside the candidate list, and avoids selecting the current object again.
+    source:
+      - display/Stage.hx:focus
+      - events/EventDispatcher.hx:index
+      - events/FocusEvent.hx:new
     scenarios:
-      - "events/advanced:tabCandidates"
-      - "events/advanced:keyboard"
-
+      - events/advanced:tabCandidates
+      - events/advanced:keyboard
   - id: events.FE.tab-index-state-validation-exist-means-unspecified
-    section: "Focus and tab behavior"
-    behavior: >
-      tabIndex state and validation exist: -1 means unspecified and values below
-      -1 throw. tabEnabled defaults false for a plain InteractiveObject; class
-      overrides may opt in.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      tabIndex state and validation exist: -1 means unspecified and values below -1 throw.
+      tabEnabled defaults false for a plain InteractiveObject; class overrides may opt in.
+    source:
+      - display/Stage.hx:focus
+      - display/Stage.hx:new
+      - events/FocusEvent.hx:new
     scenarios:
-      - "display/interactive-object:values"
-      - "display/stage:defaults"
-
+      - display/interactive-object:values
+      - display/stage:defaults
   - id: events.FE.activate-deactivate-independent-broadcast-events-not-substitutes
-    section: "Focus and tab behavior"
-    behavior: >
-      ACTIVATE/DEACTIVATE are independent broadcast events, not substitutes for
-      object FOCUS_IN/FOCUS_OUT. OpenFL broadcasts them on window focus in and
-      focus out (and deactivates on close/module exit). Stage wires these Window
-      signals separately from object FOCUS_IN/FOCUS_OUT changes.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      ACTIVATE/DEACTIVATE are independent broadcast events, not substitutes for object
+      FOCUS_IN/FOCUS_OUT. OpenFL broadcasts them on window focus in and focus out (and deactivates
+      on close/module exit). Stage wires these Window signals separately from object
+      FOCUS_IN/FOCUS_OUT changes.
+    source:
+      - display/Stage.hx:focus
+      - display/Stage.hx:window
+      - events/FocusEvent.hx:FOCUS_IN
+      - events/FocusEvent.hx:FOCUS_OUT
     scenarios:
-      - "events/advanced:windowFocus"
-
+      - events/advanced:windowFocus
   - id: events.FE.open-fl-caches-focus-around-mobile-window
-    section: "Focus and tab behavior"
-    behavior: >
-      OpenFL caches focus around mobile/window focus loss and may restore it on
-      focus-in. Desktop focus loss retains the cache without automatically
-      restoring object focus.
-    status: covered
+    section: Focus and tab behavior
+    behavior: >-
+      OpenFL caches focus around mobile/window focus loss and may restore it on focus-in. Desktop
+      focus loss retains the cache without automatically restoring object focus.
+    source:
+      - display/Stage.hx:focus
+      - display/Stage.hx:window
+      - events/FocusEvent.hx:FOCUS_IN
     scenarios:
-      - "events/advanced:windowFocus"
-
+      - events/advanced:windowFocus
+    notes: "Target conditions: #if mobile, #if desktop."
   - id: events.STG.activate-deactivate-frame-constructed-frame-render-listeners
-    section: "Frame and render broadcasts"
-    behavior: >
-      ACTIVATE, DEACTIVATE, ENTER_FRAME, FRAME_CONSTRUCTED, EXIT_FRAME, and RENDER
-      listeners place their DisplayObject into a static type registry; removing
-      the final listener removes that object from the registry.
-    status: covered
+    section: Frame and render broadcasts
+    behavior: >-
+      ACTIVATE, DEACTIVATE, ENTER_FRAME, FRAME_CONSTRUCTED, EXIT_FRAME, and RENDER listeners place
+      their DisplayObject into a static type registry; removing the final listener removes that
+      object from the registry.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:ACTIVATE
+      - events/Event.hx:DEACTIVATE
+      - events/Event.hx:ENTER_FRAME
+      - events/Event.hx:EXIT_FRAME
+      - events/Event.hx:FRAME_CONSTRUCTED
+      - events/Event.hx:RENDER
+      - events/Event.hx:new
+      - events/Event.hx:type
+      - events/RenderEvent.hx:new
     scenarios:
-      - "events/advanced:broadcast"
-      - "events/advanced:frameAndRender"
-
+      - events/advanced:broadcast
+      - events/advanced:frameAndRender
   - id: events.STG.broadcast-order-registry-insertion-order-order-objects
-    section: "Frame and render broadcasts"
-    behavior: >
-      Broadcast order is registry insertion order (the order objects first gain a
-      listener), not display-list walk order. Reordering or reparenting the
-      display list does not reorder the registry. Detached objects with stage ==
-      null are eligible too.
-    status: covered
+    section: Frame and render broadcasts
+    behavior: >-
+      Broadcast order is registry insertion order (the order objects first gain a listener), not
+      display-list walk order. Reordering or reparenting the display list does not reorder the
+      registry. Detached objects with stage == null are eligible too.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:RENDER
     scenarios:
-      - "events/advanced:broadcast"
-
+      - events/advanced:broadcast
   - id: events.STG.open-fl-iterates-live-registry-invokes-private
-    section: "Frame and render broadcasts"
-    behavior: >
-      OpenFL iterates the live registry and invokes the private local dispatcher
-      with one shared Event. Removal and addition during a broadcast affect the
-      live iteration, and dispatch metadata is retained across local dispatches.
-    status: covered
+    section: Frame and render broadcasts
+    behavior: >-
+      OpenFL iterates the live registry and invokes the private local dispatcher with one shared
+      Event. Removal and addition during a broadcast affect the live iteration, and dispatch
+      metadata is retained across local dispatches.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:OPEN
+      - events/Event.hx:RENDER
+      - events/InvokeEvent.hx:INVOKE
     scenarios:
-      - "events/advanced:broadcast"
-
+      - events/advanced:broadcast
   - id: events.STG.calling-public-dispatch-also-introduces-ancestor-capture
-    section: "Frame and render broadcasts"
-    behavior: >
-      Broadcast delivery uses the private local dispatcher, so broadcast events
-      have neither capture nor bubble traversal.
-    status: covered
+    section: Frame and render broadcasts
+    behavior: >-
+      Broadcast delivery uses the private local dispatcher, so broadcast events have neither capture
+      nor bubble traversal.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:RENDER
     scenarios:
-      - "events/advanced:broadcast"
-
+      - events/advanced:broadcast
   - id: events.STG.per-rendered-frame-source-order-frame-then
-    section: "Frame and render broadcasts"
-    behavior: >
-      Per rendered frame, source order is ENTER_FRAME, then FRAME_CONSTRUCTED,
-      then EXIT_FRAME, followed by the recursive internal __enterFrame(deltaTime)
-      timeline advance. The adapter uses the same order.
-    status: covered
+    section: Frame and render broadcasts
+    behavior: >-
+      Per rendered frame, source order is ENTER_FRAME, then FRAME_CONSTRUCTED, then EXIT_FRAME,
+      followed by the recursive internal __enterFrame(deltaTime) timeline advance. The adapter uses
+      the same order.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:ENTER_FRAME
+      - events/Event.hx:EXIT_FRAME
+      - events/Event.hx:FRAME_CONSTRUCTED
+      - events/Event.hx:RENDER
+      - events/Event.hx:new
+      - events/RenderEvent.hx:new
     scenarios:
-      - "events/advanced:frameAndRender"
-
+      - events/advanced:frameAndRender
   - id: events.STG.invalidate-coalesces-boolean-one-render-broadcast-clears
-    section: "Frame and render broadcasts"
-    behavior: >
-      invalidate() coalesces in a Boolean. One RENDER broadcast clears it; callers
-      must invalidate again for another event.
-    status: covered
+    section: Frame and render broadcasts
+    behavior: >-
+      invalidate() coalesces in a Boolean. One RENDER broadcast clears it; callers must invalidate
+      again for another event.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:CLEAR
+      - events/Event.hx:RENDER
+      - events/RenderEvent.hx:new
     scenarios:
-      - "events/advanced:frameAndRender"
-
+      - events/advanced:frameAndRender
   - id: events.STG.open-fl-sends-render-immediately-before-renderer
-    section: "Frame and render broadcasts"
-    behavior: >
-      OpenFL sends RENDER immediately before renderer update/draw only when the
-      Stage is invalidated and that frame is actually eligible to render. Frame
-      events advance first; RENDER is deferred until render-state preparation
-      succeeds and immediately precedes drawing.
-    status: covered
+    section: Frame and render broadcasts
+    behavior: >-
+      OpenFL sends RENDER immediately before renderer update/draw only when the Stage is invalidated
+      and that frame is actually eligible to render. Frame events advance first; RENDER is deferred
+      until render-state preparation succeeds and immediately precedes drawing.
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:OPEN
+      - events/Event.hx:RENDER
+      - events/RenderEvent.hx:renderer
     scenarios:
-      - "events/advanced:frameAndRender"
-
+      - events/advanced:frameAndRender
   - id: events.STG.automatic-beta-render-event-callbacks-individual-custom
-    section: "Frame and render broadcasts"
-    behavior: >
-      Automatic beta RenderEvent callbacks for individual custom-rendered objects
-      require a per-node Flight render-lifecycle bridge. This is distinct from the
-      standard Stage Event.RENDER broadcast; see agents/flight-gaps.md, “Custom
-      render-event lifecycle.”
-    status: flight-gap
-    gap: "Custom render-event lifecycle"
+    section: Frame and render broadcasts
+    behavior: >-
+      Automatic beta RenderEvent callbacks for individual custom-rendered objects require a per-node
+      Flight render-lifecycle bridge. This is distinct from the standard Stage Event.RENDER
+      broadcast; see agents/flight-gaps.md, “Custom render-event lifecycle.”
+    source:
+      - display/Stage.hx:new
+      - events/Event.hx:RENDER
+      - events/RenderEvent.hx:new
     scenarios: []
-
+    notes: Blocked on Flight gap "Custom render-event lifecycle".
   - id: events.DOC.adding-child-sets-parent-connecting-detached-subtree
-    section: "Display-list lifecycle events"
-    behavior: >
-      Adding a child sets parent and, when connecting a detached subtree to a
-      Stage, sets the Stage reference before any event. It then dispatches
-      bubbling ADDED on the root child, followed by non-bubbling ADDED_TO_STAGE on
-      that child.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      Adding a child sets parent and, when connecting a detached subtree to a Stage, sets the Stage
+      reference before any event. It then dispatches bubbling ADDED on the root child, followed by
+      non-bubbling ADDED_TO_STAGE on that child.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:ADDED
+      - events/Event.hx:ADDED_TO_STAGE
+      - events/Event.hx:CONNECT
     scenarios:
-      - "integration/display-events:addRemove"
-      - "integration/display-events:descendantStageEvents"
-      - "display/container:addedEvents"
-
+      - integration/display-events:addRemove
+      - integration/display-events:descendantStageEvents
+      - display/container:addedEvents
   - id: events.DOC.added-participates-capture-target-bubble-routing-stage
-    section: "Display-list lifecycle events"
-    behavior: >
-      ADDED participates in capture, target, and bubble routing. ADDED_TO_STAGE
-      has bubbles == false, but its explicit display dispatch still runs capture
-      before the target.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      ADDED participates in capture, target, and bubble routing. ADDED_TO_STAGE has bubbles ==
+      false, but its explicit display dispatch still runs capture before the target.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:ADDED
+      - events/Event.hx:ADDED_TO_STAGE
+      - events/Event.hx:bubbles
+      - events/Event.hx:target
     scenarios:
-      - "integration/display-events:addRemove"
-      - "integration/display-events:descendantStageEvents"
-      - "display/container:addedEvents"
-
+      - integration/display-events:addRemove
+      - integration/display-events:descendantStageEvents
+      - display/container:addedEvents
   - id: events.DOC.stage-then-visits-descendants-depth-first-child
-    section: "Display-list lifecycle events"
-    behavior: >
-      ADDED_TO_STAGE then visits descendants depth-first in child-index order,
-      dispatching a target event on each descendant before recursing into its
-      children. A detached subtree receives no ADDED_TO_STAGE until connected to
-      Stage.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      ADDED_TO_STAGE then visits descendants depth-first in child-index order, dispatching a target
+      event on each descendant before recursing into its children. A detached subtree receives no
+      ADDED_TO_STAGE until connected to Stage.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:ADDED
+      - events/Event.hx:ADDED_TO_STAGE
+      - events/Event.hx:CONNECT
+      - events/Event.hx:target
     scenarios:
-      - "integration/display-events:addRemove"
-      - "integration/display-events:descendantStageEvents"
-      - "display/container:addedEvents"
-
+      - integration/display-events:addRemove
+      - integration/display-events:descendantStageEvents
+      - display/container:addedEvents
   - id: events.DOC.removal-first-dispatches-bubbling-removed-while-parent
-    section: "Display-list lifecycle events"
-    behavior: >
-      Removal first dispatches bubbling REMOVED while parent and stage still point
-      to the old tree. If staged, it then dispatches REMOVED_FROM_STAGE on the
-      root and descendants while those references are still intact; Stage and
-      parent references are cleared only afterward.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      Removal first dispatches bubbling REMOVED while parent and stage still point to the old tree.
+      If staged, it then dispatches REMOVED_FROM_STAGE on the root and descendants while those
+      references are still intact; Stage and parent references are cleared only afterward.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:CLEAR
+      - events/Event.hx:REMOVED
+      - events/Event.hx:REMOVED_FROM_STAGE
     scenarios:
-      - "integration/display-events:addRemove"
-      - "display/container:removedEvents"
-
+      - integration/display-events:addRemove
+      - display/container:removedEvents
   - id: events.DOC.reparenting-through-add-child-first-invokes-old
-    section: "Display-list lifecycle events"
-    behavior: >
-      Reparenting through addChild first invokes the old parent's full removal
-      sequence. Even a move between two containers on the same Stage therefore
-      produces REMOVED, REMOVED_FROM_STAGE, ADDED, and ADDED_TO_STAGE in that
-      order. Reindexing a child already in the same parent produces none of these
-      events.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      Reparenting through addChild first invokes the old parent's full removal sequence. Even a move
+      between two containers on the same Stage therefore produces REMOVED, REMOVED_FROM_STAGE,
+      ADDED, and ADDED_TO_STAGE in that order. Reindexing a child already in the same parent
+      produces none of these events.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:ADDED
+      - events/Event.hx:ADDED_TO_STAGE
+      - events/Event.hx:REMOVED
+      - events/Event.hx:REMOVED_FROM_STAGE
+      - events/InvokeEvent.hx:INVOKE
     scenarios:
-      - "integration/display-events:reparent"
-      - "display/container:reparent"
-
+      - integration/display-events:reparent
+      - display/container:reparent
   - id: events.DOC.open-fl-reuses-one-event-while-recursively
-    section: "Display-list lifecycle events"
-    behavior: >
-      OpenFL reuses one Event while recursively dispatching to descendants and
-      overwrites its target per direct child. Event identity, final
-      target/currentTarget, default state, and stop-propagation state are retained
-      across the recursive walk.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      OpenFL reuses one Event while recursively dispatching to descendants and overwrites its target
+      per direct child. Event identity, final target/currentTarget, default state, and
+      stop-propagation state are retained across the recursive walk.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:OPEN
+      - events/Event.hx:currentTarget
+      - events/Event.hx:new
+      - events/Event.hx:stopPropagation
+      - events/Event.hx:target
     scenarios:
-      - "events/advanced:lifecycleReuse"
-
+      - events/advanced:lifecycleReuse
   - id: events.DOC.implementations-traverse-live-child-arrays-retain-precomputed
-    section: "Display-list lifecycle events"
-    behavior: >
-      Both implementations traverse live child arrays and retain precomputed
-      add/remove decisions across callbacks. A listener that removes, reparents,
-      or inserts children during ADDED_TO_STAGE/REMOVED_FROM_STAGE can change
-      which later descendants are visited or cause the outer operation to continue
-      with stale assumptions. Removal during iteration and an outer add that
-      continues after reentrant removal are captured explicitly.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      Both implementations traverse live child arrays and retain precomputed add/remove decisions
+      across callbacks. A listener that removes, reparents, or inserts children during
+      ADDED_TO_STAGE/REMOVED_FROM_STAGE can change which later descendants are visited or cause the
+      outer operation to continue with stale assumptions. Removal during iteration and an outer add
+      that continues after reentrant removal are captured explicitly.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:ADDED
+      - events/Event.hx:ADDED_TO_STAGE
+      - events/Event.hx:CHANGE
+      - events/Event.hx:REMOVED
+      - events/Event.hx:REMOVED_FROM_STAGE
     scenarios:
-      - "events/advanced:lifecycleMutation"
-
+      - events/advanced:lifecycleMutation
   - id: events.DOC.open-fl-clears-stage-focus-directly-removed
-    section: "Display-list lifecycle events"
-    behavior: >
-      OpenFL clears Stage focus when the directly removed child owns it before
-      finishing REMOVED_FROM_STAGE. The source checks only the directly removed
-      child, not an arbitrary focused descendant.
-    status: covered
+    section: Display-list lifecycle events
+    behavior: >-
+      OpenFL clears Stage focus when the directly removed child owns it before finishing
+      REMOVED_FROM_STAGE. The source checks only the directly removed child, not an arbitrary
+      focused descendant.
+    source:
+      - display/DisplayObjectContainer.hx:addChild
+      - events/Event.hx:CLEAR
+      - events/Event.hx:OPEN
+      - events/Event.hx:REMOVED
+      - events/Event.hx:REMOVED_FROM_STAGE
+      - events/FocusEvent.hx:new
     scenarios:
-      - "events/advanced:directFocusRemoval"
-
+      - events/advanced:directFocusRemoval
   - id: events.EV.s-event-subclass-clone-bodies-match-open
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      The adapter's event subclass clone bodies match the OpenFL 9.5.2 source;
-      RenderEvent uses an equivalent public-field ColorTransform copy instead of
-      the upstream private helper.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      The adapter's event subclass clone bodies match the OpenFL 9.5.2 source; RenderEvent uses an
+      equivalent public-field ColorTransform copy instead of the upstream private helper.
+    source:
+      - events/Event.hx:COPY
+      - events/Event.hx:CUT
+      - events/Event.hx:OPEN
+      - events/Event.hx:RENDER
+      - events/Event.hx:clone
+      - events/EventDispatcher.hx:match
+      - events/RenderEvent.hx:new
     scenarios:
-      - "events/event-subclass-construction:cloneBehavior"
-
+      - events/event-subclass-construction:cloneBehavior
   - id: events.EV.contrary-common-expectation-that-dispatch-metadata-cleared
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      Contrary to the common expectation that dispatch metadata is cleared, OpenFL
-      9.5.2 Event.clone() explicitly copies target, currentTarget, and eventPhase.
-      Most subclass overrides do the same. Public redispatch then overwrites
-      target/currentTarget as listeners are invoked.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      Contrary to the common expectation that dispatch metadata is cleared, OpenFL 9.5.2
+      Event.clone() explicitly copies target, currentTarget, and eventPhase. Most subclass overrides
+      do the same. Public redispatch then overwrites target/currentTarget as listeners are invoked.
+    source:
+      - events/DataEvent.hx:DATA
+      - events/Event.hx:CLEAR
+      - events/Event.hx:CUT
+      - events/Event.hx:OPEN
+      - events/Event.hx:clone
+      - events/Event.hx:currentTarget
+      - events/Event.hx:eventPhase
+      - events/Event.hx:target
+      - events/EventPhase.hx:AT_TARGET
     scenarios:
-      - "ui/mouse:mouseEventClone"
-      - "events/redispatch:cloneRedispatch"
-
+      - ui/mouse:mouseEventClone
+      - events/redispatch:cloneRedispatch
   - id: events.EV.requested-clone-should-not-preserve-target-current
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      A direct post-dispatch clone confirms the 9.5.2 source contract: clone
-      preserves target, currentTarget, and eventPhase, despite contrary wording
-      in some API documentation.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      A direct post-dispatch clone confirms the 9.5.2 source contract: clone preserves target,
+      currentTarget, and eventPhase, despite contrary wording in some API documentation.
+    source:
+      - events/Event.hx:CUT
+      - events/Event.hx:clone
+      - events/Event.hx:currentTarget
+      - events/Event.hx:eventPhase
+      - events/Event.hx:target
+      - events/EventPhase.hx:AT_TARGET
     scenarios:
-      - "events/advanced:postDispatchClone"
-
+      - events/advanced:postDispatchClone
   - id: events.EV.cancellation-flags-default-prevented-state-update-after
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      Cancellation flags, default-prevented state, and updateAfterEvent flags are
-      not copied; the clone keeps fresh constructor/default internal state.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      Cancellation flags, default-prevented state, and updateAfterEvent flags are not copied; the
+      clone keeps fresh constructor/default internal state.
+    source:
+      - events/Event.hx:CANCEL
+      - events/Event.hx:CUT
+      - events/Event.hx:clone
+      - events/Event.hx:new
     scenarios:
-      - "events/construction:cloned"
-      - "events/propagation:preventDefault"
-
+      - events/construction:cloned
+      - events/propagation:preventDefault
   - id: events.EV.non-pooled-eval-capture-untouched-event-s
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      In the non-pooled eval capture, an untouched Event's internal
-      default-prevented flag can remain null rather than an explicit false; the
-      existing propagation fixture records that source edge and the adapter
-      matches.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      In the non-pooled eval capture, an untouched Event's internal default-prevented flag can
+      remain null rather than an explicit false; the existing propagation fixture records that
+      source edge and the adapter matches.
+    source:
+      - events/Event.hx:CUT
+      - events/Event.hx:clone
+      - events/Event.hx:new
+      - events/TouchEvent.hx:new
     scenarios:
-      - "events/propagation:preventDefault"
-
+      - events/propagation:preventDefault
   - id: events.EV.payload-copies-generally-shallow-arrays-byte-arrays
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      Payload copies are generally shallow: arrays, ByteArrays, Rectangles,
-      devices, sockets, and dynamic objects are passed by reference. RenderEvent
-      is the notable deep-copy case for its matrix and color transform.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      Payload copies are generally shallow: arrays, ByteArrays, Rectangles, devices, sockets, and
+      dynamic objects are passed by reference. RenderEvent is the notable deep-copy case for its
+      matrix and color transform.
+    source:
+      - events/Event.hx:COPY
+      - events/Event.hx:CUT
+      - events/Event.hx:RENDER
+      - events/Event.hx:clone
+      - events/RenderEvent.hx:new
     scenarios:
-      - "events/clone-inventory:dnsResolver"
-      - "events/clone-inventory:datagram"
-      - "events/clone-inventory:nativeWindowBounds"
-      - "events/clone-inventory:netStatus"
-      - "events/event-subclass-construction:renderEvent"
-
+      - events/clone-inventory:dnsResolver
+      - events/clone-inventory:datagram
+      - events/clone-inventory:nativeWindowBounds
+      - events/clone-inventory:netStatus
+      - events/event-subclass-construction:renderEvent
   - id: events.EV.six-direct-return-overrides-omit-dispatch-metadata
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      Six direct-return overrides omit dispatch metadata: DNSResolverEvent,
-      DatagramSocketDataEvent, DeviceRotationEvent, GeolocationEvent,
-      ScreenMouseEvent, and ServerSocketConnectEvent. Their payload is copied, but
-      the new event starts with null target/currentTarget and AT_TARGET phase.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      Six direct-return overrides omit dispatch metadata: DNSResolverEvent, DatagramSocketDataEvent,
+      DeviceRotationEvent, GeolocationEvent, ScreenMouseEvent, and ServerSocketConnectEvent. Their
+      payload is copied, but the new event starts with null target/currentTarget and AT_TARGET
+      phase.
+    source:
+      - events/DNSResolverEvent.hx:new
+      - events/DataEvent.hx:DATA
+      - events/DataEvent.hx:data
+      - events/DatagramSocketDataEvent.hx:DATA
+      - events/DatagramSocketDataEvent.hx:data
+      - events/DeviceRotationEvent.hx:new
+      - events/Event.hx:CONNECT
+      - events/Event.hx:CUT
+      - events/Event.hx:clone
+      - events/Event.hx:currentTarget
+      - events/Event.hx:target
+      - events/GeolocationEvent.hx:new
+      - events/MouseEvent.hx:new
+      - events/ScreenMouseEvent.hx:new
+      - events/ServerSocketConnectEvent.hx:CONNECT
+      - events/ServerSocketConnectEvent.hx:socket
     scenarios:
-      - "events/clone-inventory:dnsResolver"
-      - "events/clone-inventory:datagram"
-      - "events/clone-inventory:deviceRotation"
-      - "events/clone-inventory:geolocation"
-      - "events/clone-inventory:screenMouse"
-      - "events/clone-inventory:serverSocket"
-
+      - events/clone-inventory:dnsResolver
+      - events/clone-inventory:datagram
+      - events/clone-inventory:deviceRotation
+      - events/clone-inventory:geolocation
+      - events/clone-inventory:screenMouse
+      - events/clone-inventory:serverSocket
   - id: events.EV.file-list-event-invoke-event-output-progress
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      FileListEvent, InvokeEvent, and OutputProgressEvent do not override clone at
-      all. Inherited Event.clone() returns a base Event, so their concrete type
-      and subclass payload are lost. The adapter preserves this upstream source
-      behavior.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      FileListEvent, InvokeEvent, and OutputProgressEvent do not override clone at all. Inherited
+      Event.clone() returns a base Event, so their concrete type and subclass payload are lost. The
+      adapter preserves this upstream source behavior.
+    source:
+      - events/Event.hx:CUT
+      - events/Event.hx:clone
+      - events/Event.hx:type
+      - events/FileListEvent.hx:clone
+      - events/InvokeEvent.hx:INVOKE
+      - events/InvokeEvent.hx:clone
+      - events/OutputProgressEvent.hx:OUTPUT_PROGRESS
+      - events/OutputProgressEvent.hx:clone
+      - events/ProgressEvent.hx:PROGRESS
     scenarios:
-      - "events/clone-inventory:fileList"
-      - "events/clone-inventory:invoke"
-      - "events/clone-inventory:outputProgress"
-
+      - events/clone-inventory:fileList
+      - events/clone-inventory:invoke
+      - events/clone-inventory:outputProgress
   - id: events.EV.render-event-clone-assumes-non-null-object
-    section: "Event.clone() contract > Cross-cutting rules"
-    behavior: >
-      RenderEvent.clone() assumes non-null objectMatrix and objectColorTransform;
-      cloning a default-constructed instance fails while dereferencing them. The
-      adapter has the same edge behavior.
-    status: covered
+    section: Event.clone() contract > Cross-cutting rules
+    behavior: >-
+      RenderEvent.clone() assumes non-null objectMatrix and objectColorTransform; cloning a
+      default-constructed instance fails while dereferencing them. The adapter has the same edge
+      behavior.
+    source:
+      - events/Event.hx:CUT
+      - events/Event.hx:RENDER
+      - events/Event.hx:clone
+      - events/Event.hx:new
+      - events/RenderEvent.hx:new
+      - events/RenderEvent.hx:objectColorTransform
+      - events/RenderEvent.hx:objectMatrix
     scenarios:
-      - "events/event-subclass-construction:renderEvent"
-
+      - events/event-subclass-construction:renderEvent
   - id: events.E.event-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      Event.clone() copies none. Metadata and notable omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "Event.clone() copies none. Metadata and notable omissions: copied."
+    source:
+      - events/AccelerometerEvent.hx:new
     scenarios:
-      - "events/event-basics:clone"
-      - "events/construction:cloned"
-
+      - events/event-basics:clone
+      - events/construction:cloned
   - id: events.A.accelerometer-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      AccelerometerEvent.clone() copies timestamp, acceleration X/Y/Z. Metadata
-      and notable omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      AccelerometerEvent.clone() copies timestamp, acceleration X/Y/Z. Metadata and notable
+      omissions: copied.
+    source:
+      - events/AccelerometerEvent.hx:accelerationX
+      - events/AccelerometerEvent.hx:accelerationY
+      - events/AccelerometerEvent.hx:accelerationZ
+      - events/AccelerometerEvent.hx:timestamp
     scenarios:
-      - "events/clone-inventory:accelerometer"
-
+      - events/clone-inventory:accelerometer
   - id: events.A.activity-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      ActivityEvent.clone() copies activating. Metadata and notable omissions:
-      copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "ActivityEvent.clone() copies activating. Metadata and notable omissions: copied."
+    source:
+      - events/ActivityEvent.hx:ACTIVITY
+      - events/ActivityEvent.hx:activating
     scenarios:
-      - "events/clone-inventory:activity"
-
+      - events/clone-inventory:activity
   - id: events.AE.async-error-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      AsyncErrorEvent.clone() copies text, error. Metadata and notable omissions:
-      copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "AsyncErrorEvent.clone() copies text, error. Metadata and notable omissions: copied."
+    source:
+      - events/AsyncErrorEvent.hx:ASYNC_ERROR
+      - events/AsyncErrorEvent.hx:error
+      - events/ErrorEvent.hx:ERROR
     scenarios:
-      - "events/clone-inventory:asyncError"
-
+      - events/clone-inventory:asyncError
   - id: events.CM.context-menu-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      ContextMenuEvent.clone() copies mouseTarget, contextMenuOwner. Metadata and
-      notable omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      ContextMenuEvent.clone() copies mouseTarget, contextMenuOwner. Metadata and notable omissions:
+      copied.
+    source:
+      - events/ContextMenuEvent.hx:MENU_ITEM_SELECT
+      - events/ContextMenuEvent.hx:MENU_SELECT
+      - events/ContextMenuEvent.hx:contextMenuOwner
+      - events/ContextMenuEvent.hx:mouseTarget
+      - events/TextEvent.hx:new
     scenarios:
-      - "events/clone-inventory:contextMenu"
-
+      - events/clone-inventory:contextMenu
   - id: events.DNSR.d-n-s-resolver-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      DNSResolverEvent.clone() copies host, resourceRecords. Metadata and notable
-      omissions: omitted.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      DNSResolverEvent.clone() copies host, resourceRecords. Metadata and notable omissions:
+      omitted.
+    source:
+      - events/DNSResolverEvent.hx:host
+      - events/DNSResolverEvent.hx:resourceRecords
     scenarios:
-      - "events/clone-inventory:dnsResolver"
-
+      - events/clone-inventory:dnsResolver
   - id: events.D.data-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      DataEvent.clone() copies data. Metadata and notable omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "DataEvent.clone() copies data. Metadata and notable omissions: copied."
+    source:
+      - events/DataEvent.hx:DATA
+      - events/DataEvent.hx:data
     scenarios:
-      - "events/clone-inventory:data"
-
+      - events/clone-inventory:data
   - id: events.DSD.datagram-socket-data-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      DatagramSocketDataEvent.clone() copies source/destination addresses and
-      ports, data. Metadata and notable omissions: omitted.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      DatagramSocketDataEvent.clone() copies source/destination addresses and ports, data. Metadata
+      and notable omissions: omitted.
+    source:
+      - events/DataEvent.hx:DATA
+      - events/DataEvent.hx:data
+      - events/DatagramSocketDataEvent.hx:DATA
+      - events/DatagramSocketDataEvent.hx:data
+      - events/DatagramSocketDataEvent.hx:dstAddress
+      - events/DatagramSocketDataEvent.hx:dstPort
+      - events/DatagramSocketDataEvent.hx:srcAddress
+      - events/DatagramSocketDataEvent.hx:srcPort
     scenarios:
-      - "events/clone-inventory:datagram"
-
+      - events/clone-inventory:datagram
   - id: events.DR.device-rotation-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      DeviceRotationEvent.clone() copies timestamp, roll, pitch, yaw, quaternion.
-      Metadata and notable omissions: omitted.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      DeviceRotationEvent.clone() copies timestamp, roll, pitch, yaw, quaternion. Metadata and
+      notable omissions: omitted.
+    source:
+      - events/DeviceRotationEvent.hx:pitch
+      - events/DeviceRotationEvent.hx:quaternion
+      - events/DeviceRotationEvent.hx:roll
+      - events/DeviceRotationEvent.hx:timestamp
+      - events/DeviceRotationEvent.hx:yaw
     scenarios:
-      - "events/clone-inventory:deviceRotation"
-
+      - events/clone-inventory:deviceRotation
   - id: events.E.error-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      ErrorEvent.clone() copies text, errorID. Metadata and notable omissions:
-      copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "ErrorEvent.clone() copies text, errorID. Metadata and notable omissions: copied."
+    source:
+      - events/ErrorEvent.hx:ERROR
+      - events/ErrorEvent.hx:errorID
     scenarios:
-      - "events/clone-inventory:error"
-
+      - events/clone-inventory:error
   - id: events.FL.file-list-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      FileListEvent.clone() copies none: inherited clone loses files and subtype.
-      Metadata and notable omissions: copied by base clone.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      FileListEvent.clone() copies none: inherited clone loses files and subtype. Metadata and
+      notable omissions: copied by base clone.
+    source:
+      - events/FileListEvent.hx:clone
+      - events/FileListEvent.hx:files
     scenarios:
-      - "events/clone-inventory:fileList"
-
+      - events/clone-inventory:fileList
   - id: events.F.focus-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      FocusEvent.clone() copies relatedObject, shiftKey, keyCode. Metadata and
-      notable omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      FocusEvent.clone() copies relatedObject, shiftKey, keyCode. Metadata and notable omissions:
+      copied.
+    source:
+      - events/FocusEvent.hx:keyCode
+      - events/FocusEvent.hx:relatedObject
+      - events/FocusEvent.hx:shiftKey
     scenarios:
-      - "events/clone-inventory:focus"
-
+      - events/clone-inventory:focus
   - id: events.FS.full-screen-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      FullScreenEvent.clone() copies fullScreen, interactive. Metadata and notable
-      omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      FullScreenEvent.clone() copies fullScreen, interactive. Metadata and notable omissions:
+      copied.
+    source:
+      - events/FullScreenEvent.hx:FULL_SCREEN
+      - events/FullScreenEvent.hx:FULL_SCREEN_INTERACTIVE_ACCEPTED
+      - events/FullScreenEvent.hx:fullScreen
+      - events/FullScreenEvent.hx:interactive
     scenarios:
-      - "events/event-subclass-construction:fullScreenEvent"
-
+      - events/event-subclass-construction:fullScreenEvent
   - id: events.GI.game-input-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      GameInputEvent.clone() copies device. Metadata and notable omissions:
-      copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "GameInputEvent.clone() copies device. Metadata and notable omissions: copied."
+    source:
+      - events/GameInputEvent.hx:DEVICE_ADDED
+      - events/GameInputEvent.hx:DEVICE_REMOVED
+      - events/GameInputEvent.hx:DEVICE_UNUSABLE
+      - events/GameInputEvent.hx:device
     scenarios:
-      - "events/clone-inventory:gameInput"
-
+      - events/clone-inventory:gameInput
   - id: events.G.geolocation-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      GeolocationEvent.clone() copies latitude, longitude, altitude, accuracies,
-      speed, heading, timestamp. Metadata and notable omissions: omitted.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      GeolocationEvent.clone() copies latitude, longitude, altitude, accuracies, speed, heading,
+      timestamp. Metadata and notable omissions: omitted.
+    source:
+      - events/GeolocationEvent.hx:altitude
+      - events/GeolocationEvent.hx:heading
+      - events/GeolocationEvent.hx:latitude
+      - events/GeolocationEvent.hx:longitude
+      - events/GeolocationEvent.hx:speed
+      - events/GeolocationEvent.hx:timestamp
     scenarios:
-      - "events/clone-inventory:geolocation"
-
+      - events/clone-inventory:geolocation
   - id: events.HTTPS.h-t-t-p-status-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      HTTPStatusEvent.clone() copies status, redirected. Metadata and notable
-      omissions: copied; responseURL and responseHeaders are not copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      HTTPStatusEvent.clone() copies status, redirected. Metadata and notable omissions: copied;
+      responseURL and responseHeaders are not copied.
+    source:
+      - events/HTTPStatusEvent.hx:redirected
+      - events/HTTPStatusEvent.hx:responseHeaders
+      - events/HTTPStatusEvent.hx:responseURL
+      - events/HTTPStatusEvent.hx:status
     scenarios:
-      - "events/clone-inventory:httpStatus"
-
+      - events/clone-inventory:httpStatus
   - id: events.IOE.i-o-error-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      IOErrorEvent.clone() copies text, errorID. Metadata and notable omissions:
-      copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "IOErrorEvent.clone() copies text, errorID. Metadata and notable omissions: copied."
+    source:
+      - events/ErrorEvent.hx:ERROR
+      - events/ErrorEvent.hx:errorID
+      - events/IOErrorEvent.hx:new
     scenarios:
-      - "events/clone-inventory:ioError"
-
+      - events/clone-inventory:ioError
   - id: events.I.invoke-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      InvokeEvent.clone() copies none: inherited clone loses currentDirectory,
-      arguments, reason, and subtype. Metadata and notable omissions: copied by
-      base clone.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      InvokeEvent.clone() copies none: inherited clone loses currentDirectory, arguments, reason,
+      and subtype. Metadata and notable omissions: copied by base clone.
+    source:
+      - events/InvokeEvent.hx:INVOKE
+      - events/InvokeEvent.hx:arguments
+      - events/InvokeEvent.hx:clone
+      - events/InvokeEvent.hx:currentDirectory
+      - events/InvokeEvent.hx:reason
     scenarios:
-      - "events/clone-inventory:invoke"
-
+      - events/clone-inventory:invoke
   - id: events.K.keyboard-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      KeyboardEvent.clone() copies charCode, keyCode, keyLocation,
-      ctrl/alt/shift/control/command. Metadata and notable omissions: copied.
-    status: covered
-    scenarios:
-      - "events/event-subclass-construction:cloneBehavior"
-
-  - id: events.M.mouse-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      MouseEvent.clone() copies local coordinates, relatedObject, modifiers,
-      buttonDown, delta, clickCount. Metadata and notable omissions: copied;
-      stageX/stageY, inaccessible flag, and update flag are not copied.
-    status: covered
-    scenarios:
-      - "events/event-subclass-construction:cloneBehavior"
-      - "ui/mouse:mouseEventClone"
-
-  - id: events.NPE.native-process-exit-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      NativeProcessExitEvent.clone() copies exitCode. Metadata and notable
-      omissions: copied.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:nativeProcessExit"
-
-  - id: events.NWB.native-window-bounds-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      NativeWindowBoundsEvent.clone() copies beforeBounds, afterBounds. Metadata
-      and notable omissions: copied; Rectangle references are shallow.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:nativeWindowBounds"
-
-  - id: events.NWDS.native-window-display-state-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      NativeWindowDisplayStateEvent.clone() copies beforeDisplayState,
-      afterDisplayState. Metadata and notable omissions: copied.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:nativeWindowDisplayState"
-
-  - id: events.NS.net-status-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      NetStatusEvent.clone() copies info. Metadata and notable omissions: copied;
-      dynamic info is shallow.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:netStatus"
-
-  - id: events.OP.output-progress-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      OutputProgressEvent.clone() copies none: inherited clone loses bytesPending,
-      bytesTotal, and subtype. Metadata and notable omissions: copied by base
-      clone.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:outputProgress"
-
-  - id: events.P.permission-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      PermissionEvent.clone() copies status. Metadata and notable omissions:
-      copied.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:permission"
-
-  - id: events.P.progress-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      ProgressEvent.clone() copies bytesLoaded, bytesTotal. Metadata and notable
-      omissions: copied.
-    status: covered
-    scenarios:
-      - "events/event-subclass-construction:cloneBehavior"
-
-  - id: events.R.render-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      RenderEvent.clone() copies objectMatrix, objectColorTransform,
-      allowSmoothing. Metadata and notable omissions: copied; matrix/color are
-      deep, renderer and update flag are not copied.
-    status: covered
-    scenarios:
-      - "events/event-subclass-construction:renderEvent"
-
-  - id: events.SD.sample-data-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      SampleDataEvent.clone() copies data, position. Metadata and notable
-      omissions: copied; ByteArray is shallow.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:sampleData"
-
-  - id: events.SM.screen-mouse-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      ScreenMouseEvent.clone() copies screen coordinates, modifiers, buttonDown.
-      Metadata and notable omissions: omitted.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:screenMouse"
-
-  - id: events.SE.security-error-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      SecurityErrorEvent.clone() copies text, errorID. Metadata and notable
-      omissions: copied.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:securityError"
-
-  - id: events.SSC.server-socket-connect-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      ServerSocketConnectEvent.clone() copies socket. Metadata and notable
-      omissions: omitted.
-    status: covered
-    scenarios:
-      - "events/clone-inventory:serverSocket"
-
-  - id: events.SO.stage-orientation-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      StageOrientationEvent.clone() copies beforeOrientation, afterOrientation.
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      KeyboardEvent.clone() copies charCode, keyCode, keyLocation, ctrl/alt/shift/control/command.
       Metadata and notable omissions: copied.
-    status: covered
+    source:
+      - events/KeyboardEvent.hx:altKey
+      - events/KeyboardEvent.hx:charCode
+      - events/KeyboardEvent.hx:keyCode
+      - events/KeyboardEvent.hx:keyLocation
+      - events/KeyboardEvent.hx:shiftKey
     scenarios:
-      - "events/clone-inventory:stageOrientation"
-
+      - events/event-subclass-construction:cloneBehavior
+  - id: events.M.mouse-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      MouseEvent.clone() copies local coordinates, relatedObject, modifiers, buttonDown, delta,
+      clickCount. Metadata and notable omissions: copied; stageX/stageY, inaccessible flag, and
+      update flag are not copied.
+    source:
+      - events/MouseEvent.hx:CLICK
+      - events/MouseEvent.hx:buttonDown
+      - events/MouseEvent.hx:clickCount
+      - events/MouseEvent.hx:delta
+      - events/MouseEvent.hx:relatedObject
+      - events/MouseEvent.hx:stageX
+      - events/MouseEvent.hx:stageY
+    scenarios:
+      - events/event-subclass-construction:cloneBehavior
+      - ui/mouse:mouseEventClone
+  - id: events.NPE.native-process-exit-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: "NativeProcessExitEvent.clone() copies exitCode. Metadata and notable omissions: copied."
+    source:
+      - events/NativeProcessExitEvent.hx:EXIT
+      - events/NativeProcessExitEvent.hx:exitCode
+    scenarios:
+      - events/clone-inventory:nativeProcessExit
+  - id: events.NWB.native-window-bounds-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      NativeWindowBoundsEvent.clone() copies beforeBounds, afterBounds. Metadata and notable
+      omissions: copied; Rectangle references are shallow.
+    source:
+      - events/NativeWindowBoundsEvent.hx:afterBounds
+      - events/NativeWindowBoundsEvent.hx:beforeBounds
+    scenarios:
+      - events/clone-inventory:nativeWindowBounds
+  - id: events.NWDS.native-window-display-state-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      NativeWindowDisplayStateEvent.clone() copies beforeDisplayState, afterDisplayState. Metadata
+      and notable omissions: copied.
+    source:
+      - events/NativeWindowDisplayStateEvent.hx:afterDisplayState
+      - events/NativeWindowDisplayStateEvent.hx:beforeDisplayState
+    scenarios:
+      - events/clone-inventory:nativeWindowDisplayState
+  - id: events.NS.net-status-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      NetStatusEvent.clone() copies info. Metadata and notable omissions: copied; dynamic info is
+      shallow.
+    source:
+      - events/NetStatusEvent.hx:NET_STATUS
+      - events/NetStatusEvent.hx:info
+    scenarios:
+      - events/clone-inventory:netStatus
+  - id: events.OP.output-progress-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      OutputProgressEvent.clone() copies none: inherited clone loses bytesPending, bytesTotal, and
+      subtype. Metadata and notable omissions: copied by base clone.
+    source:
+      - events/OutputProgressEvent.hx:OUTPUT_PROGRESS
+      - events/OutputProgressEvent.hx:bytesPending
+      - events/OutputProgressEvent.hx:bytesTotal
+      - events/OutputProgressEvent.hx:clone
+      - events/ProgressEvent.hx:PROGRESS
+      - events/ProgressEvent.hx:bytesTotal
+    scenarios:
+      - events/clone-inventory:outputProgress
+  - id: events.P.permission-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: "PermissionEvent.clone() copies status. Metadata and notable omissions: copied."
+    source:
+      - events/PermissionEvent.hx:PERMISSION_STATUS
+      - events/PermissionEvent.hx:status
+    scenarios:
+      - events/clone-inventory:permission
+  - id: events.P.progress-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: "ProgressEvent.clone() copies bytesLoaded, bytesTotal. Metadata and notable omissions: copied."
+    source:
+      - events/ProgressEvent.hx:PROGRESS
+      - events/ProgressEvent.hx:bytesLoaded
+      - events/ProgressEvent.hx:bytesTotal
+    scenarios:
+      - events/event-subclass-construction:cloneBehavior
+  - id: events.R.render-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      RenderEvent.clone() copies objectMatrix, objectColorTransform, allowSmoothing. Metadata and
+      notable omissions: copied; matrix/color are deep, renderer and update flag are not copied.
+    source:
+      - events/RenderEvent.hx:CLEAR_DOM
+      - events/RenderEvent.hx:RENDER_CAIRO
+      - events/RenderEvent.hx:RENDER_CANVAS
+      - events/RenderEvent.hx:RENDER_DOM
+      - events/RenderEvent.hx:RENDER_OPENGL
+      - events/RenderEvent.hx:allowSmoothing
+      - events/RenderEvent.hx:objectColorTransform
+      - events/RenderEvent.hx:objectMatrix
+      - events/RenderEvent.hx:renderer
+    scenarios:
+      - events/event-subclass-construction:renderEvent
+  - id: events.SD.sample-data-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      SampleDataEvent.clone() copies data, position. Metadata and notable omissions: copied;
+      ByteArray is shallow.
+    source:
+      - events/DataEvent.hx:DATA
+      - events/DataEvent.hx:data
+      - events/SampleDataEvent.hx:SAMPLE_DATA
+      - events/SampleDataEvent.hx:data
+      - events/SampleDataEvent.hx:position
+    scenarios:
+      - events/clone-inventory:sampleData
+  - id: events.SM.screen-mouse-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      ScreenMouseEvent.clone() copies screen coordinates, modifiers, buttonDown. Metadata and
+      notable omissions: omitted.
+    source:
+      - events/MouseEvent.hx:buttonDown
+      - events/ScreenMouseEvent.hx:new
+      - events/ScreenMouseEvent.hx:screenX
+      - events/ScreenMouseEvent.hx:screenY
+    scenarios:
+      - events/clone-inventory:screenMouse
+  - id: events.SE.security-error-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: "SecurityErrorEvent.clone() copies text, errorID. Metadata and notable omissions: copied."
+    source:
+      - events/ErrorEvent.hx:ERROR
+      - events/ErrorEvent.hx:errorID
+      - events/SecurityErrorEvent.hx:SECURITY_ERROR
+    scenarios:
+      - events/clone-inventory:securityError
+  - id: events.SSC.server-socket-connect-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: "ServerSocketConnectEvent.clone() copies socket. Metadata and notable omissions: omitted."
+    source:
+      - events/ServerSocketConnectEvent.hx:CONNECT
+      - events/ServerSocketConnectEvent.hx:socket
+    scenarios:
+      - events/clone-inventory:serverSocket
+  - id: events.SO.stage-orientation-clone
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      StageOrientationEvent.clone() copies beforeOrientation, afterOrientation. Metadata and notable
+      omissions: copied.
+    source:
+      - events/StageOrientationEvent.hx:ORIENTATION_CHANGE
+      - events/StageOrientationEvent.hx:ORIENTATION_CHANGING
+      - events/StageOrientationEvent.hx:afterOrientation
+      - events/StageOrientationEvent.hx:beforeOrientation
+    scenarios:
+      - events/clone-inventory:stageOrientation
   - id: events.T.text-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      TextEvent.clone() copies text. Metadata and notable omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "TextEvent.clone() copies text. Metadata and notable omissions: copied."
+    source:
+      - events/TextEvent.hx:LINK
+      - events/TextEvent.hx:text
     scenarios:
-      - "events/clone-inventory:text"
-
+      - events/clone-inventory:text
   - id: events.T.timer-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      TimerEvent.clone() copies no subclass payload. Metadata and notable
-      omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "TimerEvent.clone() copies no subclass payload. Metadata and notable omissions: copied."
+    source:
+      - events/TimerEvent.hx:TIMER
     scenarios:
-      - "events/clone-inventory:timer"
-
+      - events/clone-inventory:timer
   - id: events.T.touch-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      TouchEvent.clone() copies touch ID/primary flag, local coordinates, size,
-      pressure, relatedObject, modifiers. Metadata and notable omissions: copied;
-      stageX/stageY and update flag are not copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: >-
+      TouchEvent.clone() copies touch ID/primary flag, local coordinates, size, pressure,
+      relatedObject, modifiers. Metadata and notable omissions: copied; stageX/stageY and update
+      flag are not copied.
+    source:
+      - events/TouchEvent.hx:pressure
+      - events/TouchEvent.hx:relatedObject
+      - events/TouchEvent.hx:sizeX
+      - events/TouchEvent.hx:sizeY
+      - events/TouchEvent.hx:stageX
+      - events/TouchEvent.hx:stageY
     scenarios:
-      - "events/clone-inventory:touch"
-
+      - events/clone-inventory:touch
   - id: events.UE.uncaught-error-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      UncaughtErrorEvent.clone() copies error. Metadata and notable omissions:
-      copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "UncaughtErrorEvent.clone() copies error. Metadata and notable omissions: copied."
+    source:
+      - events/ErrorEvent.hx:ERROR
+      - events/UncaughtErrorEvent.hx:UNCAUGHT_ERROR
+      - events/UncaughtErrorEvent.hx:error
     scenarios:
-      - "events/clone-inventory:uncaughtError"
-
+      - events/clone-inventory:uncaughtError
   - id: events.VT.video-texture-clone
-    section: "Event.clone() contract > Clone inventory"
-    behavior: >
-      VideoTextureEvent.clone() copies status, colorSpace. Metadata and notable
-      omissions: copied.
-    status: covered
+    section: Event.clone() contract > Clone inventory
+    behavior: "VideoTextureEvent.clone() copies status, colorSpace. Metadata and notable omissions: copied."
+    source:
+      - events/TextEvent.hx:new
+      - events/VideoTextureEvent.hx:RENDER_STATE
+      - events/VideoTextureEvent.hx:colorSpace
+      - events/VideoTextureEvent.hx:status
     scenarios:
-      - "events/clone-inventory:videoTexture"
-
+      - events/clone-inventory:videoTexture
   - id: events.EV.constants-event-phase-and-event-type-contract
-    section: "Event public surface > Constants and type contracts"
-    behavior: >
-      Every Event and event-subclass constant must retain its exact 9.5.2 string
-      and EventType subtype; EventPhase is CAPTURING_PHASE = 1, AT_TARGET = 2,
-      and BUBBLING_PHASE = 3. EventType is a String abstract with implicit
-      String conversions and String equality/inequality operators. In particular,
-      GeolocationEvent.UPDATE has the source's unusual
-      EventType<DeviceRotationEvent> declaration. The complete constant and
-      compile-time typing surface is not captured.
-    status: missing
+    section: Event public surface > Constants and type contracts
+    behavior: >-
+      Every Event and event-subclass constant must retain its exact 9.5.2 string and EventType
+      subtype; EventPhase is CAPTURING_PHASE = 1, AT_TARGET = 2, and BUBBLING_PHASE = 3. EventType
+      is a String abstract with implicit String conversions and String equality/inequality
+      operators. In particular, GeolocationEvent.UPDATE has the source's unusual
+      EventType<DeviceRotationEvent> declaration. The complete constant and compile-time typing
+      surface is not captured.
+    source:
+      - events/AccelerometerEvent.hx:UPDATE
+      - events/DeviceRotationEvent.hx:UPDATE
+      - events/Event.hx:ACTIVATE
+      - events/Event.hx:ADDED
+      - events/Event.hx:ADDED_TO_STAGE
+      - events/Event.hx:CANCEL
+      - events/Event.hx:CHANGE
+      - events/Event.hx:CLEAR
+      - events/Event.hx:COMPLETE
+      - events/Event.hx:CONTEXT3D_CREATE
+      - events/Event.hx:EXITING
+      - events/Event.hx:FRAME_LABEL
+      - events/Event.hx:FULLSCREEN
+      - events/Event.hx:ID3
+      - events/Event.hx:INIT
+      - events/Event.hx:MOUSE_LEAVE
+      - events/Event.hx:PASTE
+      - events/Event.hx:RESIZE
+      - events/Event.hx:SCROLL
+      - events/Event.hx:SELECT_ALL
+      - events/Event.hx:SOUND_COMPLETE
+      - events/Event.hx:TAB_CHILDREN_CHANGE
+      - events/Event.hx:TAB_ENABLED_CHANGE
+      - events/Event.hx:TAB_INDEX_CHANGE
+      - events/Event.hx:TEXTURE_READY
+      - events/Event.hx:UNLOAD
+      - events/Event.hx:eventPhase
+      - events/Event.hx:target
+      - events/Event.hx:type
+      - events/EventPhase.hx:AT_TARGET
+      - events/EventPhase.hx:BUBBLING_PHASE
+      - events/EventPhase.hx:CAPTURING_PHASE
+      - events/GeolocationEvent.hx:UPDATE
+      - events/GeolocationEvent.hx:horizontalAccuracy
+      - events/GeolocationEvent.hx:verticalAccuracy
     scenarios: []
-
   - id: events.EV.subclass-constructor-defaults-mutability-and-ownership
-    section: "Event public surface > Construction and payloads"
-    behavior: >
-      Each concrete event subclass constructor must preserve its exact bubbles,
-      cancelable, scalar, null, empty-string, array, ByteArray, Rectangle, device,
-      socket, and dynamic payload defaults. Public payload mutability versus
-      default/null read-only access, direct reference retention, SampleDataEvent's
-      fresh little-endian ByteArray, and HTTPStatusEvent's fresh responseHeaders
-      array must also match. The clone inventory covers supplied values but does
-      not exhaust constructor defaults and post-construction writes.
-    status: missing
+    section: Event public surface > Construction and payloads
+    behavior: >-
+      Each concrete event subclass constructor must preserve its exact bubbles, cancelable, scalar,
+      null, empty-string, array, ByteArray, Rectangle, device, socket, and dynamic payload defaults.
+      Public payload mutability versus default/null read-only access, direct reference retention,
+      SampleDataEvent's fresh little-endian ByteArray, and HTTPStatusEvent's fresh responseHeaders
+      array must also match. The clone inventory covers supplied values but does not exhaust
+      constructor defaults and post-construction writes.
+    source:
+      - events/ActivityEvent.hx:new
+      - events/AsyncErrorEvent.hx:new
+      - events/DataEvent.hx:DATA
+      - events/DataEvent.hx:data
+      - events/DataEvent.hx:new
+      - events/DatagramSocketDataEvent.hx:new
+      - events/Event.hx:CANCEL
+      - events/Event.hx:bubbles
+      - events/Event.hx:cancelable
+      - events/Event.hx:clone
+      - events/Event.hx:new
+      - events/FileListEvent.hx:new
+      - events/FullScreenEvent.hx:new
+      - events/GameInputEvent.hx:new
+      - events/HTTPStatusEvent.hx:HTTP_RESPONSE_STATUS
+      - events/HTTPStatusEvent.hx:HTTP_STATUS
+      - events/HTTPStatusEvent.hx:new
+      - events/HTTPStatusEvent.hx:responseHeaders
+      - events/InvokeEvent.hx:new
+      - events/NativeProcessExitEvent.hx:new
+      - events/NativeWindowBoundsEvent.hx:new
+      - events/NativeWindowDisplayStateEvent.hx:new
+      - events/NetStatusEvent.hx:new
+      - events/OutputProgressEvent.hx:new
+      - events/PermissionEvent.hx:new
+      - events/ProgressEvent.hx:new
+      - events/SampleDataEvent.hx:SAMPLE_DATA
+      - events/SampleDataEvent.hx:data
+      - events/SampleDataEvent.hx:new
+      - events/SecurityErrorEvent.hx:new
+      - events/ServerSocketConnectEvent.hx:new
+      - events/StageOrientationEvent.hx:new
+      - events/VideoTextureEvent.hx:new
     scenarios: []
-
   - id: events.EV.format-to-string-and-subclass-string-output
-    section: "Event public surface > String formatting"
-    behavior: >
-      Event.formatToString uses a Rest<String> signature on Haxe 4.2+ and five
-      nullable parameters earlier, reflects each named field, quotes strings, and
-      emits bracketed class/name pairs in argument order. Event and every subclass
-      toString override choose a source-specific class name and payload list;
-      classes without an override inherit Event formatting. Only base Event output
+    section: Event public surface > String formatting
+    behavior: >-
+      Event.formatToString uses a Rest<String> signature on Haxe 4.2+ and five nullable parameters
+      earlier, reflects each named field, quotes strings, and emits bracketed class/name pairs in
+      argument order. Event and every subclass toString override choose a source-specific class name
+      and payload list; classes without an override inherit Event formatting. Only base Event output
       is currently captured.
-    status: missing
+    source:
+      - events/DatagramSocketDataEvent.hx:toString
+      - events/Event.hx:formatToString
+      - events/Event.hx:toString
+      - events/EventDispatcher.hx:toString
+      - events/ServerSocketConnectEvent.hx:toString
     scenarios: []
-
   - id: events.EV.update-after-event-render-request-flags
-    section: "Event public surface > Post-dispatch rendering"
-    behavior: >
-      KeyboardEvent, MouseEvent, TimerEvent, and TouchEvent updateAfterEvent set a
-      per-instance render-request flag without changing cancellation state. Stage
-      consumes keyboard/mouse flags after routed dispatch; constructor reuse and
-      clone reset the flag. Timer/touch consumption and repeated/direct-dispatch
-      boundaries are not independently captured.
-    status: missing
+    section: Event public surface > Post-dispatch rendering
+    behavior: >-
+      KeyboardEvent, MouseEvent, TimerEvent, and TouchEvent updateAfterEvent set a per-instance
+      render-request flag without changing cancellation state. Stage consumes keyboard/mouse flags
+      after routed dispatch; constructor reuse and clone reset the flag. Timer/touch consumption and
+      repeated/direct-dispatch boundaries are not independently captured.
+    source:
+      - events/Event.hx:CANCEL
+      - events/Event.hx:RENDER
+      - events/Event.hx:clone
+      - events/Event.hx:new
+      - events/KeyboardEvent.hx:new
+      - events/KeyboardEvent.hx:updateAfterEvent
+      - events/MouseEvent.hx:altKey
+      - events/MouseEvent.hx:commandKey
+      - events/MouseEvent.hx:controlKey
+      - events/MouseEvent.hx:ctrlKey
+      - events/MouseEvent.hx:isRelatedObjectInaccessible
+      - events/MouseEvent.hx:new
+      - events/MouseEvent.hx:shiftKey
+      - events/MouseEvent.hx:updateAfterEvent
+      - events/RenderEvent.hx:new
+      - events/TimerEvent.hx:TIMER
+      - events/TimerEvent.hx:TIMER_COMPLETE
+      - events/TimerEvent.hx:new
+      - events/TimerEvent.hx:updateAfterEvent
+      - events/TouchEvent.hx:TOUCH_BEGIN
+      - events/TouchEvent.hx:TOUCH_END
+      - events/TouchEvent.hx:TOUCH_MOVE
+      - events/TouchEvent.hx:TOUCH_OUT
+      - events/TouchEvent.hx:TOUCH_OVER
+      - events/TouchEvent.hx:TOUCH_ROLL_OUT
+      - events/TouchEvent.hx:TOUCH_ROLL_OVER
+      - events/TouchEvent.hx:TOUCH_TAP
+      - events/TouchEvent.hx:altKey
+      - events/TouchEvent.hx:commandKey
+      - events/TouchEvent.hx:controlKey
+      - events/TouchEvent.hx:ctrlKey
+      - events/TouchEvent.hx:isPrimaryTouchPoint
+      - events/TouchEvent.hx:new
+      - events/TouchEvent.hx:shiftKey
+      - events/TouchEvent.hx:touchPointID
+      - events/TouchEvent.hx:updateAfterEvent
     scenarios: []
-
   - id: events.UEE.listener-enabled-state-and-build-flags
-    section: "UncaughtErrorEvents"
-    behavior: >
-      UncaughtErrorEvents starts enabled unless openfl_disable_handle_error is set
-      without openfl_enable_handle_error. Adding an UNCAUGHT_ERROR listener enables
-      it in handling-enabled builds; removing the last such listener disables it,
-      while listeners of other types do not control the flag. Constructor and
-      listener behavior under both compile configurations are unverified.
-    status: missing
+    section: UncaughtErrorEvents
+    behavior: >-
+      UncaughtErrorEvents starts enabled unless openfl_disable_handle_error is set without
+      openfl_enable_handle_error. Adding an UNCAUGHT_ERROR listener enables it in handling-enabled
+      builds; removing the last such listener disables it, while listeners of other types do not
+      control the flag. Constructor and listener behavior under both compile configurations are
+      unverified.
+    source:
+      - events/ErrorEvent.hx:ERROR
+      - events/ErrorEvent.hx:new
+      - events/UncaughtErrorEvent.hx:UNCAUGHT_ERROR
+      - events/UncaughtErrorEvent.hx:error
+      - events/UncaughtErrorEvent.hx:new
+      - events/UncaughtErrorEvents.hx:new
     scenarios: []
-
   - id: events.PKG.sys-air-and-backend-conditional-surface
-    section: "Package target availability"
-    behavior: >
-      DNSResolverEvent, DeviceRotationEvent, FileListEvent, GeolocationEvent,
-      InvokeEvent, NativeWindowBoundsEvent, NativeWindowDisplayStateEvent,
-      OutputProgressEvent, and ScreenMouseEvent exist on the non-Flash sys/AIR-doc
-      branch; NativeProcessExitEvent and the standard-stream IOError/Progress
-      constants additionally require Haxe 4 sys. SampleDataEvent's audio-buffer
-      checks differ between HTML5 and lime_openal. No compile/behavior matrix
-      verifies these target gates and backend-specific sample-count errors.
-    status: missing
+    section: Package target availability
+    behavior: >-
+      DNSResolverEvent, DeviceRotationEvent, FileListEvent, GeolocationEvent, InvokeEvent,
+      NativeWindowBoundsEvent, NativeWindowDisplayStateEvent, OutputProgressEvent, and
+      ScreenMouseEvent exist on the non-Flash sys/AIR-doc branch; NativeProcessExitEvent and the
+      standard-stream IOError/Progress constants additionally require Haxe 4 sys. SampleDataEvent's
+      audio-buffer checks differ between HTML5 and lime_openal. No compile/behavior matrix verifies
+      these target gates and backend-specific sample-count errors.
+    source:
+      - events/DNSResolverEvent.hx:LOOKUP
+      - events/DataEvent.hx:DATA
+      - events/DataEvent.hx:UPLOAD_COMPLETE_DATA
+      - events/DataEvent.hx:data
+      - events/DeviceRotationEvent.hx:UPDATE
+      - events/Event.hx:ACTIVATE
+      - events/Event.hx:ADDED
+      - events/Event.hx:ADDED_TO_STAGE
+      - events/Event.hx:CANCEL
+      - events/Event.hx:CHANGE
+      - events/Event.hx:CLEAR
+      - events/Event.hx:CLOSE
+      - events/Event.hx:CLOSING
+      - events/Event.hx:COMPLETE
+      - events/Event.hx:target
+      - events/FileListEvent.hx:DIRECTORY_LISTING
+      - events/FileListEvent.hx:SELECT_MULTIPLE
+      - events/GeolocationEvent.hx:UPDATE
+      - events/IOErrorEvent.hx:IO_ERROR
+      - events/IOErrorEvent.hx:STANDARD_ERROR_IO_ERROR
+      - events/IOErrorEvent.hx:STANDARD_OUTPUT_IO_ERROR
+      - events/InvokeEvent.hx:INVOKE
+      - events/MouseEvent.hx:CLICK
+      - events/MouseEvent.hx:DOUBLE_CLICK
+      - events/MouseEvent.hx:MIDDLE_CLICK
+      - events/MouseEvent.hx:MIDDLE_MOUSE_DOWN
+      - events/MouseEvent.hx:MIDDLE_MOUSE_UP
+      - events/MouseEvent.hx:MOUSE_DOWN
+      - events/MouseEvent.hx:MOUSE_MOVE
+      - events/MouseEvent.hx:MOUSE_OUT
+      - events/MouseEvent.hx:MOUSE_OVER
+      - events/MouseEvent.hx:MOUSE_UP
+      - events/MouseEvent.hx:MOUSE_WHEEL
+      - events/MouseEvent.hx:RIGHT_MOUSE_DOWN
+      - events/MouseEvent.hx:RIGHT_MOUSE_UP
+      - events/NativeProcessExitEvent.hx:EXIT
+      - events/NativeWindowBoundsEvent.hx:MOVE
+      - events/NativeWindowBoundsEvent.hx:MOVING
+      - events/NativeWindowBoundsEvent.hx:RESIZE
+      - events/NativeWindowBoundsEvent.hx:RESIZING
+      - events/NativeWindowDisplayStateEvent.hx:DISPLAY_STATE_CHANGE
+      - events/NativeWindowDisplayStateEvent.hx:DISPLAY_STATE_CHANGING
+      - events/OutputProgressEvent.hx:OUTPUT_PROGRESS
+      - events/ProgressEvent.hx:PROGRESS
+      - events/ProgressEvent.hx:SOCKET_DATA
+      - events/ProgressEvent.hx:STANDARD_ERROR_DATA
+      - events/ProgressEvent.hx:STANDARD_OUTPUT_DATA
+      - events/SampleDataEvent.hx:SAMPLE_DATA
+      - events/SampleDataEvent.hx:data
+      - events/ScreenMouseEvent.hx:CLICK
+      - events/ScreenMouseEvent.hx:MOUSE_DOWN
+      - events/ScreenMouseEvent.hx:MOUSE_UP
+      - events/ScreenMouseEvent.hx:RIGHT_CLICK
+      - events/ScreenMouseEvent.hx:RIGHT_MOUSE_DOWN
+      - events/ScreenMouseEvent.hx:RIGHT_MOUSE_UP
     scenarios: []
-
+    notes: "Target conditions: #if html5, #if !flash, #if sys."
   - id: events.API.event-dispatcher-interface-and-event-type-surface
-    section: "Compile-only public surface"
-    behavior: >
-      IEventDispatcher exposes the same generic EventType listener signatures and
-      defaults as EventDispatcher for add/remove, dispatch, hasEventListener, and
-      willTrigger. EventDispatcher construction, registration, removal, routing,
-      cancellation, and ancestor lookup exercise that interface contract without
-      adding a second runtime implementation.
-    status: covered
+    section: Compile-only public surface
+    behavior: >-
+      IEventDispatcher exposes the same generic EventType listener signatures and defaults as
+      EventDispatcher for add/remove, dispatch, hasEventListener, and willTrigger. EventDispatcher
+      construction, registration, removal, routing, cancellation, and ancestor lookup exercise that
+      interface contract without adding a second runtime implementation.
+    source:
+      - events/Event.hx:CANCEL
+      - events/Event.hx:new
+      - events/Event.hx:type
+      - events/EventDispatcher.hx:copy
+      - events/EventDispatcher.hx:hasEventListener
+      - events/EventDispatcher.hx:hasNext
+      - events/EventDispatcher.hx:new
+      - events/EventDispatcher.hx:next
+      - events/EventDispatcher.hx:remove
+      - events/EventDispatcher.hx:start
+      - events/EventDispatcher.hx:willTrigger
+      - events/EventPhase.hx:AT_TARGET
+      - events/IEventDispatcher.hx:addEventListener
+      - events/IEventDispatcher.hx:dispatchEvent
+      - events/IEventDispatcher.hx:hasEventListener
+      - events/IEventDispatcher.hx:removeEventListener
+      - events/IEventDispatcher.hx:willTrigger
     scenarios:
       - events/dispatcher:initialState
       - events/dispatcher:afterAdd
