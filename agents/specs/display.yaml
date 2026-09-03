@@ -346,7 +346,8 @@ entries:
       that order, then advances descendants, matching the reference frame phase
       order.
     status: covered
-    scenarios: []
+    scenarios:
+      - "events/advanced:frameAndRender"
 
   - id: display.STG.invalidate-sets-invalidation-render-dirtiness-render-pass
     section: "Stage > Frame, invalidation, and broadcast lifecycle"
@@ -1108,7 +1109,8 @@ entries:
       walk; display properties, shapes, textures, labels, and child order are sent
       directly to Flight nodes.
     status: covered
-    scenarios: []
+    scenarios:
+      - "display/rendering-composition:bitmapDraw"
 
   - id: display.REN.open-fl-renderers-clear-child-container-render
     section: "Renderer-owned side effects noted, not adopted"
@@ -1143,7 +1145,8 @@ entries:
       increment Bitmap.version, and Flight's GL texture cache compares that value
       before upload.
     status: covered
-    scenarios: []
+    scenarios:
+      - "display/bitmap-data:textureAlias"
 
   - id: display.REN.dom-shape-rendering-temporarily-substitutes-graphics-render
     section: "Renderer-owned side effects noted, not adopted"

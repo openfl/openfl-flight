@@ -8,13 +8,21 @@
         "accelerationY": 1,
         "accelerationX": 0,
         "timestampIsNonNegative": true
+      },
+      {
+        "accelerationZ": 0,
+        "accelerationY": 1,
+        "accelerationX": 0,
+        "timestampIsNonNegative": true
       }
     ],
     "negativeIntervalError": "openfl.errors.ArgumentError",
-    "isSupported": false
+    "isSupported": false,
+    "unrelatedListenerCalls": 0
   },
   "geolocation": {
     "constructorError": "openfl.errors.IllegalOperationError",
+    "plainClass": true,
     "accuracyConstants": [
       "locationAccuracyBest",
       "locationAccuracyBestForNavigation",
@@ -23,12 +31,11 @@
       "locationAccuracyNearestTenMeters",
       "locationAccuracyThreeKilometers"
     ],
-    "isSupported": false,
-    "plainClass": true
+    "isSupported": false
   },
   "deviceRotation": {
     "constructorError": "openfl.errors.IllegalOperationError",
-    "isSupported": false,
-    "plainClass": true
+    "plainClass": true,
+    "isSupported": false
   }
 }

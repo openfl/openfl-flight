@@ -178,7 +178,7 @@ entries:
       context, sizes/stride inputs, and format/usage intent.
     status: covered
     scenarios:
-      - "display3d/core:context.resources"
+      - "display3d/core:context"
 
   - id: display3d.C3D.create-texture-create-rectangle-texture-create-cube
     section: "Context3D > Resource factories"
@@ -191,7 +191,7 @@ entries:
       creates a Flight texture handle.
     status: covered
     scenarios:
-      - "display3d/core:context.resources"
+      - "display3d/core:context"
 
   - id: display3d.C3D.create-video-texture-returns-texture-only-html
     section: "Context3D > Resource factories"
@@ -403,7 +403,8 @@ entries:
       setFillMode is not part of the OpenFL 9.5.2 Context3D surface and the
       adapter correctly does not add it.
     status: covered
-    scenarios: []
+    scenarios:
+      - "display3d/core:context"
 
   - id: display3d.P3D.program-3-d-final-private-constructed-agal
     section: "Programs and buffers > Program3D"
@@ -598,7 +599,7 @@ entries:
       then nulls the base handle.
     status: covered
     scenarios:
-      - "display3d/core:context.resources"
+      - "display3d/core:context"
 
   - id: display3d.VAL.except-context-3-d-clear-mask-non
     section: "Context3D value types"

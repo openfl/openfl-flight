@@ -12,6 +12,10 @@ class ExternalInterfaceScenario {
 		var callDidNotThrow = succeeds(function() {
 			callResult = ExternalInterface.call("org.openfl.missing");
 		});
+		var nullGapResult:Dynamic = null;
+		var nullGapDidNotThrow = succeeds(function() {
+			nullGapResult = ExternalInterface.call("org.openfl.missing", "first", null, "ignored");
+		});
 		var addCallbackDidNotThrow = succeeds(function() {
 			ExternalInterface.addCallback("org_openfl_test", function() return 42);
 		});
@@ -29,6 +33,10 @@ class ExternalInterfaceScenario {
 			callWhenUnavailable: {
 				didNotThrow: callDidNotThrow,
 				returnedNull: callResult == null
+			},
+			invocationContract: {
+				didNotThrow: nullGapDidNotThrow,
+				returnedNull: nullGapResult == null
 			},
 			callbackContract: {
 				addDidNotThrow: addCallbackDidNotThrow,

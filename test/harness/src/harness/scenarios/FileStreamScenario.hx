@@ -3,6 +3,9 @@ package harness.scenarios;
 import openfl.filesystem.File;
 import openfl.filesystem.FileMode;
 import openfl.filesystem.FileStream;
+import openfl.events.Event;
+import openfl.events.IOErrorEvent;
+import openfl.events.ProgressEvent;
 import openfl.net.ObjectEncoding;
 import openfl.utils.ByteArray;
 import openfl.utils.Endian;
@@ -15,6 +18,7 @@ class FileStreamScenario {
 		var stream = new FileStream();
 		var result:Dynamic = {
 			defaults: {
+				asyncWriteMethodsPresent: stream.openAsync != null && stream.writeBytes != null && stream.close != null,
 				position: stream.position,
 				readAheadInfinite: !Math.isFinite(stream.readAhead),
 				isWriting: stream.isWriting,
@@ -112,6 +116,44 @@ class FileStreamScenario {
 			result.bulkBytes = {
 				length: copiedBytes.length,
 				streamPosition: bulkPosition
+			};
+
+			var multiByteFile = root.resolvePath("multibyte.bin");
+			stream.open(multiByteFile, FileMode.WRITE);
+			stream.writeMultiByte("é", "iso-8859-1");
+			stream.close();
+			stream.open(multiByteFile, FileMode.READ);
+			var multiByteValue = stream.readMultiByte(2, "shift-jis");
+			stream.close();
+			result.multiByte = {
+				encodedLength: File.getFileBytes(multiByteFile.nativePath).length,
+				ignoredCharacterSetsRoundTripUTF8: multiByteValue == "é"
+			};
+
+			var asyncFile = root.resolvePath("async-read.bin");
+			var asyncBytes = new ByteArray();
+			asyncBytes.writeUTFBytes("ABCDE");
+			File.saveBytes(asyncFile.nativePath, asyncBytes);
+			var asyncStream = new FileStream();
+			var asyncProgress:Array<Dynamic> = [];
+			var asyncComplete = false;
+			var asyncErrors = 0;
+			var asyncCloseEvents = 0;
+			asyncStream.addEventListener(ProgressEvent.PROGRESS, function(event:ProgressEvent):Void {
+				asyncProgress.push({bytesLoaded: event.bytesLoaded, bytesTotal: event.bytesTotal, bytesAvailable: asyncStream.bytesAvailable});
+			});
+			asyncStream.addEventListener(Event.COMPLETE, function(_:Event):Void asyncComplete = true);
+			asyncStream.addEventListener(IOErrorEvent.IO_ERROR, function(_:IOErrorEvent):Void asyncErrors++);
+			asyncStream.addEventListener(Event.CLOSE, function(_:Event):Void asyncCloseEvents++);
+			asyncStream.openAsync(new File(asyncFile.nativePath), FileMode.READ);
+			var asyncContentsLength = asyncComplete ? asyncStream.readUTFBytes(5).length : -1;
+			asyncStream.close();
+			result.asyncRead = {
+				closeEvents: asyncCloseEvents,
+				complete: asyncComplete,
+				contentsLength: asyncContentsLength,
+				errors: asyncErrors,
+				progress: asyncProgress
 			};
 
 			var objectFile = root.resolvePath("object.bin");

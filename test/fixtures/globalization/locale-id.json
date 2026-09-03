@@ -8,6 +8,15 @@
     "variant": "",
     "region": "EG"
   },
+  "defaultLocale": {
+    "name": "i-default",
+    "script": "",
+    "language": "i-default",
+    "rightToLeft": false,
+    "statusIsNoError": true,
+    "variant": "",
+    "region": ""
+  },
   "languageAndRegion": {
     "name": "en-US",
     "script": "",

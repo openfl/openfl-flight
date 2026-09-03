@@ -1,16 +1,20 @@
 {
   "available": false,
-  "availableIsBool": true,
+  "callbackContract": {
+    "addDidNotThrow": true,
+    "removeWithNullDidNotThrow": true
+  },
+  "invocationContract": {
+    "didNotThrow": true,
+    "returnedNull": true
+  },
   "objectID": null,
-  "objectIDReadSucceeded": true,
   "objectIDIsNull": true,
   "objectIDIsStringOrNull": true,
+  "availableIsBool": true,
   "callWhenUnavailable": {
     "didNotThrow": true,
     "returnedNull": true
   },
-  "callbackContract": {
-    "addDidNotThrow": true,
-    "removeWithNullDidNotThrow": true
-  }
+  "objectIDReadSucceeded": true
 }

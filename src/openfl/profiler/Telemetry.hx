@@ -4,6 +4,7 @@ package openfl.profiler;
 #if ((cpp || neko) && hxtelemetry && !macro)
 import hxtelemetry.HxTelemetry;
 #end
+import openfl.Lib;
 
 /**
 	The Telemetry class lets an application profile Haxe code and register handlers
@@ -136,7 +137,18 @@ import hxtelemetry.HxTelemetry;
 	@:noCompletion private static inline function __initialize():Void
 	{
 		#if ((cpp || neko) && hxtelemetry && !macro)
-		// TODO: Initialize telemetry from Flight's application metadata.
+		var meta = Lib.application.meta;
+
+		var config = new hxtelemetry.HxTelemetry.Config();
+		config.allocations = (!meta.exists("hxtelemetry-allocations") || meta.get("hxtelemetry-allocations") == "true");
+		config.host = (!meta.exists("hxtelemetry-host") ? "localhost" : meta.get("hxtelemetry-host"));
+		config.app_name = meta.get("name");
+
+		config.activity_descriptors = [
+			{name: TelemetryCommandName.EVENT, description: "Event Handler", color: 0x2288cc},
+			{name: TelemetryCommandName.RENDER, description: "Rendering", color: 0x66aa66}
+		];
+		telemetry = new HxTelemetry(config);
 		#end
 	}
 

@@ -20,6 +20,8 @@ class SensorScenario
 				timestampIsNonNegative: event.timestamp >= 0
 			});
 		});
+		var unrelatedListenerCalls = 0;
+		accelerometer.addEventListener("unrelated", function(_:Dynamic):Void unrelatedListenerCalls++);
 
 		var negativeIntervalError = errorClass(function():Void accelerometer.setRequestedUpdateInterval(-1));
 		accelerometer.setRequestedUpdateInterval(0);
@@ -34,6 +36,7 @@ class SensorScenario
 				isSupported: Accelerometer.isSupported,
 				mutedAfterSet: mutedAfterSet,
 				negativeIntervalError: negativeIntervalError,
+				unrelatedListenerCalls: unrelatedListenerCalls,
 				updates: updates
 			},
 			deviceRotation: {

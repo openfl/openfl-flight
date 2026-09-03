@@ -1,8 +1,22 @@
 {
+  "asyncRead": {
+    "contentsLength": 5,
+    "complete": true,
+    "closeEvents": 1,
+    "progress": [
+      {
+        "bytesTotal": 5,
+        "bytesAvailable": 5,
+        "bytesLoaded": 5
+      }
+    ],
+    "errors": 0
+  },
   "defaults": {
     "readAheadInfinite": true,
     "isWriting": false,
     "position": 0,
+    "asyncWriteMethodsPresent": true,
     "objectEncoding": 10
   },
   "littleEndianShort": 4660,
@@ -41,6 +55,10 @@
   "objectRoundTrip": {
     "label": "ok",
     "answer": 42
+  },
+  "multiByte": {
+    "encodedLength": 2,
+    "ignoredCharacterSetsRoundTripUTF8": true
   },
   "missingReadRejected": true,
   "cleaned": true

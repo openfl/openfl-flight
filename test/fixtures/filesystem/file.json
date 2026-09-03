@@ -1,6 +1,35 @@
 {
+  "pathContracts": {
+    "appPrefixResolved": true,
+    "appStoragePrefixResolved": true,
+    "asyncMethodsPresent": true,
+    "browseMethodsPresent": true,
+    "cancelWithoutWorkerThrows": true,
+    "emptyFileIsFileReference": true,
+    "emptyFileNameIsNull": true,
+    "fileModes": [
+      "append",
+      "read",
+      "update",
+      "write"
+    ],
+    "lineEndingMatchesPlatform": true,
+    "openWithDefaultApplicationPresent": true,
+    "resolvePathRetainsDotDot": true,
+    "separatorMatchesPlatform": true,
+    "workingDirectoryMatchesCwd": true
+  },
+  "pathOperations": {
+    "canonicalPathMatches": true,
+    "cloneIsDistinct": true,
+    "clonePathMatches": true,
+    "relativeChild": "nested/child.txt",
+    "relativeParentWithoutDotDotIsNull": true,
+    "relativeParentWithDotDot": ".."
+  },
   "tempExistsInitially": false,
   "deletedFileExists": false,
+  "browseReturnsFalse": true,
   "source": {
     "name": "alpha.txt",
     "creationDateIsNull": true,
@@ -14,7 +43,8 @@
     "urlEndsWithName": true,
     "exists": true,
     "isHidden": false,
-    "type": "txt"
+    "type": "txt",
+    "extraFlightPropertiesAbsent": true
   },
   "operationsCompleted": true,
   "listing": {

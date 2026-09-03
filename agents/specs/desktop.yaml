@@ -12,7 +12,15 @@ entries:
       and Updater. The native-window classes are in openfl.display, not
       openfl.desktop.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:application"
+      - "desktop/native-window:clipboard"
+      - "desktop/native-window:constants"
+      - "desktop/native-window:icons"
+      - "desktop/native-window:process"
+      - "desktop/native-window:updaterSupported"
+      - "desktop/native-window:windowOptions"
+      - "desktop/native-window:windowStatic"
 
   - id: desktop.PKG.native-menu-native-menu-item-native-drag
     section: "Actual package boundary"
@@ -22,7 +30,8 @@ entries:
       adapter does not invent them. The same is true of AIR's StorageVolume and
       StorageVolumeInfo names.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:constants"
 
   - id: desktop.PKG.desktop-only-air-compatibility-types-compile-gated
     section: "Actual package boundary"
@@ -32,7 +41,8 @@ entries:
       classes; on unsupported non-Flash configurations they are absent rather than
       runtime stubs.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:windowStatic"
 
   - id: desktop.NA.native-application-lazily-constructs-one-private-instance
     section: "NativeApplication > Singleton, capabilities, and window lists"
@@ -238,7 +248,8 @@ entries:
     notes: >
       Keep the cancellable Flight quit hook as an intentional AIR-compatible
       extension.
-    scenarios: []
+    scenarios:
+      - "desktop/native-application:flightApplicationHandle"
 
   - id: desktop.NA.listeners-invoke-idle-present-present-change-can
     section: "NativeApplication > Commands and lifecycle events"
@@ -248,7 +259,8 @@ entries:
       automatically emits those events. There is likewise no automatic EXITING
       event in the reference source.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-application:commands"
 
   - id: desktop.NWIO.new-performs-no-work-beyond-field-initializers
     section: "NativeWindowInitOptions"
@@ -388,7 +400,8 @@ entries:
       active is maintained by focus/activation callbacks. The adapter also treats
       Flight's current focused flag as active.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:window"
 
   - id: desktop.NW.transparent-always-returns-false-implementations-regardless-native
     section: "NativeWindow > Properties and closed-window rule"
@@ -451,7 +464,8 @@ entries:
       coordinates/dimensions. The adapter also updates its compatibility Window
       and Stage logical size on resize.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:window"
 
   - id: desktop.NW.minimize-maximize-restore-callbacks-dispatch-only-native
     section: "NativeWindow > Operations and event order"
@@ -461,7 +475,8 @@ entries:
       observed state and respectively MINIMIZED, MAXIMIZED, or NORMAL. The 9.5.2
       source does not dispatch the AIR DISPLAY_STATE_CHANGING event.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:window"
 
   - id: desktop.NW.programmatic-close-sets-skip-flag-before-requesting
     section: "NativeWindow > Operations and event order"
@@ -470,7 +485,8 @@ entries:
       not dispatch cancellable CLOSING. A user/host close request dispatches
       non-bubbling, cancelable CLOSING; prevention cancels the host request.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:window"
 
   - id: desktop.NW.accepted-close-owned-children-popped-closed-reverse
     section: "NativeWindow > Operations and event order"
@@ -492,7 +508,8 @@ entries:
       member. Mentions of startMove/startResize in comments do not create methods.
       The adapter correctly does not claim these APIs.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:window"
 
   - id: desktop.NW.there-consequently-no-automatic-moving-resizing-changing
     section: "NativeWindow > AIR window operations not in 9.5.2"
@@ -501,7 +518,8 @@ entries:
       DISPLAY_STATE_CHANGING, or menu/select behaviors to specify for the actual
       9.5.2 non-Flash surface.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-window:window"
 
   - id: desktop.CB.general-clipboard-lazy-singleton-flagged-system-clipboard
     section: "Clipboard"
@@ -610,7 +628,8 @@ entries:
       Reading/writing the wrappers before a process is active throws Error ID
       3212. With process support absent they never become usable in the adapter.
     status: covered
-    scenarios: []
+    scenarios:
+      - "desktop/native-process:process"
 
   - id: desktop.NP.native-process-startup-info-new-leaves-public
     section: "NativeProcess and startup records"

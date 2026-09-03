@@ -1,7 +1,26 @@
 {
+  "certificateDefaults": {
+    "validNotBeforeIsNull": true,
+    "issuerIsNull": true,
+    "subjectPublicKeyAlgorithmOIDIsNull": true,
+    "subjectIsNull": true,
+    "issuerUniqueIDIsNull": true,
+    "subjectPublicKeyIsNull": true,
+    "version": null,
+    "signatureAlgorithmParamsIsNull": true,
+    "validNotAfterIsNull": true,
+    "encodedIsNull": true,
+    "subjectUniqueIDIsNull": true,
+    "serialNumberIsNull": true,
+    "signatureAlgorithmOIDIsNull": true
+  },
   "invalid": "invalid",
   "unknown": "unknown",
   "invalidChain": "invalidChain",
+  "distinguishedName": {
+    "empty": "",
+    "populated": "/CN=openfl.org/C=US/L=New York/OU=Runtime/O=OpenFL/S=NY"
+  },
   "trusted": "trusted",
   "revoked": "revoked",
   "untrustedSigners": "untrustedSigners",

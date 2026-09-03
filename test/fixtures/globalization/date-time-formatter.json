@@ -1,4 +1,53 @@
 {
+  "enumerations": {
+    "lastOperationStatuses": [
+      "bufferOverflowError",
+      "errorCodeUnknown",
+      "illegalArgumentError",
+      "indexOutOfBoundsError",
+      "invalidAttrValue",
+      "invalidCharFound",
+      "memoryAllocationError",
+      "noError",
+      "numberOverflowError",
+      "parseError",
+      "patternSyntaxError",
+      "platformAPIFailed",
+      "truncatedCharFound",
+      "unexpectedToken",
+      "unsupportedError",
+      "usingDefaultWarning",
+      "usingFallbackWarning"
+    ],
+    "dateTimeNameStyles": [
+      "full",
+      "longAbbreviation",
+      "shortAbbreviation"
+    ],
+    "dateTimeStyles": [
+      "custom",
+      "long",
+      "medium",
+      "none",
+      "short"
+    ],
+    "unknownLastOperationStatusIsNull": true,
+    "dateTimeNameContexts": [
+      "format",
+      "standalone"
+    ]
+  },
+  "changedStyles": {
+    "pattern": "MMMM d, yyyy",
+    "customRejected": true,
+    "dateStyleIsMedium": true,
+    "timeStyleIsNone": true,
+    "statusIsNoError": true
+  },
+  "quotedCustom": {
+    "statusIsNoError": true,
+    "formatted": "AD 2024 year February 30 Thursday PM 0 1 13 14 05 09"
+  },
   "initial": {
     "pattern": "EEEE, MMMM d, yyyy h:mm a",
     "actualLocaleIDName": "en-US",
@@ -8,6 +57,14 @@
     "timeStyleIsShort": true,
     "dateStyleIsLong": true,
     "utc": "Thursday, February 30, 2024 1:05 PM"
+  },
+  "availableLocaleIDs": [
+    "en-US"
+  ],
+  "nameLists": {
+    "firstFullMonth": "January",
+    "firstLongWeekday": "Sun",
+    "firstShortWeekday": "Su"
   },
   "custom": {
     "timeStyleIsCustom": true,

@@ -21,6 +21,7 @@ import flight.types.Host as FlightHost;
 import haxe.io.Bytes;
 import haxe.io.Path;
 #if lime
+import lime.system.BackgroundWorker;
 import lime.system.System;
 #end
 import openfl.desktop.Icon;
@@ -35,6 +36,9 @@ import openfl.net.FileReference;
 import openfl.utils.ByteArray;
 import sys.FileSystem as SysFileSystem;
 import sys.io.File as SysFile;
+#if windows
+import sys.io.Process;
+#end
 #if clay
 import flight.hostClay.HostClay as FlightHostClay;
 #elseif lime
@@ -316,9 +320,6 @@ class File extends FileReference
 	**/
 	public var isHidden(get, never):Bool;
 
-	// Flight FileStat has no platform package/bundle classification.
-	public var isSymbolicLink(get, never):Bool;
-
 	/**
 		The line-ending character sequence used by the host operating system.
 
@@ -407,7 +408,6 @@ class File extends FileReference
 	**/
 	public static var separator(get, never):String;
 
-	public var spaceAvailable(get, never):Float;
 	// Flight does not expose the host filesystem charset.
 	public var url(get, set):String;
 
@@ -511,6 +511,7 @@ class File extends FileReference
 	@:noCompletion private static var __flightFileSystemHost:FlightFileSystemHost;
 	@:noCompletion private static var __flightHost:FlightHost;
 	@:noCompletion private var __dialogPending:Bool = false;
+	@:noCompletion private var __fileWorker:Dynamic;
 	@:noCompletion private var __fileStatsDirty:Bool = false;
 	@:noCompletion private var __fileOperationGeneration:Int = 0;
 	@:noCompletion private var __readOnly:Bool = false;
@@ -827,12 +828,8 @@ class File extends FileReference
 	**/
 	override public function cancel():Void
 	{
-		__fileOperationGeneration++;
-		if (__dialogPending)
-		{
-			__dialogPending = false;
-			dispatchEvent(new Event(Event.CANCEL));
-		}
+		__fileWorker.cancel();
+		dispatchEvent(new Event(Event.CANCEL));
 	}
 
 	/**
@@ -1266,6 +1263,41 @@ class File extends FileReference
 			throw new Error("Not a directory.", 3007);
 		}
 
+		#if lime
+		__fileWorker = new BackgroundWorker();
+		__fileWorker.onError.add(function(e:Dynamic):Void
+		{
+			__fileWorker = null;
+			throw e;
+		});
+		__fileWorker.onComplete.add(function(event:FileListEvent):Void
+		{
+			__fileWorker = null;
+			dispatchEvent(event);
+		});
+		__fileWorker.doWork.add(function(m:Dynamic)
+		{
+			var fileNames:Array<String> = null;
+			try
+			{
+				fileNames = SysFileSystem.readDirectory(__path);
+			}
+			catch (e:Dynamic)
+			{
+				var ioErrorEvent = __createIoErrorEvent(e);
+				if (ioErrorEvent != null) __fileWorker.sendComplete(ioErrorEvent);
+				else __fileWorker.sendError(e);
+				return;
+			}
+			var files:Array<File> = [];
+			for (fileName in fileNames)
+			{
+				files.push(new File(__path == separator ? separator + fileName : __path + separator + fileName));
+			}
+			__fileWorker.sendComplete(new FileListEvent(FileListEvent.DIRECTORY_LISTING, files));
+		});
+		__fileWorker.run();
+		#else
 		var generation = ++__fileOperationGeneration;
 		FlightFileSystem.readDirectory(__getFlightFileSystemHost(), __path).then(function(entries:Array<FlightFileEntry>):Array<FlightFileEntry>
 		{
@@ -1279,6 +1311,7 @@ class File extends FileReference
 			if (generation == __fileOperationGeneration) __dispatchFileIOError(error);
 			return [];
 		});
+		#end
 	}
 
 	/**
@@ -1449,25 +1482,18 @@ class File extends FileReference
 	**/
 	public function moveTo(newLocation:FileReference, overwrite:Bool = false):Void
 	{
-		if (newLocation == null) throw new ArgumentError("One of the parameters is invalid.");
-		__ensureWritable();
-		var target:File = Std.isOfType(newLocation, File) ? cast newLocation : new File(newLocation.__path);
-		target.__ensureWritable();
-		if (!overwrite && target.exists)
+		if (!overwrite && SysFileSystem.exists(newLocation.__path))
 		{
 			throw new Error("Overwrite is set to false");
 		}
-		if (!exists) throw new Error("File or directory does not exist.", 3003);
-		if (overwrite && target.exists)
+		copyTo(newLocation, overwrite);
+		if (isDirectory)
 		{
-			if (target.isDirectory) target.deleteDirectory(true); else target.deleteFile();
+			deleteDirectory(true);
 		}
-		var parent = target.parent;
-		if (parent != null && !parent.exists) parent.createDirectory();
-		if (!__resolveFlight(FlightFileSystem.renameFile(__getFlightFileSystemHost(), __path, target.__path), false))
+		else
 		{
-			copyTo(target, true);
-			if (isDirectory) deleteDirectory(true); else deleteFile();
+			deleteFile();
 		}
 	}
 
@@ -1530,8 +1556,6 @@ class File extends FileReference
 	{
 		#if lime
 		System.openFile(__path);
-		#else
-		Sys.command("xdg-open", [__path]);
 		#end
 	}
 
@@ -1568,13 +1592,9 @@ class File extends FileReference
 	**/
 	public function resolvePath(path:String):File
 	{
-		var normalizedBase = __path.split("\\").join("/");
-		var normalizedPath = path.split("\\").join("/");
-		var result = FlightFileSystem.isAbsoluteFilePath(normalizedPath)
-			? new File(normalizedPath)
-			: new File(FlightFileSystem.normalizeFilePath(FlightFileSystem.joinFilePath(normalizedBase, normalizedPath)));
+		var directoryPath:String = Path.removeTrailingSlashes(__path);
+		var result = new File('$directoryPath$separator$path');
 		result.__urlScheme = __urlScheme;
-		result.__readOnly = __readOnly;
 		return result;
 	}
 
@@ -1961,6 +1981,35 @@ class File extends FileReference
 
 	@:noCompletion private function __runAsync(operation:Void->Void):Void
 	{
+		#if lime
+		__fileWorker = new BackgroundWorker();
+		__fileWorker.onError.add(function(e:Dynamic):Void
+		{
+			__fileWorker = null;
+			throw e;
+		});
+		__fileWorker.onComplete.add(function(event:Event):Void
+		{
+			__fileWorker = null;
+			dispatchEvent(event);
+		});
+		__fileWorker.doWork.add(function(m:Dynamic)
+		{
+			try
+			{
+				operation();
+			}
+			catch (e:Dynamic)
+			{
+				var ioErrorEvent = __createIoErrorEvent(e);
+				if (ioErrorEvent != null) __fileWorker.sendComplete(ioErrorEvent);
+				else __fileWorker.sendError(e);
+				return;
+			}
+			__fileWorker.sendComplete(new Event(Event.COMPLETE));
+		});
+		__fileWorker.run();
+		#else
 		var generation = ++__fileOperationGeneration;
 		try
 		{
@@ -1971,6 +2020,7 @@ class File extends FileReference
 		{
 			if (generation == __fileOperationGeneration) __dispatchFileIOError(error);
 		}
+		#end
 	}
 
 	@:noCompletion private static function __saveDialogHandle(result:Dynamic):FlightFileDialogHandle
@@ -2144,6 +2194,16 @@ class File extends FileReference
 		return Path.removeTrailingSlashes(path);
 	}
 
+	#if windows
+	@:noCompletion private function __winGetHiddenAttr():Bool
+	{
+		var process:Process = new Process('attrib "$nativePath"');
+		var result:String = process.stdout.readLine();
+		process.close();
+		return result.split(nativePath)[0].indexOf(" H ") > -1;
+	}
+	#end
+
 	@:noCompletion private static function __getTempPath(dir:Bool):String
 	{
 		var path = "";
@@ -2231,7 +2291,6 @@ class File extends FileReference
 		#end
 		var result = new File(Path.removeTrailingSlashes(path));
 		result.__urlScheme = "app";
-		result.__readOnly = true;
 		return result;
 	}
 
@@ -2354,17 +2413,15 @@ class File extends FileReference
 		if (path != null)
 		{
 			__urlScheme = "file";
-			__readOnly = false;
-			if (StringTools.startsWith(path, "app-storage:"))
-			{
-				__urlScheme = "app-storage";
-				path = File.applicationStorageDirectory.resolvePath(path.substr("app-storage:".length)).nativePath;
-			}
-			else if (StringTools.startsWith(path, "app:"))
+			if (StringTools.startsWith(path, "app:"))
 			{
 				__urlScheme = "app";
-				__readOnly = true;
-				path = File.applicationDirectory.resolvePath(path.substr("app:".length)).nativePath;
+				path = StringTools.replace(path, "app:", File.applicationDirectory.nativePath);
+			}
+			else if (StringTools.startsWith(path, "app-storage:"))
+			{
+				__urlScheme = "app-storage";
+				path = StringTools.replace(path, "app-storage:", File.applicationStorageDirectory.nativePath);
 			}
 
 			#if windows
@@ -2448,8 +2505,7 @@ class File extends FileReference
 			}
 		}
 
-		value = value.substr(scheme.length + 1);
-		if (scheme == "file") value = ~/^\/{2,}/.replace(value, "/");
+		value = ~/^\/{2,}/.replace(value.substr(5), "/");
 		value = StringTools.urlDecode(value);
 
 		if (resolveFromDirectory != null)
@@ -2461,37 +2517,27 @@ class File extends FileReference
 			nativePath = value;
 		}
 		__urlScheme = scheme;
-		__readOnly = scheme == "app";
 
 		return url;
 	}
 
 	@:noCompletion private function get_exists():Bool
 	{
-		return __flightStat(__path) != null;
+		return SysFileSystem.exists(__path);
 	}
 
 	@:noCompletion private function get_isHidden():Bool
 	{
+		#if windows
+		return __winGetHiddenAttr();
+		#else
 		return name.charAt(0) == ".";
+		#end
 	}
 
 	@:noCompletion private function get_isDirectory():Bool
 	{
-		var stat = __flightStat(__path);
-		return stat != null && stat.isDirectory;
-	}
-
-	@:noCompletion private function get_isSymbolicLink():Bool
-	{
-		var stat = __flightStat(__path);
-		return stat != null && stat.isSymlink;
-	}
-
-	@:noCompletion private function get_spaceAvailable():Float
-	{
-		var usage:FlightFileSystemUsage = __resolveFlight(FlightFileSystem.getFileSystemUsage(__getFlightFileSystemHost()), null);
-		return usage == null ? 0 : Math.max(0, usage.quotaBytes - usage.usedBytes);
+		return SysFileSystem.exists(__path) && SysFileSystem.isDirectory(__path);
 	}
 
 	@:noCompletion private function get_parent():File

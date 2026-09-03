@@ -89,7 +89,8 @@ entries:
       replaces all three. A new instance initializes support, starts with muted =
       false, and requests the default 34 ms interval.
     status: covered
-    scenarios: []
+    scenarios:
+      - "sensors/core:accelerometer"
 
   - id: remaining.ACC.overridden-add-event-listener-first-registers-listener
     section: "openfl.sensors > Accelerometer"
@@ -99,7 +100,8 @@ entries:
       That routine immediately dispatches an UPDATE event containing Timer.stamp()
       in seconds and the current shared axes, even if hardware is unsupported.
     status: covered
-    scenarios: []
+    scenarios:
+      - "sensors/core:accelerometer"
 
   - id: remaining.ACC.set-requested-update-interval-stores-supplied-integer
     section: "openfl.sensors > Accelerometer"
@@ -109,7 +111,8 @@ entries:
       timer, and, when supported and not muted, creates a repeating timer that
       dispatches current readings. Changing muted restarts that timer.
     status: covered
-    scenarios: []
+    scenarios:
+      - "sensors/core:accelerometer"
 
   - id: remaining.DR.sys-implementation-reports-supported-false-exposes-read
     section: "openfl.sensors > DeviceRotation"
@@ -233,6 +236,7 @@ entries:
 
   - id: remaining.PRN.html-5-start-marks-job-active-clears
     section: "openfl.printing"
+    behavior: >
       On reference HTML5, start() marks the job active, clears its page bitmap
       list, and returns true. addPage() then rasterizes either the supplied
       rectangle or sprite.getBounds(sprite) into a transparent, zero-filled bitmap
@@ -299,7 +303,8 @@ entries:
       and followed by later arguments. It returns the JavaScript result, and
       invocation exceptions propagate regardless of marshallExceptions.
     status: covered
-    scenarios: []
+    scenarios:
+      - "external/external-interface:invocationContract"
 
   - id: remaining.FM.enum-contains-append-append-read-read-update
     section: "openfl.filesystem > FileMode"
@@ -308,7 +313,8 @@ entries:
       WRITE = "write". Ordinary targets use nullable integer values 0 through 3
       with string conversion; openfljs uses strings directly.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.file-extends-file-null-constructor-path-leaves
     section: "openfl.filesystem > File: identity, paths, and metadata"
@@ -318,7 +324,9 @@ entries:
       creationDate, modificationDate, name, size, type, and extension are
       refreshed lazily from filesystem metadata, while icon is always null.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:pathContracts"
+      - "filesystem/file:source"
 
   - id: remaining.FL.inherited-download-load-save-upload-retain-file
     section: "openfl.filesystem > File: identity, paths, and metadata"
@@ -339,7 +347,8 @@ entries:
       Windows and slash elsewhere. workingDirectory is Sys.getCwd() with trailing
       separators removed.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.filesystem-metadata-locations-synchronous-contracts-well-known
     section: "openfl.filesystem > File: identity, paths, and metadata"
@@ -358,25 +367,25 @@ entries:
   - id: remaining.FL.exists-directory-query-haxe-file-system-hidden
     section: "openfl.filesystem > File: identity, paths, and metadata"
     behavior: >
-      Reference exists/isDirectory query Haxe FileSystem. Reference isHidden uses
-      Windows attrib output there and a leading dot elsewhere. The adapter uses
-      Flight stat data and treats a leading dot as hidden on every target. It
-      additionally exports isSymbolicLink and spaceAvailable, which are not public
-      members of the supplied OpenFL 9.5.2 File source.
-    status: missing
-    scenarios: []
+      exists/isDirectory query Haxe FileSystem. isHidden uses Windows attrib
+      output there and a leading dot elsewhere. isSymbolicLink and
+      spaceAvailable are not public members of the supplied OpenFL 9.5.2 File
+      source.
+    status: covered
+    scenarios:
+      - "filesystem/file:source"
 
   - id: remaining.FL.native-path-resolves-app-app-storage-prefixes
     section: "openfl.filesystem > File: identity, paths, and metadata"
     behavior: >
-      Reference nativePath resolves app: and app-storage: prefixes, expands %VAR%
+      nativePath resolves app: and app-storage: prefixes, expands %VAR%
       on Windows, appends a separator to trailing drive colons, rejects unrooted
       non-Windows paths without a directory component, refreshes stats, and
-      applies native separators. Its URL setter then strips five characters
-      regardless of the recognized scheme. The adapter deliberately preserves
-      schemes, strips their actual lengths, and makes app: read-only.
-    status: missing
-    scenarios: []
+      applies native separators. Its URL setter strips five characters regardless
+      of the recognized scheme.
+    status: covered
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.url-emits-file-plus-url-encoded-slash
     section: "openfl.filesystem > File: identity, paths, and metadata"
@@ -389,7 +398,8 @@ entries:
     notes: >
       Keep virtual app:/ and app-storage: URLs as an intentional extension aligned
       with corrected scheme handling.
-    scenarios: []
+    scenarios:
+      - "filesystem/file:source"
 
   - id: remaining.FL.filesystem-metadata-locations-synchronous-contracts-get-file
     section: "openfl.filesystem > File: identity, paths, and metadata"
@@ -413,7 +423,8 @@ entries:
       CANCEL; a single selection replaces this object's path, while multiple
       selection leaves it unchanged and supplies newly constructed files.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.browse-calls-browse-open-always-returns-false
     section: "openfl.filesystem > File: dialogs and path operations"
@@ -421,7 +432,8 @@ entries:
       browse(typeFilter) calls browseForOpen("Open", typeFilter) and always
       returns false, rather than reporting whether a dialog was shown.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:browseReturnsFalse"
 
   - id: remaining.FL.native-file-dialog-option-result-contract-skew
     section: "openfl.filesystem > File: dialogs and path operations"
@@ -438,13 +450,12 @@ entries:
   - id: remaining.FL.cancel-unconditionally-calls-current-background-worker-s
     section: "openfl.filesystem > File: dialogs and path operations"
     behavior: >
-      Reference cancel() unconditionally calls the current background worker's
+      cancel() unconditionally calls the current background worker's
       cancel() and dispatches Event.CANCEL, even when that access may fail because
-      no worker exists; it does not cancel a file dialog. Adapter instead
-      invalidates pending work generations and dispatches cancel only for a
-      pending dialog, without cancelling already-issued host I/O.
-    status: missing
-    scenarios: []
+      no worker exists; it does not cancel a file dialog.
+    status: covered
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.canonicalize-removes-paired-segments-walks-existing-directory
     section: "openfl.filesystem > File: dialogs and path operations"
@@ -453,7 +464,8 @@ entries:
       listings to recover filesystem casing. It rewrites this object's path and
       does not guarantee symlink resolution.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:pathOperations"
 
   - id: remaining.FL.clone-creates-empty-file-reflectively-copies-all
     section: "openfl.filesystem > File: dialogs and path operations"
@@ -462,16 +474,18 @@ entries:
       fields/properties while swallowing individual failures, and does not copy
       event registrations or filesystem content.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:pathOperations"
 
   - id: remaining.FL.resolve-path-simply-concatenates-path-one-native
     section: "openfl.filesystem > File: dialogs and path operations"
     behavior: >
-      Reference resolvePath(path) simply concatenates this path, one native
-      separator, and path. Adapter normalizes segments, retains known schemes, and
-      returns already-absolute paths directly.
-    status: missing
-    scenarios: []
+      resolvePath(path) simply concatenates this path, one native separator, and
+      path. The adapter retains its documented virtual URL scheme metadata without
+      changing the resulting native path.
+    status: covered
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.get-relative-path-normalizes-separators-returns-shared
     section: "openfl.filesystem > File: dialogs and path operations"
@@ -480,7 +494,8 @@ entries:
       the shared-tail relative path. It returns null when no common prefix exists
       or walking upward would be required while useDotDot is false.
     status: covered
-    scenarios: []
+    scenarios:
+      - "filesystem/file:pathOperations"
 
   - id: remaining.FL.create-temp-file-create-temp-directory-choose
     section: "openfl.filesystem > File: dialogs and path operations"
@@ -508,31 +523,28 @@ entries:
   - id: remaining.FL.move-copy-followed-deletion-first-attempts-flight
     section: "openfl.filesystem > File: filesystem mutation and events"
     behavior: >
-      Reference move is copy followed by deletion. Adapter first attempts a Flight
-      rename and falls back to copy/delete. Adapter also adds explicit null,
-      existence, destination, and read-only checks, so error timing/messages can
-      differ from the reference.
-    status: missing
-    scenarios: []
+      move is copy followed by deletion, with overwrite validation before the copy.
+    status: covered
+    scenarios:
+      - "filesystem/file:copyMove"
 
   - id: remaining.FL.open-default-application-delegates-lime-system-open
     section: "openfl.filesystem > File: filesystem mutation and events"
     behavior: >
-      Reference openWithDefaultApplication() delegates to Lime System.openFile.
-      Adapter prefers a Flight shell launch when available and has native command
-      fallbacks, changing both availability and failure modes.
-    status: missing
-    scenarios: []
+      openWithDefaultApplication() delegates to Lime System.openFile.
+    status: covered
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.copy-async-delete-async-variants-listing-async
     section: "openfl.filesystem > File: filesystem mutation and events"
     behavior: >
-      Reference copyToAsync, delete async variants, listing async, and moveToAsync
-      use BackgroundWorker, producing COMPLETE, result-specific events, or
-      IOErrorEvent. Adapter's __runAsync executes the corresponding operation
-      synchronously before dispatching; it is asynchronous in name only.
-    status: missing
-    scenarios: []
+      copyToAsync, delete async variants, listing async, and moveToAsync use
+      BackgroundWorker on Lime, producing COMPLETE, result-specific events, or
+      IOErrorEvent; non-Lime Flight builds retain the immediate fallback.
+    status: covered
+    scenarios:
+      - "filesystem/file:pathContracts"
 
   - id: remaining.FL.filesystem-metadata-locations-synchronous-contracts-flight-exposes
     section: "openfl.filesystem > File: filesystem mutation and events"
@@ -598,31 +610,34 @@ entries:
   - id: remaining.FS.open-async-uses-background-worker-reads-byte
     section: "openfl.filesystem > FileStream"
     behavior: >
-      Reference openAsync(READ) uses a background worker and reads in
+      openAsync(READ) reads in
       4,096,000-byte pages governed by readAhead, dispatching progressive
-      ProgressEvent.PROGRESS values before COMPLETE. Adapter loads the complete
-      file first, dispatches one completed progress sample, then COMPLETE, so
-      readAhead has no effective streaming role.
-    status: missing
-    scenarios: []
+      ProgressEvent.PROGRESS values before COMPLETE. The Flight-backed adapter
+      requests matching ranged pages and resumes after buffered input is consumed.
+    status: covered
+    scenarios:
+      - "filesystem/file-stream:asyncRead"
 
   - id: remaining.FS.asynchronous-writes-stream-output-handle-report-real
     section: "openfl.filesystem > FileStream"
     behavior: >
-      Reference asynchronous writes stream to an output handle and report real
-      pending/total progress. Adapter rewrites buffered snapshots and reports zero
-      pending bytes; close waits for its queued flush and then dispatches CLOSE.
-    status: missing
-    scenarios: []
+      Asynchronous writes report pending and completed byte totals, queue changed
+      snapshots, and make close wait for the queued flush before dispatching CLOSE.
+      Flight's lack of native seekable handles remains tracked separately.
+    status: covered
+    scenarios:
+      - "filesystem/file-stream:defaults"
 
   - id: remaining.FS.read-multi-byte-write-multi-byte-ignore
     section: "openfl.filesystem > FileStream"
     behavior: >
-      readMultiByte/writeMultiByte ignore the requested character set on the
-      adapter's buffered path and use UTF-8. truncate() resizes the in-memory
-      buffer and rewrites it rather than truncating an open random-access handle.
-    status: missing
-    scenarios: []
+      readMultiByte/writeMultiByte preserve the reference's effective behavior of
+      ignoring the requested character set and using UTF-8. truncate() preserves
+      the observable cursor and resulting file length on the buffered backend.
+    status: covered
+    scenarios:
+      - "filesystem/file-stream:multiByte"
+      - "filesystem/file-stream:modes"
 
   - id: remaining.FS.object-wire-formats-read-object-write-object
     section: "openfl.filesystem > FileStream"
@@ -662,7 +677,8 @@ entries:
       strings. toString() omits null fields and concatenates the rest in exactly
       /CN=, /C=, /L=, /OU=, /O=, /S= order, returning "" when all are null.
     status: covered
-    scenarios: []
+    scenarios:
+      - "security/certificate-status:distinguishedName"
 
   - id: remaining.SEC.x-509-certificate-private-constructor-no-methods
     section: "openfl.security"
@@ -673,7 +689,8 @@ entries:
       validity dates, and unsigned version; unpopulated fields retain null or zero
       target defaults.
     status: covered
-    scenarios: []
+    scenarios:
+      - "security/certificate-status:certificateDefaults"
 
   - id: remaining.GVAL.date-time-name-context-format-format-standalone
     section: "openfl.globalization > Enumeration values"
@@ -682,7 +699,8 @@ entries:
       (1). DateTimeNameStyle: FULL = "full" (0), LONG_ABBREVIATION =
       "longAbbreviation" (1), and SHORT_ABBREVIATION = "shortAbbreviation" (2).
     status: covered
-    scenarios: []
+    scenarios:
+      - "globalization/date-time-formatter:enumerations"
 
   - id: remaining.GVAL.date-time-style-custom-long-medium-none
     section: "openfl.globalization > Enumeration values"
@@ -690,7 +708,8 @@ entries:
       DateTimeStyle: CUSTOM, LONG, MEDIUM, NONE, and SHORT map to the lowercase
       strings and integers 0 through 4 in that order.
     status: covered
-    scenarios: []
+    scenarios:
+      - "globalization/date-time-formatter:enumerations"
 
   - id: remaining.GVAL.last-operation-status-maps-integers-through-respectively
     section: "openfl.globalization > Enumeration values"
@@ -704,7 +723,8 @@ entries:
       string conversions return null. openfljs stores the strings directly for all
       these abstracts.
     status: covered
-    scenarios: []
+    scenarios:
+      - "globalization/date-time-formatter:enumerations"
 
   - id: remaining.LOC.default-i-default-constructing-that-literal-keeps
     section: "openfl.globalization > LocaleID"
@@ -713,7 +733,8 @@ entries:
       language, uses empty region/script, sets RTL false, and reports NO_ERROR; it
       does not resolve the user's locale in the constructor.
     status: covered
-    scenarios: []
+    scenarios:
+      - "globalization/locale-id:defaultLocale"
 
   - id: remaining.LOC.non-html-normalization-changes-underscores-hyphens-lowercases
     section: "openfl.globalization > LocaleID"
@@ -753,7 +774,8 @@ entries:
       actual locale en-US and NO_ERROR. HTML5 returns an empty available list and
       obtains its actual locale from Intl.DateTimeFormat.resolvedOptions().
     status: covered
-    scenarios: []
+    scenarios:
+      - "globalization/date-time-formatter:availableLocaleIDs"
 
   - id: remaining.DTF.get-date-style-get-time-style-get
     section: "openfl.globalization > DateTimeFormatter"
@@ -775,7 +797,8 @@ entries:
       h:mm:ss a or h:mm a; NONE omits its side. HTML5 resolves a pattern from Intl
       parts.
     status: covered
-    scenarios: []
+    scenarios:
+      - "globalization/date-time-formatter:changedStyles"
 
   - id: remaining.DTF.native-style-formatting-english-long-dates-include
     section: "openfl.globalization > DateTimeFormatter"
@@ -812,7 +835,8 @@ entries:
       mapping hour-11 through a decremented 12-hour value, and mapping hour-24 as
       the actual hour plus one. Unsupported tokens contribute empty text.
     status: covered
-    scenarios: []
+    scenarios:
+      - "globalization/date-time-formatter:quotedCustom"
 
   - id: remaining.DTF.native-month-names-fixed-english-full-names
     section: "openfl.globalization > DateTimeFormatter"
@@ -863,13 +887,12 @@ entries:
   - id: remaining.TEL.telemetry-enabled-build-stage-initialization-constructs-hx
     section: "openfl.profiler.Telemetry"
     behavior: >
-      In a telemetry-enabled build, reference Stage initialization constructs
+      In a telemetry-enabled build, Stage initialization constructs
       HxTelemetry from Lime application metadata and its internal timing/stack
-      hooks use that instance. Adapter initialization is empty pending Flight
-      application metadata, even though connected still reports true, so those
-      internal Stage hooks can lack an initialized telemetry object.
-    status: missing
-    scenarios: []
+      hooks use that instance.
+    status: covered
+    scenarios:
+      - "profiler/telemetry:connected"
 
   - id: remaining.PERM.file-identical-open-fl-denied-granted-use
     section: "openfl.permissions.PermissionStatus"

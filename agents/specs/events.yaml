@@ -12,7 +12,7 @@ entries:
       different priority or weak-reference flag.
     status: covered
     scenarios:
-      - events/dispatcher:listenerIdentity
+      - events/dispatcher:duplicateListener
 
   - id: events.ED.capture-distinct
     section: EventDispatcher core > Listener registration
@@ -22,7 +22,7 @@ entries:
       useCapture value.
     status: covered
     scenarios:
-      - events/dispatcher-capture:captureDistinct
+      - events/dispatcher-capture:captureSameListener
 
   - id: events.ED.priority-order
     section: EventDispatcher core > Listener registration
@@ -42,7 +42,7 @@ entries:
       listeners do not run.
     status: covered
     scenarios:
-      - events/dispatcher-capture:capturePhaseOnly
+      - events/dispatcher-capture:captureVsNormal
 
   - id: events.ED.null-listener-noop
     section: EventDispatcher core > Listener registration
@@ -60,7 +60,8 @@ entries:
       listener also removes the type bucket.
     status: covered
     scenarios:
-      - events/dispatcher:removeMatching
+      - events/dispatcher:removeListener
+      - events/dispatcher-capture:removeCaptureFlagMatch
 
   - id: events.ED.has-local
     section: EventDispatcher core > Listener registration
@@ -106,7 +107,7 @@ entries:
       but is available to a later phase or a nested dispatch.
     status: covered
     scenarios:
-      - events/dispatcher:mutationAdd
+      - events/dispatcher:listenerDuringDispatch
 
   - id: events.ED.remove-not-yet-visited
     section: EventDispatcher core > Mutation and reentrancy
@@ -116,7 +117,7 @@ entries:
       live iterator so the following listener is not skipped.
     status: covered
     scenarios:
-      - events/dispatcher:mutationRemove
+      - events/dispatcher:removeDuringDispatch
 
   - id: events.ED.nested-same-type
     section: EventDispatcher core > Mutation and reentrancy
@@ -126,7 +127,7 @@ entries:
       iterator. The existing mutation fixture records the sequence a(abc)c.
     status: covered
     scenarios:
-      - events/dispatcher:mutationNested
+      - events/dispatcher:nestedDispatchMutation
 
   - id: events.ED.remove-readd-during-dispatch
     section: EventDispatcher core > Mutation and reentrancy
@@ -158,7 +159,7 @@ entries:
       invoking the listener.
     status: covered
     scenarios:
-      - events/dispatcher:aggregateTarget
+      - events/dispatcher:aggregatedTarget
 
   - id: events.ED.capture-bubble-order
     section: EventDispatcher core > Targeting and phases
@@ -169,7 +170,7 @@ entries:
       parent to root.
     status: covered
     scenarios:
-      - events/dispatcher-capture:captureBubbleOrder
+      - events/dispatcher-capture:eventPhases
 
   - id: events.ED.reparent-during-capture
     section: EventDispatcher core > Targeting and phases
@@ -188,7 +189,7 @@ entries:
       the upward bubbling phase.
     status: covered
     scenarios:
-      - events/dispatcher-capture:captureNoBubble
+      - events/dispatcher-capture:captureVsNormal
 
   - id: events.ED.target-currentTarget-stable
     section: EventDispatcher core > Targeting and phases
@@ -253,7 +254,8 @@ entries:
       carries into the new dispatch.
     status: covered
     scenarios:
-      - events/redispatch:redispatchNoClone
+      - events/redispatch:nested
+      - events/redispatch:originalAfterDispatch
 
   - id: events.ED.mouse-stagexY-recompute
     section: EventDispatcher core > Targeting and phases

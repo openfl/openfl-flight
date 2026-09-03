@@ -153,6 +153,12 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 	@:noCompletion private var __buffer:ByteArray;
 	@:noCompletion private var __openGeneration:Int = 0;
 	@:noCompletion private var __openPending:Bool = false;
+	@:noCompletion private var __pageSize:Int = 4096000;
+	@:noCompletion private var __asyncReadOffset:Int = 0;
+	@:noCompletion private var __asyncReadTotal:Int = 0;
+	@:noCompletion private var __asyncReadGeneration:Int = 0;
+	@:noCompletion private var __asyncReadInFlight:Bool = false;
+	@:noCompletion private var __asyncReadComplete:Bool = false;
 	@:noCompletion private var __writeInFlight:Bool = false;
 	@:noCompletion private var __writeQueued:Bool = false;
 
@@ -335,6 +341,16 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 					return false;
 				});
 			});
+			return;
+		}
+		if (fileMode == FileMode.READ)
+		{
+			if (!file.exists)
+			{
+				__dispatchAsyncError("Invalid parameters.", generation);
+				return;
+			}
+			__beginAsyncRead(generation);
 			return;
 		}
 
@@ -1013,6 +1029,69 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, Std.string(error)));
 	}
 
+	@:noCompletion private function __beginAsyncRead(generation:Int):Void
+	{
+		__openPending = false;
+		__initializeBuffer(new FlightUInt8Array(0));
+		__openedAsync = true;
+		__asyncReadOffset = 0;
+		__asyncReadTotal = Std.int(Math.max(0, __file.size));
+		__asyncReadGeneration = generation;
+		__asyncReadInFlight = false;
+		__asyncReadComplete = false;
+		__readAsyncPage();
+	}
+
+	@:noCompletion private function __readAsyncPage():Void
+	{
+		if (__asyncReadGeneration != __openGeneration || !__isOpen || __pendingClose || __asyncReadInFlight || __asyncReadComplete) return;
+		if (__asyncReadOffset >= __asyncReadTotal)
+		{
+			__asyncReadComplete = true;
+			dispatchEvent(new Event(Event.COMPLETE));
+			return;
+		}
+		if (Math.isFinite(readAhead) && __buffer.bytesAvailable >= readAhead) return;
+
+		var requested = Std.int(Math.min(__pageSize, __asyncReadTotal - __asyncReadOffset));
+		var offset = __asyncReadOffset;
+		__asyncReadInFlight = true;
+		FlightFileSystem.readBinaryFileRange(File.__getFlightFileSystemHost(), __file.nativePath, offset, requested).then(function(chunk:FlightUInt8Array):FlightUInt8Array
+		{
+			__asyncReadInFlight = false;
+			if (__asyncReadGeneration != __openGeneration || !__isOpen) return chunk;
+			if (chunk == null)
+			{
+				__dispatchAsyncError("Index is out of bounds.", __asyncReadGeneration);
+				return null;
+			}
+
+			var readPosition = __buffer.position;
+			__buffer.position = __buffer.length;
+			for (index in 0...chunk.length) __buffer.writeByte(chunk[index]);
+			__buffer.position = readPosition;
+			__asyncReadOffset = offset + chunk.length;
+			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, __asyncReadOffset, __asyncReadTotal));
+			if (chunk.length == 0)
+			{
+				__asyncReadComplete = true;
+				dispatchEvent(new Event(Event.COMPLETE));
+			}
+			else __readAsyncPage();
+			return chunk;
+		}, function(error:Dynamic):FlightUInt8Array
+		{
+			__asyncReadInFlight = false;
+			__dispatchAsyncError(error, __asyncReadGeneration);
+			return null;
+		});
+	}
+
+	@:noCompletion private function __onInputConsumed():Void
+	{
+		if (__openedAsync && __fileMode == FileMode.READ) __readAsyncPage();
+	}
+
 	@:noCompletion private function __ensureParentSync():Void
 	{
 		var parent = __file.parent;
@@ -1025,7 +1104,6 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		__openPending = false;
 		__initializeBuffer(bytes);
 		__openedAsync = true;
-		dispatchEvent(new Event(Event.OPEN));
 		if (generation != __openGeneration || !__isOpen) return;
 		if (__fileMode == FileMode.READ)
 		{
@@ -1044,6 +1122,8 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		__openPending = false;
 		__writeInFlight = false;
 		__writeQueued = false;
+		__asyncReadInFlight = false;
+		__asyncReadComplete = false;
 		isWriting = false;
 		if (__input != null) __input.close();
 		if (__output != null) __output.close();
@@ -1079,7 +1159,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		__isWrite = __fileMode != FileMode.READ;
 		__isOpen = true;
 		__positionDirty = false;
-		__input = __isWrite ? null : new FlightFileStreamInput(__buffer);
+		__input = __isWrite ? null : new FlightFileStreamInput(__buffer, __onInputConsumed);
 		__output = __isWrite ? new FlightFileStreamOutput(__buffer, __onOutputChanged) : null;
 		var initialPosition = __fileMode == FileMode.APPEND ? __buffer.length : 0;
 		position = __fileMode == FileMode.APPEND ? 0 : initialPosition;
@@ -1126,6 +1206,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		var bytes = __flightBufferBytes();
 		__writeQueued = false;
 		__writeInFlight = true;
+		dispatchEvent(new OutputProgressEvent(OutputProgressEvent.OUTPUT_PROGRESS, false, false, bytes.length, bytes.length));
 		FlightFileSystem.writeBinaryFile(File.__getFlightFileSystemHost(), __file.nativePath, bytes).then(function(success:Bool):Bool
 		{
 			if (generation != __openGeneration) return success;
@@ -1231,10 +1312,12 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 {
 	public var bigEndian(get, set):Bool;
 	private var buffer:ByteArray;
+	private var consumed:Void->Void;
 
-	public function new(buffer:ByteArray)
+	public function new(buffer:ByteArray, consumed:Void->Void)
 	{
 		this.buffer = buffer;
+		this.consumed = consumed;
 	}
 
 	public function close():Void {}
@@ -1244,18 +1327,29 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		readBytes(result, 0, length);
 		return result;
 	}
-	public function readByte():Int return buffer.readUnsignedByte();
+	public function readByte():Int
+	{
+		var value = buffer.readUnsignedByte();
+		consumed();
+		return value;
+	}
 	public function readBytes(bytes:Bytes, offset:Int, length:Int):Int
 	{
 		for (index in 0...length) bytes.set(offset + index, buffer.readUnsignedByte());
+		consumed();
 		return length;
 	}
-	public function readDouble():Float return buffer.readDouble();
-	public function readFloat():Float return buffer.readFloat();
-	public function readInt16():Int return buffer.readShort();
-	public function readInt32():Int return buffer.readInt();
-	public function readString(length:Int):String return buffer.readUTFBytes(length);
-	public function readUInt16():Int return buffer.readUnsignedShort();
+	public function readDouble():Float return after(buffer.readDouble());
+	public function readFloat():Float return after(buffer.readFloat());
+	public function readInt16():Int return after(buffer.readShort());
+	public function readInt32():Int return after(buffer.readInt());
+	public function readString(length:Int):String return after(buffer.readUTFBytes(length));
+	public function readUInt16():Int return after(buffer.readUnsignedShort());
+	private function after<T>(value:T):T
+	{
+		consumed();
+		return value;
+	}
 	private function get_bigEndian():Bool return buffer.endian == BIG_ENDIAN;
 	private function set_bigEndian(value:Bool):Bool
 	{

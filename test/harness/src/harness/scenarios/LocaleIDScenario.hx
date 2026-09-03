@@ -6,6 +6,7 @@ import openfl.globalization.LocaleID;
 class LocaleIDScenario {
 	public static function run():Dynamic {
 		return {
+			defaultLocale: describe(new LocaleID(LocaleID.DEFAULT)),
 			languageAndRegion: describe(new LocaleID("en_US")),
 			scriptRegionAndVariant: describe(new LocaleID("zh_Hant_TW_POSIX")),
 			rightToLeft: describe(new LocaleID("ar_EG"))
