@@ -73,7 +73,7 @@ class BitmapData implements IBitmapDrawable
 	@:noCompletion private var __blendMode:BlendMode;
 	@:noCompletion private var __bitmap:FlightBitmapHandle;
 	@:noCompletion private var __bitmapUsers:Array<Bitmap>;
-	@:noCompletion private var __drawableType:Dynamic;
+	@:noCompletion private var __drawableType:Any;
 	@:noCompletion private var __flightBitmap(get, never):FlightBitmapHandle;
 	@:noCompletion private var __isMask:Bool;
 	@:noCompletion private var __isValid:Bool;

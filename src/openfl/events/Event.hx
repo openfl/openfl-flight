@@ -929,7 +929,7 @@ class Event
 		// Keep this reflective because subclasses supply their property lists at runtime.
 
 		var output = '[$className';
-		var arg:Dynamic = null;
+		var arg:Any = null;
 
 		for (param in parameters)
 		{

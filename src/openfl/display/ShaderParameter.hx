@@ -23,7 +23,7 @@ import openfl.display3D.Context3D;
 	@:noCompletion private var __isInt:Bool;
 	@:noCompletion private var __isUniform:Bool;
 	@:noCompletion private var __length:Int;
-	@:noCompletion private var __uniformMatrix:Dynamic;
+	@:noCompletion private var __uniformMatrix:Any;
 	@:noCompletion private var __useArray:Bool;
 
 	public function new()
