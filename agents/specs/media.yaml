@@ -161,7 +161,9 @@ entries:
       one supported alternative path). The current methods always return an error future even
       though Flight has asynchronous resource loading primitives.
     status: deviation
-    notes: "Flight"s audio factories require an initialized host/context not represented by these static OpenFL signatures, so the methods return error futures."
+    notes: >-
+      Flight's audio factories require an initialized host/context not represented by these
+      static OpenFL signatures, so the methods return error futures.
     scenarios:
       - media/surface:soundSurface
 

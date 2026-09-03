@@ -436,7 +436,9 @@ entries:
       malformed rules, escaped/quoted delimiters, comments in unusual positions, or parser
       recovery. Only the ordinary rule/declaration subset has comparison coverage.
     status: deviation
-    notes: "Ordinary rules, merging, comments, and malformed recovery are covered; fully CSS-compatible quoted/escaped delimiter recovery remains outside StyleSheet"s small portable parser."
+    notes: >-
+      Ordinary rules, merging, comments, and malformed recovery are covered; fully CSS-compatible
+      quoted/escaped delimiter recovery remains outside StyleSheet's small portable parser.
     scenarios:
       - text/style-sheet:invalidCSS
       - text/style-sheet:css
