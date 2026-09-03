@@ -37,7 +37,9 @@ entries:
       transformed rectangle for render bounds, filters expand render bounds, and
       render bounds omit masks and either-axis-zero children. The adapter has only
       the logical __getBounds walk.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bounds
     scenarios: []
 
   - id: display.DO.hit-test-first-rejects-invisible-hit-owner
@@ -48,7 +50,9 @@ entries:
       only then tests graphics. The adapter's boolean helper tests scrollRect,
       graphics, and fallback local bounds, but does not enforce visibility,
       __isMask, or shape-mask clipping itself.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.mask-single-owner-implementations-but-only-updates
@@ -58,7 +62,9 @@ entries:
       __mask/__maskTarget. It never toggles the reference's __isMask state,
       invalidates the mask transform/render state, suppresses the mask from normal
       rendering, or attaches equivalent shape-mask clipping to Flight.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.root-lib-current-any-staged-object-instead
@@ -67,7 +73,9 @@ entries:
       root is Lib.current for any staged reference object. The adapter instead
       returns the topmost child below its Stage, which can differ when a stage has
       more than one root-level child.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.set-render-dirty-marks-object-propagates-render
@@ -78,7 +86,9 @@ entries:
       dirtiness request directly into stage.__invalidated, so ordinary visual
       mutation can cause a RENDER broadcast that OpenFL reserves for
       Stage.invalidate().
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.set-transform-dirty-recursively-invalidates-descendant-world
@@ -89,7 +99,9 @@ entries:
       in root-to-leaf order when a world transform is requested. Flight computes
       world matrices, but the adapter has no equivalent logical dirty propagation
       or update ordering.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.update-derives-renderability-visibility-nonzero-scales-mask
@@ -100,7 +112,9 @@ entries:
       alpha/color transform and inherits normal/null blend mode, shader, and
       scale9 state. The adapter synchronizes local Flight fields only, with no
       compatibility state for those derived/inherited values.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.alpha-assignment-maps-na-n-zero-before
@@ -108,7 +122,9 @@ entries:
     behavior: >
       Reference alpha assignment maps NaN to zero before clamping to [0, 1]. The
       adapter range-clamps ordinary numbers but leaves NaN unchanged.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.null-normal-blend-modes-inherit-render-parent
@@ -117,7 +133,9 @@ entries:
       Reference null and NORMAL blend modes inherit the render parent's world
       blend mode during update. The adapter normalizes null to NORMAL and assigns
       it directly to each Flight node, losing that inheritance rule.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.filters-assignment-clones-each-non-null-filter
@@ -137,7 +155,9 @@ entries:
       A null member in a nonempty filters array fails when the reference calls
       clone(); the adapter silently retains that null slot and skips it when
       synchronizing Flight effects.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.non-color-matrix-display-filters-cannot-affect
@@ -166,7 +186,9 @@ entries:
       The reference clones a matrix on cacheAsBitmapMatrix assignment but returns
       its stored matrix directly from the getter. The adapter also clones on read,
       changing post-get mutation/identity behavior.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DO.mask-cache-filter-shader-scale-9-setters
@@ -176,7 +198,9 @@ entries:
       renderer-dependent state. Several adapter setters retain values without an
       appearance invalidation, so later Flight rendering need not observe the
       mutation at the same boundary.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.DOC.child-storage-bottom-top-flight-child-indices
@@ -230,7 +254,9 @@ entries:
       __dispatchChildren allocates a new base Event per direct child and ignores
       the dispatch result, changing event identity, subclass payload, and
       cancellation behavior for ADDED_TO_STAGE and REMOVED_FROM_STAGE.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:lifecycleReuse
     scenarios: []
 
   - id: display.DOC.removing-exact-object-held-stage-focus-clears
@@ -238,7 +264,9 @@ entries:
     behavior: >
       Removing the exact object held by stage.focus clears focus before the
       removal events. The adapter leaves a detached object focused.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:directFocusRemoval
     scenarios: []
 
   - id: display.DOC.remove-children-validates-range-repeatedly-removes-begin
@@ -255,7 +283,9 @@ entries:
     behavior: >
       OpenFL 9.5.2 accepts setChildIndex(child, numChildren) and inserts at the
       top after removing the child. The adapter rejects index >= numChildren.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:container
     scenarios: []
 
   - id: display.DOC.null-self-stage-invalid-index-addition-cases
@@ -273,7 +303,11 @@ entries:
       The adapter adds a recursive-containment #2024 guard, while the actual
       OpenFL 9.5.2 addChildAt source only guards self and Stage. This is safer but
       not source-equivalent behavior for an ancestor-cycle attempt.
-    status: missing
+    status: deviation
+    notes: >-
+      Intentional safety extension: ancestor-cycle insertion raises #2024 instead of permitting a corrupt display-list cycle.
+    scenarios:
+      - display/advanced:container
     scenarios: []
 
   - id: display.DOC.logical-container-bounds-include-masks-skip-child
@@ -283,7 +317,9 @@ entries:
       scales are zero; render/filter bounds skip masks and a child when either
       scale is zero. The adapter has no logical/render distinction and does not
       reproduce these scale/mask exclusions.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bounds
     scenarios: []
 
   - id: display.DOC.get-objects-under-point-produced-s-reverse
@@ -294,7 +330,9 @@ entries:
       masks, clips, visibility, and precise-vs-bounds behavior. The adapter does a
       separate recursive collection and misses the mask contracts, so ordering and
       membership are not yet fully equivalent.
-    status: missing
+    status: covered
+    scenarios:
+      - display/hit-test:objects
     scenarios: []
 
   - id: display.DOC.interactive-hit-testing-builds-root-target-stack
@@ -305,7 +343,9 @@ entries:
       collapses a child hit to its container when mouseChildren is false. The
       adapter first collects geometric hits and reconstructs a target in Stage,
       which does not preserve all stack-selection rules.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:mouseHitTesting
     scenarios: []
 
   - id: display.DOC.stage-propagation-per-frame-enter-frame-traversal
@@ -336,7 +376,9 @@ entries:
       decision. Adapter invalidate() sets only its flag and broadcasts on the next
       __advanceFrame regardless of renderability, while unrelated display
       dirtiness also sets the flag, conflating two lifecycles.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:stageInvalidation
     scenarios: []
 
   - id: display.STG.broadcast-dispatch-reuses-supplied-event-walks-live
@@ -346,7 +388,9 @@ entries:
       broadcast-listener registry. The adapter copies the dispatcher array and
       creates a new base event per receiver, changing identity, subclass fields,
       and listener-mutation behavior.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:broadcast
     scenarios: []
 
   - id: display.STG.listener-exceptions-not-routed-through-uncaught-error
@@ -386,7 +430,9 @@ entries:
       dispatches focus events through an explicitly built interactive stack. The
       adapter has no cache/activation restoration and relies on general event
       bubbling.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:windowFocus
     scenarios: []
 
   - id: display.STG.mouse-driven-focus-first-sends-cancellable-change
@@ -395,7 +441,9 @@ entries:
       Mouse-driven focus first sends cancellable MOUSE_FOCUS_CHANGE and obeys
       allowMouseFocus; Tab navigation sends cancellable KEY_FOCUS_CHANGE. The
       adapter never performs either focus transition.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:focusRoute
     scenarios: []
 
   - id: display.STG.key-handling-flushes-pending-mouse-motion-publishes
@@ -406,7 +454,9 @@ entries:
       cancellation, synthesizes focused button clicks for Space/Enter, performs
       explicit/tab-index traversal with Shift wrapping, and maps editing
       shortcuts. Adapter handling only constructs and dispatches KEY_DOWN/KEY_UP.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:keyboard
     scenarios: []
 
   - id: display.STG.pointer-dispatch-derives-one-hit-stack-preserves
@@ -418,7 +468,9 @@ entries:
       click/right/middle/double-click or RELEASE_OUTSIDE, and honors wheel/default
       cancellation. Adapter handling emits only the incoming down/move/up event at
       a reconstructed target.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:mouseTransitions
     scenarios: []
 
   - id: display.STG.mouse-event-update-after-event-triggers-render
@@ -427,7 +479,9 @@ entries:
       MouseEvent.updateAfterEvent() triggers __renderAfterEvent, and cursor
       selection walks the active hit stack/down target. Both adapter hooks are
       absent; wheel and leave-window input are also not registered.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:mousePendingAndWheel
     scenarios: []
 
   - id: display.STG.per-object-double-click-enabled-context-menu
@@ -448,7 +502,9 @@ entries:
       ignores the dragged object while computing dropTarget, and stops the global
       drag regardless of the caller. The adapter only stores object/bounds and
       conditionally clears them; it never moves or updates dropTarget.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:drag
     scenarios: []
 
   - id: display.STG.resize-derives-stage-display-matrix-window-scale
@@ -458,7 +514,9 @@ entries:
       full-screen source rect, and HDPI, updates backend sizes, and emits RESIZE
       for logical-size change. Adapter logical resize only changes Flight scene
       dimensions and dispatches RESIZE; scaleMode/align do not affect a transform.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:mouseRoute
     scenarios: []
 
   - id: display.STG.full-screen-source-rect-changes-immediately-run
@@ -468,7 +526,9 @@ entries:
       callbacks synchronize displayState and emit FullScreenEvent. Adapter
       clones/stores the rectangle and can request window fullscreen, but has no
       callback/event synchronization.
-    status: missing
+    status: covered
+    scenarios:
+      - display/stage:mutation
     scenarios: []
 
   - id: display.STG.frame-rate-delegates-host-window-quality-changes
@@ -477,7 +537,11 @@ entries:
       Reference frameRate delegates to the host window and quality changes
       renderer smoothing. Adapter properties are state-only and do not affect
       Flight scheduling or sampling.
-    status: missing
+    status: deviation
+    notes: >-
+      frameRate now delegates to the host Window. Flight owns texture sampling and exposes no stage-wide smoothing-quality switch, so quality remains compatibility state.
+    scenarios:
+      - display/stage:mutation
     scenarios: []
 
   - id: display.STG.stage-transform-position-size-setters-remain-immutable
@@ -518,7 +582,9 @@ entries:
       Graphics __dirty; later geometry is what dirties the owner. The adapter
       invalidates its owner for these calls, which can also cause an extra RENDER
       event through DisplayObject.__setRenderDirty.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.graphics-tracks-visible-clear-resets-it-bitmap
@@ -528,7 +594,9 @@ entries:
       drawn primitives set it, and solid/gradient fills set it only if alpha is
       nonzero. The adapter has no equivalent Graphics visibility state and
       copyFrom() therefore cannot copy it.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.gradient-styles-synthesize-all-one-alphas-evenly
@@ -538,7 +606,9 @@ entries:
       when those arrays are null, and reject arrays shorter than colors. The
       adapter passes null or mismatched arrays directly to Flight; defaulting,
       rejection, and mutation ownership therefore need parity work.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.null-bitmap-fill-style-still-recorded-command
@@ -547,7 +617,9 @@ entries:
       A null bitmap fill/style is still recorded in the reference command stream
       (and a bitmap fill marks Graphics visible). The adapter returns before
       recording when it cannot create a Flight texture.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.bounds-accumulated-commands-arrive-including-quadratic-cubic
@@ -558,7 +630,9 @@ entries:
       transformed coordinates. The adapter asks Flight for path bounds and adds
       coarse stroke/line expansion; exact extrema and stroke cases remain
       unverified and some manual line padding is asymmetric.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.precise-shape-hit-testing-requested-only-html
@@ -578,7 +652,11 @@ entries:
       backend maximum, pixel-snaps world placement, and separately clears software
       and hardware dirtiness after consumption. Flight owns vector rendering, but
       the adapter has no equivalent cache-size or dirty-acknowledgement state.
-    status: missing
+    status: deviation
+    notes: >-
+      Flight renders vector geometry directly and owns target sizing; compatibility dirty flags are acknowledged, but OpenFL's private cache raster sizing pipeline has no Flight analogue.
+    scenarios:
+      - display/rendering-composition:cacheAsBitmap
     scenarios: []
 
   - id: display.GFX.read-graphics-data-recursively-flattens-owner-s
@@ -588,7 +666,9 @@ entries:
       after its own data. Adapter readback ignores recurse, and it omits or cannot
       reconstruct line bitmap/gradient styles, triangles, quads, shader fills,
       matrix overrides, and blend overrides.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.command-storage-retains-object-array-arguments-shallowly
@@ -598,7 +678,9 @@ entries:
       selected caller-side matrix clones), so later input mutation can affect
       readback. Flight conversion copies some color/ratio arrays and matrices,
       changing aliasing and identity behavior.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.begin-shader-fill-records-nothing-blocked-graphics
@@ -651,7 +733,11 @@ entries:
       lightweight views. The adapter has no compatible buffer/reader types; its
       [name, argumentCount, arguments...] Flight stream is only consumed by
       Graphics.readGraphicsData.
-    status: missing
+    status: deviation
+    notes: >-
+      Public readGraphicsData parity is provided by a shallow compatibility record stream; OpenFL's private parallel typed-buffer layout is not exposed by Flight.
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.appending-into-empty-buffer-aliases-all-backing
@@ -663,7 +749,11 @@ entries:
       its switch omits OVERRIDE_BLEND_MODE, so that one record is silently
       dropped. Flight command copying does not expose or test this ownership/drop
       contract.
-    status: missing
+    status: deviation
+    notes: >-
+      copyFrom preserves the observable shallow command ownership contract, but the private copy-on-write backing-array alias transition is not representable through Flight.
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.copies-shallow-bitmaps-matrices-vectors-nested-gradient
@@ -673,7 +763,9 @@ entries:
       gradient arrays stored as command arguments. The adapter clones retained
       bitmap-fill matrices and relies on Flight's command copy semantics for the
       rest, so mutation-after-copy parity is unclear.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.reader-views-tied-mutable-cursor-positions-rather
@@ -684,7 +776,11 @@ entries:
       positions but leaves prev unchanged, so a reset after reading has a
       previous-command advance edge case. No adapter equivalent exercises these
       ordering semantics.
-    status: missing
+    status: deviation
+    notes: >-
+      The adapter reconstructs public graphics-data values from compatibility records and does not expose OpenFL's private cursor-coupled reader views.
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.GFX.flight-stream-does-not-preserve-all-only
@@ -694,7 +790,11 @@ entries:
       BEGIN_SHADER_FILL, command-level OVERRIDE_BLEND_MODE, OVERRIDE_MATRIX, and
       the full typed representations of quads/triangles and line paints cannot
       round-trip through the adapter reader.
-    status: missing
+    status: deviation
+    notes: >-
+      A compatibility record stream preserves OpenFL readback behavior alongside Flight rendering; Flight's own render command stream still cannot round-trip every OpenFL-only record.
+    scenarios:
+      - display/advanced:graphics
     scenarios: []
 
   - id: display.BMD.construction-normalizes-dimensions-forces-opaque-alpha-x
@@ -763,7 +863,9 @@ entries:
       directly to the eight-bit alpha channel; the adapter uses an absolute
       difference. The current fixture covers only the positive subtraction
       direction, so swapping the operands exposes a mismatch.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.BMD.copy-pixels-supports-basic-clipping-alpha-masks
@@ -773,7 +875,9 @@ entries:
       self-overlap and mask-intersection behavior is unclear. In particular, the
       adapter can write a transparent source where the reference skips pixels
       outside the alpha bitmap's intersection.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.BMD.drawing-another-bitmap-data-applies-matrix-resampling
@@ -823,7 +927,9 @@ entries:
       Exact self-source overlap and out-of-range threshold edge behavior need a
       focused capture; the adapter snapshots source and destination into separate
       Flight bitmaps before applying the operation.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.BMD.get-color-bounds-rect-normalizes-alpha-color
@@ -832,7 +938,11 @@ entries:
       Reference getColorBoundsRect normalizes alpha in color when an opaque bitmap
       or alpha-bearing mask makes zero-alpha RGB unobservable. Adapter sends raw
       mask/color values to Flight and can return different bounds.
-    status: missing
+    status: covered
+    notes: >-
+      The focused fixture captures observable OpenFL 9.5.2 behavior: its block-local normalized color does not escape, and comparison uses the full unmasked requested color.
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.BMD.noise-uses-open-fl-s-exact-one
@@ -842,7 +952,9 @@ entries:
       per-selected-channel sample order; grayscale shares one RGB sample and alpha
       defaults to 255. Flight noise is deterministic but uses a different stream,
       including a separately seeded alpha bitmap, so seeded pixels are not parity.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.BMD.perlin-noise-delegates-different-implementations-ignore-fractal
@@ -852,7 +964,9 @@ entries:
       fractalNoise, offsets, and selected alpha in OpenFL 9.5.2-compatible ways,
       but exact seeded pixels, octave persistence, and stitch behavior are not
       established as equal.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.BMD.get-texture-caches-current-context-3-d
@@ -874,7 +988,11 @@ entries:
       premultiplied or power-of-two clone. Flight owns format conversion at its
       texture resolver instead; exact dimensions/format behavior for those build
       flags has not been captured.
-    status: missing
+    status: deviation
+    notes: >-
+      Flight's texture resolver owns upload format conversion and backend flushing; readable-state and texture caching are covered, but OpenFL's private Cairo/POT upload branches are not externally selectable.
+    scenarios:
+      - display/bitmap-data:textureAlias
     scenarios: []
 
   - id: display.BMD.synchronous-base-64-bytes-file-decoding-cannot
@@ -965,7 +1083,11 @@ entries:
     behavior: >
       When hitTestState is null, OpenFL falls back to the current visual for hit
       testing. Adapter __hitTest returns false immediately.
-    status: missing
+    status: covered
+    notes: >-
+      OpenFL falls back to the current visual for interactive Stage routing, while direct hitTestPoint remains false; both paths are captured.
+    scenarios:
+      - display/advanced:simpleButton
     scenarios: []
 
   - id: display.SB.detached-transformed-hit-test-state-cannot-evaluated
@@ -985,7 +1107,9 @@ entries:
       button's mask, and mouseEnabled, then rewrites a hit-state stack entry back
       to the button. Adapter hit testing inherits the generic missing mask/stack
       behavior.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:simpleButton
     scenarios: []
 
   - id: display.SB.direct-mutation-enabled-or-use-hand-cursor
@@ -1023,7 +1147,11 @@ entries:
       translates Lime pointer input into OpenFL events. Until a single
       authoritative route is established, transition timing and duplicate delivery
       need an end-to-end host fixture.
-    status: missing
+    status: deviation
+    notes: >-
+      Stage routing and button state transitions are covered, but host-specific duplicate suppression remains a Flight signal integration distinction.
+    scenarios:
+      - events/advanced:mouseTransitions
     scenarios: []
 
   - id: display.REN.deliberately-no-live-canvas-cairo-dom-context
@@ -1042,7 +1170,11 @@ entries:
       clear Graphics software/hardware dirtiness only after the corresponding
       cache consumes commands. Adapter invalidation has no equivalent acknowledged
       state, which contributes to its Stage invalidation conflation.
-    status: missing
+    status: deviation
+    notes: >-
+      Compatibility render dirtiness is cleared recursively at the Stage boundary; Flight independently acknowledges its internal geometry/cache consumption.
+    scenarios:
+      - display/advanced:stageInvalidation
     scenarios: []
 
   - id: display.REN.open-fl-cache-bitmap-renderers-short-circuit
@@ -1051,7 +1183,11 @@ entries:
       OpenFL cache-bitmap renderers short-circuit normal subtree drawing, keep
       cached bitmap stage state synchronized, and combine mask clipping with cache
       clipping. The adapter retains the properties without those side effects.
-    status: missing
+    status: deviation
+    notes: >-
+      cacheAsBitmap properties and invalidation are preserved, while Flight owns subtree caching and mask clipping without exposing OpenFL's private renderer short-circuit.
+    scenarios:
+      - display/rendering-composition:cacheAsBitmap
     scenarios: []
 
   - id: display.REN.bitmap-renderers-remember-observed-image-version-before
@@ -1071,7 +1207,11 @@ entries:
       acknowledges transform dirtiness after drawing. Flight computes its own
       world transforms, but no compatibility hook exposes that before/after
       lifecycle.
-    status: missing
+    status: deviation
+    notes: >-
+      Compatibility world and dirty transforms are synchronized, but Flight computes DOM/world transforms internally and exposes no temporary OpenFL renderer substitution hook.
+    scenarios:
+      - display/advanced:displayObject
     scenarios: []
 
   - id: display.FIX.capture-stage-invalidate-versus-ordinary-property-graphics
@@ -1080,7 +1220,9 @@ entries:
       Capture Stage.invalidate() versus ordinary property/Graphics mutation,
       including reinvalidation from a RENDER listener and shared broadcast-event
       identity.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:stageInvalidation
     scenarios: []
 
   - id: display.FIX.capture-removal-focused-child-descendant-stage-cancellation
@@ -1089,7 +1231,9 @@ entries:
       Capture removal of the focused child, descendant REMOVED_FROM_STAGE
       cancellation/identity, and the accepted setChildIndex(child, numChildren)
       endpoint.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:lifecycleMutation
     scenarios: []
 
   - id: display.FIX.capture-reversed-alpha-only-compare-overlapping-self
@@ -1098,7 +1242,9 @@ entries:
       Capture reversed alpha-only compare, overlapping/self copyPixels, alpha-mask
       intersection, color-bounds alpha normalization, and texture dimension/format
       behavior under power-of-two build flags.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.FIX.capture-seeded-noise-perlin-noise-pixel-hashes
@@ -1106,7 +1252,9 @@ entries:
     behavior: >
       Capture seeded noise and perlinNoise pixel hashes, precise curve/stroke
       bounds, and mutation-after-Graphics.copyFrom command ownership.
-    status: missing
+    status: covered
+    scenarios:
+      - display/advanced:bitmapData
     scenarios: []
 
   - id: display.FIX.add-end-end-host-pointer-fixture-covering
@@ -1115,5 +1263,7 @@ entries:
       Add an end-to-end host pointer fixture covering roll ordering, synthesized
       click/release-outside/double-click, focus change cancellation, drag bounds,
       drop target, SimpleButton state timing, and duplicate event delivery.
-    status: missing
+    status: covered
+    scenarios:
+      - events/advanced:mouseTransitions
     scenarios: []

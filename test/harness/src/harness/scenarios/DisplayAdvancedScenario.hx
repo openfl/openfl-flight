@@ -354,9 +354,12 @@ class DisplayAdvancedScenario
 		button.hitTestState = null;
 		stage.addChild(button);
 		var fallback = button.hitTestPoint(5, 5, true);
+		var interactiveHits = 0;
+		button.addEventListener(MouseEvent.MOUSE_DOWN, function(_:MouseEvent):Void interactiveHits++);
+		stage.__onMouse(MouseEvent.MOUSE_DOWN, 5, 5, 0);
 		button.visible = false;
 		var invisible = button.hitTestPoint(5, 5, true);
-		return {nullHitStateFallsBack: fallback, invisibleRejected: !invisible};
+		return {nullHitStateFallsBack: fallback, interactiveNullFallsBack: interactiveHits == 1, invisibleRejected: !invisible};
 	}
 
 	private static function privateBounds(object:DisplayObject, kind:String):Rectangle

@@ -50,7 +50,8 @@
   },
   "simpleButton": {
     "invisibleRejected": true,
-    "nullHitStateFallsBack": false
+    "nullHitStateFallsBack": false,
+    "interactiveNullFallsBack": true
   },
   "bitmapData": {
     "perlinPixels": [

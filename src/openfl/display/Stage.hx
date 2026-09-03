@@ -2,6 +2,7 @@ package openfl.display;
 
 #if !flash
 import flight.Scene2D as FlightScene2D;
+import flight.Signals as FlightSignals;
 import flight.types.Scene2D as FlightScene;
 import haxe.ds.ArraySort;
 import openfl.display3D.Context3D;
@@ -9,6 +10,7 @@ import openfl.errors.IllegalOperationError;
 import openfl.events.Event;
 import openfl.events.EventPhase;
 import openfl.events.FocusEvent;
+import openfl.events.FullScreenEvent;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.events.StageOrientationEvent;
@@ -44,6 +46,7 @@ typedef Element = Dynamic;
 @:access(openfl.display.Graphics)
 @:access(openfl.display.InteractiveObject)
 @:access(openfl.events.Event)
+@:access(openfl.events.KeyboardEvent)
 @:access(openfl.events.MouseEvent)
 @:access(openfl.ui.Keyboard)
 @:access(openfl.ui.Mouse)
@@ -754,6 +757,12 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		{
 			addChild(openfl.Lib.current);
 		}
+		#if !lime
+		if (window != null && window.onFullscreen != null)
+		{
+			FlightSignals.connectSignal(cast window.onFullscreen, __onFlightWindowFullscreen);
+		}
+		#end
 	}
 
 	/**
@@ -848,6 +857,28 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	{
 		__renderDirty = true;
 	}
+
+	@:noCompletion private function __syncWindowFullscreen():Void
+	{
+		var fullscreen = window != null && window.fullscreen;
+		if (fullscreen)
+		{
+			if (__displayState == StageDisplayState.NORMAL) __displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+		}
+		else
+		{
+			__displayState = StageDisplayState.NORMAL;
+		}
+		__resize();
+		__dispatchEvent(new FullScreenEvent(FullScreenEvent.FULL_SCREEN, false, false, fullscreen, true));
+	}
+
+	#if !lime
+	@:noCompletion private function __onFlightWindowFullscreen():Void
+	{
+		__syncWindowFullscreen();
+	}
+	#end
 
 	@:noCompletion private function __windowFocusIn():Void
 	{
@@ -959,6 +990,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			event.eventPhase = EventPhase.AT_TARGET;
 			var target:DisplayObject = cast event.target;
 			target.__dispatch(event);
+			__renderAfterInputEvent(event);
 			return;
 		}
 
@@ -967,20 +999,45 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		for (i in 0...length - 1)
 		{
 			stack[i].__dispatch(event);
-			if (event.__isCanceled) return;
+			if (event.__isCanceled)
+			{
+				__renderAfterInputEvent(event);
+				return;
+			}
 		}
 
 		event.eventPhase = EventPhase.AT_TARGET;
 		stack[length - 1].__dispatch(event);
-		if (event.__isCanceled || !event.bubbles) return;
+		if (event.__isCanceled || !event.bubbles)
+		{
+			__renderAfterInputEvent(event);
+			return;
+		}
 
 		event.eventPhase = EventPhase.BUBBLING_PHASE;
 		var i = length - 2;
 		while (i >= 0)
 		{
 			stack[i].__dispatch(event);
-			if (event.__isCanceled) return;
+			if (event.__isCanceled)
+			{
+				__renderAfterInputEvent(event);
+				return;
+			}
 			i--;
+		}
+		__renderAfterInputEvent(event);
+	}
+
+	@:noCompletion private function __renderAfterInputEvent(event:Event):Void
+	{
+		if ((event is MouseEvent) && cast(event, MouseEvent).__updateAfterEventFlag)
+		{
+			__renderAfterEvent();
+		}
+		else if ((event is KeyboardEvent) && cast(event, KeyboardEvent).__updateAfterEventFlag)
+		{
+			__renderAfterEvent();
 		}
 	}
 
@@ -1151,7 +1208,8 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		var sprite:Sprite = (object is Sprite) ? cast object : null;
 		var ownHit = sprite != null && sprite.hitArea != null
 			? sprite.hitArea.__hitTest(stageX, stageY, true)
-			: (container == null ? object.__hitTest(stageX, stageY, true) : object.__graphics != null && object.__graphics.__hitTest(stageX, stageY, true));
+			: (container == null ? ((object is SimpleButton) ? cast(object, SimpleButton).__hitTestInteractive(stageX, stageY, true) : object.__hitTest(stageX,
+				stageY, true)) : object.__graphics != null && object.__graphics.__hitTest(stageX, stageY, true));
 
 		if (container != null)
 		{
@@ -1398,6 +1456,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			window.onClose.add(__onLimeWindowClose);
 			window.onFocusIn.add(__onLimeWindowFocusIn);
 			window.onFocusOut.add(__onLimeWindowFocusOut);
+			window.onFullscreen.add(__onLimeWindowFullscreen);
 			window.onKeyDown.add(__onLimeKeyDown);
 			window.onKeyUp.add(__onLimeKeyUp);
 			window.onLeave.add(__onLimeWindowLeave);
@@ -1418,6 +1477,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			window.onClose.remove(__onLimeWindowClose);
 			window.onFocusIn.remove(__onLimeWindowFocusIn);
 			window.onFocusOut.remove(__onLimeWindowFocusOut);
+			window.onFullscreen.remove(__onLimeWindowFullscreen);
 			window.onKeyDown.remove(__onLimeKeyDown);
 			window.onKeyUp.remove(__onLimeKeyUp);
 			window.onLeave.remove(__onLimeWindowLeave);
@@ -1449,6 +1509,11 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private function __onLimeWindowFocusOut():Void
 	{
 		__windowFocusOut();
+	}
+
+	@:noCompletion private function __onLimeWindowFullscreen():Void
+	{
+		__syncWindowFullscreen();
 	}
 
 	@:noCompletion private function __dispatchKeyboardEvent(type:String, key:KeyCode, modifier:KeyModifier):KeyboardEvent
@@ -1547,9 +1612,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private function set_displayState(value:StageDisplayState):StageDisplayState
 	{
 		__displayState = value;
-		#if lime
 		if (window != null) window.fullscreen = value != StageDisplayState.NORMAL;
-		#end
 		return value;
 	}
 
@@ -1576,9 +1639,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private function set_frameRate(value:Float):Float
 	{
 		__frameRate = value;
-		#if lime
 		if (window != null) window.frameRate = value;
-		#end
 		return value;
 	}
 	@:noCompletion private function get_fullScreenHeight():UInt return stageHeight;

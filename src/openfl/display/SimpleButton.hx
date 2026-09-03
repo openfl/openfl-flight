@@ -231,6 +231,16 @@ class SimpleButton extends InteractiveObject
 		return __hitTestState.__hitTest(local.x, local.y, shapeFlag);
 	}
 
+	@:noCompletion private function __hitTestInteractive(x:Float, y:Float, shapeFlag:Bool):Bool
+	{
+		if (!visible || __isMask || !mouseEnabled) return false;
+		if (mask != null && !mask.__hitTestMask(x, y)) return false;
+		var state = __hitTestState == null ? __currentState : __hitTestState;
+		if (state == null) return false;
+		var local = globalToLocal(new Point(x, y));
+		return state.__hitTest(local.x, local.y, shapeFlag);
+	}
+
 	@:noCompletion private override function __setStageReference(stage:Stage):Void
 	{
 		super.__setStageReference(stage);
