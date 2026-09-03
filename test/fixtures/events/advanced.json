@@ -1,4 +1,24 @@
 {
+  "mousePendingAndWheel": {
+    "leaves": 1,
+    "log": "move:5:5,out,rollOut,move:5:5,wheel:3",
+    "wheelCanceled": true
+  },
+  "mouseTransitions": {
+    "relatedAllNull": true,
+    "log": [
+      "mouseOut:left:left:true:45:5",
+      "mouseOut:leftParent:left:true:45:5",
+      "mouseOut:null:left:true:45:5",
+      "rollOut:leftParent:leftParent:false:45:5",
+      "rollOut:left:left:false:45:5",
+      "rollOver:rightParent:rightParent:false:5:5",
+      "rollOver:right:right:false:5:5",
+      "mouseOver:right:right:true:5:5",
+      "mouseOver:rightParent:right:true:5:5",
+      "mouseOver:null:right:true:5:5"
+    ]
+  },
   "lifecycleReuse": {
     "removedFinalTarget": "grandchild",
     "added": "root:true,child:true,grandchild:true",
@@ -6,6 +26,33 @@
     "addedFinalCurrentTarget": "grandchild",
     "removed": "root:true,child:true,grandchild:true",
     "removedFinalCurrentTarget": "grandchild"
+  },
+  "mouseRoute": {
+    "parentLocal": {
+      "x": 5,
+      "y": 5
+    },
+    "upClickCount": 2,
+    "log": "focus:target,down,up,click,fallback:null",
+    "stageMouse": {
+      "x": 90,
+      "y": 90
+    },
+    "down": {
+      "shiftKey": true,
+      "stageY": 10,
+      "buttonDown": true,
+      "ctrlKey": true,
+      "localX": 5,
+      "clickCount": 2,
+      "commandKey": false,
+      "stageX": 10,
+      "localY": 5,
+      "controlKey": true,
+      "altKey": true
+    },
+    "clickClickCount": 0,
+    "focus": "target"
   },
   "tabCandidates": {
     "raw": [
@@ -25,6 +72,15 @@
     "cached": "focused",
     "focus": null
   },
+  "mouseHitTesting": [
+    "masked",
+    "background",
+    "scrolled",
+    "background",
+    "hitOwner",
+    "shapeOwner",
+    "background"
+  ],
   "directFocusRemoval": {
     "childStageCleared": true,
     "focusCleared": true
@@ -39,6 +95,31 @@
     "currentTarget": "parent",
     "phase": 3,
     "target": "child"
+  },
+  "keyboard": {
+    "preventedCanceled": true,
+    "macFields": {
+      "ctrlKey": true,
+      "commandKey": true,
+      "controlKey": false
+    },
+    "commandCanceled": false,
+    "clickFields": {
+      "stageY": 34,
+      "localX": 10,
+      "clickCount": 0,
+      "stageX": 12,
+      "localY": 31
+    },
+    "log": "key:67,copy,key:88",
+    "activation": "click,keyUp",
+    "tab": {
+      "log": "change:second:false,change:second:false",
+      "vetoCanceled": true,
+      "afterVeto": "first",
+      "afterMove": "second",
+      "moveCanceled": true
+    }
   },
   "broadcast": {
     "captureCalls": 0,

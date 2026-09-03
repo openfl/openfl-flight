@@ -25,6 +25,7 @@ import harness.scenarios.ErrorScenario;
 import harness.scenarios.ErrorSubclassesScenario;
 import harness.scenarios.EventConstructionScenario;
 import harness.scenarios.EventAdvancedScenario;
+import harness.scenarios.EventCloneInventoryScenario;
 import harness.scenarios.EventDispatcherCaptureScenario;
 import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
@@ -124,6 +125,10 @@ class Scenarios {
 			{
 				name: "events/advanced",
 				run: EventAdvancedScenario.run
+			},
+			{
+				name: "events/clone-inventory",
+				run: EventCloneInventoryScenario.run
 			},
 			{
 				name: "integration/display-events",

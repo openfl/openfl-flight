@@ -3,6 +3,7 @@ package openfl.display;
 #if !flash
 import flight.Scene2D as FlightScene2D;
 import flight.types.Scene2D as FlightScene;
+import haxe.ds.ArraySort;
 import openfl.display3D.Context3D;
 import openfl.errors.IllegalOperationError;
 import openfl.events.Event;
@@ -15,13 +16,18 @@ import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.geom.Transform;
+import openfl.text.TextField;
 import openfl.ui.Keyboard;
+import openfl.ui.KeyLocation;
+import openfl.ui.Mouse;
+import openfl.ui.MouseCursor;
 import openfl.Vector;
 #if lime
 import lime.app.Application;
 import lime.app.IModule;
 import lime.ui.KeyCode;
 import lime.ui.KeyModifier;
+import lime.ui.MouseWheelMode;
 import lime.ui.Window;
 #end
 #if (js && html5)
@@ -35,8 +41,12 @@ typedef Element = Dynamic;
 @:noDebug
 #end
 @:access(openfl.display.DisplayObject)
+@:access(openfl.display.Graphics)
+@:access(openfl.display.InteractiveObject)
 @:access(openfl.events.Event)
+@:access(openfl.events.MouseEvent)
 @:access(openfl.ui.Keyboard)
+@:access(openfl.ui.Mouse)
 class Stage extends DisplayObjectContainer #if lime implements IModule #end
 {
 	/**
@@ -644,6 +654,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private var __autoOrients:Bool;
 	@:noCompletion private var __color:Null<Int>;
 	@:noCompletion private var __contentsScaleFactor:Float;
+	@:noCompletion private var __currentTabOrderIndex:Int;
 	@:noCompletion private var __displayState:StageDisplayState;
 	@:noCompletion private var __displayMatrix:Matrix;
 	@:noCompletion private var __deltaTime:Int;
@@ -651,18 +662,32 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private var __dragObject:Sprite;
 	@:noCompletion private var __focus:InteractiveObject;
 	@:noCompletion private var __cacheFocus:InteractiveObject;
+	@:noCompletion private var __cancelKeySignal:Bool;
 	@:noCompletion private var __frameRate:Float;
 	@:noCompletion private var __fullScreenSourceRect:Rectangle;
 	@:noCompletion private var __invalidated:Bool;
 	@:noCompletion private var __logicalHeight:Int;
 	@:noCompletion private var __logicalWidth:Int;
+	@:noCompletion private var __macKeyboard:Bool;
+	@:noCompletion private var __mouseClickCount:Int;
+	@:noCompletion private var __mouseDownLeft:InteractiveObject;
+	@:noCompletion private var __mouseDownMiddle:InteractiveObject;
+	@:noCompletion private var __mouseDownRight:InteractiveObject;
+	@:noCompletion private var __mouseOutStack:Array<DisplayObject>;
+	@:noCompletion private var __mouseOverTarget:InteractiveObject;
 	@:noCompletion private var __mouseX:Float;
 	@:noCompletion private var __mouseY:Float;
+	@:noCompletion private var __pendingMouseEvent:Bool;
+	@:noCompletion private var __pendingMouseX:Float;
+	@:noCompletion private var __pendingMouseY:Float;
 	@:noCompletion private var __primaryMouseButtonDown:Bool;
 	@:noCompletion private var __orientation:StageOrientation;
 	@:noCompletion private var __quality:StageQuality;
 	@:noCompletion private var __scaleMode:StageScaleMode;
 	@:noCompletion private var __scene:FlightScene;
+	@:noCompletion private var __rollOutStack:Array<DisplayObject>;
+	@:noCompletion private var __untransformedMouseX:Float;
+	@:noCompletion private var __untransformedMouseY:Float;
 
 	public function new(#if commonjs width:Dynamic = 0, height:Dynamic = 0, color:Null<Int> = null, documentClass:Class<Dynamic> = null,
 		windowAttributes:Dynamic = null #else window:Window, color:Null<Int> = null #end)
@@ -673,6 +698,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__autoOrients = false;
 		__color = 0xFFFFFFFF;
 		__contentsScaleFactor = 1;
+		__currentTabOrderIndex = 0;
 		__displayState = StageDisplayState.NORMAL;
 		__displayMatrix = new Matrix();
 		__frameRate = 60;
@@ -684,6 +710,11 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__scaleMode = StageScaleMode.NO_SCALE;
 		__logicalWidth = 0;
 		__logicalHeight = 0;
+		__macKeyboard = #if mac true #else false #end;
+		__mouseClickCount = 0;
+		__mouseOutStack = [];
+		__rollOutStack = [];
+		__pendingMouseEvent = false;
 		align = StageAlign.TOP_LEFT;
 		allowsFullScreen = true;
 		allowsFullScreenInteractive = true;
@@ -912,6 +943,397 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		return stack;
 	}
 
+	@:noCompletion private function __dispatchKey(type:String, charCode:Int, keyCode:Int, keyLocation:KeyLocation, control:Bool, alt:Bool, shift:Bool,
+		command:Bool):KeyboardEvent
+	{
+		__cancelKeySignal = false;
+		var ctrl = __macKeyboard ? (control || command) : control;
+		MouseEvent.__altKey = alt;
+		MouseEvent.__commandKey = command;
+		MouseEvent.__controlKey = control;
+		MouseEvent.__ctrlKey = ctrl;
+		MouseEvent.__shiftKey = shift;
+
+		var target:InteractiveObject = __focus == null ? this : __focus;
+		var stack = __getEventStack(target);
+		if (type == KeyboardEvent.KEY_UP && (keyCode == Keyboard.SPACE || keyCode == Keyboard.ENTER) && (__focus is Sprite))
+		{
+			var sprite:Sprite = cast __focus;
+			if (sprite.buttonMode && sprite.focusRect == true)
+			{
+				var local = sprite.globalToLocal(new Point(__mouseX, __mouseY));
+				var clickEvent = new MouseEvent(MouseEvent.CLICK, true, false, local.x, local.y, null, ctrl, alt, shift, __primaryMouseButtonDown, 0,
+					command, control, 0);
+				clickEvent.stageX = __mouseX;
+				clickEvent.stageY = __mouseY;
+				__dispatchStack(clickEvent, stack);
+			}
+		}
+
+		var event = new KeyboardEvent(type, true, true, charCode, keyCode, keyLocation, ctrl, alt, shift, control, command);
+		__dispatchStack(event, stack);
+		if (!event.isDefaultPrevented())
+		{
+			if (type == KeyboardEvent.KEY_DOWN && keyCode == Keyboard.TAB)
+			{
+				__cancelKeySignal = __changeFocusByTab(shift);
+			}
+			else if (type == KeyboardEvent.KEY_DOWN && focus != null && !(focus is TextField) && ctrl && !alt && !shift)
+			{
+				var shortcutType:String = switch (keyCode)
+				{
+					case Keyboard.C: Event.COPY;
+					case Keyboard.X: Event.CUT;
+					case Keyboard.V: Event.PASTE;
+					case Keyboard.A: Event.SELECT_ALL;
+					default: null;
+				};
+				if (shortcutType != null) focus.dispatchEvent(new Event(shortcutType, true, true));
+			}
+		}
+		return event;
+	}
+
+	@:noCompletion private function __changeFocusByTab(shift:Bool):Bool
+	{
+		var tabStack:Array<InteractiveObject> = [];
+		__tabTest(tabStack);
+		var nextIndex = -1;
+		var nextObject:InteractiveObject = null;
+		var nextOffset = shift ? -1 : 1;
+		if (tabStack.length > 1)
+		{
+			ArraySort.sort(tabStack, function(a:InteractiveObject, b:InteractiveObject):Int return a.tabIndex - b.tabIndex);
+			if (tabStack[tabStack.length - 1].tabIndex != -1)
+			{
+				var i = 0;
+				while (i < tabStack.length && tabStack[i].tabIndex == -1) i++;
+				if (i > 0) tabStack.splice(0, i);
+			}
+			if (focus != null)
+			{
+				var current:DisplayObject = focus;
+				var index = tabStack.indexOf(focus);
+				while (index == -1 && current != null)
+				{
+					var currentParent = current.parent;
+					if (currentParent != null && currentParent.tabChildren)
+					{
+						var currentIndex = currentParent.getChildIndex(current);
+						if (currentIndex == -1)
+						{
+							current = currentParent;
+							continue;
+						}
+						var i = currentIndex + nextOffset;
+						while (shift ? i >= 0 : i < currentParent.numChildren)
+						{
+							var sibling = currentParent.getChildAt(i);
+							if ((sibling is InteractiveObject))
+							{
+								index = tabStack.indexOf(cast sibling);
+								if (index != -1)
+								{
+									nextOffset = 0;
+									break;
+								}
+							}
+							i += nextOffset;
+						}
+					}
+					else if (shift)
+					{
+						index = tabStack.indexOf(currentParent);
+						if (index != -1) nextOffset = 0;
+					}
+					current = currentParent;
+				}
+				nextIndex = index < 0 ? 0 : index + nextOffset;
+			}
+			else nextIndex = __currentTabOrderIndex;
+		}
+		else if (tabStack.length == 1)
+		{
+			nextObject = tabStack[0];
+			if (focus == nextObject) nextObject = null;
+		}
+
+		var cancelTab = nextIndex >= 0 && nextIndex < tabStack.length;
+		if (tabStack.length == 1 || (tabStack.length == 0 && focus != null)) nextIndex = 0;
+		else if (tabStack.length > 1)
+		{
+			if (nextIndex < 0) nextIndex += tabStack.length;
+			nextIndex %= tabStack.length;
+			nextObject = tabStack[nextIndex];
+			if (nextObject == focus)
+			{
+				nextIndex += nextOffset;
+				if (nextIndex < 0) nextIndex += tabStack.length;
+				nextIndex %= tabStack.length;
+				nextObject = tabStack[nextIndex];
+			}
+		}
+
+		var focusEvent:FocusEvent = null;
+		if (focus != null)
+		{
+			focusEvent = new FocusEvent(FocusEvent.KEY_FOCUS_CHANGE, true, true, nextObject, shift, 0);
+			__dispatchStack(focusEvent, __getEventStack(focus));
+			if (focusEvent.isDefaultPrevented()) return true;
+		}
+		__currentTabOrderIndex = nextIndex;
+		if (nextObject != null) focus = nextObject;
+		return cancelTab;
+	}
+
+	@:noCompletion private function __mouseHit(object:DisplayObject, stageX:Float, stageY:Float):Dynamic
+	{
+		if (object == null || !object.visible || object.__maskTarget != null || !object.__isPointInScrollRect(stageX, stageY))
+		{
+			return {hit: false, target: null};
+		}
+		if (object.mask != null && !object.mask.__hitTest(stageX, stageY, true)) return {hit: false, target: null};
+
+		var container:DisplayObjectContainer = (object is DisplayObjectContainer) ? cast object : null;
+		var sprite:Sprite = (object is Sprite) ? cast object : null;
+		var ownHit = sprite != null && sprite.hitArea != null
+			? sprite.hitArea.__hitTest(stageX, stageY, true)
+			: (container == null ? object.__hitTest(stageX, stageY, true) : object.__graphics != null && object.__graphics.__hitTest(stageX, stageY, true));
+
+		if (container != null)
+		{
+			if (!container.mouseChildren)
+			{
+				var branchHit = ownHit;
+				if (!branchHit)
+				{
+					var i = container.__children.length;
+					while (--i >= 0)
+					{
+						if (__mouseHit(container.__children[i], stageX, stageY).hit)
+						{
+							branchHit = true;
+							break;
+						}
+					}
+				}
+				return {
+					hit: branchHit,
+					target: branchHit && (container is InteractiveObject) && cast(container, InteractiveObject).mouseEnabled ? cast container : null
+				};
+			}
+
+			var descendantHit = false;
+			var i = container.__children.length;
+			while (--i >= 0)
+			{
+				var result = __mouseHit(container.__children[i], stageX, stageY);
+				if (result.hit)
+				{
+					descendantHit = true;
+					if (result.target != null) return result;
+				}
+			}
+			ownHit = ownHit || descendantHit;
+		}
+
+		var interactive:InteractiveObject = (object is InteractiveObject) ? cast object : null;
+		return {hit: ownHit, target: ownHit && interactive != null && interactive.mouseEnabled ? interactive : null};
+	}
+
+	@:noCompletion private function __resolveMouseTarget(stageX:Float, stageY:Float):InteractiveObject
+	{
+		var i = __children.length;
+		while (--i >= 0)
+		{
+			var result = __mouseHit(__children[i], stageX, stageY);
+			if (result.hit && result.target != null) return result.target;
+		}
+		return this;
+	}
+
+	@:noCompletion private function __createMouseEvent(type:String, target:InteractiveObject, localTarget:InteractiveObject, bubbles:Bool, cancelable:Bool,
+		button:Int, clickCount:Int, delta:Int = 0):MouseEvent
+	{
+		var local = localTarget.globalToLocal(new Point(__mouseX, __mouseY));
+		var event = new MouseEvent(type, bubbles, cancelable, local.x, local.y, null, MouseEvent.__ctrlKey, MouseEvent.__altKey, MouseEvent.__shiftKey,
+			MouseEvent.__buttonDown, delta, MouseEvent.__commandKey, MouseEvent.__controlKey, clickCount);
+		event.stageX = __mouseX;
+		event.stageY = __mouseY;
+		event.target = target;
+		return event;
+	}
+
+	@:noCompletion private function __dispatchMouseTarget(target:DisplayObject, event:MouseEvent):Void
+	{
+		event.eventPhase = EventPhase.AT_TARGET;
+		event.target = target;
+		target.__dispatch(event);
+	}
+
+	@:noCompletion private function __onMouse(type:String, x:Float, y:Float, button:Int):MouseEvent
+	{
+		if (button > 2) return null;
+		__untransformedMouseX = x;
+		__untransformedMouseY = y;
+		var inverse = __displayMatrix.clone();
+		inverse.invert();
+		var stagePoint = inverse.transformPoint(new Point(x, y));
+		__mouseX = stagePoint.x;
+		__mouseY = stagePoint.y;
+		var target = __resolveMouseTarget(__mouseX, __mouseY);
+		var stack = __getEventStack(target);
+		var clickType:String = null;
+		var supportsClickCount = false;
+
+		if (type != null)
+		{
+			switch (type)
+			{
+				case MouseEvent.MOUSE_DOWN:
+					if (focus != target)
+					{
+						var allowChange = true;
+						if (focus != null)
+						{
+							var focusEvent = new FocusEvent(FocusEvent.MOUSE_FOCUS_CHANGE, true, true, target, false, 0);
+							focus.dispatchEvent(focusEvent);
+							allowChange = !focusEvent.isDefaultPrevented();
+						}
+						if (allowChange) focus = target.__allowMouseFocus() ? target : null;
+					}
+					__mouseDownLeft = target;
+					__primaryMouseButtonDown = true;
+					MouseEvent.__buttonDown = true;
+					supportsClickCount = true;
+				case MouseEvent.MIDDLE_MOUSE_DOWN:
+					__mouseDownMiddle = target;
+					supportsClickCount = true;
+				case MouseEvent.RIGHT_MOUSE_DOWN:
+					__mouseDownRight = target;
+					supportsClickCount = true;
+				case MouseEvent.MOUSE_UP:
+					__primaryMouseButtonDown = false;
+					MouseEvent.__buttonDown = false;
+					if (__mouseDownLeft != null)
+					{
+						if (__mouseDownLeft == target) clickType = MouseEvent.CLICK;
+						else __mouseDownLeft.dispatchEvent(__createMouseEvent(MouseEvent.RELEASE_OUTSIDE, this, this, true, false, button, 0));
+						__mouseDownLeft = null;
+					}
+					supportsClickCount = true;
+				case MouseEvent.MIDDLE_MOUSE_UP:
+					if (__mouseDownMiddle == target) clickType = MouseEvent.MIDDLE_CLICK;
+					__mouseDownMiddle = null;
+					supportsClickCount = true;
+				case MouseEvent.RIGHT_MOUSE_UP:
+					if (__mouseDownRight == target) clickType = MouseEvent.RIGHT_CLICK;
+					__mouseDownRight = null;
+					supportsClickCount = true;
+				default:
+			}
+		}
+
+		var rawEvent:MouseEvent = null;
+		if (type != null)
+		{
+			rawEvent = __createMouseEvent(type, target, target, true, false, button, supportsClickCount ? __mouseClickCount : 0);
+			__dispatchStack(rawEvent, stack);
+		}
+		if (clickType != null)
+		{
+			var clickEvent = __createMouseEvent(clickType, target, target, true, false, button, 0);
+			__dispatchStack(clickEvent, stack);
+		}
+
+		#if lime
+		if (Mouse.__cursor == MouseCursor.AUTO && !Mouse.__hidden && window != null)
+		{
+			var cursor:MouseCursor = __mouseDownLeft == null ? null : __mouseDownLeft.__getCursor();
+			if (cursor == null)
+			{
+				for (item in stack)
+				{
+					cursor = item.__getCursor();
+					if (cursor != null) break;
+				}
+			}
+			window.cursor = cursor == null ? MouseCursor.ARROW : cursor;
+		}
+		#end
+
+		if (target != __mouseOverTarget && __mouseOverTarget != null)
+		{
+			__dispatchStack(__createMouseEvent(MouseEvent.MOUSE_OUT, __mouseOverTarget, __mouseOverTarget, true, false, button, 0), __mouseOutStack);
+		}
+		var i = 0;
+		while (i < __rollOutStack.length)
+		{
+			var item = __rollOutStack[i];
+			if (stack.indexOf(item) == -1)
+			{
+				__rollOutStack.remove(item);
+				if (item.hasEventListener(MouseEvent.ROLL_OUT))
+				{
+					__dispatchMouseTarget(item, __createMouseEvent(MouseEvent.ROLL_OUT, cast item, __mouseOverTarget, false, false, button, 0));
+				}
+			}
+			else i++;
+		}
+
+		var newMouseOverTarget:InteractiveObject = null;
+		if (target != __mouseOverTarget)
+		{
+			newMouseOverTarget = target;
+			__mouseOverTarget = target;
+			__mouseOutStack = stack;
+		}
+		for (item in stack)
+		{
+			if (__rollOutStack.indexOf(item) == -1 && __mouseOverTarget != null)
+			{
+				if (item.hasEventListener(MouseEvent.ROLL_OVER))
+				{
+					__dispatchMouseTarget(item, __createMouseEvent(MouseEvent.ROLL_OVER, cast item, __mouseOverTarget, false, false, button, 0));
+				}
+				__rollOutStack.push(item);
+			}
+		}
+		if (newMouseOverTarget != null)
+		{
+			__dispatchStack(__createMouseEvent(MouseEvent.MOUSE_OVER, newMouseOverTarget, newMouseOverTarget, true, false, button, 0), stack);
+		}
+		return rawEvent;
+	}
+
+	@:noCompletion private function __dispatchPendingMouseEvent():Void
+	{
+		if (__pendingMouseEvent)
+		{
+			__pendingMouseEvent = false;
+			__onMouse(MouseEvent.MOUSE_MOVE, __pendingMouseX, __pendingMouseY, 0);
+		}
+		else if (__mouseOverTarget != null)
+		{
+			__onMouse(null, __untransformedMouseX, __untransformedMouseY, 0);
+		}
+	}
+
+	@:noCompletion private function __onMouseWheel(deltaY:Float):MouseEvent
+	{
+		var target = __resolveMouseTarget(__mouseX, __mouseY);
+		var event = __createMouseEvent(MouseEvent.MOUSE_WHEEL, target, target, true, true, 0, 0, Std.int(deltaY));
+		__dispatchStack(event, __getEventStack(target));
+		return event;
+	}
+
+	@:noCompletion private function __onWindowLeave():Void
+	{
+		if (MouseEvent.__buttonDown) return;
+		__dispatchPendingMouseEvent();
+		__dispatchEvent(new Event(Event.MOUSE_LEAVE));
+	}
+
 	#if lime
 	@:noCompletion private function __registerLimeModule(application:Application):Void
 	{
@@ -924,9 +1346,13 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			window.onFocusOut.add(__onLimeWindowFocusOut);
 			window.onKeyDown.add(__onLimeKeyDown);
 			window.onKeyUp.add(__onLimeKeyUp);
+			window.onLeave.add(__onLimeWindowLeave);
 			window.onMouseDown.add(__onLimeMouseDown);
 			window.onMouseMove.add(__onLimeMouseMove);
+			window.onMouseMoveRelative.add(__onLimeMouseMoveRelative);
 			window.onMouseUp.add(__onLimeMouseUp);
+			window.onMouseWheel.add(__onLimeMouseWheel);
+			window.onResize.add(__onLimeWindowResize);
 		}
 	}
 
@@ -940,15 +1366,20 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			window.onFocusOut.remove(__onLimeWindowFocusOut);
 			window.onKeyDown.remove(__onLimeKeyDown);
 			window.onKeyUp.remove(__onLimeKeyUp);
+			window.onLeave.remove(__onLimeWindowLeave);
 			window.onMouseDown.remove(__onLimeMouseDown);
 			window.onMouseMove.remove(__onLimeMouseMove);
+			window.onMouseMoveRelative.remove(__onLimeMouseMoveRelative);
 			window.onMouseUp.remove(__onLimeMouseUp);
+			window.onMouseWheel.remove(__onLimeMouseWheel);
+			window.onResize.remove(__onLimeWindowResize);
 		}
 	}
 
 	@:noCompletion private function __onLimeUpdate(deltaTime:Int):Void
 	{
 		__deltaTime = deltaTime;
+		__dispatchPendingMouseEvent();
 	}
 
 	@:noCompletion private function __onLimeWindowClose():Void
@@ -966,88 +1397,79 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__windowFocusOut();
 	}
 
-	@:noCompletion private function __dispatchKeyboardEvent(type:String, key:KeyCode, modifier:KeyModifier):Void
+	@:noCompletion private function __dispatchKeyboardEvent(type:String, key:KeyCode, modifier:KeyModifier):KeyboardEvent
 	{
 		var keyCode = Keyboard.__convertKeyCode(key);
-		var event = new KeyboardEvent(type, true, true, Keyboard.__getCharCode(keyCode, modifier.shiftKey, modifier.capsLock), keyCode,
-			Keyboard.__getKeyLocation(key), modifier.ctrlKey, modifier.altKey, modifier.shiftKey, modifier.ctrlKey, modifier.metaKey);
-		var target:InteractiveObject = __focus == null ? this : __focus;
-		__dispatchStack(event, __getEventStack(target));
+		return __dispatchKey(type, Keyboard.__getCharCode(keyCode, modifier.shiftKey, modifier.capsLock), keyCode, Keyboard.__getKeyLocation(key),
+			modifier.ctrlKey, modifier.altKey, modifier.shiftKey, modifier.metaKey);
 	}
 
 	@:noCompletion private function __onLimeKeyDown(key:KeyCode, modifier:KeyModifier):Void
 	{
-		__dispatchKeyboardEvent(KeyboardEvent.KEY_DOWN, key, modifier);
+		if (__dispatchKeyboardEvent(KeyboardEvent.KEY_DOWN, key, modifier).isDefaultPrevented() || __cancelKeySignal) window.onKeyDown.cancel();
 	}
 
 	@:noCompletion private function __onLimeKeyUp(key:KeyCode, modifier:KeyModifier):Void
 	{
-		__dispatchKeyboardEvent(KeyboardEvent.KEY_UP, key, modifier);
-	}
-
-	@:noCompletion private function __getMouseTarget(stageX:Float, stageY:Float):InteractiveObject
-	{
-		var hits = getObjectsUnderPoint(new Point(stageX, stageY));
-		for (hit in hits)
-		{
-			var current:DisplayObject = hit;
-			var target:InteractiveObject = null;
-			while (current != null && current != this)
-			{
-				if ((current is InteractiveObject))
-				{
-					var interactive:InteractiveObject = cast current;
-					if (target == null && interactive.mouseEnabled) target = interactive;
-				}
-				var parent = current.parent;
-				if (parent != null && !parent.mouseChildren)
-				{
-					target = parent.mouseEnabled ? parent : null;
-				}
-				current = parent;
-			}
-			if (target != null) return target;
-		}
-		return this;
-	}
-
-	@:noCompletion private function __dispatchMouseEvent(type:String, x:Float, y:Float, buttonDown:Bool):Void
-	{
-		__mouseX = x * window.scale;
-		__mouseY = y * window.scale;
-		var target = __getMouseTarget(__mouseX, __mouseY);
-		var local = target.globalToLocal(new Point(__mouseX, __mouseY));
-		var event = new MouseEvent(type, true, false, local.x, local.y, null, false, false, false, buttonDown);
-		__dispatchStack(event, __getEventStack(target));
+		if (__dispatchKeyboardEvent(KeyboardEvent.KEY_UP, key, modifier).isDefaultPrevented() || __cancelKeySignal) window.onKeyUp.cancel();
 	}
 
 	@:noCompletion private function __onLimeMouseDown(x:Float, y:Float, button:Int):Void
 	{
-		if (button == 0) __primaryMouseButtonDown = true;
+		__dispatchPendingMouseEvent();
 		var type = switch (button)
 		{
 			case 1: MouseEvent.MIDDLE_MOUSE_DOWN;
 			case 2: MouseEvent.RIGHT_MOUSE_DOWN;
 			default: MouseEvent.MOUSE_DOWN;
 		};
-		__dispatchMouseEvent(type, x, y, __primaryMouseButtonDown);
+		__mouseClickCount = window.clickCount;
+		__onMouse(type, Std.int(x * window.scale), Std.int(y * window.scale), button);
+		if (!showDefaultContextMenu && button == 2) window.onMouseDown.cancel();
 	}
 
 	@:noCompletion private function __onLimeMouseMove(x:Float, y:Float):Void
 	{
-		__dispatchMouseEvent(MouseEvent.MOUSE_MOVE, x, y, __primaryMouseButtonDown);
+		#if openfl_always_dispatch_mouse_events
+		__onMouse(MouseEvent.MOUSE_MOVE, Std.int(x * window.scale), Std.int(y * window.scale), 0);
+		#else
+		__pendingMouseEvent = true;
+		__pendingMouseX = Std.int(x * window.scale);
+		__pendingMouseY = Std.int(y * window.scale);
+		#end
 	}
+
+	@:noCompletion private function __onLimeMouseMoveRelative(x:Float, y:Float):Void {}
 
 	@:noCompletion private function __onLimeMouseUp(x:Float, y:Float, button:Int):Void
 	{
-		if (button == 0) __primaryMouseButtonDown = false;
+		__dispatchPendingMouseEvent();
 		var type = switch (button)
 		{
 			case 1: MouseEvent.MIDDLE_MOUSE_UP;
 			case 2: MouseEvent.RIGHT_MOUSE_UP;
 			default: MouseEvent.MOUSE_UP;
 		};
-		__dispatchMouseEvent(type, x, y, __primaryMouseButtonDown);
+		__mouseClickCount = window.clickCount;
+		__onMouse(type, Std.int(x * window.scale), Std.int(y * window.scale), button);
+		if (!showDefaultContextMenu && button == 2) window.onMouseUp.cancel();
+	}
+
+	@:noCompletion private function __onLimeMouseWheel(deltaX:Float, deltaY:Float, deltaMode:MouseWheelMode):Void
+	{
+		__dispatchPendingMouseEvent();
+		var delta = deltaMode == MouseWheelMode.PIXELS ? deltaY * window.scale : deltaY;
+		if (__onMouseWheel(delta).isDefaultPrevented()) window.onMouseWheel.cancel();
+	}
+
+	@:noCompletion private function __onLimeWindowLeave():Void
+	{
+		__onWindowLeave();
+	}
+
+	@:noCompletion private function __onLimeWindowResize(width:Int, height:Int):Void
+	{
+		__resize();
 	}
 	#end
 

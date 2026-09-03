@@ -1,0 +1,701 @@
+{
+  "stageOrientation": {
+    "cloneClass": "openfl.events.StageOrientationEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "afterOrientation": {
+        "clone": 1,
+        "original": 1
+      },
+      "beforeOrientation": {
+        "clone": 0,
+        "original": 0
+      }
+    }
+  },
+  "text": {
+    "cloneClass": "openfl.events.TextEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "text": {
+        "clone": "payload",
+        "original": "payload"
+      }
+    }
+  },
+  "accelerometer": {
+    "cloneClass": "openfl.events.AccelerometerEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "accelerationZ": {
+        "clone": 4.5,
+        "original": 4.5
+      },
+      "accelerationY": {
+        "clone": 3.5,
+        "original": 3.5
+      },
+      "accelerationX": {
+        "clone": 2.5,
+        "original": 2.5
+      },
+      "timestamp": {
+        "clone": 1.5,
+        "original": 1.5
+      }
+    }
+  },
+  "sampleData": {
+    "cloneClass": "openfl.events.SampleDataEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "position": {
+        "clone": 26,
+        "original": 26
+      },
+      "data": {
+        "sameReference": true,
+        "cloneClass": "openfl.utils.ByteArrayData",
+        "originalClass": "openfl.utils.ByteArrayData"
+      }
+    }
+  },
+  "nativeWindowDisplayState": {
+    "cloneClass": "openfl.events.NativeWindowDisplayStateEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "beforeDisplayState": {
+        "clone": 0,
+        "original": 0
+      },
+      "afterDisplayState": {
+        "clone": 1,
+        "original": 1
+      }
+    }
+  },
+  "ioError": {
+    "cloneClass": "openfl.events.IOErrorEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "text": {
+        "clone": "text",
+        "original": "text"
+      },
+      "errorID": {
+        "clone": 13,
+        "original": 13
+      }
+    }
+  },
+  "permission": {
+    "cloneClass": "openfl.events.PermissionEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "status": {
+        "clone": 1,
+        "original": 1
+      }
+    }
+  },
+  "geolocation": {
+    "cloneClass": "openfl.events.GeolocationEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "latitude": {
+        "clone": 1,
+        "original": 1
+      },
+      "verticalAccuracy": {
+        "clone": 5,
+        "original": 5
+      },
+      "horizontalAccuracy": {
+        "clone": 4,
+        "original": 4
+      },
+      "heading": {
+        "clone": 7,
+        "original": 7
+      },
+      "longitude": {
+        "clone": 2,
+        "original": 2
+      },
+      "timestamp": {
+        "clone": 8,
+        "original": 8
+      },
+      "altitude": {
+        "clone": 3,
+        "original": 3
+      },
+      "speed": {
+        "clone": 6,
+        "original": 6
+      }
+    }
+  },
+  "invoke": {
+    "cloneClass": "openfl.events.InvokeEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "reason": {
+        "clone": 3,
+        "original": 3
+      },
+      "currentDirectory": {
+        "clone": null,
+        "original": null
+      },
+      "arguments": {
+        "sameReference": false,
+        "cloneClass": "Array",
+        "originalClass": "Array"
+      }
+    }
+  },
+  "datagram": {
+    "cloneClass": "openfl.events.DatagramSocketDataEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "dstPort": {
+        "clone": 20,
+        "original": 20
+      },
+      "srcPort": {
+        "clone": 10,
+        "original": 10
+      },
+      "srcAddress": {
+        "clone": "src",
+        "original": "src"
+      },
+      "data": {
+        "sameReference": true,
+        "cloneClass": "openfl.utils.ByteArrayData",
+        "originalClass": "openfl.utils.ByteArrayData"
+      },
+      "dstAddress": {
+        "clone": "dst",
+        "original": "dst"
+      }
+    }
+  },
+  "nativeWindowBounds": {
+    "cloneClass": "openfl.events.NativeWindowBoundsEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "afterBounds": {
+        "sameReference": true,
+        "cloneClass": "openfl.geom.Rectangle",
+        "originalClass": "openfl.geom.Rectangle"
+      },
+      "beforeBounds": {
+        "sameReference": true,
+        "cloneClass": "openfl.geom.Rectangle",
+        "originalClass": "openfl.geom.Rectangle"
+      }
+    }
+  },
+  "timer": {
+    "cloneClass": "openfl.events.TimerEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {}
+  },
+  "fileList": {
+    "cloneClass": "openfl.events.FileListEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "files": {
+        "sameReference": true,
+        "cloneClass": "Array",
+        "originalClass": "Array"
+      }
+    }
+  },
+  "gameInput": {
+    "cloneClass": "openfl.events.GameInputEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "device": {
+        "clone": null,
+        "original": null
+      }
+    }
+  },
+  "httpStatus": {
+    "cloneClass": "openfl.events.HTTPStatusEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "redirected": {
+        "clone": true,
+        "original": true
+      },
+      "responseHeaders": {
+        "sameReference": false,
+        "cloneClass": "Array",
+        "originalClass": "Array"
+      },
+      "status": {
+        "clone": 302,
+        "original": 302
+      },
+      "responseURL": {
+        "clone": null,
+        "original": "https://example.test/"
+      }
+    }
+  },
+  "screenMouse": {
+    "cloneClass": "openfl.events.ScreenMouseEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "shiftKey": {
+        "clone": true,
+        "original": true
+      },
+      "screenX": {
+        "clone": 17,
+        "original": 17
+      },
+      "screenY": {
+        "clone": 18,
+        "original": 18
+      },
+      "buttonDown": {
+        "clone": true,
+        "original": true
+      },
+      "ctrlKey": {
+        "clone": true,
+        "original": true
+      },
+      "commandKey": {
+        "clone": true,
+        "original": true
+      },
+      "controlKey": {
+        "clone": true,
+        "original": true
+      },
+      "altKey": {
+        "clone": true,
+        "original": true
+      }
+    }
+  },
+  "contextMenu": {
+    "cloneClass": "openfl.events.ContextMenuEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "contextMenuOwner": {
+        "sameReference": true,
+        "cloneClass": "openfl.display.Sprite",
+        "originalClass": "openfl.display.Sprite"
+      },
+      "mouseTarget": {
+        "sameReference": true,
+        "cloneClass": "openfl.display.Sprite",
+        "originalClass": "openfl.display.Sprite"
+      }
+    }
+  },
+  "nativeProcessExit": {
+    "cloneClass": "openfl.events.NativeProcessExitEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "exitCode": {
+        "clone": 14,
+        "original": 14
+      }
+    }
+  },
+  "dnsResolver": {
+    "cloneClass": "openfl.events.DNSResolverEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "resourceRecords": {
+        "sameReference": true,
+        "cloneClass": "Array",
+        "originalClass": "Array"
+      },
+      "host": {
+        "clone": "host",
+        "original": "host"
+      }
+    }
+  },
+  "activity": {
+    "cloneClass": "openfl.events.ActivityEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "activating": {
+        "clone": true,
+        "original": true
+      }
+    }
+  },
+  "touch": {
+    "cloneClass": "openfl.events.TouchEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "shiftKey": {
+        "clone": true,
+        "original": true
+      },
+      "isTouchPointCanceled": {
+        "clone": null,
+        "original": null
+      },
+      "pressure": {
+        "clone": 0.5,
+        "original": 0.5
+      },
+      "relatedObject": {
+        "sameReference": true,
+        "cloneClass": "openfl.display.Sprite",
+        "originalClass": "openfl.display.Sprite"
+      },
+      "samples": {
+        "clone": null,
+        "original": null
+      },
+      "ctrlKey": {
+        "clone": true,
+        "original": true
+      },
+      "touchPointID": {
+        "clone": 20,
+        "original": 20
+      },
+      "localX": {
+        "clone": 21,
+        "original": 21
+      },
+      "touchIntent": {
+        "clone": null,
+        "original": null
+      },
+      "sizeX": {
+        "clone": 23,
+        "original": 23
+      },
+      "commandKey": {
+        "clone": true,
+        "original": true
+      },
+      "timestamp": {
+        "clone": null,
+        "original": null
+      },
+      "localY": {
+        "clone": 22,
+        "original": 22
+      },
+      "sizeY": {
+        "clone": 24,
+        "original": 24
+      },
+      "isPrimaryTouchPoint": {
+        "clone": true,
+        "original": true
+      },
+      "controlKey": {
+        "clone": true,
+        "original": true
+      },
+      "altKey": {
+        "clone": true,
+        "original": true
+      }
+    }
+  },
+  "data": {
+    "cloneClass": "openfl.events.DataEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "data": {
+        "clone": "payload",
+        "original": "payload"
+      }
+    }
+  },
+  "securityError": {
+    "cloneClass": "openfl.events.SecurityErrorEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "text": {
+        "clone": "text",
+        "original": "text"
+      },
+      "errorID": {
+        "clone": 19,
+        "original": 19
+      }
+    }
+  },
+  "netStatus": {
+    "cloneClass": "openfl.events.NetStatusEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "info": {
+        "sameReference": true,
+        "cloneClass": null,
+        "originalClass": null
+      }
+    }
+  },
+  "outputProgress": {
+    "cloneClass": "openfl.events.OutputProgressEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "bytesTotal": {
+        "clone": 16,
+        "original": 16
+      },
+      "bytesPending": {
+        "clone": 15,
+        "original": 15
+      }
+    }
+  },
+  "videoTexture": {
+    "cloneClass": "openfl.events.VideoTextureEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "status": {
+        "clone": "ready",
+        "original": "ready"
+      },
+      "colorSpace": {
+        "clone": "bt709",
+        "original": "bt709"
+      }
+    }
+  },
+  "error": {
+    "cloneClass": "openfl.events.ErrorEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "text": {
+        "clone": "text",
+        "original": "text"
+      },
+      "errorID": {
+        "clone": 12,
+        "original": 12
+      }
+    }
+  },
+  "uncaughtError": {
+    "cloneClass": "openfl.events.UncaughtErrorEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "error": {
+        "sameReference": true,
+        "cloneClass": null,
+        "originalClass": null
+      }
+    }
+  },
+  "serverSocket": {
+    "cloneClass": "openfl.events.ServerSocketConnectEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "socket": {
+        "clone": null,
+        "original": null
+      }
+    }
+  },
+  "focus": {
+    "cloneClass": "openfl.events.FocusEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "shiftKey": {
+        "clone": true,
+        "original": true
+      },
+      "keyCode": {
+        "clone": 9,
+        "original": 9
+      },
+      "relatedObject": {
+        "sameReference": true,
+        "cloneClass": "openfl.display.Sprite",
+        "originalClass": "openfl.display.Sprite"
+      }
+    }
+  },
+  "deviceRotation": {
+    "cloneClass": "openfl.events.DeviceRotationEvent",
+    "metadata": {
+      "targetCopied": false,
+      "currentTargetCopied": false,
+      "phase": 2
+    },
+    "fields": {
+      "pitch": {
+        "clone": 3.5,
+        "original": 3.5
+      },
+      "yaw": {
+        "clone": 4.5,
+        "original": 4.5
+      },
+      "timestamp": {
+        "clone": 1.5,
+        "original": 1.5
+      },
+      "quaternion": {
+        "sameReference": true,
+        "cloneClass": "Array",
+        "originalClass": "Array"
+      },
+      "roll": {
+        "clone": 2.5,
+        "original": 2.5
+      }
+    }
+  },
+  "asyncError": {
+    "cloneClass": "openfl.events.AsyncErrorEvent",
+    "metadata": {
+      "targetCopied": true,
+      "currentTargetCopied": true,
+      "phase": 3
+    },
+    "fields": {
+      "text": {
+        "clone": "text",
+        "original": "text"
+      },
+      "error": {
+        "sameReference": true,
+        "cloneClass": null,
+        "originalClass": null
+      }
+    }
+  }
+}
