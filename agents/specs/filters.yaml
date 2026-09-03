@@ -71,6 +71,21 @@ entries:
     gap: "Per-node render effects"
     scenarios: []
 
+  # -- BitmapFilterShader --
+
+  - id: filters.BFS.constructor-pass-through
+    section: "BitmapFilterShader"
+    behavior: >-
+      `BitmapFilterShader` is a public Shader subclass with `new(code:ByteArray=null)` forwarding
+      the exact code reference to `Shader`. Its metadata-supplied default program transforms
+      `openfl_Position` with `openfl_Matrix`, forwards `openfl_TextureCoord`, and samples
+      `openfl_Texture` unchanged in the fragment shader.
+    status: missing
+    notes: >-
+      Unlike the other filter package types, BitmapFilterShader is not guarded by `#if !flash`
+      and is compiled on Flash as well as non-Flash targets.
+    scenarios: []
+
   # -- BitmapFilter > Common BitmapData.applyFilter pipeline --
 
   - id: filters.BF.bitmap-source-selection
@@ -134,10 +149,12 @@ entries:
   - id: filters.Bevel.property-clamping
     section: "BevelFilter"
     behavior: >-
-      `blurX` and `blurY` clamp to `[0,255]`; both alpha properties clamp to `[0,1]`; `quality`
-      is integer-clamped to `[1,15]`; and `strength` clamps to `[1,255]`. Highlight and shadow
-      colors are unsigned and capped at `0xFFFFFF`. Distance and degree-valued angle are
-      unrestricted.
+      Finite `blurX` and `blurY` clamp to `[0,255]`; both alpha properties clamp to `[0,1]`;
+      `quality` is integer-clamped to `[1,15]`; and changed `strength` values clamp to `[1,255]`.
+      Strength has an equality bypass: its backing value starts at zero, so constructing with
+      strength zero leaves zero rather than clamping to one. NaN float inputs pass through the
+      comparison clamps. Highlight and shadow colors are unsigned and capped at `0xFFFFFF`;
+      distance and degree-valued angle are unrestricted.
     status: covered
     scenarios:
       - filters/properties:mutations.bevel
@@ -146,8 +163,10 @@ entries:
   - id: filters.Bevel.type-coercion
     section: "BevelFilter"
     behavior: >-
-      `type` retains only exact `"inner"` or `"outer"`; every other value, including null on
-      permissive targets, becomes `"full"`. `knockout` is stored directly.
+      `type` retains exact `"inner"` and `"outer"`; changed values outside those two become
+      `"full"`. Its backing value starts null, so a null constructor argument compares equal and
+      bypasses coercion, remaining null; assigning null after a non-null value becomes `"full"`.
+      `knockout` is stored directly.
     status: covered
     scenarios:
       - filters/properties:mutations.bevel
@@ -179,9 +198,11 @@ entries:
   - id: filters.Bevel.bitmap-blur-only
     section: "BevelFilter"
     behavior: >-
-      `BitmapData.applyFilter` executes only the blur path for a bevel, then preserves/draws the
-      original content; it does not perform a bevel color/combine stage.
+      On Lime, `BitmapData.applyFilter` executes only `ImageDataUtil.gaussianBlur` for a bevel,
+      then preserves/draws the original content; it does not perform a bevel color/combine
+      stage. On non-Lime targets the filter method skips the blur and returns its source bitmap.
     status: covered
+    notes: "The CPU blur branch is compiled only with the `lime` define."
     scenarios:
       - filters/properties:bitmapApplications.bevel
 
@@ -216,11 +237,13 @@ entries:
   - id: filters.Blur.bitmap-blur-algorithm
     section: "BlurFilter"
     behavior: >-
-      Bitmap application uses a separable Flash-style box kernel where blurX/blurY are the full
-      widths. It uses full-weight interior texels plus 8-bit fractional edge weights, clamps the
-      width to 255, truncates each completed pass to 8-bit precision, and clamps quality passes
-      to `[1,3]`. This intentionally targets Flash rendering rather than Lime's CPU blur artifacts.
+      On Lime, bitmap application delegates the destination image, source image, source
+      rectangle, destination point, and the stored blurX/blurY/quality values directly to
+      `ImageDataUtil.gaussianBlur`; if it returns the destination image, the destination bitmap
+      is returned, otherwise the source bitmap is returned. On non-Lime targets this method
+      skips the utility and returns the source bitmap unchanged.
     status: covered
+    notes: "The CPU blur implementation is compiled only with the `lime` define."
     scenarios:
       - display/bitmap-data:applyBlurFilter
       - filters/properties:bitmapApplications.blur
@@ -235,6 +258,8 @@ entries:
       A quality-only change likewise does not update padding. The adapter retains these values in
       its internal filter-bound expansion.
     status: covered
+    notes: >-
+      The `value*passes*3` reach is used only with `lime`; other non-Flash targets use `value`.
     scenarios:
       - filters/properties:derivedInternals.blur
 
@@ -283,6 +308,9 @@ entries:
       source pixel with alpha zero is forced to fully transparent black instead of evaluating
       the matrix.
     status: covered
+    notes: >-
+      CPU pixel evaluation is compiled only with `lime`. On `js && html5`, both images are first
+      converted from canvas backing to data backing before byte access.
     scenarios:
       - display/bitmap-data:applyColorMatrixFilter
 
@@ -469,9 +497,15 @@ entries:
   - id: filters.DM.bitmap-source-destination
     section: "DisplacementMapFilter"
     behavior: >-
-      The bitmap call ignores sourceBitmapData, sourceRect, and destPoint when invoking the
-      displacement utility; it operates over the receiver and the configured map bitmap.
+      On Lime the displacement utility receives both the whole destination image and whole
+      source image plus the configured map image. It ignores sourceRect and destPoint, but does
+      not ignore sourceBitmapData. The enclosing 9.5.2 BitmapData pipeline nevertheless passes
+      the receiver as that source argument because of its common source-selection bug.
     status: covered
+    notes: >-
+      The displacement utility call exists only with `lime`; on `js && html5`, destination,
+      source, and map images are converted to data backing first. Non-Lime returns the
+      destination bitmap without evaluating the map.
     scenarios:
       - filters/properties:bitmapApplications.displacementIgnoresArguments
 
@@ -564,10 +598,12 @@ entries:
   - id: filters.DS.bitmap-application
     section: "DropShadowFilter"
     behavior: >-
-      Bitmap application blurs at destPoint plus the directional offset, color-transforms the
-      entire returned image to shadow RGB/alpha, and does not add separate inner or knockout
-      processing; its preserve-object step then draws the original.
+      On Lime, bitmap application blurs at destPoint plus the directional offset,
+      color-transforms the entire returned image to shadow RGB/alpha, and does not add separate
+      inner, knockout, or hideObject processing; its preserve-object step then draws the
+      original. On non-Lime the filter method returns the source bitmap unchanged.
     status: covered
+    notes: "The CPU blur/color-transform branch is compiled only with the `lime` define."
     scenarios:
       - filters/properties:bitmapApplications.dropShadow
 
@@ -623,9 +659,11 @@ entries:
   - id: filters.Glow.bitmap-and-bounds-missing
     section: "GlowFilter"
     behavior: >-
-      GlowFilter expands internal bounds and its bitmap path blurs and color-transforms the
-      result, without separate inner/knockout bitmap processing, before preserving the original.
+      GlowFilter expands internal bounds. On Lime its bitmap path blurs and color-transforms the
+      result, without separate inner/knockout bitmap processing, before preserving the original;
+      on non-Lime the filter method returns the source bitmap unchanged.
     status: covered
+    notes: "The CPU blur/color-transform branch is compiled only with the `lime` define."
     scenarios:
       - filters/properties:derivedInternals.filterBounds
       - filters/properties:bitmapApplications.glow
@@ -641,6 +679,8 @@ entries:
       adapter correctly has no implementation. Flash-target builds defer to the platform Flash
       classes rather than OpenFL source behavior.
     status: covered
+    notes: >-
+      The absence applies to non-Flash builds; Flash obtains both classes from the platform API.
     scenarios:
       - filters/properties:gradientClassesAbsent
 
@@ -728,7 +768,8 @@ entries:
   - id: filters.Const.quality-values
     section: "Supporting constants"
     behavior: >-
-      `BitmapFilterQuality.LOW`, `MEDIUM`, and `HIGH` are exactly `1`, `2`, and `3`.
+      `BitmapFilterQuality.LOW`, `MEDIUM`, and `HIGH` are exactly `1`, `2`, and `3`. The abstract
+      also converts freely from and to Int and UInt, so arbitrary numeric values are representable.
     status: covered
     scenarios:
       - filters/properties:values.blur
@@ -737,10 +778,15 @@ entries:
   - id: filters.Const.type-values-conversion
     section: "Supporting constants"
     behavior: >-
-      `BitmapFilterType.INNER`, `FULL`, and `OUTER` are integer abstract values `0`, `1`, `2` on
-      non-JavaScript targets, with exact string conversions `"inner"`, `"full"`, `"outer"`;
-      OpenFL-JS exposes those strings directly. An unknown string converts to null on non-JS.
+      When `openfljs` is not defined, `BitmapFilterType.FULL`, `INNER`, and `OUTER` are integer
+      abstract values `0`, `1`, and `2`, with exact private string conversions `"full"`,
+      `"inner"`, and `"outer"`; an unknown string converts to null. With `openfljs`, those three
+      strings are the abstract values directly. This branch follows the define, not the generic
+      JavaScript target.
     status: covered
+    notes: >-
+      The integer-versus-string representation branch is selected by the `openfljs` define on
+      non-Flash builds.
     scenarios:
       - filters/properties:defaults.bevel
       - filters/properties:values.bevel
@@ -751,9 +797,37 @@ entries:
     section: "Supporting constants"
     behavior: >-
       `DisplacementMapFilterMode.WRAP`, `CLAMP`, `IGNORE`, and `COLOR` are the literal strings
-      `"wrap"`, `"clamp"`, `"ignore"`, and `"color"`.
+      `"wrap"`, `"clamp"`, `"ignore"`, and `"color"`. The abstract converts freely from and to
+      String, so arbitrary strings are representable.
     status: covered
     scenarios:
       - filters/properties:defaults.displacement
       - filters/properties:values.displacement
       - filters/properties:mutations.displacement
+
+  - id: filters.Target.macro-shader-initialization
+    section: "Package target selection"
+    behavior: >-
+      Under the `macro` define, filter shader constructors skip their uniform default writes.
+      Blur, ColorMatrix, Convolution, and DisplacementMap shader initializers still return their
+      shared Shader objects without normal uniform/pass setup; Bevel returns its final bevel
+      shader without selecting blur passes; Glow and DropShadow return null from shader
+      initialization. Normal runtime builds execute the non-macro branches.
+    status: missing
+    notes: >-
+      Applies only to code executing in the Haxe macro compilation context and concerns internal
+      rendering state rather than public filter property storage.
+    scenarios: []
+
+  # -- Package target selection --
+
+  - id: filters.Target.flash-native-aliases
+    section: "Package target selection"
+    behavior: >-
+      On the Flash target, BitmapFilter, its public concrete filter subclasses, and the public
+      filter constant/mode abstracts in this source tree are typedefs to their corresponding
+      `flash.filters` types. Their executable entries above describe non-Flash OpenFL behavior.
+      BitmapFilterShader is the exception: its OpenFL class is compiled on every target.
+    status: missing
+    notes: "Applies only when the `flash` compilation target is selected."
+    scenarios: []

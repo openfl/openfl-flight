@@ -50,7 +50,8 @@ entries:
     behavior: >-
       `transformPoint(p)` applies the full affine map; `deltaTransformPoint(p)` applies only the
       linear `a,b,c,d` portion. `transformPointToOutput` and `deltaTransformPointToOutput` have
-      the same arithmetic and support output aliasing.
+      the same arithmetic and support output aliasing; a null output allocates and returns a new
+      Point.
     status: covered
     scenarios:
       - geom/matrix:transformPoint
@@ -151,8 +152,9 @@ entries:
     section: "Matrix"
     behavior: >-
       `toString()` is exactly `matrix(a, b, c, d, tx, ty)` using normal interpolation. Hidden
-      string helpers emit CSS `matrix3d(...)`/Mozilla forms; the rounded `matrix3d` form
-      truncates `tx` and `ty` with `Std.int`.
+      public `to3DString(roundPixels=false)` emits CSS `matrix3d(...)`, and `toMozString()` emits
+      the Mozilla `matrix(...)` form with pixel units. The rounded `to3DString(true)` truncates
+      `tx` and `ty` with `Std.int`.
     status: covered
     scenarios:
       - geom/matrix:stringFormat
@@ -173,7 +175,8 @@ entries:
     section: "Point"
     behavior: >-
       `add(v)` and `subtract(v)` allocate coordinate-wise results without changing either input.
-      `addToOutput` and `subtractToOutput` overwrite/return the supplied output.
+      `addToOutput` and `subtractToOutput` overwrite/return the supplied output, or allocate a
+      new Point when output is null. Their arithmetic remains safe when output aliases an input.
     status: covered
     scenarios:
       - geom/point:add
@@ -210,7 +213,8 @@ entries:
     section: "Point"
     behavior: >-
       `interpolate(pt1,pt2,f)` computes `pt2 + f*(pt1-pt2)`: `f=0` returns pt2's coordinates,
-      `f=1` pt1's, and values outside `[0,1]` extrapolate. `interpolateToOutput` is identical.
+      `f=1` pt1's, and values outside `[0,1]` extrapolate. `interpolateToOutput` is identical,
+      reuses an output when supplied, and allocates a new Point when it is null.
     status: covered
     scenarios:
       - geom/point:interpolate
@@ -236,7 +240,7 @@ entries:
     section: "Point"
     behavior: >-
       `polar(len,angle)` returns `(len*cos(angle), len*sin(angle))`, with angle in radians;
-      `polarToOutput` is identical.
+      `polarToOutput` is identical, reusing a non-null output or allocating a Point for null.
     status: covered
     scenarios:
       - geom/point:polar
@@ -323,8 +327,9 @@ entries:
     behavior: >-
       `intersection(r)` returns the overlapping half-open region and returns canonical
       `(0,0,0,0)` when either axis only touches or is disjoint. `intersectionToOutput`
-      overwrites and returns its output with the same rule. Neither rectangle is normalized
-      first, so negative dimensions follow the raw edge arithmetic.
+      overwrites and returns its output with the same rule, allocating a new Rectangle when the
+      output argument is null. Neither rectangle is normalized first, so negative dimensions
+      follow the raw edge arithmetic.
     status: covered
     scenarios:
       - geom/rectangle:intersection
@@ -343,7 +348,7 @@ entries:
       `union(r)` treats a rectangle as empty only when width **equals** zero or height
       **equals** zero (not when negative). If the receiver is empty it returns `r.clone`; if `r`
       is empty it returns `clone`; otherwise it encloses raw left/right/top/bottom edges.
-      `unionToOutput` has the same rules.
+      `unionToOutput` has the same rules and allocates a new Rectangle when output is null.
     status: covered
     scenarios:
       - geom/rectangle:union
@@ -434,7 +439,8 @@ entries:
     behavior: >-
       `add`, `subtract`, `incrementBy`, `decrementBy`, `addToOutput`, and `subtractToOutput`
       operate only on `x,y,z`; newly allocated results have `w=0`, while output/in-place forms
-      preserve existing `w`.
+      preserve existing `w`. Each `*ToOutput` form allocates when output is null and safely
+      supports output aliasing either input.
     status: covered
     scenarios:
       - geom/vector3d:add
@@ -455,7 +461,7 @@ entries:
     behavior: >-
       `dotProduct(a)` uses `x,y,z`. `crossProduct(a)` is the right-handed `this × a`:
       `(y*az-z*ay, z*ax-x*az, x*ay-y*ax)` and forces result `w=1`; `crossProductToOutput` does
-      the same.
+      the same, allocating when output is null and supporting output aliasing either operand.
     status: covered
     scenarios:
       - geom/vector3d:dotProduct
@@ -536,6 +542,8 @@ entries:
     behavior: >-
       `determinant` evaluates the full 4×4 determinant on each access. `position` gets a new
       `(rawData[12],rawData[13],rawData[14],0)` and its setter changes only those three slots.
+      The setter reads the supplied Vector3D directly, so assigning null throws before any slot
+      is changed.
     status: covered
     scenarios:
       - geom/matrix3d:determinant
@@ -559,7 +567,8 @@ entries:
     behavior: >-
       `copyColumnFrom/To(0..3)` copy all four Vector3D components to/from the corresponding
       contiguous column. Invalid signed columns silently do nothing. `copyRowFrom/To(0..3)` use
-      indices `row,row+4,row+8,row+12`; invalid rows silently do nothing.
+      indices `row,row+4,row+8,row+12`; invalid rows silently do nothing. A null Vector3D throws
+      for a valid index, but an invalid index does not dereference it.
     status: covered
     scenarios:
       - geom/matrix3d:copyColumnsRows
@@ -570,7 +579,8 @@ entries:
       `copyRawDataFrom(v,index,transpose)` copies `v.length-index` values into `rawData`
       starting at destination zero; it does not cap at 16 and leaves uncopied receiver elements
       intact. With transpose true it transposes the receiver before the partial copy and
-      transposes it back afterward.
+      transposes it back afterward. A null source throws; when transpose is true that failure
+      happens after the first transpose, leaving the receiver transposed.
     status: covered
     scenarios:
       - geom/matrix3d:copyRawData.from
@@ -580,7 +590,9 @@ entries:
     behavior: >-
       `copyRawDataTo(v,index,transpose)` writes every element of the receiver's current
       `rawData.length` starting at the destination index, extending the destination as needed.
-      With transpose true it temporarily transposes the receiver, writes, then restores it.
+      With transpose true it temporarily transposes the receiver, writes, then restores it. A
+      null destination throws on the first write; with transpose true the exception prevents
+      restoration and leaves the receiver transposed.
     status: covered
     scenarios:
       - geom/matrix3d:copyRawData.to
@@ -678,7 +690,8 @@ entries:
       `transformVector(v)` and `transformVectorToOutput` apply the full 4×4 matrix with implicit
       input `w=1`; result `w` is the fourth-row dot product. They do not use `v.w`.
       `deltaTransformVector(v)` and `deltaTransformVectorToOutput` use implicit input `w=0`,
-      excluding ordinary translation but retaining projective fourth-row terms.
+      excluding ordinary translation but retaining projective fourth-row terms. Both output
+      forms allocate a Vector3D when output is null and support aliasing the input.
     status: covered
     scenarios:
       - geom/matrix3d:transformVector
@@ -699,8 +712,9 @@ entries:
     section: "Matrix3D > Transformation and interpolation"
     behavior: >-
       Static `interpolate(a,b,percent)`, static `interpolateToOutput`, and mutating
-      `interpolateTo` linearly interpolate each of the 16 raw elements. They do not decompose or
-      use quaternions despite API prose, and percentages outside `[0,1]` extrapolate.
+      `interpolateTo` linearly interpolate each of the 16 raw elements. The static output form
+      allocates a Matrix3D when output is null. They do not decompose or use quaternions despite
+      API prose, and percentages outside `[0,1]` extrapolate.
     status: covered
     scenarios:
       - geom/matrix3d:interpolateElements
@@ -745,7 +759,8 @@ entries:
     behavior: >-
       Axis-angle decomposition stores the unit axis in `x,y,z` and angle `acos((trace-1)/2)` in
       `w`; a zero antisymmetric length yields a zero axis. Quaternion decomposition uses the
-      trace/largest-diagonal branches and returns the quaternion in all four fields.
+      trace/largest-diagonal branches and returns the quaternion in all four fields. A null or
+      unrecognized orientation value matches no switch branch and leaves rotation `(0,0,0,0)`.
     status: covered
     scenarios:
       - geom/matrix3d:decomposeAxisAngle
@@ -910,6 +925,17 @@ entries:
       - geom/transform:matrixGetterClone
       - geom/transform:colorTransformAccess
 
+  - id: geom.TFM.unavailable-perspective-api
+    section: "Transform"
+    behavior: >-
+      The non-Flash 9.5.2 source does not compile the documented `perspectiveProjection` field,
+      `getRelativeMatrix3D(relativeTo)`, or `getRelativeMatrix3DToOutput(relativeTo,output)`:
+      the field is commented out and both methods are commented inside `#if false`.
+    status: missing
+    notes: >-
+      Applies to the non-Flash OpenFL implementation; Flash uses its native Transform type.
+    scenarios: []
+
   # -- ColorTransform --
 
   - id: geom.CT.fields-defaults
@@ -963,7 +989,8 @@ entries:
       clone/copy include all eight fields; identity is multipliers 1 and offsets 0; exact
       equality can optionally ignore alphaMultiplier; identity detection can do the same;
       inversion maps nonzero multipliers to reciprocals, zero multipliers to 1, and negates
-      offsets.
+      offsets. The render-facing combine operation multiplies channel multipliers but directly
+      adds offsets, unlike public `concat`, which scales the second offsets first.
     status: covered
     scenarios:
       - geom/color-transform:identity
@@ -984,16 +1011,22 @@ entries:
     section: "PerspectiveProjection"
     behavior: >-
       Constructor state is `fieldOfView=0`, `focalLength=0`, and a newly allocated projection
-      center at half the current Stage width/height (unit-test builds use `(0,0)`). It also owns
-      one reusable identity Matrix3D.
+      center at half the current Stage width/height. Outside unit-test builds this immediately
+      dereferences `Lib.current.stage`, so construction fails if the current display root or its
+      Stage is null. Builds with `openfl_unit_testing` use `(0,0)` without Stage access. It also
+      owns one reusable identity Matrix3D.
     status: covered
+    notes: >-
+      Projection-center initialization is selected by the `openfl_unit_testing` define and is
+      the class's only coupling to Stage dimensions.
     scenarios:
       - geom/transform:perspectiveProjectionDefaults
 
   - id: geom.PP.field-of-view-focal-length
     section: "PerspectiveProjection"
     behavior: >-
-      Setting `fieldOfView` treats the input as degrees but stores radians (`degrees*π/180`) and
+      Hidden public constant `TO_RADIAN` is exactly `0.01745329251994329577`. Setting
+      `fieldOfView` treats the input as degrees but stores radians (`degrees*TO_RADIAN`) and
       exposes that radian value through the getter. It sets `focalLength = 250 /
       tan(storedRadians/2)` without range checks. Setting `focalLength` directly does not update
       `fieldOfView`.
@@ -1018,6 +1051,9 @@ entries:
       Matrix3D every call, setting only raw entries `0=focalLength`, `5=focalLength`, `11=1`,
       and `15=0`; untouched entries retain their prior values.
     status: covered
+    notes: >-
+      The private field-of-view null guard is compiled only for the Neko target; all targets
+      guard a null projectionCenter.
     scenarios:
       - geom/perspective-projection:matrixOwnedReuse
 
@@ -1045,10 +1081,14 @@ entries:
   - id: geom.O3D.constants-conversion
     section: "Remaining public package types > Orientation3D"
     behavior: >-
-      `AXIS_ANGLE`, `EULER_ANGLES`, and `QUATERNION` are `0,1,2` on non-JavaScript targets and
-      the strings `axisAngle`, `eulerAngles`, `quaternion` on OpenFL JavaScript. Non-JS private
-      conversions map those exact strings to the integer abstract and unknown strings to null.
+      When `openfljs` is not defined, `AXIS_ANGLE`, `EULER_ANGLES`, and `QUATERNION` are the
+      integer abstract values `0,1,2`; private conversions map the exact strings `axisAngle`,
+      `eulerAngles`, and `quaternion` to them and map unknown strings to null. With `openfljs`,
+      those three strings are the abstract values directly. This distinction follows the
+      `openfljs` define, not the generic JavaScript target.
     status: covered
+    notes: >-
+      The representation branch is selected by the `openfljs` define on non-Flash builds.
     scenarios:
       - geom/matrix3d:decomposeEuler
       - geom/matrix3d:decomposeAxisAngle
@@ -1061,7 +1101,8 @@ entries:
     behavior: >-
       `projectVector(m,v)` transforms with implicit input `w=1`, then divides output `x,y,z` by
       the computed fourth component. Division by zero is unguarded. `projectVectorToOutput`
-      reuses output and preserves its pre-existing `w`, matching source.
+      reuses output and preserves its pre-existing `w`, or allocates a new Vector3D with `w=0`
+      when output is null, matching source.
     status: covered
     scenarios:
       - geom/utils3d:projectVector
@@ -1086,5 +1127,19 @@ entries:
     behavior: >-
       `pointTowards` is enclosed in `#if false` and is not part of the compiled 9.5.2 API.
     status: covered
+    notes: >-
+      Applies to the non-Flash implementation; Flash uses its native Utils3D type.
     scenarios:
       - geom/utils3d:pointTowards
+
+  # -- Package target selection --
+
+  - id: geom.Target.flash-native-aliases
+    section: "Package target selection"
+    behavior: >-
+      On the Flash target, every public type in this package is a typedef to the corresponding
+      `flash.geom` type. All executable behaviors recorded above describe OpenFL's non-Flash
+      implementations; Flash behavior is supplied by the platform classes instead.
+    status: missing
+    notes: "Applies only when the `flash` compilation target is selected."
+    scenarios: []

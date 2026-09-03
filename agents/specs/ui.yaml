@@ -70,12 +70,33 @@ entries:
     scenarios:
       - ui/keyboard:accessible
 
+  - id: ui.Keyboard.lime-event-translation
+    section: "Keyboard"
+    behavior: >-
+      The Lime event bridge translates host KeyCode values to Flash-style Keyboard codes,
+      including shifted symbol keys to their underlying number/punctuation key, PRINT_SCREEN to
+      301, SCROLL_LOCK to 145, APPLICATION to 302, and left/right modifiers to their shared
+      CONTROL/SHIFT/ALTERNATE/COMMAND codes. It separately derives LEFT, RIGHT, NUM_PAD, or
+      STANDARD key location from the original host key. Character codes use shift XOR caps-lock
+      for letter case, map shifted digits and punctuation to ASCII symbols, keep numpad digits
+      as ASCII digits, and return zero for unhandled keys. The source's numpad operator table is
+      literal: multiply/add/enter/decimal/divide become ASCII 42/43/44/45/46, while
+      NUMPAD_SUBTRACT is unhandled and becomes zero.
+    status: missing
+    notes: >-
+      Host key-code and location conversion, and their Stage call path, are compiled only with
+      `lime`; the character-code helper itself is present on every non-Flash build. NUMPAD_ENTER
+      becomes Keyboard.ENTER by default and becomes Keyboard.NUMPAD_ENTER only when
+      `openfl_numpad_enter` is defined.
+    scenarios: []
+
   # -- KeyLocation --
 
   - id: ui.KeyLocation.constants
     section: "KeyLocation"
     behavior: >-
-      The constants are `STANDARD=0`, `LEFT=1`, `RIGHT=2`, and `NUM_PAD=3`.
+      The constants are `STANDARD=0`, `LEFT=1`, `RIGHT=2`, and `NUM_PAD=3`. The abstract converts
+      freely from and to Int and UInt, so arbitrary numeric locations are representable.
     status: covered
     scenarios:
       - ui/keyboard:keyboardEvent.keyLocation
@@ -110,6 +131,9 @@ entries:
       and `IBEAM` to `text`. Setting `AUTO` or an unknown value changes stored state but makes
       no host cursor assignment, leaving the previous host cursor in place.
     status: covered
+    notes: >-
+      Host cursor assignment is compiled only with `lime`; other targets retain cursor state
+      without iterating Application windows.
     scenarios:
       - ui/mouse:cursorReadBack
 
@@ -121,6 +145,8 @@ entries:
       state. `show()` clears the flag and reapplies the stored cursor mapping; repeated show
       calls are harmless.
     status: covered
+    notes: >-
+      Clearing and reapplying cursor state on Application windows is compiled only with `lime`.
     scenarios:
       - ui/mouse:hideDoesNotThrow
       - ui/mouse:repeatedVisibilityDoesNotThrow
@@ -133,6 +159,7 @@ entries:
       `supportsCursor` and `supportsNativeCursor` are read-only compile-time values: true for
       every non-mobile build and false for mobile, independent of the actual window/backend.
     status: covered
+    notes: "Both values are selected by the presence or absence of the `mobile` define."
     scenarios:
       - ui/mouse:capabilities
 
@@ -143,6 +170,8 @@ entries:
       of the compiled non-Flash API. Extra private cursor names and string conversions do not
       expand the public MouseCursor constants.
     status: covered
+    notes: >-
+      The `#if false` absence applies to non-Flash OpenFL; Flash uses its native Mouse API.
     scenarios:
       - ui/mouse:cursorRegistrationAbsent
 
@@ -170,10 +199,13 @@ entries:
   - id: ui.GI.host-attachment-timing
     section: "GameInput"
     behavior: >-
-      Device tracking is wired during static initialization on Lime, so the global device list can
-      populate before any GameInput instance is constructed. Non-Lime builds retain no equivalent
-      source callback path.
+      Device tracking is wired by Stage's Lime-module registration, not GameInput static
+      initialization. Stage first feeds every existing `Gamepad.devices` entry through the
+      connect callback and then subscribes to `Gamepad.onConnect`, so the global device list can
+      populate before any GameInput instance is constructed. Non-Lime builds retain no
+      equivalent source callback path.
     status: covered
+    notes: "The Stage registration and host callback path are compiled only with `lime`."
     scenarios:
       - ui/game-input:hostAttachedBeforeInstance
 
@@ -204,11 +236,14 @@ entries:
   - id: ui.GI.connect-disconnect-broadcast
     section: "GameInput"
     behavior: >-
-      A host connect creates a `GameInputDevice`, appends it, updates `numDevices`, then sends a
-      bubbling/non-cancelable DEVICE_ADDED event through every extant GameInput instance.
-      Disconnect removes the matching device first, updates the count, and then broadcasts
-      DEVICE_REMOVED with that removed device.
+      A host connect creates and appends a `GameInputDevice` only when that Gamepad object is not
+      already mapped, then sends a bubbling/non-cancelable DEVICE_ADDED event through every
+      extant GameInput instance. A duplicate connect still rebroadcasts DEVICE_ADDED for the
+      existing device without changing `numDevices`. Disconnect removes a known matching device
+      first, updates the count, and broadcasts DEVICE_REMOVED; an unknown or repeated disconnect
+      does nothing.
     status: covered
+    notes: "Connect/disconnect callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:device
       - ui/game-input:disconnect
@@ -219,6 +254,7 @@ entries:
       An axis/button update for an unknown host id creates the device silently; DEVICE_ADDED is
       dispatched only by the later connect callback.
     status: covered
+    notes: "Axis and button host callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:unknownDeviceEventOrder
 
@@ -229,6 +265,7 @@ entries:
       lazily create missing controls, update the control value even when unchanged, and dispatch
       a plain `Event.CHANGE` from that control (non-bubbling, non-cancelable).
     status: covered
+    notes: "Axis and button host callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:device.axisChanges
       - ui/game-input:device.buttonChanges
@@ -241,6 +278,7 @@ entries:
       The host axis value is stored verbatim, while a button-down callback is normalized to
       exactly 1 and button-up to exactly 0.
     status: covered
+    notes: "Axis and button host callbacks are compiled only with `lime`."
     scenarios:
       - ui/game-input:device.axisValue
       - ui/game-input:device.buttonValue
@@ -301,9 +339,10 @@ entries:
   - id: ui.GID.sample-caching-noop
     section: "GameInputDevice"
     behavior: >-
-      `startCachingSamples(numSamples,controls)` and `stopCachingSamples()` are empty.
-      `getCachedSamples(data,append=false)` always returns zero and neither clears nor appends
-      to the supplied ByteArray. The adapter preserves this literal 9.5.2 no-data contract;
+      `startCachingSamples(numSamples,controls)` and `stopCachingSamples()` are empty, including
+      when controls is null. `getCachedSamples(data,append=false)` always returns zero and neither
+      clears nor appends to the supplied ByteArray; a null data argument is accepted because it
+      is never dereferenced. The adapter preserves this literal 9.5.2 no-data contract;
       **Native gamepad attachment and sample history** blocks implementing the richer documented
       API, not source parity here.
     status: covered
@@ -315,10 +354,11 @@ entries:
   - id: ui.GID.device-id-name-derivation
     section: "GameInputDevice"
     behavior: >-
-      Devices created through Flight host bridges retain the numeric gamepad id as `id` and the
-      host-provided identifier as `name`. A late connect updates the name of a device that an
-      earlier input event created silently.
+      The first host callback that sees a Lime Gamepad creates the device with `id=gamepad.guid`
+      and `name=gamepad.name`. Those strings are captured once: a later connect for a device
+      created silently by an earlier input callback reuses it and does not refresh either field.
     status: covered
+    notes: "The Gamepad-to-device construction path is compiled only with `lime`."
     scenarios:
       - ui/game-input:device.id
       - ui/game-input:device.name
@@ -395,9 +435,13 @@ entries:
   - id: ui.Multitouch.touch-capability-platform-rules
     section: "Multitouch"
     behavior: >-
-      On JavaScript, `supportsTouchEvents` tests browser touch fields. On non-JS it is compile-time
-      false on macOS and true on every other target; observed touch events do not mutate it.
+      On `js && html5`, `supportsTouchEvents` tests browser touch fields. Every other non-macOS
+      build returns true at compile time, including JavaScript builds without `html5`; macOS
+      builds return false. Observed touch events do not mutate it.
     status: covered
+    notes: >-
+      Branch order is `js && html5`, then `!mac`, then macOS; this is not a generic JS/non-JS
+      distinction.
     scenarios:
       - ui/multitouch:initial.supportsTouchEvents
       - ui/multitouch:supportsAfterFlightTouch
@@ -413,15 +457,41 @@ entries:
       - ui/multitouch:initial.supportedGestures
       - ui/multitouch:initial.supportsGestureEvents
 
+  - id: ui.Multitouch.map-touch-to-mouse-absent
+    section: "Multitouch"
+    behavior: >-
+      The documented hidden public static `mapTouchToMouse` field is commented out in the
+      non-Flash 9.5.2 source and is therefore absent from the compiled OpenFL API.
+    status: missing
+    notes: >-
+      Applies to the non-Flash implementation; Flash uses its native Multitouch type.
+    scenarios: []
+
   # -- MultitouchInputMode --
 
   - id: ui.MTMode.values-conversion
     section: "MultitouchInputMode"
     behavior: >-
-      On non-JavaScript targets the abstract values are `GESTURE=0`, `NONE=1`, and
-      `TOUCH_POINT=2`; exact string conversions are `"gesture"`, `"none"`, and `"touchPoint"`,
-      with an unknown input string converting to null. OpenFL-JS exposes those three strings
-      directly.
+      When `openfljs` is not defined, the abstract values are `GESTURE=0`, `NONE=1`, and
+      `TOUCH_POINT=2`; exact private string conversions are `"gesture"`, `"none"`, and
+      `"touchPoint"`, with an unknown input string converting to null. With `openfljs`, those
+      three strings are the abstract values directly. This branch follows the define, not the
+      generic JavaScript target.
     status: covered
+    notes: >-
+      The integer-versus-string representation branch is selected by the `openfljs` define on
+      non-Flash builds.
     scenarios:
       - ui/multitouch:modes
+
+  # -- Package target selection --
+
+  - id: ui.Target.flash-native-aliases
+    section: "Package target selection"
+    behavior: >-
+      On the Flash target, every public type in this package is a typedef to the corresponding
+      `flash.ui` type. The executable entries above describe OpenFL's non-Flash implementations;
+      Flash behavior is supplied by the platform classes instead.
+    status: missing
+    notes: "Applies only when the `flash` compilation target is selected."
+    scenarios: []
