@@ -9,7 +9,18 @@ entries:
       and Flight node. Matrix reads are clones, and `concatenatedMatrix` is freshly rebuilt
       from the parent chain, so later parent and child mutations cannot leave a stale OpenFL
       matrix cache.
-    status: covered
+    source:
+      - display/DisplayObject.hx:parent
+      - display/DisplayObject.hx:rotation
+      - display/DisplayObject.hx:transform
+      - display/DisplayObject.hx:x
+      - display/DisplayObject.hx:y
+      - geom/Transform.hx:concatenatedMatrix
+      - geom/Transform.hx:matrix
+      - geom/Matrix.hx:a
+      - geom/Matrix.hx:scale
+      - geom/Rectangle.hx:x
+      - geom/Rectangle.hx:y
     scenarios:
       - integration/display-geom:matrixAssignment
       - integration/display-geom:concatenatedMatrix
@@ -19,7 +30,10 @@ entries:
     behavior: >
       `localToGlobal` and `globalToLocal` delegate to Flight's scene graph and have coverage
       for nested transforms and `scrollRect` origin changes.
-    status: covered
+    source:
+      - display/DisplayObject.hx:scrollRect
+      - display/DisplayObject.hx:globalToLocal
+      - display/DisplayObject.hx:localToGlobal
     scenarios:
       - integration/display-geom:coordinateRoundTrip
 
@@ -29,7 +43,10 @@ entries:
       Vector/local bounds are transformed through all four rectangle corners; container bounds
       recursively union child geometry in the requested target coordinate space. Basic
       translation/scale/rotation cases match the fixtures.
-    status: covered
+    source:
+      - display/DisplayObject.hx:rotation
+      - geom/Matrix.hx:scale
+      - geom/Rectangle.hx:union
     scenarios:
       - integration/display-geom:bounds
       - display/bounds:stroke
@@ -39,7 +56,9 @@ entries:
     behavior: >
       `getRect` delegates to `getBounds`, matching OpenFL 9.5.2's current source
       implementation even though the API documentation distinguishes stroke handling.
-    status: covered
+    source:
+      - display/DisplayObject.hx:getBounds
+      - display/DisplayObject.hx:getRect
     scenarios:
       - integration/display-geom:bounds
       - display/bounds:stroke
@@ -51,7 +70,11 @@ entries:
       `scrollRect`, filters' render bounds, TextField, and disposed bitmaps. Current
       `Rectangle.isEmpty` union gating can also discard degenerate geometry that the 9.5.2
       `__expand` path retains.
-    status: deviation
+    source:
+      - display/DisplayObject.hx:filters
+      - display/DisplayObject.hx:scrollRect
+      - geom/Rectangle.hx:isEmpty
+      - geom/Rectangle.hx:union
     notes: "Mask clipping and degenerate line-only Rectangle union behavior remain limited; the cross-package bounds fixture records zero-scale, scrollRect, and mask cases."
     scenarios:
       - integration/display-geom:bounds
@@ -62,7 +85,13 @@ entries:
     behavior: >
       `Transform.colorTransform` is clone-on-read and copy-on-write, and setting its alpha
       multiplier updates `DisplayObject.alpha` as the current harness expects.
-    status: covered
+    source:
+      - display/DisplayObject.hx:alpha
+      - display/DisplayObject.hx:transform
+      - geom/Transform.hx:colorTransform
+      - geom/Matrix.hx:clone
+      - geom/Matrix3D.hx:clone
+      - geom/Rectangle.hx:clone
     scenarios:
       - geom/transform:colorTransformAccess
 
@@ -73,7 +102,13 @@ entries:
       as a color-scale/bias adjustment, ahead of the ordered filter adjustments. The
       separately retained alpha multiplier continues to drive the node alpha without being
       applied twice.
-    status: covered
+    source:
+      - display/DisplayObject.hx:alpha
+      - display/DisplayObject.hx:transform
+      - geom/Transform.hx:colorTransform
+      - geom/Matrix.hx:a
+      - geom/Matrix.hx:scale
+      - geom/ColorTransform.hx:color
     scenarios:
       - geom/transform:colorTransformAccess
 
@@ -84,7 +119,13 @@ entries:
       The existing fixtures capture OpenFL's pre-render identity/ empty quirk, but after an
       update/render pass OpenFL 9.5.2 populates these from world color state and stage pixel
       bounds; the adapter cannot do so today.
-    status: deviation
+    source:
+      - display/DisplayObject.hx:stage
+      - geom/Transform.hx:concatenatedColorTransform
+      - geom/Transform.hx:pixelBounds
+      - geom/Matrix.hx:identity
+      - geom/Matrix3D.hx:identity
+      - geom/ColorTransform.hx:color
     notes: "OpenFL populates these render-derived snapshots during its renderer update pass; Flight does not expose an equivalent portable update callback to the adapter."
     scenarios:
       - geom/transform:concatenatedColorTransform
@@ -96,7 +137,12 @@ entries:
       Assigning a Transform transfers its active 2D or 3D representation and color transform.
       A matrix3D source therefore leaves the destination matrix null and preserves the
       projected matrix3D translation.
-    status: covered
+    source:
+      - display/DisplayObject.hx:transform
+      - geom/Transform.hx:matrix
+      - geom/Transform.hx:matrix3D
+      - geom/Matrix.hx:a
+      - geom/ColorTransform.hx:color
     scenarios:
       - geom/transform:matrixMutualExclusion
 
@@ -107,7 +153,9 @@ entries:
       calls return distinct arrays containing the stored filter objects, matching OpenFL
       9.5.2: mutating the returned array is isolated, while mutating a returned filter changes
       the stored filter.
-    status: covered
+    source:
+      - display/DisplayObject.hx:filters
+      - filters/BitmapFilter.hx:clone
     scenarios:
       - integration/filters-display:assignmentClone
 
@@ -116,7 +164,9 @@ entries:
     behavior: >
       A non-empty filter list forces the observable `cacheAsBitmap` getter to true regardless
       of the explicitly assigned cache flag; clearing filters reveals the explicit flag again.
-    status: covered
+    source:
+      - display/DisplayObject.hx:cacheAsBitmap
+      - display/DisplayObject.hx:filters
     scenarios:
       - integration/filters-display:multipleFilters
       - integration/filters-display:removal
@@ -126,7 +176,16 @@ entries:
     behavior: >
       Filter list order is retained, and filter property setters keep their Flight effect
       descriptors synchronized.
-    status: covered
+    source:
+      - display/DisplayObject.hx:filters
+      - filters/BevelFilter.hx:distance
+      - filters/BlurFilter.hx:blurX
+      - filters/ColorMatrixFilter.hx:matrix
+      - filters/ConvolutionFilter.hx:matrix
+      - filters/DisplacementMapFilter.hx:mapBitmap
+      - filters/DropShadowFilter.hx:distance
+      - filters/GlowFilter.hx:color
+      - filters/ShaderFilter.hx:shader
     scenarios:
       - integration/filters-display:multipleFilters
 
@@ -135,7 +194,9 @@ entries:
     behavior: >
       `ColorMatrixFilter` values are attached to the Flight node as ordered color adjustments,
       so this filter family participates in normal rendering.
-    status: covered
+    source:
+      - display/DisplayObject.hx:filters
+      - filters/ColorMatrixFilter.hx:matrix
     scenarios:
       - integration/filters-display:multipleFilters
 
@@ -145,8 +206,16 @@ entries:
       Flight can construct blur, bevel, glow, shadow, convolution, and shader `RenderEffect`
       descriptors, but exposes no public per-Node2D effect-list attachment. Those assigned
       filters cannot participate in display rendering.
-    status: flight-gap
-    gap: "Per-node render-effect attachment"
+    source:
+      - display/DisplayObject.hx:filters
+      - filters/BevelFilter.hx:new
+      - filters/BlurFilter.hx:new
+      - filters/ConvolutionFilter.hx:new
+      - filters/DropShadowFilter.hx:new
+      - filters/GlowFilter.hx:new
+      - filters/ShaderFilter.hx:new
+      - filters/ShaderFilter.hx:shader
+    notes: 'Blocked on Flight gap "Per-node render-effect attachment".'
     scenarios: []
 
   - id: xpkg.DO-filter.openfl-s-internal-filter-render-bounds-expand
@@ -156,7 +225,9 @@ entries:
       extensions. The adapter has no `__getFilterBounds` or equivalent expansion path, so
       cached/offscreen allocation and clipping cannot honor the filters even though public
       `getBounds` correctly remains unexpanded.
-    status: deviation
+    source:
+      - display/DisplayObject.hx:filters
+      - display/DisplayObject.hx:getBounds
     notes: "Public getBounds correctly remains unexpanded, while render-surface expansion depends on the unavailable per-node/offscreen filter bridge."
     scenarios:
       - integration/filters-display:containerBounds
@@ -168,8 +239,10 @@ entries:
       no public portable operation that rasterizes an arbitrary Node2D subtree into a bitmap,
       which is required for the cache surface and for cache invalidation on
       child/transform/filter changes.
-    status: flight-gap
-    gap: "Portable display-object rasterization"
+    source:
+      - display/DisplayObject.hx:cacheAsBitmap
+      - display/DisplayObject.hx:transform
+    notes: 'Blocked on Flight gap "Portable display-object rasterization".'
     scenarios:
       - integration/filters-display:multipleFilters
       - integration/filters-display:removal
@@ -181,7 +254,12 @@ entries:
       flattened object subtree, with color transform/blend/cache/mask composition around that
       surface. Only the directly attached color adjustments currently execute; mixed and
       repeated filters need the node-effect and offscreen seams above.
-    status: deviation
+    source:
+      - display/DisplayObject.hx:filters
+      - display/DisplayObject.hx:mask
+      - display/DisplayObject.hx:transform
+      - filters/BitmapFilter.hx:clone
+      - filters/ColorMatrixFilter.hx:matrix
     notes: "Only color adjustments can currently be attached to Flight nodes; the other filter families require the tracked per-node effect/offscreen Flight seams."
     scenarios:
       - display/rendering-composition:filters
@@ -192,7 +270,11 @@ entries:
       `Bitmap.bitmapData` retains the assigned reference, resets `smoothing` to false like
       OpenFL 9.5.2, rebuilds the Flight texture, updates local bitmap bounds, invalidates node
       appearance, and marks the Stage for OpenFL render events.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:bitmapData
+      - display/Bitmap.hx:smoothing
+      - display/DisplayObject.hx:stage
     scenarios:
       - display/shape-bitmap:bitmap
 
@@ -201,7 +283,9 @@ entries:
     behavior: >
       Bitmap pixel changes mutate a shared versioned Flight bitmap source, so Bitmap instances
       continue to share the same underlying BitmapData content.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:bitmapData
     scenarios:
       - display/bitmap-data:textureAlias
 
@@ -210,7 +294,9 @@ entries:
     behavior: >
       Bitmap smoothing selects Flight's clamp-linear sampler when true and the
       pixel-art/nearest sampler when false.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:smoothing
     scenarios:
       - display/shape-bitmap:bitmap
 
@@ -220,7 +306,9 @@ entries:
       Bitmap.smoothing is an accessor that immediately rebuilds its Flight texture with the
       clamp-linear or pixel-art sampler and marks the display object dirty; it no longer waits
       for an enter-frame callback.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:smoothing
     scenarios:
       - integration/xpkg:bitmapLifecycle
 
@@ -230,7 +318,11 @@ entries:
       `BitmapData.draw(BitmapData, ...)` applies the supplied matrix in destination
       coordinates, uses nearest/bilinear sampling from `smoothing`, applies the explicit color
       transform, clips in destination space, and composites with the mapped blend mode.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:bitmapData
+      - display/Bitmap.hx:smoothing
+      - display/DisplayObject.hx:transform
     scenarios:
       - display/bitmap-data:drawBitmapData
 
@@ -239,7 +331,11 @@ entries:
     behavior: >
       BitmapData.draw(DisplayObject, ...) treats the root source as library-local, applying
       only the method matrix to it while preserving every descendant's local transform.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:bitmapData
+      - display/DisplayObject.hx:root
+      - display/DisplayObject.hx:transform
     scenarios:
       - display/bitmap-data:drawShape
 
@@ -250,7 +346,11 @@ entries:
       alpha, visibility, and blend modes, but ignores masks, `scrollRect`, object color
       transforms, filters, shaders, opaque backgrounds, and cache surfaces. Encountering
       vector graphics abandons that path.
-    status: deviation
+    source:
+      - display/BitmapData.hx:draw
+      - display/DisplayObject.hx:alpha
+      - display/DisplayObject.hx:filters
+      - display/DisplayObject.hx:scrollRect
     notes: "The portable path now handles source-local root and descendant transforms, alpha, visibility, smoothing, and blend modes; masks, filters, vector fallback, and cache surfaces still depend on portable subtree rasterization support."
     scenarios:
       - display/bitmap-data:drawShape
@@ -261,8 +361,9 @@ entries:
       Native Cairo can rasterize the remaining Flight scene subtree, but Flight has no
       portable arbitrary-Node2D-to-bitmap operation. DisplayObject drawing on non-Cairo
       targets and exact filtered/cached composition remain blocked on that offscreen bridge.
-    status: flight-gap
-    gap: "Portable display-object rasterization"
+    source:
+      - display/BitmapData.hx:draw
+    notes: 'Blocked on Flight gap "Portable display-object rasterization".'
     scenarios:
       - display/bitmap-data:drawShape
 
@@ -272,7 +373,12 @@ entries:
       The Cairo fallback still needs coordinate/order parity checks for the source root
       transform, supplied matrix, scroll rectangle, filters, and source visibility restoration
       against the 9.5.2 software renderer.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/BitmapData.hx:scroll
+      - display/DisplayObject.hx:filters
+      - display/DisplayObject.hx:root
+      - display/DisplayObject.hx:transform
     scenarios:
       - display/bitmap-data:drawShape
 
@@ -282,7 +388,10 @@ entries:
       Disposing BitmapData clears its adapter handle, dimensions, rect, and readability, then
       synchronizes existing Bitmap users so their Flight textures and copied local bounds are
       cleared immediately.
-    status: covered
+    source:
+      - display/BitmapData.hx:rect
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:bitmapData
     scenarios:
       - integration/xpkg:bitmapLifecycle
 
@@ -293,7 +402,10 @@ entries:
       forms enforced by the current readable/handle guards. Propagation to Bitmap display
       objects that already reference it is covered by the preceding lifecycle contract; it
       is no longer an outstanding defect.
-    status: covered
+    source:
+      - display/BitmapData.hx:readable
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:bitmapData
     scenarios:
       - display/bitmap-data:dispose
 
@@ -303,7 +415,12 @@ entries:
       Add rendered transform/filter fixtures after an actual frame to cover concatenated
       color, pixel bounds, filter order/expansion, and cache invalidation rather than only
       public property storage.
-    status: covered
+    source:
+      - display/DisplayObject.hx:transform
+      - filters/ConvolutionFilter.hx:color
+      - filters/DisplacementMapFilter.hx:color
+      - filters/DropShadowFilter.hx:color
+      - filters/GlowFilter.hx:color
     scenarios:
       - display/rendering-composition:filters
       - display/rendering-composition:cacheAsBitmap
@@ -315,7 +432,14 @@ entries:
       Add BitmapData draw fixtures with a transformed root source, nested children,
       mask/scrollRect/color transform/filter/blend composition, smoothing changes, and
       disposal while one or more Bitmaps retain the data.
-    status: covered
+    source:
+      - display/BitmapData.hx:draw
+      - display/Bitmap.hx:bitmapData
+      - display/Bitmap.hx:smoothing
+      - display/DisplayObject.hx:mask
+      - display/DisplayObject.hx:root
+      - display/DisplayObject.hx:scrollRect
+      - display/DisplayObject.hx:transform
     scenarios:
       - integration/xpkg:rootDraw
       - integration/xpkg:bitmapLifecycle
@@ -329,6 +453,12 @@ entries:
       to false when `quality == StageQuality.LOW`; for null or every other quality it forwards
       the caller's smoothing value. This quality/smoothing interaction has no explicit
       cross-package coverage.
-    status: missing
+    source:
+      - display/BitmapData.hx:colorTransform
+      - display/BitmapData.hx:draw
+      - display/BitmapData.hx:drawWithQuality
+      - display/Bitmap.hx:bitmapData
+      - display/Bitmap.hx:smoothing
+      - display/DisplayObject.hx:blendMode
     notes: "The behavior is present on the non-Flash BitmapData surface; Flash uses its native implementation."
     scenarios: []

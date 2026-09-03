@@ -9,7 +9,12 @@ entries:
       `position = 0`, copies `ByteArray.defaultEndian`, and copies
       `ByteArray.defaultObjectEncoding`. Capacity may exceed public length during later growth
       and is not observable through the API.
-    status: covered
+    source:
+      - utils/ByteArray.hx:defaultEndian
+      - utils/ByteArray.hx:defaultObjectEncoding
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:new
     scenarios:
       - utils/byte-array:construct
       - utils/byte-array:zeroMemory
@@ -22,7 +27,10 @@ entries:
       `length` is logical byte count. Increasing it preserves existing bytes and exposes
       zero-filled new bytes; decreasing it truncates and clamps `position` down to the new
       length. Writes at or beyond the end grow length to cover the written range.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:new
     scenarios:
       - utils/byte-array:zeroMemory
       - utils/byte-array:position
@@ -33,7 +41,10 @@ entries:
       `position` is the next read/write offset and may be assigned directly. `bytesAvailable`
       is `length - position`; ordinary reads advance it and writes advance it to just after
       the data written.
-    status: covered
+    source:
+      - utils/ByteArray.hx:bytesAvailable
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
     scenarios:
       - utils/byte-array:position
 
@@ -42,7 +53,8 @@ entries:
     behavior: >
       Integer array access reads a byte by zero-based index and writing masks to the low eight
       bits, automatically growing through `index + 1`. It does not move `position`.
-    status: covered
+    source:
+      - utils/ByteArray.hx:position
     scenarios:
       - utils/byte-array:position
       - utils/byte-array:writeAndRead
@@ -51,7 +63,11 @@ entries:
     section: "Storage and construction"
     behavior: >
       `clear()` makes length and position zero. It does not reset endian or object encoding.
-    status: covered
+    source:
+      - utils/ByteArray.hx:endian
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:clear
     scenarios:
       - utils/byte-array:clear
 
@@ -63,7 +79,15 @@ entries:
       position zero. `fromFile` reads synchronously where Lime can; `loadFromBytes` and
       `loadFromFile` return Futures and fail/return null on targets where the underlying
       operation is unavailable.
-    status: covered
+    source:
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:fromArrayBuffer
+      - utils/ByteArray.hx:fromBytes
+      - utils/ByteArray.hx:fromBytesData
+      - utils/ByteArray.hx:fromFile
+      - utils/ByteArray.hx:fromLimeBytes
+      - utils/ByteArray.hx:loadFromBytes
+      - utils/ByteArray.hx:loadFromFile
     scenarios:
       - utils/surface:byteFactories
 
@@ -74,7 +98,13 @@ entries:
       forces big-endian; it is little-endian on non-Lime portable builds. Assigning it affects
       subsequently constructed arrays only. `defaultObjectEncoding` defaults to
       `ObjectEncoding.DEFAULT` (HXSF off Flash), likewise copied at construction.
-    status: covered
+    source:
+      - utils/ByteArray.hx:defaultEndian
+      - utils/ByteArray.hx:defaultObjectEncoding
+      - utils/ByteArray.hx:endian
+      - utils/ByteArray.hx:objectEncoding
+      - net/ObjectEncoding.hx:HXSF
+      - net/ObjectEncoding.hx:DEFAULT
     scenarios:
       - utils/byte-array:endianness
       - utils/byte-array:objectEncodingWrite
@@ -84,7 +114,8 @@ entries:
     behavior: >
       Every read starts at `position`, advances by its byte width only when successful, and
       throws `EOFError` if insufficient bytes exist.
-    status: covered
+    source:
+      - utils/ByteArray.hx:position
     scenarios:
       - utils/byte-array:position
       - utils/byte-array:readPastEnd
@@ -94,7 +125,10 @@ entries:
     behavior: >
       `readBoolean()` consumes one byte and returns false only for zero. `readByte()`
       sign-extends an 8-bit value to -128..127; `readUnsignedByte()` returns 0..255.
-    status: covered
+    source:
+      - utils/ByteArray.hx:readBoolean
+      - utils/ByteArray.hx:readByte
+      - utils/ByteArray.hx:readUnsignedByte
     scenarios:
       - utils/byte-array:writeReadBoolean
 
@@ -105,7 +139,13 @@ entries:
       reads a signed 32-bit bit pattern; `readUnsignedInt()` reads the same 32-bit pattern
       through Haxe's target integer representation. `readInt64()` returns `haxe.Int64`. All
       honor `endian`.
-    status: covered
+    source:
+      - utils/ByteArray.hx:endian
+      - utils/ByteArray.hx:readInt
+      - utils/ByteArray.hx:readInt64
+      - utils/ByteArray.hx:readShort
+      - utils/ByteArray.hx:readUnsignedInt
+      - utils/ByteArray.hx:readUnsignedShort
     scenarios:
       - utils/byte-array:writeReadShort
       - utils/byte-array:writeReadInt
@@ -115,7 +155,9 @@ entries:
     behavior: >
       `readFloat()` and `readDouble()` decode IEEE-754 32-bit and 64-bit values in the
       selected byte order.
-    status: covered
+    source:
+      - utils/ByteArray.hx:readDouble
+      - utils/ByteArray.hx:readFloat
     scenarios:
       - utils/byte-array:writeReadFloat
       - utils/byte-array:writeReadDouble
@@ -127,7 +169,10 @@ entries:
       position, or all remaining bytes when length is zero. It grows the destination to
       `offset + length`, leaves destination position unchanged, and advances source position.
       Insufficient source data throws `EOFError`.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:readBytes
     scenarios:
       - utils/byte-array:zeroMemory
       - utils/byte-array:readPastEnd
@@ -140,7 +185,12 @@ entries:
       bytes. `readUTFBytes(length)` reads exactly the supplied raw byte count.
       Invalid/truncated input follows `haxe.io.Bytes.getString` decoding/EOF behavior.
       Internal `readLargeUTF()` uses a 32-bit length.
-    status: covered
+    source:
+      - utils/ByteArray.hx:endian
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:readUTF
+      - utils/ByteArray.hx:readUTFBytes
+      - utils/ByteArray.hx:readLargeUTF
     scenarios:
       - utils/byte-array:writeReadUTF
 
@@ -149,7 +199,10 @@ entries:
     behavior: >
       `readMultiByte(length, charSet)` ignores `charSet` and behaves as
       `readUTFBytes(length)`; portable 9.5.2 has the same limitation.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:readMultiByte
+      - utils/ByteArray.hx:readUTFBytes
     scenarios:
       - utils/byte-array:writeReadUTF
 
@@ -160,7 +213,15 @@ entries:
       `writeShort` writes the low 16; `writeInt`/`writeUnsignedInt` write the 32-bit bit
       pattern; and `writeInt64` writes high/low halves in selected byte order. All grow length
       and advance position.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:writeBoolean
+      - utils/ByteArray.hx:writeByte
+      - utils/ByteArray.hx:writeInt
+      - utils/ByteArray.hx:writeInt64
+      - utils/ByteArray.hx:writeShort
+      - utils/ByteArray.hx:writeUnsignedInt
     scenarios:
       - utils/byte-array:writeReadBoolean
       - utils/byte-array:writeReadShort
@@ -170,7 +231,10 @@ entries:
     section: "Primitive writes"
     behavior: >
       `writeFloat`/`writeDouble` write IEEE-754 bit patterns in selected endian order.
-    status: covered
+    source:
+      - utils/ByteArray.hx:endian
+      - utils/ByteArray.hx:writeDouble
+      - utils/ByteArray.hx:writeFloat
     scenarios:
       - utils/byte-array:writeReadFloat
       - utils/byte-array:writeReadDouble
@@ -181,7 +245,10 @@ entries:
       `writeBytes(source, offset = 0, length = 0)` writes the requested slice at current
       position; zero length means all bytes after offset. Source position is ignored and
       unchanged. Runtime byte-blit bounds behavior applies to an invalid offset/length.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:writeBytes
     scenarios:
       - utils/byte-array:writeBytesSlice
 
@@ -191,7 +258,11 @@ entries:
       `writeUTF(value)` UTF-8 encodes the string, writes a 16-bit byte length, and throws
       `RangeError` above 65535 bytes. `writeUTFBytes(value)` writes no prefix. Internal
       `writeLargeUTF` uses a 32-bit length.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:writeUTF
+      - utils/ByteArray.hx:writeUTFBytes
+      - utils/ByteArray.hx:writeLargeUTF
     scenarios:
       - utils/byte-array:writeReadUTF
 
@@ -200,7 +271,8 @@ entries:
     behavior: >
       `writeMultiByte(value, charSet)` ignores `charSet` and writes UTF-8, matching portable
       9.5.2.
-    status: covered
+    source:
+      - utils/ByteArray.hx:writeMultiByte
     scenarios:
       - utils/surface:byteStrings
 
@@ -210,7 +282,9 @@ entries:
       `toString()` decodes the entire logical byte sequence, independent of current position,
       using the underlying Bytes string conversion. Portable code does not implement the
       documented system-code-page/BOM matrix.
-    status: covered
+    source:
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:toString
     scenarios:
       - utils/surface:byteStrings
 
@@ -221,7 +295,14 @@ entries:
       `Serializer`/`Unserializer` with 16-bit and 32-bit byte-length prefixes; `JSON` and
       `LARGE_JSON` use JSON with the same prefix choices. Serialization writes at current
       position; deserialization consumes one complete value.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:objectEncoding
+      - utils/ByteArray.hx:position
+      - net/ObjectEncoding.hx:HXSF
+      - net/ObjectEncoding.hx:LARGE_HXSF
+      - net/ObjectEncoding.hx:JSON
+      - net/ObjectEncoding.hx:LARGE_JSON
     scenarios:
       - utils/byte-array:objectEncodingWrite
 
@@ -231,15 +312,22 @@ entries:
       In OpenFL 9.5.2, `AMF0` and `AMF3` use internal AMF readers/writers. The adapter's
       `writeObject` emits nothing and `readObject` returns null for both without advancing
       position. Flight exposes no selectable AMF serializer; see **Object wire formats**.
-    status: flight-gap
-    gap: "Object wire formats"
+    source:
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:readObject
+      - utils/ByteArray.hx:writeObject
+      - net/ObjectEncoding.hx:AMF0
+      - net/ObjectEncoding.hx:AMF3
+    notes: 'Blocked on Flight gap "Object wire formats".'
     scenarios: []
 
   - id: utils.BA.unknown-object-encoding-values-make-writeobject-a
     section: "Object formats"
     behavior: >
       Unknown object encoding values make `writeObject` a no-op and `readObject` return null.
-    status: covered
+    source:
+      - utils/ByteArray.hx:readObject
+      - utils/ByteArray.hx:writeObject
     scenarios:
       - utils/surface:byteStrings
 
@@ -250,7 +338,15 @@ entries:
       independent of position, and sets position to the new end. `uncompress(algorithm =
       ZLIB)` replaces the entire array with decoded bytes and sets position to zero.
       `deflate()` and `inflate()` select raw RFC 1951 framing; ZLIB selects RFC 1950 framing.
-    status: covered
+    source:
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:new
+      - utils/ByteArray.hx:compress
+      - utils/ByteArray.hx:deflate
+      - utils/ByteArray.hx:inflate
+      - utils/ByteArray.hx:uncompress
+      - utils/CompressionAlgorithm.hx:DEFLATE
+      - utils/CompressionAlgorithm.hx:ZLIB
     scenarios:
       - utils/byte-array:zlibCompression
 
@@ -259,7 +355,12 @@ entries:
     behavior: >
       ZLIB and raw deflate encode through Haxe and decode through Flight while preserving
       those in-place length/position rules.
-    status: covered
+    source:
+      - utils/ByteArray.hx:length
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:deflate
+      - utils/CompressionAlgorithm.hx:DEFLATE
+      - utils/CompressionAlgorithm.hx:ZLIB
     scenarios:
       - utils/byte-array:compressionMethods
 
@@ -269,8 +370,12 @@ entries:
       LZMA compression/decompression is a deterministic no-op in the adapter (`compress`
       preserves data/position; `uncompress` preserves data but resets position to zero).
       OpenFL 9.5.2 delegates real LZMA to Lime. See **Byte compression encoders and LZMA**.
-    status: flight-gap
-    gap: "Byte compression encoders and LZMA"
+    source:
+      - utils/ByteArray.hx:position
+      - utils/ByteArray.hx:compress
+      - utils/ByteArray.hx:uncompress
+      - utils/CompressionAlgorithm.hx:LZMA
+    notes: 'Blocked on Flight gap "Byte compression encoders and LZMA".'
     scenarios:
       - utils/byte-array:lzmaCompression
 
@@ -281,7 +386,9 @@ entries:
       comparison target returns without throwing, preserves the four input bytes, and resets
       position to zero. The adapter matches that observed target behavior; decoder failures on
       hosts that report one are translated separately.
-    status: covered
+    source:
+      - utils/ByteArray.hx:position
+      - utils/CompressionAlgorithm.hx:ZLIB
     scenarios:
       - utils/byte-array:malformedCompression
 
@@ -291,8 +398,9 @@ entries:
       `shareable`, `atomicCompareAndSwapIntAt`, and `atomicCompareAndSwapLength` are Flash
       11.4-only declarations. They operate on shared memory atomically on Flash and are
       deliberately absent off Flash; see **Shareable ByteArray atomics**.
-    status: flight-gap
-    gap: "Shareable ByteArray atomics"
+    source:
+      - utils/ByteArray.hx:new
+    notes: 'Blocked on Flight gap "Shareable ByteArray atomics".'
     scenarios: []
 
   - id: utils.BA.utf-uses-haxe-bytes-because-the-refreshed
@@ -301,8 +409,9 @@ entries:
       UTF uses Haxe Bytes because the refreshed generated Flight facade has no public codec
       binding; observable UTF-8 behavior is present, but see **Public flight-hx UTF-8 byte
       codec binding** for the substrate limitation.
-    status: flight-gap
-    gap: "Public flight-hx UTF-8 byte codec binding"
+    source:
+      - utils/ByteArray.hx:new
+    notes: 'Blocked on Flight gap "Public flight-hx UTF-8 byte codec binding".'
     scenarios: []
 
   - id: utils.BA.compressionalgorithm-deflate
@@ -311,7 +420,11 @@ entries:
       `CompressionAlgorithm` is integer-backed as DEFLATE/LZMA/ZLIB = 0/1/2 on every
       non-`openfljs` portable target, with canonical string conversions. On `openfljs` the
       constants are `"deflate"`, `"lzma"`, and `"zlib"` directly.
-    status: covered
+    source:
+      - utils/ByteArray.hx:deflate
+      - utils/CompressionAlgorithm.hx:DEFLATE
+      - utils/CompressionAlgorithm.hx:LZMA
+      - utils/CompressionAlgorithm.hx:ZLIB
     scenarios:
       - utils/byte-array:lzmaCompression
 
@@ -322,7 +435,26 @@ entries:
       and the complete read family: boolean, signed/unsigned integers, float/double, bytes,
       multibyte, UTF/UTFBytes, and object. Implementors must consume sequential input and
       signal insufficient data; the interface supplies no implementation.
-    status: covered
+    source:
+      - utils/IDataInput.hx:bytesAvailable
+      - utils/IDataInput.hx:endian
+      - utils/IDataInput.hx:objectEncoding
+      - utils/IDataInput.hx:readBoolean
+      - utils/IDataInput.hx:readByte
+      - utils/IDataInput.hx:readBytes
+      - utils/IDataInput.hx:readDouble
+      - utils/IDataInput.hx:readFloat
+      - utils/IDataInput.hx:readInt
+      - utils/IDataInput.hx:readMultiByte
+      - utils/IDataInput.hx:readObject
+      - utils/IDataInput.hx:readShort
+      - utils/IDataInput.hx:readUnsignedByte
+      - utils/IDataInput.hx:readUnsignedInt
+      - utils/IDataInput.hx:readUnsignedShort
+      - utils/IDataInput.hx:readUTF
+      - utils/IDataInput.hx:readUTFBytes
+      - utils/IDataOutput.hx:endian
+      - utils/IDataOutput.hx:objectEncoding
     scenarios:
       - utils/surface:dataInterfaces
 
@@ -332,7 +464,23 @@ entries:
       `IDataOutput` requires mutable `endian` and `objectEncoding` and the matching write
       family. `writeBytes` reads a source slice; other methods encode a value according to
       byte order/format.
-    status: covered
+    source:
+      - utils/IDataInput.hx:endian
+      - utils/IDataInput.hx:objectEncoding
+      - utils/IDataOutput.hx:endian
+      - utils/IDataOutput.hx:objectEncoding
+      - utils/IDataOutput.hx:writeBoolean
+      - utils/IDataOutput.hx:writeByte
+      - utils/IDataOutput.hx:writeBytes
+      - utils/IDataOutput.hx:writeDouble
+      - utils/IDataOutput.hx:writeFloat
+      - utils/IDataOutput.hx:writeInt
+      - utils/IDataOutput.hx:writeMultiByte
+      - utils/IDataOutput.hx:writeObject
+      - utils/IDataOutput.hx:writeShort
+      - utils/IDataOutput.hx:writeUnsignedInt
+      - utils/IDataOutput.hx:writeUTF
+      - utils/IDataOutput.hx:writeUTFBytes
     scenarios:
       - utils/surface:dataInterfaces
 
@@ -342,7 +490,9 @@ entries:
       `IExternalizable` requires `writeExternal(output)` and `readExternal(input)`. Object
       serializers call user code to define field order and encoding; read must mirror write.
       The interface itself adds no framing.
-    status: covered
+    source:
+      - utils/IExternalizable.hx:writeExternal
+      - utils/IExternalizable.hx:readExternal
     scenarios:
       - utils/surface:dataInterfaces
 
@@ -353,7 +503,11 @@ entries:
       delay throws `openfl.errors.Error`; the implementation does not reject positive infinity
       despite documentation saying finite. Zero is accepted; values below 20 ms are only
       discouraged, not clamped.
-    status: covered
+    source:
+      - utils/Timer.hx:currentCount
+      - utils/Timer.hx:delay
+      - utils/Timer.hx:repeatCount
+      - utils/Timer.hx:new
     scenarios:
       - utils/timer:initial
 
@@ -363,7 +517,12 @@ entries:
       `start()` starts only if not already running; repeated calls while running do nothing
       and do not reset phase/count. `stop()` cancels future ticks, sets `running = false`, and
       preserves `currentCount`. Starting again continues the remaining repetitions.
-    status: covered
+    source:
+      - utils/Timer.hx:currentCount
+      - utils/Timer.hx:running
+      - utils/Timer.hx:reset
+      - utils/Timer.hx:start
+      - utils/Timer.hx:stop
     scenarios:
       - utils/timer:singleRepeat
 
@@ -371,7 +530,9 @@ entries:
     section: "Timer"
     behavior: >
       `reset()` stops if necessary and returns `currentCount` to zero.
-    status: covered
+    source:
+      - utils/Timer.hx:currentCount
+      - utils/Timer.hx:reset
     scenarios:
       - utils/timer:singleRepeat
 
@@ -381,7 +542,8 @@ entries:
       Every tick increments count before dispatching `TimerEvent.TIMER`. With positive
       `repeatCount`, the final tick first stops the Timer, dispatches `TIMER`, then dispatches
       `TIMER_COMPLETE`. Repeat count zero runs indefinitely.
-    status: covered
+    source:
+      - utils/Timer.hx:repeatCount
     scenarios:
       - utils/timer:infiniteRepeat
 
@@ -392,7 +554,10 @@ entries:
       preserving count. The setter performs no validation. Changing `repeatCount` to a nonzero
       value less than or equal to current count stops immediately without a completion event;
       other values are stored verbatim.
-    status: covered
+    source:
+      - utils/Timer.hx:delay
+      - utils/Timer.hx:repeatCount
+      - utils/Timer.hx:running
     scenarios:
       - utils/timer:infiniteRepeat
 
@@ -401,7 +566,9 @@ entries:
     behavior: >
       A TimerEvent whose `updateAfterEvent()` flag was set requests a stage render after that
       individual dispatch when a current stage exists.
-    status: covered
+    source:
+      - events/TimerEvent.hx:updateAfterEvent
+      - utils/Timer.hx:start
     scenarios:
       - utils/timer:singleRepeat
 
@@ -412,7 +579,9 @@ entries:
       scheduling convention. Each increments a process-local UInt ID, stores a Haxe Timer, and
       invokes `closure` via `Reflect.callMethod` with the supplied `args` array or no
       arguments when null.
-    status: covered
+    source:
+      - Lib.hx:setInterval
+      - Lib.hx:setTimeout
     scenarios:
       - utils/surface:libHelpers
 
@@ -423,7 +592,11 @@ entries:
       `setInterval` runs until cleared. `clearTimeout(id)` and `clearInterval(id)` are
       behaviorally identical: if the ID exists they stop and remove it; unknown/already-fired
       IDs are no-ops.
-    status: covered
+    source:
+      - Lib.hx:clearInterval
+      - Lib.hx:clearTimeout
+      - Lib.hx:setInterval
+      - Lib.hx:setTimeout
     scenarios:
       - utils/surface:libHelpers
 
@@ -432,7 +605,8 @@ entries:
     behavior: >
       Callback exceptions propagate normally unless a current Stage has enabled uncaught-error
       events, in which case they are routed through the stage error handler.
-    status: covered
+    source:
+      - Lib.hx:current
     scenarios:
       - utils/surface:libHelpers
 
@@ -443,7 +617,10 @@ entries:
       and integers use value maps, object keys use identity maps, enums use enum
       identity/value rules, floats use a sorted exact-equality map, and classes are keyed by
       fully qualified class name. Object lookup therefore does not coerce through `toString`.
-    status: covered
+    source:
+      - utils/Dictionary.hx:new
+      - utils/Dictionary.hx:keys
+      - utils/Dictionary.hx:toString
     scenarios:
       - utils/dictionary:objectKeys
 
@@ -454,7 +631,11 @@ entries:
       `get`/array access returns its value or null; `exists` distinguishes absent from
       present-null; `remove` (the Haxe equivalent of ActionScript `delete`) returns whether a
       mapping existed.
-    status: covered
+    source:
+      - utils/Dictionary.hx:exists
+      - utils/Dictionary.hx:get
+      - utils/Dictionary.hx:remove
+      - utils/Dictionary.hx:set
     scenarios:
       - utils/dictionary:basicUsage
       - utils/dictionary:exists
@@ -467,7 +648,11 @@ entries:
       Order is unspecified (float keys happen to be sorted by the implementation and must not
       be generalized to other key types); iterator mutation guarantees come from the backing
       Haxe map.
-    status: covered
+    source:
+      - utils/Dictionary.hx:keyValueIterator
+      - utils/Dictionary.hx:iterator
+      - utils/Dictionary.hx:each
+      - utils/Dictionary.hx:keys
     scenarios:
       - utils/dictionary:iteration
       - utils/dictionary:deleteDuringIteration
@@ -478,7 +663,8 @@ entries:
       Non-Flash OpenFL 9.5.2 ignores `weakKeys`; object keys are strongly held and are not
       removed by GC. Only the Flash typedef supplies true weak-key semantics. The adapter
       matches this target distinction.
-    status: covered
+    source:
+      - utils/Dictionary.hx:keys
     scenarios:
       - utils/dictionary:objectKeys
 
@@ -489,7 +675,8 @@ entries:
       9.5.2 Lime tools path, synchronous bitmap/font/sound getters consult it only when
       `useCache` and `cache.enabled` are true, reject invalid disposed cached bitmap data
       where detectable, then cache a successfully resolved asset.
-    status: covered
+    source:
+      - utils/Assets.hx:cache
     scenarios:
       - utils/assets:globalCache
 
@@ -499,7 +686,8 @@ entries:
       The adapter also consults a manually populated bitmap/font/sound cache without Lime,
       while stock 9.5.2 compiles those cache checks only into its Lime tools path and
       otherwise returns its ordinary fallback.
-    status: deviation
+    source:
+      - utils/Assets.hx:cache
     notes: "Intentional no-Lime extension: the adapter honors a manually populated cache so the portable asset registry remains useful without Lime."
     scenarios:
       - utils/assets:globalCache
@@ -509,7 +697,10 @@ entries:
     behavior: >
       `exists(id,type = null)`, `isLocal(id,type = null,useCache = true)`, and `list(type =
       null)` query the Lime registry on a Lime build.
-    status: covered
+    source:
+      - utils/Assets.hx:exists
+      - utils/Assets.hx:isLocal
+      - utils/Assets.hx:list
     scenarios:
       - utils/assets:globalCache
       - utils/assets:registeredLibrary
@@ -521,7 +712,10 @@ entries:
       Without Lime, 9.5.2 returns false from `exists`/`isLocal` and an empty list. The adapter
       instead has a registered-library resolver supporting `library:symbol` IDs (and the
       default library when unqualified).
-    status: deviation
+    source:
+      - utils/Assets.hx:exists
+      - utils/Assets.hx:isLocal
+      - utils/Assets.hx:list
     notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
     scenarios:
       - utils/assets:registeredLibrary
@@ -533,7 +727,11 @@ entries:
       `getBitmapData` returns a cached/resolved BitmapData or null; platform-dependent
       instances may share backing image data. `getBytes` returns the binary ByteArray or null.
       `getText` and `getPath` return a string or null.
-    status: covered
+    source:
+      - utils/Assets.hx:getBitmapData
+      - utils/Assets.hx:getBytes
+      - utils/Assets.hx:getPath
+      - utils/Assets.hx:getText
     scenarios:
       - utils/assets:globalCache
 
@@ -543,7 +741,10 @@ entries:
       `getFont` returns cached/resolved font, but returns a newly constructed empty Font when
       no font resolves. `getSound` returns cached/resolved Sound or null. `getMusic` attempts
       a streaming-friendly Vorbis path where compiled, otherwise aliases `getSound`.
-    status: covered
+    source:
+      - utils/Assets.hx:getFont
+      - utils/Assets.hx:getMusic
+      - utils/Assets.hx:getSound
     scenarios:
       - utils/assets:globalCache
 
@@ -552,8 +753,9 @@ entries:
     behavior: >
       Flight has no progressively buffered music source, so `getMusic` uses a decoded Sound.
       See **OpenFL asset registry and streaming music**.
-    status: flight-gap
-    gap: "OpenFL asset registry and streaming music"
+    source:
+      - utils/Assets.hx:getMusic
+    notes: 'Blocked on Flight gap "OpenFL asset registry and streaming music".'
     scenarios: []
 
   - id: utils.ASSET.getmovieclip-movie-clip
@@ -562,7 +764,8 @@ entries:
       `getMovieClip("library:symbol")` resolves an AssetLibrary, requires a local
       `MOVIE_CLIP`, and returns the clip; missing library/symbol or an async-only symbol logs
       and returns null.
-    status: covered
+    source:
+      - utils/Assets.hx:getMovieClip
     scenarios:
       - utils/surface:assetLookup
 
@@ -574,7 +777,16 @@ entries:
       applicable, otherwise forward backend complete, error, and progress; fallback targets
       return an already completed sync getter (except unsupported library loading, which is an
       error Future).
-    status: covered
+    source:
+      - utils/Assets.hx:cache
+      - utils/Assets.hx:loadBitmapData
+      - utils/Assets.hx:loadBytes
+      - utils/Assets.hx:loadFont
+      - utils/Assets.hx:loadLibrary
+      - utils/Assets.hx:loadMusic
+      - utils/Assets.hx:loadMovieClip
+      - utils/Assets.hx:loadSound
+      - utils/Assets.hx:loadText
     scenarios:
       - utils/assets:globalCache
 
@@ -586,7 +798,14 @@ entries:
       change propagation dispatches `Event.CHANGE`. `registerBinding` and `unregisterBinding`
       map generated class names to an AssetLibrary; `initBinding` binds a current/future
       Sprite constructor or logs when absent.
-    status: covered
+    source:
+      - utils/Assets.hx:getLibrary
+      - utils/Assets.hx:hasLibrary
+      - utils/Assets.hx:initBinding
+      - utils/Assets.hx:registerBinding
+      - utils/Assets.hx:registerLibrary
+      - utils/Assets.hx:unloadLibrary
+      - utils/Assets.hx:unregisterBinding
     scenarios:
       - utils/assets:registeredLibrary
       - utils/assets:unregisteredLibrary
@@ -597,7 +816,11 @@ entries:
       Without Lime, 9.5.2's library register/get/has/unload paths are no-ops/null/false. The
       adapter deliberately makes those operations functional with an in-process map, expanding
       the executable no-Lime contract.
-    status: deviation
+    source:
+      - utils/Assets.hx:getLibrary
+      - utils/Assets.hx:hasLibrary
+      - utils/Assets.hx:registerLibrary
+      - utils/Assets.hx:unloadLibrary
     notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
     scenarios:
       - utils/assets:registeredLibrary
@@ -609,7 +832,11 @@ entries:
       Static `addEventListener`, `removeEventListener`, `hasEventListener`, and
       `dispatchEvent` delegate to one private global EventDispatcher. Adding a listener also
       hooks Lime's change signal once.
-    status: covered
+    source:
+      - utils/Assets.hx:addEventListener
+      - utils/Assets.hx:dispatchEvent
+      - utils/Assets.hx:hasEventListener
+      - utils/Assets.hx:removeEventListener
     scenarios:
       - utils/assets:events
 
@@ -619,7 +846,12 @@ entries:
       A new cache has `enabled = true` and separate public maps for bitmap data, fonts, and
       sounds. Toggling enabled does not clear or prevent direct cache method use; `Assets`
       decides whether to consult it.
-    status: covered
+    source:
+      - utils/AssetCache.hx:enabled
+      - utils/AssetCache.hx:new
+      - utils/AssetCache.hx:clear
+      - utils/IAssetCache.hx:enabled
+      - utils/IAssetCache.hx:clear
     scenarios:
       - utils/assets:populatedCache
       - utils/assets:clearedCache
@@ -632,7 +864,33 @@ entries:
       are direct ID map operations; remove returns whether an item existed. `clear()` replaces
       all three maps; `clear(prefix)` removes every key beginning with that exact
       case-sensitive prefix. Cached objects are not cloned or disposed.
-    status: covered
+    source:
+      - utils/AssetCache.hx:clear
+      - utils/AssetCache.hx:getBitmapData
+      - utils/AssetCache.hx:getFont
+      - utils/AssetCache.hx:getSound
+      - utils/AssetCache.hx:hasBitmapData
+      - utils/AssetCache.hx:hasFont
+      - utils/AssetCache.hx:hasSound
+      - utils/AssetCache.hx:removeBitmapData
+      - utils/AssetCache.hx:removeFont
+      - utils/AssetCache.hx:removeSound
+      - utils/AssetCache.hx:setBitmapData
+      - utils/AssetCache.hx:setFont
+      - utils/AssetCache.hx:setSound
+      - utils/IAssetCache.hx:clear
+      - utils/IAssetCache.hx:getBitmapData
+      - utils/IAssetCache.hx:getFont
+      - utils/IAssetCache.hx:getSound
+      - utils/IAssetCache.hx:hasBitmapData
+      - utils/IAssetCache.hx:hasFont
+      - utils/IAssetCache.hx:hasSound
+      - utils/IAssetCache.hx:removeBitmapData
+      - utils/IAssetCache.hx:removeFont
+      - utils/IAssetCache.hx:removeSound
+      - utils/IAssetCache.hx:setBitmapData
+      - utils/IAssetCache.hx:setFont
+      - utils/IAssetCache.hx:setSound
     scenarios:
       - utils/assets:populatedCache
       - utils/assets:clearedCache
@@ -642,7 +900,21 @@ entries:
     behavior: >
       `IAssetCache` is exactly this property/method contract and does not prescribe eviction,
       ownership, or thread safety.
-    status: covered
+    source:
+      - utils/IAssetCache.hx:enabled
+      - utils/IAssetCache.hx:clear
+      - utils/IAssetCache.hx:getBitmapData
+      - utils/IAssetCache.hx:getFont
+      - utils/IAssetCache.hx:getSound
+      - utils/IAssetCache.hx:hasBitmapData
+      - utils/IAssetCache.hx:hasFont
+      - utils/IAssetCache.hx:hasSound
+      - utils/IAssetCache.hx:removeBitmapData
+      - utils/IAssetCache.hx:removeFont
+      - utils/IAssetCache.hx:removeSound
+      - utils/IAssetCache.hx:setBitmapData
+      - utils/IAssetCache.hx:setFont
+      - utils/IAssetCache.hx:setSound
     scenarios:
       - utils/assets:populatedCache
       - utils/assets:clearedCache
@@ -656,7 +928,10 @@ entries:
       proxy or superclass. `getMovieClip` returns null and `loadMovieClip` is an immediately
       completed null Future unless a subclass provides authored symbols. `bind` returns false
       in the base class.
-    status: covered
+    source:
+      - utils/AssetLibrary.hx:bind
+      - utils/AssetLibrary.hx:getMovieClip
+      - utils/AssetLibrary.hx:loadMovieClip
     scenarios:
       - utils/assets:registeredLibrary
 
@@ -668,7 +943,19 @@ entries:
       `loadFromFile`, and `loadFromManifest` return Futures; invalid manifest loading is an
       error Future. On no-Lime builds these factories return null (or completed-null Futures),
       `bind` returns false, and movie-clip access returns null.
-    status: covered
+    source:
+      - utils/AssetLibrary.hx:bind
+      - utils/AssetLibrary.hx:fromBundle
+      - utils/AssetLibrary.hx:fromBytes
+      - utils/AssetLibrary.hx:fromFile
+      - utils/AssetLibrary.hx:fromManifest
+      - utils/AssetLibrary.hx:loadFromBytes
+      - utils/AssetLibrary.hx:loadFromFile
+      - utils/AssetLibrary.hx:loadFromManifest
+      - utils/AssetManifest.hx:fromBytes
+      - utils/AssetManifest.hx:fromFile
+      - utils/AssetManifest.hx:loadFromBytes
+      - utils/AssetManifest.hx:loadFromFile
     scenarios:
       - utils/assets:registeredLibrary
 
@@ -679,7 +966,8 @@ entries:
       9.5.2 because they are inherited from Lime inside compile guards. The adapter adds
       `exists`, `getPath`, `isLocal`, `list`, and `unload` stubs so the no-Lime asset registry
       has a usable surface.
-    status: deviation
+    source:
+      - utils/AssetLibrary.hx:new
     notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
     scenarios:
       - utils/assets:registeredLibrary
@@ -692,7 +980,19 @@ entries:
       `fromFile`, `parse`, and asynchronous load variants delegate to Lime and return null off
       Lime. In stock no-Lime 9.5.2, the private asset array is never initialized, so calling
       `add*` there fails; the unchanged adapter preserves that quirk.
-    status: covered
+    source:
+      - utils/AssetLibrary.hx:fromBytes
+      - utils/AssetLibrary.hx:fromFile
+      - utils/AssetManifest.hx:new
+      - utils/AssetManifest.hx:addBitmapData
+      - utils/AssetManifest.hx:addBytes
+      - utils/AssetManifest.hx:addFont
+      - utils/AssetManifest.hx:addSound
+      - utils/AssetManifest.hx:addText
+      - utils/AssetManifest.hx:fromBytes
+      - utils/AssetManifest.hx:fromFile
+      - utils/AssetManifest.hx:parse
+      - utils/AssetType.hx:SOUND
     scenarios:
       - utils/surface:assetManifest
 
@@ -702,7 +1002,14 @@ entries:
       `AssetType` string values are `BINARY`, `FONT`, `IMAGE`, `MOVIE_CLIP`, `MUSIC`, `SOUND`,
       `TEMPLATE`, and `TEXT`. MUSIC and SOUND currently behave alike. `AssetBundle` aliases
       Lime's bundle when available and `Dynamic` otherwise.
-    status: covered
+    source:
+      - utils/AssetType.hx:BINARY
+      - utils/AssetType.hx:FONT
+      - utils/AssetType.hx:IMAGE
+      - utils/AssetType.hx:MOVIE_CLIP
+      - utils/AssetType.hx:MUSIC
+      - utils/AssetType.hx:SOUND
+      - utils/AssetType.hx:TEXT
     scenarios:
       - utils/assets:assetTypes
 
@@ -712,7 +1019,11 @@ entries:
       `new(debugging = false)` initializes shared opcode/sampler maps once, records whether to
       log detailed assembly, leaves `verbose` at false, and exposes the last `agalcode` and
       `error`.
-    status: covered
+    source:
+      - utils/AGALMiniAssembler.hx:agalcode
+      - utils/AGALMiniAssembler.hx:error
+      - utils/AGALMiniAssembler.hx:verbose
+      - utils/AGALMiniAssembler.hx:new
     scenarios:
       - utils/surface:agal
 
@@ -723,7 +1034,9 @@ entries:
       `"vertex"` or `"fragment"`; invalid mode records an error. It starts output with AGAL
       version/program headers, strips `//` comments, ignores blank/unrecognized lines with
       warnings, assembles recognized lines, and returns little-endian ByteArray bytecode.
-    status: covered
+    source:
+      - utils/AGALMiniAssembler.hx:error
+      - utils/AGALMiniAssembler.hx:assemble
     scenarios:
       - utils/surface:agal
 
@@ -736,7 +1049,14 @@ entries:
       nesting (maximum 4), register access and ranges, destination masks, source swizzles,
       matrix operands, relative vertex addressing/offset 0..255, and a maximum 4096 opcodes.
       Any fatal error appends source line context and clears `agalcode` to length zero.
-    status: covered
+    source:
+      - utils/AGALMiniAssembler.hx:agalcode
+      - utils/AGALMiniAssembler.hx:error
+      - utils/AGALMiniAssembler.hx:emitCode
+      - utils/AGALMiniAssembler.hx:flags
+      - utils/AGALMiniAssembler.hx:name
+      - utils/AGALMiniAssembler.hx:numRegister
+      - utils/AGALMiniAssembler.hx:toString
     scenarios:
       - utils/surface:agal
 
@@ -746,7 +1066,15 @@ entries:
       Registers are `va`, `vc`, `vt`, `vo/op`, `vi/i/v/fi`, `fc`, `ft`, `fs`, `fo/oc`,
       `fd/od`, and `iid`, with version-specific index limits. Fragment relative addressing and
       relative destinations are rejected.
-    status: covered
+    source:
+      - utils/AGALMiniAssembler.hx:new
+      - utils/AGALMiniAssembler.hx:emitCode
+      - utils/AGALMiniAssembler.hx:flags
+      - utils/AGALMiniAssembler.hx:longName
+      - utils/AGALMiniAssembler.hx:name
+      - utils/AGALMiniAssembler.hx:numRegister
+      - utils/AGALMiniAssembler.hx:range
+      - utils/AGALMiniAssembler.hx:toString
     scenarios:
       - utils/surface:agal
 
@@ -757,7 +1085,12 @@ entries:
       `video`), dimension (`2d`, `3d`, `cube`), mip mode, nearest/linear/anisotropic filters,
       centroid/single/ignoresampler, wrap/clamp variants, and numeric LOD bias (stored in
       eighths). Unknown option text is parsed as a numeric bias.
-    status: covered
+    source:
+      - utils/AGALMiniAssembler.hx:new
+      - utils/AGALMiniAssembler.hx:flag
+      - utils/AGALMiniAssembler.hx:mask
+      - utils/AGALMiniAssembler.hx:name
+      - utils/AGALMiniAssembler.hx:toString
     scenarios:
       - utils/surface:agal
 
@@ -767,8 +1100,9 @@ entries:
       `assemble2(context3D,version,vertexSource,fragmentSource)` assembles both programs,
       creates Program3D, calls upload, and returns it. The assembler and resource shell work,
       but executing that program is blocked by **Raw Context3D command model**.
-    status: flight-gap
-    gap: "Raw Context3D command model"
+    source:
+      - utils/AGALMiniAssembler.hx:assemble2
+    notes: 'Blocked on Flight gap "Raw Context3D command model".'
     scenarios: []
 
   - id: utils.END.endian-big-little-endian
@@ -779,7 +1113,9 @@ entries:
       `openfljs` those strings are the constants directly. BIG_ENDIAN means most-significant
       byte first and LITTLE_ENDIAN means least-significant byte first. The constants do not
       themselves change host order.
-    status: covered
+    source:
+      - utils/Endian.hx:BIG_ENDIAN
+      - utils/Endian.hx:LITTLE_ENDIAN
     scenarios:
       - utils/byte-array:endianness
       - utils/byte-array:endianSwitch
@@ -789,7 +1125,8 @@ entries:
     behavior: >
       `Function` aliases `haxe.Constraints.Function` (Dynamic on legacy Haxe). It adds no
       invocation semantics.
-    status: covered
+    source:
+      - utils/Function.hx:Function
     scenarios:
       - utils/surface:functionAlias
 
@@ -804,7 +1141,12 @@ entries:
       stringified and becomes
       null if nonempty/invalid XML name, while a QName second arg contributes its URI;
       otherwise the URI is stringified.
-    status: covered
+    source:
+      - utils/Namespace.hx:prefix
+      - utils/Namespace.hx:uri
+      - utils/Namespace.hx:new
+      - utils/QName.hx:uri
+      - utils/QName.hx:new
     scenarios:
       - utils/surface:namespace
 
@@ -816,7 +1158,12 @@ entries:
       `new(nonNullValue, null)` is likewise indistinguishable from the one-value form and
       follows it. Otherwise with two args, Namespace contributes URI (null stays null), QName
       contributes localName, and other values stringify.
-    status: covered
+    source:
+      - utils/Namespace.hx:uri
+      - utils/Namespace.hx:new
+      - utils/QName.hx:uri
+      - utils/QName.hx:localName
+      - utils/QName.hx:new
     scenarios:
       - utils/surface:qname
 
@@ -830,7 +1177,17 @@ entries:
       and `valueOf` returns itself. Field/array access uses reflection and named children of a
       DisplayObjectContainer as a fallback; iteration yields array values or reflected
       field/named-child keys.
-    status: covered
+    source:
+      - utils/Object.hx:new
+      - utils/Object.hx:hasOwnProperty
+      - utils/Object.hx:isPrototypeOf
+      - utils/Object.hx:propertyIsEnumerable
+      - utils/Object.hx:toLocaleString
+      - utils/Object.hx:toString
+      - utils/Object.hx:valueOf
+      - utils/Object.hx:hasNext
+      - utils/Object.hx:next
+      - utils/Object.hx:iterator
     scenarios:
       - utils/surface:object
 
@@ -843,7 +1200,16 @@ entries:
       active and cleans/caches or removes above capacity; `remove` forgets either state;
       `clear` empties all. Setting size shrinks inactive objects first or calls `create` to
       prefill.
-    status: covered
+    source:
+      - utils/ObjectPool.hx:activeObjects
+      - utils/ObjectPool.hx:inactiveObjects
+      - utils/ObjectPool.hx:size
+      - utils/ObjectPool.hx:new
+      - utils/ObjectPool.hx:add
+      - utils/ObjectPool.hx:clear
+      - utils/ObjectPool.hx:get
+      - utils/ObjectPool.hx:release
+      - utils/ObjectPool.hx:remove
     scenarios:
       - utils/object-pool:initial
       - utils/object-pool:afterFirstGet
@@ -861,7 +1227,20 @@ entries:
       overwrite all 16 elements with their named projection formulas. The 9.5.2 `orthoRH`
       implementation contains `1 / (zNear - zNear)`, producing an infinite depth coefficient;
       the unchanged adapter preserves this observable defect.
-    status: covered
+    source:
+      - utils/PerspectiveMatrix3D.hx:new
+      - utils/PerspectiveMatrix3D.hx:lookAtLH
+      - utils/PerspectiveMatrix3D.hx:lookAtRH
+      - utils/PerspectiveMatrix3D.hx:orthoLH
+      - utils/PerspectiveMatrix3D.hx:orthoOffCenterLH
+      - utils/PerspectiveMatrix3D.hx:orthoOffCenterRH
+      - utils/PerspectiveMatrix3D.hx:orthoRH
+      - utils/PerspectiveMatrix3D.hx:perspectiveFieldOfViewLH
+      - utils/PerspectiveMatrix3D.hx:perspectiveFieldOfViewRH
+      - utils/PerspectiveMatrix3D.hx:perspectiveOffCenterLH
+      - utils/PerspectiveMatrix3D.hx:perspectiveLH
+      - utils/PerspectiveMatrix3D.hx:perspectiveOffCenterRH
+      - utils/PerspectiveMatrix3D.hx:perspectiveRH
     scenarios:
       - utils/surface:perspective
 
@@ -873,7 +1252,18 @@ entries:
       itself; `result` returns value; and `then` returns a new unresolved Future. The adapter
       improves immediate and queued listener delivery for Promise use but retains the
       unresolved `then`; with Lime, both versions alias the full Lime Future.
-    status: deviation
+    source:
+      - utils/Promise.hx:future
+      - utils/Promise.hx:new
+      - utils/Future.hx:value
+      - utils/Future.hx:onComplete
+      - utils/Future.hx:onError
+      - utils/Future.hx:onProgress
+      - utils/Future.hx:ready
+      - utils/Future.hx:result
+      - utils/Future.hx:then
+      - utils/Future.hx:withError
+      - utils/Future.hx:withValue
     notes: "Intentional adapter extension beyond the executable no-Lime OpenFL 9.5.2 behavior."
     scenarios:
       - utils/surface:promise
@@ -889,7 +1279,20 @@ entries:
       public API; the adapter's listener delivery is the intentional deviation recorded
       above. `completeWith` attaches through those same Future methods. Methods return the
       same Promise; `isComplete/isError` mirror the Future.
-    status: covered
+    source:
+      - utils/Promise.hx:future
+      - utils/Promise.hx:isComplete
+      - utils/Promise.hx:isError
+      - utils/Promise.hx:complete
+      - utils/Promise.hx:completeWith
+      - utils/Promise.hx:error
+      - utils/Promise.hx:progress
+      - utils/Future.hx:error
+      - utils/Future.hx:isComplete
+      - utils/Future.hx:isError
+      - utils/Future.hx:onComplete
+      - utils/Future.hx:onError
+      - utils/Future.hx:onProgress
     scenarios:
       - utils/surface:promise
 
@@ -901,6 +1304,10 @@ entries:
       non-Flash targets use `haxe.Timer` and stop that object. Consequently fractional delays
       share the truncated interval, and a delay setter while running replaces the active
       target-specific scheduler rather than preserving elapsed phase.
-    status: missing
+    source:
+      - utils/Timer.hx:delay
+      - utils/Timer.hx:running
+      - utils/Timer.hx:start
+      - utils/Timer.hx:stop
     notes: "Flash uses flash.utils.Timer; portable target parity needs both html5 and non-html5 scheduling fixtures."
     scenarios: []

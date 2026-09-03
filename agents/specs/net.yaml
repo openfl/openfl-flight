@@ -10,7 +10,23 @@ entries:
       `userAgent` from `URLRequestDefaults`, and `withCredentials` to false. `idleTimeout`
       comes from a positive default; otherwise it is the `lime-default-timeout` define or
       `30000` ms.
-    status: covered
+    source:
+      - net/URLRequest.hx:contentType
+      - net/URLRequest.hx:followRedirects
+      - net/URLRequest.hx:idleTimeout
+      - net/URLRequest.hx:manageCookies
+      - net/URLRequest.hx:withCredentials
+      - net/URLRequest.hx:method
+      - net/URLRequest.hx:requestHeaders
+      - net/URLRequest.hx:url
+      - net/URLRequest.hx:userAgent
+      - net/URLRequest.hx:new
+      - net/URLRequestDefaults.hx:followRedirects
+      - net/URLRequestDefaults.hx:idleTimeout
+      - net/URLRequestDefaults.hx:manageCookies
+      - net/URLRequestDefaults.hx:userAgent
+      - net/URLRequestHeader.hx:new
+      - net/URLRequestMethod.hx:GET
     scenarios:
       - net/url-loader-request:requestDefaults
       - net/url-types:requestEdges
@@ -21,7 +37,21 @@ entries:
       `url`, `method`, `data`, `contentType`, `requestHeaders`, `followRedirects`,
       `manageCookies`, `withCredentials`, `idleTimeout`, and `userAgent` are mutable data
       properties with no validation in this class.
-    status: covered
+    source:
+      - net/URLRequest.hx:contentType
+      - net/URLRequest.hx:data
+      - net/URLRequest.hx:followRedirects
+      - net/URLRequest.hx:idleTimeout
+      - net/URLRequest.hx:manageCookies
+      - net/URLRequest.hx:withCredentials
+      - net/URLRequest.hx:method
+      - net/URLRequest.hx:requestHeaders
+      - net/URLRequest.hx:url
+      - net/URLRequest.hx:userAgent
+      - net/URLRequestDefaults.hx:followRedirects
+      - net/URLRequestDefaults.hx:idleTimeout
+      - net/URLRequestDefaults.hx:manageCookies
+      - net/URLRequestDefaults.hx:userAgent
     scenarios:
       - net/url-loader-request:requestDefaults
       - net/url-loader-request:requestMutation
@@ -34,7 +64,11 @@ entries:
       is sent as text, and byte data is binary when the backend accepts it. `contentType`
       becomes `Content-Type`; request headers are forwarded subject to host/browser
       restrictions.
-    status: covered
+    source:
+      - net/URLRequest.hx:contentType
+      - net/URLRequest.hx:data
+      - net/URLRequest.hx:method
+      - net/URLRequestMethod.hx:GET
     scenarios:
       - net/url-loader-request:requestDefaults
       - net/url-loader-request:requestMutation
@@ -44,7 +78,13 @@ entries:
     behavior: >
       `URLRequestMethod` constants are the strings `DELETE`, `GET`, `HEAD`, `OPTIONS`, `POST`,
       and `PUT`.
-    status: covered
+    source:
+      - net/URLRequestMethod.hx:DELETE
+      - net/URLRequestMethod.hx:GET
+      - net/URLRequestMethod.hx:HEAD
+      - net/URLRequestMethod.hx:OPTIONS
+      - net/URLRequestMethod.hx:POST
+      - net/URLRequestMethod.hx:PUT
     scenarios:
       - net/url-request:defaults
       - net/url-request:properties
@@ -55,7 +95,15 @@ entries:
       `URLRequestDefaults.followRedirects = true`, `idleTimeout = 0`, `manageCookies = true`,
       and `userAgent = null` are mutable static defaults copied only when a request is
       constructed; later default changes do not mutate existing requests.
-    status: covered
+    source:
+      - net/URLRequest.hx:followRedirects
+      - net/URLRequest.hx:idleTimeout
+      - net/URLRequest.hx:manageCookies
+      - net/URLRequest.hx:userAgent
+      - net/URLRequestDefaults.hx:followRedirects
+      - net/URLRequestDefaults.hx:idleTimeout
+      - net/URLRequestDefaults.hx:manageCookies
+      - net/URLRequestDefaults.hx:userAgent
     scenarios:
       - net/url-loader-request:requestDefaults
       - net/url-types:requestEdges
@@ -66,7 +114,10 @@ entries:
       `authenticate` and `cacheResponse` occur in the broader AIR API but are not declared by
       non-Flash OpenFL 9.5.2. `digest` and `useRedirectedURL` are likewise compiled out. The
       adapter intentionally does not add them.
-    status: covered
+    source:
+      - net/URLRequest.hx:new
+      - net/URLRequest.hx:digest
+      - net/URLRequest.hx:useRedirectedURL
     scenarios:
       - net/surface:requestSurface
 
@@ -75,7 +126,11 @@ entries:
     behavior: >
       `URLRequestHeader.new(name = "", value = "")` stores its two mutable strings without
       validation. Header restrictions are enforced, if at all, by the transport.
-    status: covered
+    source:
+      - net/URLRequest.hx:new
+      - net/URLRequestHeader.hx:name
+      - net/URLRequestHeader.hx:value
+      - net/URLRequestHeader.hx:new
     scenarios:
       - net/url-loader-request:header
       - net/url-types:headerEdges
@@ -85,7 +140,11 @@ entries:
     behavior: >
       `new(request = null)` initializes byte counters to `0`, `dataFormat` to `TEXT`, and
       `data` to null; a non-null request starts loading immediately.
-    status: covered
+    source:
+      - net/URLLoader.hx:data
+      - net/URLLoader.hx:dataFormat
+      - net/URLLoader.hx:new
+      - net/URLLoaderDataFormat.hx:TEXT
     scenarios:
       - net/url-loader-request:loaderDefaults
 
@@ -95,7 +154,12 @@ entries:
       `dataFormat` accepts `TEXT`, `BINARY`, or `VARIABLES`. Completion data is respectively
       `String`, `ByteArray`, or a decoded `URLVariables`; changing the format while a request
       is pending affects completion decoding.
-    status: covered
+    source:
+      - net/URLLoader.hx:data
+      - net/URLLoader.hx:dataFormat
+      - net/URLLoaderDataFormat.hx:BINARY
+      - net/URLLoaderDataFormat.hx:TEXT
+      - net/URLLoaderDataFormat.hx:VARIABLES
     scenarios:
       - net/url-loader-request:loaderDefaults
 
@@ -106,7 +170,8 @@ entries:
       method/body/content type/headers/redirect, timeout, cookie credential, and user-agent
       options, and dispatches backend `ProgressEvent.PROGRESS` notifications while
       downloading.
-    status: covered
+    source:
+      - net/URLLoader.hx:load
     scenarios:
       - net/url-loader-request:loadStart
 
@@ -117,7 +182,8 @@ entries:
       after any progress events. Both status events are emitted only once the complete
       response is available, not at connection/open time; `HTTP_RESPONSE_STATUS` carries
       response URL and response headers, while `HTTP_STATUS` carries only the numeric status.
-    status: covered
+    source:
+      - net/URLLoader.hx:load
     scenarios:
       - net/url-stream:completedBody
 
@@ -127,7 +193,8 @@ entries:
       The current Flight path preserves that final status order. Flight does not expose
       status/headers before the completed body; see **URLLoader/URLStream cancellation,
       chunks, and early response metadata**.
-    status: covered
+    source:
+      - net/URLLoader.hx:load
     scenarios:
       - net/url-stream:completedBody
 
@@ -139,7 +206,8 @@ entries:
       HTTP response 403 as `securityError` on all targets and other unsuccessful statuses as
       `ioError`. A successful response stores `data` before `complete`; an unsuccessful
       response may store decoded data before its error event in the current adapter.
-    status: covered
+    source:
+      - net/URLLoader.hx:data
     scenarios:
       - net/url-loader-request:errorEvents
 
@@ -150,7 +218,9 @@ entries:
       assign those values to the public `bytesLoaded` and `bytesTotal` fields; they remain
       zero. The current adapter preserves this quirk. Missing/unknown content length appears
       as a zero event total.
-    status: covered
+    source:
+      - net/URLLoader.hx:bytesLoaded
+      - net/URLLoader.hx:bytesTotal
     scenarios:
       - net/url-loader-request:loadStart
       - net/url-loader-request:errorEvents
@@ -163,8 +233,10 @@ entries:
       Flight transport. Calling it with no active load is a no-op rather than the documented
       invalid-stream exception. See **URLLoader/URLStream cancellation, chunks, and early
       response metadata**.
-    status: flight-gap
-    gap: "URLLoader/URLStream cancellation, chunks, and early response metadata"
+    source:
+      - net/URLLoader.hx:close
+      - net/URLLoader.hx:load
+    notes: 'Blocked on Flight gap "URLLoader/URLStream cancellation, chunks, and early response metadata".'
     scenarios:
       - net/url-loader-request:closeAndReload
 
@@ -173,8 +245,9 @@ entries:
     behavior: >
       Flight's public default HTTP backend is available on the web host; native operation
       depends on a maintained Lime/Clay host installing a backend. See the same gap entry.
-    status: flight-gap
-    gap: "URLLoader/URLStream cancellation, chunks, and early response metadata"
+    source:
+      - net/URLLoader.hx:load
+    notes: 'Blocked on Flight gap "URLLoader/URLStream cancellation, chunks, and early response metadata".'
     scenarios: []
 
   - id: net.UL.urlloaderdataformat-binary
@@ -183,7 +256,10 @@ entries:
       `URLLoaderDataFormat` is integer-backed as BINARY/TEXT/VARIABLES = 0/1/2 on every
       non-`openfljs` portable target, with canonical string conversions. On `openfljs` the
       constants are the strings `"binary"`, `"text"`, and `"variables"` directly.
-    status: covered
+    source:
+      - net/URLLoaderDataFormat.hx:BINARY
+      - net/URLLoaderDataFormat.hx:TEXT
+      - net/URLLoaderDataFormat.hx:VARIABLES
     scenarios:
       - net/url-loader-request:loaderDefaults
       - net/url-types:dataFormats
@@ -194,7 +270,10 @@ entries:
       `new()` creates an empty stream whose intended byte order is `Endian.BIG_ENDIAN`.
       `objectEncoding` is a mutable field and otherwise has the target's default null/zero
       initialization until assigned.
-    status: covered
+    source:
+      - net/URLStream.hx:endian
+      - net/URLStream.hx:objectEncoding
+      - net/URLStream.hx:new
     scenarios:
       - net/url-stream:defaults
       - net/url-stream:dataInput
@@ -206,7 +285,8 @@ entries:
       loader's `progress`, `complete`, `ioError`, and `securityError`; it does **not** forward
       `open`, `httpStatus`, or `httpResponseStatus`, despite those events appearing in the API
       prose. The adapter matches this event surface.
-    status: covered
+    source:
+      - net/URLStream.hx:load
     scenarios:
       - net/url-stream:loadStart
       - net/url-stream:requestMapping
@@ -217,7 +297,8 @@ entries:
       On success, the complete response becomes the internal `ByteArray`, a final progress
       event is dispatched, then `Event.COMPLETE`. `bytesAvailable` is `data.length -
       data.position` or zero with no data.
-    status: covered
+    source:
+      - net/URLStream.hx:bytesAvailable
     scenarios:
       - net/url-stream:completedBody
 
@@ -228,8 +309,9 @@ entries:
       normally has no `data` until completion. Flight progress has counts but no chunk and
       likewise cannot make bytes readable early. See **URLLoader/URLStream cancellation,
       chunks, and early response metadata**.
-    status: flight-gap
-    gap: "URLLoader/URLStream cancellation, chunks, and early response metadata"
+    source:
+      - net/URLStream.hx:load
+    notes: 'Blocked on Flight gap "URLLoader/URLStream cancellation, chunks, and early response metadata".'
     scenarios: []
 
   - id: net.US.connected-false
@@ -237,7 +319,8 @@ entries:
     behavior: >
       `connected` always returns `false` in portable 9.5.2 and in the adapter; it is not a
       loading-state property.
-    status: covered
+    source:
+      - net/URLStream.hx:connected
     scenarios:
       - net/url-stream:defaults
 
@@ -250,7 +333,20 @@ entries:
       internal ByteArray, consuming its position and throwing `EOFError` for insufficient
       data. Calling while data is null fails by null access rather than a purpose-built
       IOError.
-    status: covered
+    source:
+      - net/URLStream.hx:readBoolean
+      - net/URLStream.hx:readByte
+      - net/URLStream.hx:readBytes
+      - net/URLStream.hx:readDouble
+      - net/URLStream.hx:readFloat
+      - net/URLStream.hx:readInt
+      - net/URLStream.hx:readMultiByte
+      - net/URLStream.hx:readShort
+      - net/URLStream.hx:readUnsignedByte
+      - net/URLStream.hx:readUnsignedInt
+      - net/URLStream.hx:readUnsignedShort
+      - net/URLStream.hx:readUTF
+      - net/URLStream.hx:readUTFBytes
     scenarios:
       - net/url-stream:primitiveReads
       - net/url-stream:dataInput
@@ -261,7 +357,9 @@ entries:
       `readObject()` returns null unconditionally in the executable portable 9.5.2 source; the
       adapter retains that stub. The `objectEncoding` value is copied to loaded data but not
       used by this method.
-    status: covered
+    source:
+      - net/URLStream.hx:objectEncoding
+      - net/URLStream.hx:readObject
     scenarios:
       - net/surface:urlStreamObject
 
@@ -272,7 +370,9 @@ entries:
       and setter dereference null; the adapter setter safely remembers the value but the
       getter retains the null-data quirk. During/after load, byte-order changes affect all
       numeric reads.
-    status: covered
+    source:
+      - net/URLStream.hx:endian
+      - net/URLStream.hx:load
     scenarios:
       - net/url-stream:dataInput
 
@@ -281,8 +381,9 @@ entries:
     behavior: >
       `close()` removes listeners and clears readable data in 9.5.2; the adapter also
       suppresses stale callbacks but cannot abort Flight transport.
-    status: flight-gap
-    gap: "URLLoader/URLStream cancellation, chunks, and early response metadata"
+    source:
+      - net/URLStream.hx:close
+    notes: 'Blocked on Flight gap "URLLoader/URLStream cancellation, chunks, and early response metadata".'
     scenarios:
       - net/url-stream:close
 
@@ -291,7 +392,9 @@ entries:
     behavior: >
       `new(source = null)` creates an empty dynamic object and calls `decode(source)` for
       non-null input. Fields are accessible dynamically and by string array access.
-    status: covered
+    source:
+      - net/URLVariables.hx:new
+      - net/URLVariables.hx:decode
     scenarios:
       - net/url-request:variables
       - net/url-types:variables
@@ -304,7 +407,8 @@ entries:
       with `=`, and treats only the first `=` as the separator. Duplicate names overwrite
       earlier values; they do not create an array. `+` behavior follows
       `StringTools.urlDecode`.
-    status: covered
+    source:
+      - net/URLVariables.hx:decode
     scenarios:
       - net/url-request:variables
       - net/url-types:variables
@@ -316,7 +420,8 @@ entries:
       order), URL-encodes each name and `Std.string(value)`, joins pairs with `&`, and emits
       empty objects as `""`. A field whose name contains `[]` and whose value is an array uses
       the source's unusual `&amp;field=` separator between encoded elements.
-    status: covered
+    source:
+      - net/URLVariables.hx:toString
     scenarios:
       - net/url-request:variables
       - net/url-types:variables
@@ -327,7 +432,12 @@ entries:
       `new(host = null, port = 0)` initializes input/output ByteArrays, `endian = BIG_ENDIAN`,
       `objectEncoding = ByteArray.defaultObjectEncoding`, and `timeout = 20000` ms. A non-null
       host immediately calls `connect`.
-    status: covered
+    source:
+      - net/Socket.hx:endian
+      - net/Socket.hx:objectEncoding
+      - net/Socket.hx:timeout
+      - net/Socket.hx:new
+      - net/Socket.hx:connect
     scenarios:
       - net/socket-basics:defaults
 
@@ -338,7 +448,8 @@ entries:
       begins nonblocking connection, and later dispatches `Event.CONNECT`; invalid host/failed
       or timed-out connection dispatches `IOErrorEvent.IO_ERROR`. HTML5 uses Flight's
       WebSocket-shaped transport; native sys targets retain a raw Haxe TCP socket.
-    status: covered
+    source:
+      - net/Socket.hx:connect
     scenarios:
       - net/socket-basics:constructorGuards
       - net/socket-basics:invalidPorts
@@ -350,7 +461,13 @@ entries:
       `remoteAddress`, and `remotePort` come from the connected endpoint and return their
       platform defaults when unavailable. `timeout` governs connection establishment, not
       individual reads.
-    status: covered
+    source:
+      - net/Socket.hx:connected
+      - net/Socket.hx:localAddress
+      - net/Socket.hx:localPort
+      - net/Socket.hx:remoteAddress
+      - net/Socket.hx:remotePort
+      - net/Socket.hx:timeout
     scenarios:
       - net/socket-basics:defaults
 
@@ -361,7 +478,9 @@ entries:
       `bytesLoaded` equal to the newly received count. `bytesAvailable` is unread input
       length; data remains until consumed. Remote close dispatches `Event.CLOSE`; I/O failure
       dispatches `ioError`.
-    status: covered
+    source:
+      - net/Socket.hx:bytesAvailable
+      - net/Socket.hx:close
     scenarios:
       - net/socket-basics:lifecycleAndUTF8
 
@@ -372,7 +491,22 @@ entries:
       readMultiByte/readObject/readShort/readUnsignedByte/readUnsignedInt/
       readUnsignedShort/readUTF/readUTFBytes` methods delegate to the input ByteArray. They
       share its position, endian, EOF, character-set, and object encoding semantics.
-    status: covered
+    source:
+      - net/Socket.hx:endian
+      - net/Socket.hx:readBoolean
+      - net/Socket.hx:readByte
+      - net/Socket.hx:readBytes
+      - net/Socket.hx:readDouble
+      - net/Socket.hx:readFloat
+      - net/Socket.hx:readInt
+      - net/Socket.hx:readMultiByte
+      - net/Socket.hx:readObject
+      - net/Socket.hx:readShort
+      - net/Socket.hx:readUnsignedByte
+      - net/Socket.hx:readUnsignedInt
+      - net/Socket.hx:readUnsignedShort
+      - net/Socket.hx:readUTF
+      - net/Socket.hx:readUTFBytes
     scenarios:
       - net/socket-basics:lifecycleAndUTF8
 
@@ -385,7 +519,21 @@ entries:
       `bytesPending` is that queued byte count. `flush()` sends all queued bytes and clears
       the queue; it is a no-op when nothing is queued and fails according to the underlying
       invalid socket otherwise.
-    status: covered
+    source:
+      - net/Socket.hx:bytesPending
+      - net/Socket.hx:flush
+      - net/Socket.hx:writeBoolean
+      - net/Socket.hx:writeByte
+      - net/Socket.hx:writeBytes
+      - net/Socket.hx:writeDouble
+      - net/Socket.hx:writeFloat
+      - net/Socket.hx:writeInt
+      - net/Socket.hx:writeMultiByte
+      - net/Socket.hx:writeObject
+      - net/Socket.hx:writeShort
+      - net/Socket.hx:writeUnsignedInt
+      - net/Socket.hx:writeUTF
+      - net/Socket.hx:writeUTFBytes
     scenarios:
       - net/socket-basics:lifecycleAndUTF8
       - net/socket-basics:disconnectedErrors
@@ -395,7 +543,11 @@ entries:
     behavior: >
       Changing `endian` updates both existing input and output buffers. `objectEncoding` is
       consulted by `readObject/writeObject`; see the AMF gap in the utils specification.
-    status: covered
+    source:
+      - net/Socket.hx:endian
+      - net/Socket.hx:objectEncoding
+      - net/Socket.hx:readObject
+      - net/Socket.hx:writeObject
     scenarios:
       - net/socket-basics:mutation
 
@@ -405,7 +557,8 @@ entries:
       `close()` closes and cleans the transport and polling. Calling close on an
       invalid/already closed native socket may throw `IOError`, matching the 9.5.2
       implementation's platform-dependent path.
-    status: covered
+    source:
+      - net/Socket.hx:close
     scenarios:
       - net/socket-basics:disconnectedErrors
 
@@ -415,8 +568,9 @@ entries:
       A native raw TCP Flight binding is not exposed, so sys targets retain `sys.net.Socket`;
       browsers necessarily use WebSocket framing. See **Raw TCP flight-hx binding on native
       hosts**.
-    status: flight-gap
-    gap: "Raw TCP flight-hx binding on native hosts"
+    source:
+      - net/Socket.hx:connect
+    notes: 'Blocked on Flight gap "Raw TCP flight-hx binding on native hosts".'
     scenarios: []
 
   - id: net.XS.new-host-port-connected
@@ -425,7 +579,10 @@ entries:
       `new(host = null, port = 80)` creates an internal Socket, registers forwarding
       listeners, initializes `connected = false`, and optionally begins connecting. `timeout`
       is copied to the Socket when connecting.
-    status: covered
+    source:
+      - net/XMLSocket.hx:connected
+      - net/XMLSocket.hx:timeout
+      - net/XMLSocket.hx:new
     scenarios:
       - net/xml-socket:defaults
       - net/xml-socket:mutation
@@ -435,7 +592,10 @@ entries:
     behavior: >
       The internal `connect`, `close`, `ioError`, `securityError`, and `socketData` lifecycle
       is forwarded. Connect sets `connected = true`; close sets it false.
-    status: covered
+    source:
+      - net/XMLSocket.hx:connected
+      - net/XMLSocket.hx:close
+      - net/XMLSocket.hx:connect
     scenarios:
       - net/xml-socket:defaults
       - net/xml-socket:disconnectedErrors
@@ -447,7 +607,8 @@ entries:
       Incoming UTF-8 text is accumulated across packets, split at null delimiters, and each
       complete message dispatches `DataEvent.DATA`; delimiters are not included and an
       incomplete tail is retained.
-    status: covered
+    source:
+      - net/XMLSocket.hx:send
     scenarios:
       - net/xml-socket:disconnectedErrors
 
@@ -456,8 +617,10 @@ entries:
     behavior: >
       On HTML5 this framing travels over WebSocket, not a traditional raw TCP XMLSocket
       server. See **XMLSocket servers on HTML5**.
-    status: flight-gap
-    gap: "Raw TCP flight-hx binding on native hosts"
+    source:
+      - net/XMLSocket.hx:connect
+      - net/XMLSocket.hx:send
+    notes: 'Blocked on Flight gap "Raw TCP flight-hx binding on native hosts".'
     scenarios: []
 
   - id: net.DS.the-class-exists-only-for-non-html5
@@ -469,8 +632,9 @@ entries:
       implementation references sys UDP types and is usable on the non-JavaScript sys path.
       Flight has no UDP capability, so the adapter retains `sys.net.UdpSocket`; see **UDP
       datagram sockets**.
-    status: flight-gap
-    gap: "UDP datagram sockets"
+    source:
+      - net/DatagramSocket.hx:isSupported
+    notes: 'Blocked on Flight gap "UDP datagram sockets".'
     scenarios:
       - net/datagram-socket:isSupported
 
@@ -481,7 +645,13 @@ entries:
       localAddress = "0.0.0.0")` synchronously validates the 0..65535 port, binds, fills
       `localAddress/localPort`, and sets `bound`. An unresolved address throws
       `ArgumentError`; bind failure follows the 9.5.2 close/error path.
-    status: covered
+    source:
+      - net/DatagramSocket.hx:bound
+      - net/DatagramSocket.hx:localAddress
+      - net/DatagramSocket.hx:localPort
+      - net/DatagramSocket.hx:new
+      - net/DatagramSocket.hx:bind
+      - net/DatagramSocket.hx:close
     scenarios:
       - net/datagram-socket:constructionError
 
@@ -493,7 +663,12 @@ entries:
       `remoteAddress`, and `remotePort` query the socket peer. The 9.5.2 code accidentally
       validates `localPort` rather than the supplied remote port before connecting; the
       adapter retains this quirk.
-    status: covered
+    source:
+      - net/DatagramSocket.hx:connected
+      - net/DatagramSocket.hx:localPort
+      - net/DatagramSocket.hx:remoteAddress
+      - net/DatagramSocket.hx:remotePort
+      - net/DatagramSocket.hx:connect
     scenarios:
       - net/surface:datagramSurface
 
@@ -504,7 +679,10 @@ entries:
       `DatagramSocketDataEvent.DATA` with source/destination address and port plus a ByteArray
       containing exactly that packet. Delivery order and loss are UDP-defined; no
       retransmission or segmentation is supplied.
-    status: covered
+    source:
+      - net/DatagramSocket.hx:receive
+      - net/DatagramSocket.hx:addEventListener
+      - net/DatagramSocket.hx:removeEventListener
     scenarios:
       - net/surface:datagramSurface
 
@@ -516,7 +694,9 @@ entries:
       requires null destination; an unconnected socket requires an address/port. Conflicting
       use throws `IllegalOperationError` or `ArgumentError`; transport failures become
       `IOError`.
-    status: covered
+    source:
+      - net/DatagramSocket.hx:connected
+      - net/DatagramSocket.hx:send
     scenarios:
       - net/datagram-socket:constructionError
 
@@ -525,7 +705,10 @@ entries:
     behavior: >
       `close()` stops receive polling, unbinds/disconnects, sets `bound` false, and dispatches
       `Event.CLOSE`; repeated underlying close errors are swallowed.
-    status: covered
+    source:
+      - net/DatagramSocket.hx:bound
+      - net/DatagramSocket.hx:close
+      - net/DatagramSocket.hx:receive
     scenarios:
       - net/surface:datagramSurface
 
@@ -539,7 +722,15 @@ entries:
       `ServerSocketConnectEvent.CONNECT` carrying an already connected OpenFL Socket. Invalid
       state/range/address produces the documented `IOError`, `RangeError`, or `ArgumentError`
       paths.
-    status: covered
+    source:
+      - net/ServerSocket.hx:bound
+      - net/ServerSocket.hx:listening
+      - net/ServerSocket.hx:localAddress
+      - net/ServerSocket.hx:localPort
+      - net/ServerSocket.hx:new
+      - net/ServerSocket.hx:bind
+      - net/ServerSocket.hx:close
+      - net/ServerSocket.hx:listen
     scenarios:
       - net/surface:serverSocketSurface
 
@@ -554,7 +745,12 @@ entries:
       and throws on an invalid socket; `serverCertificateStatus` is `UNKNOWN`, then `TRUSTED`
       or `INVALID`. `addBinaryChainBuildingCertificate` unconditionally throws
       `ArgumentError("Not supported")` in the portable 9.5.2 implementation.
-    status: covered
+    source:
+      - net/SecureSocket.hx:isSupported
+      - net/SecureSocket.hx:serverCertificate
+      - net/SecureSocket.hx:serverCertificateStatus
+      - net/SecureSocket.hx:addBinaryChainBuildingCertificate
+      - net/SecureSocket.hx:connect
     scenarios:
       - net/surface:secureSocketSurface
 
@@ -567,7 +763,10 @@ entries:
       status already produced by a connection attempt, while the next `connect()` resets it
       to UNKNOWN before resolving the host. Invalid ports below zero or above 65535 throw
       `SecurityError` synchronously.
-    status: missing
+    source:
+      - net/SecureSocket.hx:isSupported
+      - net/SecureSocket.hx:new
+      - net/SecureSocket.hx:connect
     notes: "Flash delegates to flash.net.SecureSocket; this missing entry covers the non-Flash sys versus non-sys compile/runtime split."
     scenarios: []
 
@@ -581,7 +780,10 @@ entries:
       other CONNECT listeners remain. DatagramSocket has a different override: only the first
       DATA listener installs polling, and only removal of the last DATA listener removes it;
       `receive()` merely enables processing once that listener-driven poll runs.
-    status: missing
+    source:
+      - net/ServerSocket.hx:isSupported
+      - net/ServerSocket.hx:addEventListener
+      - net/ServerSocket.hx:removeEventListener
     notes: "These non-Flash target gates and the two classes' distinct public listener override behaviors need compile/lifecycle fixtures."
     scenarios: []
 
@@ -593,7 +795,18 @@ entries:
       available name (`without directory`), dates, byte size, and dot-prefixed `type`;
       `extension` returns the suffix without a dot or null. Browser metadata may not provide
       creation separately, so 9.5.2 uses modification time for both.
-    status: covered
+    source:
+      - net/FileReference.hx:creationDate
+      - net/FileReference.hx:creator
+      - net/FileReference.hx:data
+      - net/FileReference.hx:modificationDate
+      - net/FileReference.hx:name
+      - net/FileReference.hx:size
+      - net/FileReference.hx:type
+      - net/FileReference.hx:extension
+      - net/FileReference.hx:new
+      - net/FileFilter.hx:extension
+      - net/FileFilter.hx:new
     scenarios:
       - net/file-reference:initial
 
@@ -604,7 +817,10 @@ entries:
       opens a single-select host dialog, returns true when that operation is accepted, then
       dispatches Event.SELECT or Event.CANCEL. On the comparison target, the executable 9.5.2
       and adapter no-host paths both return true without an immediate event.
-    status: covered
+    source:
+      - net/FileReference.hx:data
+      - net/FileReference.hx:browse
+      - net/FileReference.hx:cancel
     scenarios:
       - net/file-reference:browseWithFilter
       - net/file-reference:browseWithoutFilter
@@ -616,7 +832,9 @@ entries:
       `Event.COMPLETE`, or `IOErrorEvent.IO_ERROR` on an asynchronous browser/host failure.
       Despite the API prose, portable 9.5.2 does not dispatch `open` or `progress` for local
       load; the adapter matches this lifecycle.
-    status: covered
+    source:
+      - net/FileReference.hx:data
+      - net/FileReference.hx:load
     scenarios:
       - net/file-reference:referenceAfterOperations
       - net/file-reference:events
@@ -628,7 +846,10 @@ entries:
       all other data is `Std.string` UTF-8. The dialog dispatches cancel, or `select` after
       the user chooses a destination, followed by `complete` after the write. Host failure
       dispatches `ioError` in the adapter.
-    status: covered
+    source:
+      - net/FileReference.hx:data
+      - net/FileReference.hx:cancel
+      - net/FileReference.hx:save
     scenarios:
       - net/file-reference:referenceAfterOperations
       - net/file-reference:events
@@ -641,8 +862,11 @@ entries:
       `select/cancel/complete`. The adapter immediately dispatches `ioError`; Flight cannot
       compose a cancellable request with a streamed save destination. See **FileReference
       network transfers and cancellation**.
-    status: flight-gap
-    gap: "FileReference network transfers and cancellation"
+    source:
+      - net/FileReference.hx:cancel
+      - net/FileReference.hx:download
+      - net/FileReference.hx:save
+    notes: 'Blocked on Flight gap "FileReference network transfers and cancellation".'
     scenarios: []
 
   - id: net.FR.upload-request-uploaddatafieldname-dataevent-upload
@@ -654,8 +878,9 @@ entries:
       `DataEvent.UPLOAD_COMPLETE_DATA` with the response. The adapter immediately emits
       `ioError`; Flight lacks this multipart/cancellation workflow. `testUpload` is ignored by
       portable 9.5.2.
-    status: flight-gap
-    gap: "FileReference network transfers and cancellation"
+    source:
+      - net/FileReference.hx:upload
+    notes: 'Blocked on Flight gap "FileReference network transfers and cancellation".'
     scenarios:
       - net/file-reference:uploadWithoutSelectionDispatchedError
 
@@ -665,8 +890,9 @@ entries:
       `cancel()` does not itself dispatch `cancel`. Portable 9.5.2 calls the active
       URLLoader's close; the adapter invalidates pending dialog/filesystem completions but
       cannot cancel the host operation. See the same gap.
-    status: flight-gap
-    gap: "FileReference network transfers and cancellation"
+    source:
+      - net/FileReference.hx:cancel
+    notes: 'Blocked on Flight gap "FileReference network transfers and cancellation".'
     scenarios: []
 
   - id: net.FR.filefilter-new-description-extension
@@ -675,7 +901,13 @@ entries:
       `FileFilter.new(description, extension, macType = null)` simply stores its three mutable
       strings. Extension syntax can contain semicolon-separated patterns such as
       `*.png;*.jpg`; `macType` is legacy metadata.
-    status: covered
+    source:
+      - net/FileReference.hx:extension
+      - net/FileReference.hx:new
+      - net/FileFilter.hx:description
+      - net/FileFilter.hx:extension
+      - net/FileFilter.hx:macType
+      - net/FileFilter.hx:new
     scenarios:
       - net/file-reference:filter
       - net/file-reference:defaultFilter
@@ -687,7 +919,10 @@ entries:
       array, opens a multi-select dialog, returns true when accepted, and dispatches cancel or
       one select after all references and available metadata are ready. Every selected item is
       a separate FileReference; callers must upload/load them individually.
-    status: covered
+    source:
+      - net/FileReferenceList.hx:fileList
+      - net/FileReferenceList.hx:new
+      - net/FileReferenceList.hx:browse
     scenarios:
       - net/file-reference:list
 
@@ -697,7 +932,8 @@ entries:
       The no-host path returns true, replaces fileList with an empty array, and emits no
       immediate event on both the executable 9.5.2 comparison target and the adapter. Host
       statistic failures dispatch ioError before any partial selection is exposed.
-    status: covered
+    source:
+      - net/FileReferenceList.hx:fileList
     scenarios:
       - net/file-reference:list
 
@@ -709,7 +945,13 @@ entries:
       identity by `localPath + "/" + name`, so repeated calls return the same instance, loads
       persisted fields into dynamic `data`, and initializes `client = this`, `fps = 0`, and
       `objectEncoding` from the current static `defaultObjectEncoding`. `secure` is ignored.
-    status: covered
+    source:
+      - net/SharedObject.hx:defaultObjectEncoding
+      - net/SharedObject.hx:client
+      - net/SharedObject.hx:data
+      - net/SharedObject.hx:fps
+      - net/SharedObject.hx:objectEncoding
+      - net/SharedObject.hx:getLocal
     scenarios:
       - net/shared-object:identity
       - net/shared-object:invalidNamesRejected
@@ -720,7 +962,11 @@ entries:
       `data` is an ordinary dynamic object. Direct field reads/writes are retained until
       `clear` or process/object loss. `setProperty(name, value = null)` sets a field;
       `setDirty(name)` is a no-op because the local format serializes the entire object.
-    status: covered
+    source:
+      - net/SharedObject.hx:data
+      - net/SharedObject.hx:clear
+      - net/SharedObject.hx:setDirty
+      - net/SharedObject.hx:setProperty
     scenarios:
       - net/shared-object:populated
       - net/shared-object:nullProperty
@@ -731,7 +977,10 @@ entries:
       `size` is the encoded byte count of current data, or zero if serialization fails. The
       portable implementation uses Haxe serialization, regardless of the public
       `objectEncoding` value.
-    status: covered
+    source:
+      - net/SharedObject.hx:data
+      - net/SharedObject.hx:objectEncoding
+      - net/SharedObject.hx:size
     scenarios:
       - net/shared-object:populated
 
@@ -742,7 +991,11 @@ entries:
       `minDiskSpace` is ignored. The Flight adapter returns `PENDING` if host persistence
       rejects/fails while retaining a process-local copy; 9.5.2's native file path normally
       reports `FLUSHED`.
-    status: covered
+    source:
+      - net/SharedObject.hx:data
+      - net/SharedObject.hx:flush
+      - net/SharedObjectFlushStatus.hx:FLUSHED
+      - net/SharedObjectFlushStatus.hx:PENDING
     scenarios:
       - net/shared-object:emptyFlush
       - net/shared-object:populated
@@ -752,8 +1005,10 @@ entries:
     behavior: >
       There is no quota prompt and no later `NetStatusEvent` resolving a pending flush; see
       **SharedObject quota prompts and remote synchronization**.
-    status: flight-gap
-    gap: "SharedObject quota prompts and remote synchronization"
+    source:
+      - net/SharedObject.hx:flush
+      - net/SharedObjectFlushStatus.hx:PENDING
+    notes: 'Blocked on Flight gap "SharedObject quota prompts and remote synchronization".'
     scenarios: []
 
   - id: net.SO.clear-data
@@ -762,7 +1017,10 @@ entries:
       `clear()` replaces `data` with a fresh empty object and deletes the persisted value.
       Existing external references to the previous data object do not become the new store.
       `close()` is a no-op.
-    status: covered
+    source:
+      - net/SharedObject.hx:data
+      - net/SharedObject.hx:clear
+      - net/SharedObject.hx:close
     scenarios:
       - net/shared-object:populated
       - net/shared-object:nullProperty
@@ -774,8 +1032,12 @@ entries:
       stubs. Portable 9.5.2 provides no remote synchronization, and Flight has no replacement.
       The documented `netStatus`, `asyncError`, and `sync` lifecycles therefore never occur
       for this implementation.
-    status: flight-gap
-    gap: "SharedObject quota prompts and remote synchronization"
+    source:
+      - net/SharedObject.hx:connect
+      - net/SharedObject.hx:getRemote
+      - net/SharedObject.hx:send
+      - net/SharedObject.hx:setDirty
+    notes: 'Blocked on Flight gap "SharedObject quota prompts and remote synchronization".'
     scenarios:
       - net/shared-object:mutations
 
@@ -786,7 +1048,10 @@ entries:
       non-`openfljs` portable target, with canonical string conversions; on `openfljs` the
       constants are `"flushed"` and `"pending"`. `SharedObject.defaultObjectEncoding` is
       mutable and defaults to `HXSF` off Flash.
-    status: covered
+    source:
+      - net/SharedObject.hx:defaultObjectEncoding
+      - net/SharedObjectFlushStatus.hx:FLUSHED
+      - net/SharedObjectFlushStatus.hx:PENDING
     scenarios:
       - net/shared-object:defaults
       - net/shared-object:inheritedEncoding
@@ -798,7 +1063,10 @@ entries:
       synchronously dispatches a non-bubbling, cancelable `NetStatusEvent.NET_STATUS` whose
       `info.code` is `"NetConnection.Connect.Success"`; any non-null command throws the string
       `Error: Can only connect in "HTTP streaming" mode`. Optional arguments are ignored.
-    status: covered
+    source:
+      - net/NetConnection.hx:new
+      - net/NetConnection.hx:connect
+      - net/Responder.hx:new
     scenarios:
       - net/surface:netConnection
 
@@ -809,7 +1077,10 @@ entries:
       `connectedProxyType`, `defaultObjectEncoding`, `objectEncoding`, `proxyType`, `uri`, or
       `usingTLS`; these are commented declarations and exist only through the Flash typedef.
       The current source intentionally matches this limited 9.5.2 surface.
-    status: covered
+    source:
+      - net/NetConnection.hx:new
+      - net/NetConnection.hx:connect
+      - net/NetConnection.hx:close
     scenarios:
       - net/surface:netConnection
 
@@ -819,7 +1090,9 @@ entries:
       `Responder.new(result, status = null)` stores the callbacks privately for a Flash-style
       `NetConnection.call`, but the portable NetConnection has no call method and never
       invokes them.
-    status: covered
+    source:
+      - net/NetConnection.hx:new
+      - net/Responder.hx:new
     scenarios:
       - net/surface:responder
 
@@ -829,7 +1102,9 @@ entries:
       `new(connection, peerID = null)` stores the connection and a default SoundTransform. On
       HTML5 it creates an anonymous, inline/cross-origin video element and attaches media
       callbacks; other targets create no decoder. `peerID` is ignored.
-    status: covered
+    source:
+      - net/NetStream.hx:soundTransform
+      - net/NetStream.hx:new
     scenarios:
       - net/surface:netStream
 
@@ -842,7 +1117,22 @@ entries:
       `objectEncoding`, `time`, and the source's misspelled `videoCode`; plus get/set
       `soundTransform` and `speed`. Unassigned numeric fields remain zero, not the richer
       values promised by the Flash prose.
-    status: covered
+    source:
+      - net/NetStream.hx:audioCodec
+      - net/NetStream.hx:bufferLength
+      - net/NetStream.hx:bufferTime
+      - net/NetStream.hx:bytesLoaded
+      - net/NetStream.hx:bytesTotal
+      - net/NetStream.hx:checkPolicyFile
+      - net/NetStream.hx:client
+      - net/NetStream.hx:currentFPS
+      - net/NetStream.hx:decodedFrames
+      - net/NetStream.hx:liveDelay
+      - net/NetStream.hx:objectEncoding
+      - net/NetStream.hx:soundTransform
+      - net/NetStream.hx:speed
+      - net/NetStream.hx:time
+      - net/NetStream.hx:videoCode
     scenarios:
       - net/surface:netStream
 
@@ -852,7 +1142,8 @@ entries:
       `play(url, p1..p5)` is functional only on HTML5: it applies global times local volume,
       assigns a string to video `src` or another value to `srcObject`, and calls play. Extra
       arguments are ignored. Other targets do nothing.
-    status: covered
+    source:
+      - net/NetStream.hx:play
     scenarios:
       - net/surface:netStream
 
@@ -861,8 +1152,9 @@ entries:
     behavior: >
       Cross-target decoding/frame delivery is unavailable; see **Cross-target NetStream video
       source**.
-    status: flight-gap
-    gap: "Cross-target NetStream video source"
+    source:
+      - net/NetStream.hx:play
+    notes: 'Blocked on Flight gap "Cross-target NetStream video source".'
     scenarios: []
 
   - id: net.NS.pause-resume
@@ -872,7 +1164,11 @@ entries:
       HTML5; all are no-ops elsewhere. `seek(seconds)` clamps to `[0, duration]`, dispatches
       `NetStream.SeekStart.Notify`, assigns currentTime, and the later seeking callback
       dispatches `NetStream.Seek.Complete`.
-    status: covered
+    source:
+      - net/NetStream.hx:pause
+      - net/NetStream.hx:resume
+      - net/NetStream.hx:seek
+      - net/NetStream.hx:togglePause
     scenarios:
       - net/surface:netStream
 
@@ -882,7 +1178,10 @@ entries:
       `close()` pauses, clears `src`, marks closed, and resets `time` to zero on HTML5, but
       preserves the element/current frame object. `dispose()` calls close then releases the
       element, causing attached video to go blank.
-    status: covered
+    source:
+      - net/NetStream.hx:time
+      - net/NetStream.hx:close
+      - net/NetStream.hx:dispose
     scenarios:
       - net/surface:netStream
 
@@ -891,7 +1190,11 @@ entries:
     behavior: >
       `requestVideoStatus()` asynchronously invokes `client.onPlayStatus` with
       `NetStream.Play.pause` or `.playing` when an HTML element exists.
-    status: covered
+    source:
+      - net/NetStream.hx:client
+      - net/NetStream.hx:pause
+      - net/NetStream.hx:play
+      - net/NetStream.hx:requestVideoStatus
     scenarios:
       - net/surface:netStream
 
@@ -901,7 +1204,9 @@ entries:
       `soundTransform` getter returns a clone; assigning non-null copies only pan and volume
       and immediately updates HTML media volume. Pan is not applied. `speed` gets/sets HTML
       `playbackRate`, or reads `1` and discards writes on other targets.
-    status: covered
+    source:
+      - net/NetStream.hx:soundTransform
+      - net/NetStream.hx:speed
     scenarios:
       - net/surface:netStream
 
@@ -916,7 +1221,12 @@ entries:
       pause, playing, seeking, timeupdate, error, and complete. `loadedmetadata` calls
       `client.onMetaData` with width, height, and duration. Missing handlers and exceptions
       are swallowed.
-    status: covered
+    source:
+      - net/NetStream.hx:onMetaData
+      - net/NetStream.hx:client
+      - net/NetStream.hx:pause
+      - net/NetStream.hx:play
+      - net/NetStream.hx:seek
     scenarios:
       - net/surface:netStream
 
@@ -927,7 +1237,9 @@ entries:
       and related status codes are all enclosed in `#if false` in non-Flash 9.5.2. They are
       Flash-only and absent from the adapter. There is no portable `audioCodec`/`videoCodec`
       discovery; note that 9.5.2 spells the latter field `videoCode`.
-    status: covered
+    source:
+      - net/NetStream.hx:audioCodec
+      - net/NetStream.hx:videoCode
     scenarios:
       - net/surface:netStream
 
@@ -938,7 +1250,15 @@ entries:
       `JSON=12`, `LARGE_JSON=13`; `DEFAULT` is AMF3 on Flash and HXSF elsewhere.
       `dynamicPropertyWriter` is a mutable static hook, though the current ByteArray AMF
       implementation cannot consume it.
-    status: covered
+    source:
+      - net/ObjectEncoding.hx:dynamicPropertyWriter
+      - net/ObjectEncoding.hx:AMF0
+      - net/ObjectEncoding.hx:AMF3
+      - net/ObjectEncoding.hx:HXSF
+      - net/ObjectEncoding.hx:LARGE_HXSF
+      - net/ObjectEncoding.hx:JSON
+      - net/ObjectEncoding.hx:LARGE_JSON
+      - net/ObjectEncoding.hx:DEFAULT
     scenarios:
       - net/surface:encoding
 
@@ -948,7 +1268,10 @@ entries:
       `IDynamicPropertyOutput.writeDynamicProperty(name,value)` is the sink contract used by
       `IDynamicPropertyWriter.writeDynamicProperties(obj,output)`; the interfaces impose no
       ordering or storage themselves.
-    status: covered
+    source:
+      - net/IDynamicPropertyOutput.hx:writeDynamicProperty
+      - net/IDynamicPropertyWriter.hx:writeDynamicProperties
+      - net/ObjectEncoding.hx:dynamicPropertyWriter
     scenarios:
       - net/surface:dynamicProperties
 
@@ -959,7 +1282,9 @@ entries:
       with canonical `"IPv4"`/`"IPv6"` conversions; on `openfljs` the constants are those
       strings directly. These are selectors only; socket address-family validation remains a
       transport concern.
-    status: covered
+    source:
+      - net/IPVersion.hx:IPV4
+      - net/IPVersion.hx:IPV6
     scenarios:
       - net/surface:ipVersion
 
@@ -972,7 +1297,10 @@ entries:
       implementation uses an HTML file input when available. `IPVersion` is separately gated
       to non-Flash `sys` (subject to its documentation flags), and otherwise exists only as
       an AIR typedef; non-sys portable targets have no `IPVersion` declaration.
-    status: missing
+    source:
+      - net/FileReferenceList.hx:new
+      - net/IPVersion.hx:IPV4
+      - net/IPVersion.hx:IPV6
     notes: "Flash typedefs FileReferenceList unconditionally; IPVersion's Flash typedef is AIR-only. Compile-surface checks are needed for all branches."
     scenarios: []
 
@@ -985,7 +1313,10 @@ entries:
       false. Its constructor calls EventDispatcher construction and then always throws
       `IllegalOperationError("Not supported")`; `lookup(host,recordType)` has an empty body,
       and ordinary public code cannot reach it because no resolver instance can be created.
-    status: missing
+    source:
+      - net/dns/DNSResolver.hx:isSupported
+      - net/dns/DNSResolver.hx:lookup
+      - net/dns/SRVRecord.hx:target
     notes: "Compile and exception coverage is required for the non-Flash sys stub, non-sys absence, and AIR typedef paths."
     scenarios: []
 
@@ -997,7 +1328,12 @@ entries:
       mutable `address:String`; `PTRRecord` similarly adds mutable `ptrdName:String`.
       Construction leaves all String fields null and `ttl` at zero, and every field accepts
       later assignment without validation, address-family checking, or TTL bounds.
-    status: missing
+    source:
+      - net/dns/AAAARecord.hx:address
+      - net/dns/ARecord.hx:address
+      - net/dns/PTRRecord.hx:ptrdName
+      - net/dns/ResourceRecord.hx:name
+      - net/dns/ResourceRecord.hx:ttl
     notes: "These concrete record constructors exist only on the non-Flash sys stub; AIR supplies native typedefs."
     scenarios: []
 
@@ -1009,6 +1345,20 @@ entries:
       `target:String`, and `weight:Int`. Their constructors only call the empty base
       constructor, so String fields start null and Int fields start zero. The portable value
       objects do not enforce valid ports, non-negative priority/weight, or DNS name syntax.
-    status: missing
+    source:
+      - net/dns/AAAARecord.hx:new
+      - net/dns/ARecord.hx:new
+      - net/dns/DNSResolver.hx:new
+      - net/dns/MXRecord.hx:exchange
+      - net/dns/MXRecord.hx:preference
+      - net/dns/MXRecord.hx:new
+      - net/dns/PTRRecord.hx:new
+      - net/dns/ResourceRecord.hx:name
+      - net/dns/ResourceRecord.hx:ttl
+      - net/dns/SRVRecord.hx:port
+      - net/dns/SRVRecord.hx:priority
+      - net/dns/SRVRecord.hx:target
+      - net/dns/SRVRecord.hx:weight
+      - net/dns/SRVRecord.hx:new
     notes: "Non-Flash sys stub behavior; the AIR typedef can have native population rules."
     scenarios: []

@@ -8,7 +8,10 @@ entries:
       A `TextField` owns a Flight `RichText` child and synchronizes text, per-character format
       ranges, default format, dimensions, background, border, wrapping, scrolling, selection,
       password options, and input constraints.
-    status: covered
+    source:
+      - text/TextField.hx:background
+      - text/TextField.hx:border
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:layout
       - text/text-field:dimensions
@@ -19,7 +22,9 @@ entries:
       Plain `text` assignment rejects `null`, resets HTML state and character formats to
       clones of `defaultTextFormat`, resets the selection to zero, and does not dispatch
       `Event.CHANGE`, matching the observable 9.5.2 assignment path.
-    status: covered
+    source:
+      - text/TextField.hx:defaultTextFormat
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:text
 
@@ -29,7 +34,12 @@ entries:
       `appendText`, `replaceText`, and `replaceSelectedText` preserve unaffected character
       formats, insert the default format, update selection/caret state, and reject replacement
       while a StyleSheet is assigned.
-    status: covered
+    source:
+      - text/TextField.hx:styleSheet
+      - text/TextField.hx:text
+      - text/TextField.hx:appendText
+      - text/TextField.hx:replaceSelectedText
+      - text/TextField.hx:replaceText
     scenarios:
       - text/text-field-behavior:appendText
       - text/text-field-behavior:replaceText
@@ -40,7 +50,13 @@ entries:
       Programmatic `text`, `appendText`, and `replaceText` are not truncated by `maxChars` or
       filtered by `restrict`; OpenFL 9.5.2 applies those constraints to user input, not these
       calls.
-    status: covered
+    source:
+      - text/TextField.hx:displayAsPassword
+      - text/TextField.hx:maxChars
+      - text/TextField.hx:restrict
+      - text/TextField.hx:text
+      - text/TextField.hx:appendText
+      - text/TextField.hx:replaceText
     scenarios:
       - text/text-field-behavior:appendText
       - text/text-field-behavior:replaceText
@@ -51,7 +67,10 @@ entries:
       RichText setters advance Flight content/appearance/bounds revisions, so text, format,
       dimension, background, border, and wrapping changes invalidate the actual render node
       without needing the old OpenFL renderer dirty flags.
-    status: covered
+    source:
+      - text/TextField.hx:background
+      - text/TextField.hx:border
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:defaults
 
@@ -61,7 +80,10 @@ entries:
       Text and format synchronization plus dimension, background, border, wrapping, and
       selection-affecting setters mark the OpenFL display path render-dirty as well as
       advancing Flight revisions.
-    status: covered
+    source:
+      - text/TextField.hx:background
+      - text/TextField.hx:border
+      - text/TextField.hx:text
     scenarios:
       - text/surface:boundsAndInvalidation
 
@@ -70,7 +92,8 @@ entries:
     behavior: >
       TextField contributes its logical field rectangle to getBounds/getRect, hit testing, and
       container sizing, transformed into the requested coordinate space.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/surface:boundsAndInvalidation
 
@@ -79,7 +102,9 @@ entries:
     behavior: >
       `autoSize` recomputes field dimensions from text metrics and retains the left, center,
       or right anchor used when the mode is selected.
-    status: covered
+    source:
+      - text/TextField.hx:autoSize
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:autoSize
       - text/text-field:autoSizeMutations
@@ -91,7 +116,10 @@ entries:
       scaled fields, later x/width mutations, border gutters, and multi-format/HTML content
       need focused comparisons; the current implementation recomputes eagerly instead of using
       OpenFL's layout-dirty pass.
-    status: covered
+    source:
+      - text/TextField.hx:border
+      - text/TextField.hx:text
+      - text/TextField.hx:wordWrap
     scenarios:
       - text/text-field:autoSize
       - text/text-field:autoSizeMutations
@@ -101,7 +129,10 @@ entries:
     behavior: >
       `multiline`, `wordWrap`, width, and height feed the Flight layout and RichText node;
       scaled width/height setters retain local unscaled dimensions.
-    status: covered
+    source:
+      - text/TextField.hx:multiline
+      - text/TextField.hx:text
+      - text/TextField.hx:wordWrap
     scenarios:
       - text/text-field:layout
       - text/text-field:dimensions
@@ -112,7 +143,9 @@ entries:
       Changing multiline does not rewrite existing CR/LF characters. Existing line breaks
       continue to participate in layout, matching executable 9.5.2, while the public multiline
       flag retains the assigned value.
-    status: covered
+    source:
+      - text/TextField.hx:multiline
+      - text/TextField.hx:text
     scenarios:
       - text/surface:layoutEdges
 
@@ -123,7 +156,12 @@ entries:
       forwards them to Flight TextInput. `caretIndex` returns the raw end index, while
       `selectionBeginIndex` and `selectionEndIndex` normalize a reversed selection with
       `min`/`max`; out-of-range values remain out of range.
-    status: covered
+    source:
+      - text/TextField.hx:caretIndex
+      - text/TextField.hx:selectionBeginIndex
+      - text/TextField.hx:selectionEndIndex
+      - text/TextField.hx:text
+      - text/TextField.hx:setSelection
     scenarios:
       - text/text-field:selection
 
@@ -132,7 +170,9 @@ entries:
     behavior: >
       setSelection forwards the raw selection and asks Flight to scroll the caret into view
       using the current layout and field viewport.
-    status: covered
+    source:
+      - text/TextField.hx:text
+      - text/TextField.hx:setSelection
     scenarios:
       - text/text-field:selection
 
@@ -142,7 +182,10 @@ entries:
       `scrollH` and `scrollV` are rounded and clamped by Flight, mirrored back through the
       scroll signal, and dispatch `Event.SCROLL` only when the effective value changes.
       Maximum and bottom scroll values are layout-derived.
-    status: covered
+    source:
+      - text/TextField.hx:scrollH
+      - text/TextField.hx:scrollV
+      - text/TextField.hx:text
     scenarios:
       - text/text-field-behavior:scrolling
 
@@ -151,7 +194,9 @@ entries:
     behavior: >
       Appending while pinned to the bottom advances the rendered bottom line while preserving
       the reported `scrollV` quirk captured from OpenFL 9.5.2.
-    status: covered
+    source:
+      - text/TextField.hx:scrollV
+      - text/TextField.hx:text
     scenarios:
       - text/text-field-behavior:scrolling
 
@@ -162,7 +207,13 @@ entries:
       current horizontal and vertical scroll offsets: `getCharBoundaries`,
       `getCharIndexAtPoint`, `getLineIndexAtPoint`, `getLineIndexOfChar`, line
       offset/length/text/metrics, and paragraph queries.
-    status: covered
+    source:
+      - text/TextField.hx:length
+      - text/TextField.hx:text
+      - text/TextField.hx:getCharBoundaries
+      - text/TextField.hx:getCharIndexAtPoint
+      - text/TextField.hx:getLineIndexAtPoint
+      - text/TextField.hx:getLineIndexOfChar
     scenarios:
       - text/text-field-behavior:lineQueries
       - text/text-field-behavior:hitQueries
@@ -174,7 +225,8 @@ entries:
       pairs/non-ASCII strings, mixed-size runs, empty trailing lines, and scrolled
       coordinates. The headless fixtures use zero glyph widths, so they do not validate glyph
       x positions or point-to-character boundaries.
-    status: deviation
+    source:
+      - text/TextField.hx:text
     notes: "CR/CRLF, tabs, repeated whitespace, Unicode, mixed range, and scroll cases are now covered; live glyph x-position parity still depends on a host measure provider."
     scenarios:
       - text/surface:layoutEdges
@@ -187,8 +239,10 @@ entries:
       editing, focus, restrictions, and a `TextInputSource` connector, but the OpenFL Stage
       bridge owns no host-local Flight input manager/source. Native keyboard and text ingress
       therefore cannot autonomously reach a TextField.
-    status: flight-gap
-    gap: "TextField and StageText host input ownership"
+    source:
+      - text/TextField.hx:selectable
+      - text/TextField.hx:text
+    notes: 'Blocked on Flight gap "TextField and StageText host input ownership".'
     scenarios:
       - text/text-field:inputProperties
       - text/text-field-behavior:inputConstraints
@@ -199,7 +253,9 @@ entries:
       `TextField.type` and `tabEnabled` retain the public dynamic/input state, but changing
       type does not focus/blur a Flight TextInput manager or install the OpenFL focus/input
       lifecycle that 9.5.2 starts and stops.
-    status: deviation
+    source:
+      - text/TextField.hx:text
+      - text/TextField.hx:type
     notes: "Public state and tab defaults match, but autonomous focus/input-manager ownership remains part of the tracked TextField host-input Flight gap."
     scenarios:
       - text/text-field:inputProperties
@@ -210,7 +266,8 @@ entries:
     behavior: >
       Generic Stage focus assignment dispatches bubbling OpenFL `FOCUS_IN` and `FOCUS_OUT`
       events to a TextField.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - display/stage:focus
 
@@ -220,7 +277,9 @@ entries:
       Mouse selection is not wired. The current TextField installs no mouse down/move/up/wheel
       listeners and does not route OpenFL pointer coordinates to Flight's selectable/editable
       text managers; single/double/triple-click and drag selection are absent.
-    status: deviation
+    source:
+      - text/TextField.hx:selectable
+      - text/TextField.hx:text
     notes: "Adapter-side selection and input event paths are covered; native pointer-manager ownership remains part of the tracked host-input Flight gap."
     scenarios:
       - text/surface:inputEvents
@@ -230,7 +289,8 @@ entries:
     behavior: >
       The Flight RichText link signal is connected and translated to a bubbling OpenFL
       TextEvent.LINK, stripping the event: prefix from event links.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/surface:inputEvents
       - text/surface:htmlStyles
@@ -241,7 +301,8 @@ entries:
       A Flight-originated text mutation is mirrored to `text`, formats, selection, and
       auto-size, then produces OpenFL `Event.CHANGE`; a programmatic assignment is ignored by
       the callback after the adapter has already updated its shadow string.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/surface:inputEvents
 
@@ -250,7 +311,8 @@ entries:
     behavior: >
       Flight-originated edits dispatch a bubbling Event.CHANGE after the adapter has mirrored
       text, formats, selection, and auto-size state.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/surface:inputEvents
 
@@ -259,7 +321,8 @@ entries:
     behavior: >
       Flight-originated insertions dispatch a bubbling, cancellable TEXT_INPUT event.
       Preventing the default rolls the post-edit Flight string back before CHANGE is emitted.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/surface:inputEvents
 
@@ -268,7 +331,8 @@ entries:
     behavior: >
       Flight-originated scroll changes produce OpenFL `Event.SCROLL`; the event is
       non-bubbling, matching the 9.5.2 setter path.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/text-field-behavior:scrolling
 
@@ -278,7 +342,8 @@ entries:
       Cursor blink, selection collapse on focus loss, clipboard shortcuts, and keyboard caret
       navigation are present in the 9.5.2 TextField event handlers but have no
       OpenFL-to-Flight interaction bridge in the current class.
-    status: deviation
+    source:
+      - text/TextField.hx:text
     notes: "Generic focus events work, but cursor timers and host keyboard/clipboard routing remain dependent on Flight input-manager ownership."
     scenarios:
       - display/stage:focus
@@ -289,7 +354,12 @@ entries:
     behavior: >
       `restrict`, `maxChars`, password mode/character, `selectable`, mouse-wheel enablement,
       and multiline mode are retained and passed to Flight.
-    status: covered
+    source:
+      - text/TextField.hx:maxChars
+      - text/TextField.hx:multiline
+      - text/TextField.hx:restrict
+      - text/TextField.hx:selectable
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:inputProperties
       - text/text-field-behavior:inputConstraints
@@ -300,8 +370,9 @@ entries:
       Their user-editing effect remains blocked with host input. In addition, OpenFL
       `TEXT_INPUT` cancellation would require an adapter-level pre-edit seam, even after Stage
       owns the Flight manager.
-    status: flight-gap
-    gap: "TextField and StageText host input ownership"
+    source:
+      - text/TextField.hx:text
+    notes: 'Blocked on Flight gap "TextField and StageText host input ownership".'
     scenarios: []
 
   - id: text.TFMT.defaulttextformat
@@ -310,7 +381,9 @@ entries:
       `defaultTextFormat` is clone-on-read and merge-on-write. Existing per-character formats
       remain unchanged while subsequent plain assignment or inserted text uses the merged
       default.
-    status: covered
+    source:
+      - text/TextField.hx:defaultTextFormat
+      - text/TextFormat.hx:new
     scenarios:
       - text/text-format:defaultTextFormat
       - text/text-field:defaultTextFormat
@@ -320,7 +393,9 @@ entries:
     behavior: >
       `setTextFormat` implements the public index defaults and range errors, merges only
       non-null fields, synchronizes format ranges to Flight, and invalidates layout/auto-size.
-    status: covered
+    source:
+      - text/TextField.hx:setTextFormat
+      - text/TextFormat.hx:size
     scenarios:
       - text/text-format:partialRange
       - text/text-field-behavior:textFormat
@@ -331,7 +406,18 @@ entries:
       All public OpenFL 9.5.2 `TextFormat` fields used by the text renderer are mapped to and
       from Flight: alignment, margins/indent, bold/italic/underline/ strikethrough, color,
       family/size, kerning/leading/letter spacing, bullets, tab stops, URL, and target.
-    status: covered
+    source:
+      - text/TextFormat.hx:bold
+      - text/TextFormat.hx:color
+      - text/TextFormat.hx:indent
+      - text/TextFormat.hx:italic
+      - text/TextFormat.hx:kerning
+      - text/TextFormat.hx:leading
+      - text/TextFormat.hx:size
+      - text/TextFormat.hx:strikethrough
+      - text/TextFormat.hx:target
+      - text/TextFormat.hx:underline
+      - text/TextFormat.hx:url
     scenarios:
       - text/text-format:values
 
@@ -341,7 +427,9 @@ entries:
       getTextFormat compares the formats at the requested range boundaries and nulls every
       mixed public TextFormat property, matching the executable 9.5.2 range algorithm
       including its enclosed-run quirk.
-    status: covered
+    source:
+      - text/TextField.hx:getTextFormat
+      - text/TextFormat.hx:new
     scenarios:
       - text/text-format:partialRange
 
@@ -352,7 +440,10 @@ entries:
       OpenFL's compact run structure. Unicode indexing and edits across multi-code-unit
       characters need explicit coverage before this representation can be considered
       equivalent.
-    status: covered
+    source:
+      - text/TextField.hx:getTextFormat
+      - text/TextField.hx:setTextFormat
+      - text/TextFormat.hx:new
     scenarios:
       - text/text-format:partialRange
       - text/text-field-behavior:textFormat
@@ -362,7 +453,9 @@ entries:
     behavior: >
       `htmlText` rejects `null`, keeps the raw HTML shadow for readback, updates plain `text`,
       resets selection to the end, and supports basic entity decoding.
-    status: covered
+    source:
+      - text/TextField.hx:htmlText
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:htmlText
 
@@ -372,7 +465,8 @@ entries:
       The current fallback recognizes `<br>`, `<b>`, `<i>`, `<u>`, and `<font color=...>`,
       plus decimal/hex numeric entities and the common named entities `lt`, `gt`, `quot`,
       `amp`, `nbsp`, and apostrophe.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:htmlText
 
@@ -384,7 +478,9 @@ entries:
       `<font face>` and absolute/relative `size`, `<textformat>` margins/indent/leading/tab
       stops, tag-name styles, `.class` and `tag.class` styles, `a:link`, nesting matched by
       tag name, multiline-aware `<br>`, and the full `StringTools.htmlUnescape` entity set.
-    status: covered
+    source:
+      - text/TextField.hx:multiline
+      - text/TextField.hx:text
     scenarios:
       - text/surface:htmlStyles
       - text/text-field:htmlText
@@ -394,7 +490,8 @@ entries:
     behavior: >
       The fallback parser tracks tag names and unwinds to the matching opening tag, so unknown
       and malformed nested elements no longer pop an unrelated format.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/surface:htmlStyles
 
@@ -405,8 +502,9 @@ entries:
       resolver, but the generated non-JavaScript implementation calls JavaScript-only
       `String.search`. The adapter cannot replace its fallback parser with TextMarkup on
       eval/native until that generated portability defect is fixed.
-    status: flight-gap
-    gap: "TextMarkup on non-JavaScript flight-hx targets"
+    source:
+      - text/TextField.hx:text
+    notes: 'Blocked on Flight gap "TextMarkup on non-JavaScript flight-hx targets".'
     scenarios: []
 
   - id: text.SS.stylesheet-parsecss
@@ -415,7 +513,11 @@ entries:
       `StyleSheet` retains the 9.5.2 case-insensitive registry, clear/get/set behavior, live
       style-name cache quirks, style-object copy on assignment, and merge-on-`parseCSS`
       behavior used by the harness.
-    status: covered
+    source:
+      - text/StyleSheet.hx:clear
+      - text/StyleSheet.hx:parseCSS
+      - text/TextField.hx:styleSheet
+      - text/TextField.hx:text
     scenarios:
       - text/style-sheet:setStyle
       - text/style-sheet:css
@@ -426,7 +528,9 @@ entries:
       The supported StyleSheet-to-TextFormat conversions match 9.5.2, including first-family
       selection and `mono`/`sans-serif`/`serif` aliases. The 9.5.2 numeric regex quirks
       (integer prefix, ignored sign/fraction in several properties) are deliberately retained.
-    status: covered
+    source:
+      - text/TextField.hx:styleSheet
+      - text/TextField.hx:text
     scenarios:
       - text/font-and-style:css
 
@@ -436,7 +540,8 @@ entries:
       The replacement CSS regex parser is not equivalent to the 9.5.2 internal CSSParser for
       malformed rules, escaped/quoted delimiters, comments in unusual positions, or parser
       recovery. Only the ordinary rule/declaration subset has comparison coverage.
-    status: deviation
+    source:
+      - text/TextField.hx:text
     notes: >-
       Ordinary rules, merging, comments, and malformed recovery are covered; fully CSS-compatible
       quoted/escaped delimiter recovery remains outside StyleSheet's small portable parser.
@@ -450,8 +555,12 @@ entries:
       Flight has no CSS text parser or mutable StyleSheet abstraction. Keeping OpenFL's CSS
       parsing and style registry in the adapter is required unless a new Flight CSS surface is
       added.
-    status: flight-gap
-    gap: "StyleSheet CSS parsing"
+    source:
+      - text/StyleSheet.hx:new
+      - text/TextField.hx:styleSheet
+      - text/TextField.hx:text
+      - text/TextField.hx:new
+    notes: 'Blocked on Flight gap "StyleSheet CSS parsing".'
     scenarios: []
 
   - id: text.SS.assigning-a-stylesheet-reparses-html-and-forces
@@ -459,7 +568,10 @@ entries:
     behavior: >
       Assigning a StyleSheet reparses retained HTML, forces DYNAMIC type, and resolves tag,
       class, compound tag.class, and a:link selectors into character formats.
-    status: covered
+    source:
+      - text/TextField.hx:styleSheet
+      - text/TextField.hx:text
+      - text/TextField.hx:type
     scenarios:
       - text/surface:htmlStyles
 
@@ -468,7 +580,11 @@ entries:
     behavior: >
       StyleSheet `display` and `kerning` conversion remain unimplemented exactly as in OpenFL
       9.5.2; they are not new adapter regressions.
-    status: covered
+    source:
+      - text/StyleSheet.hx:new
+      - text/TextField.hx:styleSheet
+      - text/TextField.hx:text
+      - text/TextField.hx:new
     scenarios:
       - text/style-sheet:css
 
@@ -479,7 +595,9 @@ entries:
       long-word splitting, per-line ascent/descent/leading/height/ width arrays, per-run
       format groups, alignment, margins, indent, bullets, kerning-aware advances, letter
       spacing, and tab-stop/default-tab advances.
-    status: covered
+    source:
+      - text/TextField.hx:multiline
+      - text/TextField.hx:text
     scenarios:
       - text/text-field-behavior:lines
       - text/text-field-behavior:lineQueries
@@ -490,7 +608,8 @@ entries:
       Flight returns group offsets, per-character advances, line indices, text width/height,
       and line/character query helpers; TextField consumes these rather than carrying OpenFL's
       private TextEngine/TextLayout classes.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/text-field-behavior:lines
       - text/text-field-behavior:lineQueries
@@ -500,7 +619,8 @@ entries:
     behavior: >
       Explicit newlines and ordinary space wrapping follow the same broad pipeline as OpenFL
       9.5.2, including gutter-based measurements and a final line.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/text-field-behavior:metrics
       - text/text-field-behavior:formatMetrics
@@ -513,7 +633,8 @@ entries:
       format boundary within a word. OpenFL's engine has target-specific UTF8String and
       glyph-position adjustments that the current Haxe adapter does not normalize before
       calling Flight.
-    status: deviation
+    source:
+      - text/TextField.hx:text
     notes: "The edge fixture covers hyphens, tabs, whitespace, CRLF, and Unicode. Exact glyph break placement remains provider- and backend-dependent."
     scenarios:
       - text/surface:layoutEdges
@@ -523,7 +644,8 @@ entries:
     behavior: >
       Public TextField bounds now expose the logical field rectangle while Flight keeps the
       renderer-facing RichText glyph bounds.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/surface:boundsAndInvalidation
 
@@ -534,7 +656,9 @@ entries:
       comparison harness consequently records `textWidth == 0` and cannot test proportional
       layout. Host render setup may supply measurements on a live target, but eager metrics
       before first render and consistency across GL, Cairo, Canvas, and DOM need verification.
-    status: deviation
+    source:
+      - text/TextField.hx:text
+      - text/TextField.hx:textWidth
     notes: "The adapter continues to accept the measure provider installed by a Flight host; headless comparison intentionally exercises its deterministic zero-width fallback."
     scenarios:
       - text/text-field-behavior:metrics
@@ -546,7 +670,8 @@ entries:
       The Flight RichText node supplies the actual renderer-facing embedded/ device family
       string and bold/italic selection rather than retaining the old target-specific
       TextEngine render branches.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/text-field:defaultTextFormat
 
@@ -555,8 +680,10 @@ entries:
     behavior: >
       Flight exposes no per-RichText `embedFonts` policy. The flag is retained, but it cannot
       require an embedded face or disable device fallback as OpenFL does.
-    status: flight-gap
-    gap: "Embedded-versus-device text font selection"
+    source:
+      - text/TextField.hx:embedFonts
+      - text/TextField.hx:text
+    notes: 'Blocked on Flight gap "Embedded-versus-device text font selection".'
     scenarios: []
 
   - id: text.FNT.font-registerfont
@@ -565,7 +692,9 @@ entries:
       `Font.registerFont` accepts both a Font subclass and an instance, creates the subclass
       when necessary, appends the instance to the global registered list, and replaces the
       exact-name map entry, matching 9.5.2.
-    status: covered
+    source:
+      - text/Font.hx:registerFont
+      - text/TextField.hx:text
     scenarios:
       - text/font-and-style:font
 
@@ -575,7 +704,8 @@ entries:
       Native Lime/Cairo registration forwards the Lime font and its regular, bold, italic, or
       bold-italic style to Flight's maintained `LimeFonts` bridge. This is the path that makes
       registered embedded fonts available to native Flight text rendering.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/font-and-style:font
 
@@ -585,7 +715,9 @@ entries:
       `enumerateFonts(false)` returns the registered backing array, including its 9.5.2
       live-array behavior. Native `enumerateFonts(true)` extends a copy with device `.ttf`
       files, preserving the reference implementation path.
-    status: covered
+    source:
+      - text/Font.hx:enumerateFonts
+      - text/TextField.hx:text
     scenarios:
       - text/font-and-style:font
 
@@ -594,7 +726,8 @@ entries:
     behavior: >
       Font name state is mirrored into the Flight font entity, and async Lime font adoption
       updates that name.
-    status: covered
+    source:
+      - text/TextField.hx:text
     scenarios:
       - text/font-and-style:font
 
@@ -606,7 +739,9 @@ entries:
       Italic`, or ` Bold Italic`. The current TextField sends only the requested family/style
       to Flight; path/basename fallback and equivalent variant matching have not been
       demonstrated.
-    status: deviation
+    source:
+      - text/Font.hx:fontName
+      - text/TextField.hx:text
     notes: "Exact registration and family/style forwarding are covered, while native path and basename lookup are delegated to the Flight host font registry."
     scenarios:
       - text/font-and-style:font
@@ -617,7 +752,9 @@ entries:
       `registerFont` only forwards to the render backend when a native Lime/Cairo font has
       non-null source data. HTML5, non-Cairo native, late-loaded font data, duplicate
       names/styles, and registration before initialization need target tests.
-    status: covered
+    source:
+      - text/Font.hx:registerFont
+      - text/TextField.hx:text
     scenarios:
       - text/font-and-style:font
 
@@ -626,8 +763,10 @@ entries:
     behavior: >
       `embedFonts` cannot control registered-vs-device resolution through the public Flight
       RichText API, even when registration itself succeeds.
-    status: flight-gap
-    gap: "Embedded-versus-device text font selection"
+    source:
+      - text/TextField.hx:embedFonts
+      - text/TextField.hx:text
+    notes: 'Blocked on Flight gap "Embedded-versus-device text font selection".'
     scenarios: []
 
   - id: text.TF.add-a-live-measurement-textfield-fixture-with
@@ -635,7 +774,8 @@ entries:
     behavior: >
       Add a live-measurement TextField fixture with a known font, mixed format runs, wrapping,
       tabs, Unicode, character bounds, and point queries.
-    status: deviation
+    source:
+      - text/TextField.hx:text
     notes: "The fixture covers mixed formats, wrapping, tabs, Unicode, bounds, and queries in the headless provider; live font measurement still requires a rendering host."
     scenarios:
       - text/surface:layoutEdges
@@ -646,7 +786,9 @@ entries:
     behavior: >
       Add HTML/StyleSheet fixtures covering all 9.5.2 tags, attributes, entities, nested tags,
       tag/class/compound/a:link selectors, and link events.
-    status: covered
+    source:
+      - text/TextField.hx:styleSheet
+      - text/TextField.hx:text
     scenarios:
       - text/surface:htmlStyles
       - text/style-sheet:css
@@ -657,7 +799,9 @@ entries:
       Add Stage input fixtures for focus, keyboard editing, pointer selection, `TEXT_INPUT`
       cancellation, bubbling `CHANGE`, restrictions, maxChars, clipboard operations, and caret
       scrolling.
-    status: deviation
+    source:
+      - text/TextField.hx:maxChars
+      - text/TextField.hx:text
     notes: "Focus, bubbling CHANGE, cancellable TEXT_INPUT rollback, constraints, and caret scrolling are covered; autonomous keyboard/pointer/clipboard ingress needs the tracked host-input seam."
     scenarios:
       - text/surface:inputEvents
@@ -680,7 +824,31 @@ entries:
       `START=5/"start"`. On the integer-backed variants, unknown string-to-enum
       conversions return null; the `openfljs` string-backed abstracts accept String values
       directly.
-    status: missing
+    source:
+      - text/AntiAliasType.hx:ADVANCED
+      - text/AntiAliasType.hx:NORMAL
+      - text/FontStyle.hx:BOLD
+      - text/FontStyle.hx:BOLD_ITALIC
+      - text/FontStyle.hx:ITALIC
+      - text/FontStyle.hx:REGULAR
+      - text/FontType.hx:DEVICE
+      - text/FontType.hx:EMBEDDED
+      - text/FontType.hx:EMBEDDED_CFF
+      - text/GridFitType.hx:NONE
+      - text/GridFitType.hx:PIXEL
+      - text/GridFitType.hx:SUBPIXEL
+      - text/TextFieldAutoSize.hx:CENTER
+      - text/TextFieldAutoSize.hx:LEFT
+      - text/TextFieldAutoSize.hx:NONE
+      - text/TextFieldAutoSize.hx:RIGHT
+      - text/TextFieldType.hx:DYNAMIC
+      - text/TextFieldType.hx:INPUT
+      - text/TextFormatAlign.hx:CENTER
+      - text/TextFormatAlign.hx:END
+      - text/TextFormatAlign.hx:JUSTIFY
+      - text/TextFormatAlign.hx:LEFT
+      - text/TextFormatAlign.hx:RIGHT
+      - text/TextFormatAlign.hx:START
     notes: "On Flash these seven portable abstracts are replaced by their flash.text typedefs."
     scenarios: []
 
@@ -698,7 +866,32 @@ entries:
       `"default"`, `"done"`, `"unlessEditing"`, and `"whileEditing"`. The engine types
       `FontPosture` expose ITALIC/NORMAL = 0/1 or `"italic"/"normal"`, and `FontWeight`
       exposes BOLD/NORMAL = 0/1 or `"bold"/"normal"`.
-    status: missing
+    source:
+      - text/AutoCapitalize.hx:ALL
+      - text/AutoCapitalize.hx:NONE
+      - text/AutoCapitalize.hx:SENTENCE
+      - text/AutoCapitalize.hx:WORD
+      - text/ReturnKeyLabel.hx:DEFAULT
+      - text/ReturnKeyLabel.hx:DONE
+      - text/ReturnKeyLabel.hx:GO
+      - text/ReturnKeyLabel.hx:NEXT
+      - text/ReturnKeyLabel.hx:SEARCH
+      - text/SoftKeyboardType.hx:CONTACT
+      - text/SoftKeyboardType.hx:DECIMAL
+      - text/SoftKeyboardType.hx:DEFAULT
+      - text/SoftKeyboardType.hx:EMAIL
+      - text/SoftKeyboardType.hx:NUMBER
+      - text/SoftKeyboardType.hx:PHONE
+      - text/SoftKeyboardType.hx:PUNCTUATION
+      - text/SoftKeyboardType.hx:URL
+      - text/StageTextClearButtonMode.hx:ALWAYS
+      - text/StageTextClearButtonMode.hx:NEVER
+      - text/StageTextClearButtonMode.hx:UNLESS_EDITING
+      - text/StageTextClearButtonMode.hx:WHILE_EDITING
+      - text/engine/FontPosture.hx:ITALIC
+      - text/engine/FontPosture.hx:NORMAL
+      - text/engine/FontWeight.hx:BOLD
+      - text/engine/FontWeight.hx:NORMAL
     notes: "All six types are absent on non-Flash, non-sys targets; Flash exposes them only for AIR through typedefs."
     scenarios: []
 
@@ -715,7 +908,21 @@ entries:
       validation; in particular sharpness is not clamped to the documented -400..400 range.
       In 9.5.2, changing `antiAliasType`, `gridFitType`, or `embedFonts` also performs no
       layout/render invalidation in these setters.
-    status: missing
+    source:
+      - text/TextField.hx:antiAliasType
+      - text/TextField.hx:background
+      - text/TextField.hx:backgroundColor
+      - text/TextField.hx:border
+      - text/TextField.hx:borderColor
+      - text/TextField.hx:condenseWhite
+      - text/TextField.hx:embedFonts
+      - text/TextField.hx:gridFitType
+      - text/TextField.hx:mouseWheelEnabled
+      - text/TextField.hx:selectable
+      - text/TextField.hx:sharpness
+      - text/TextField.hx:text
+      - text/TextField.hx:textColor
+      - text/TextField.hx:new
     notes: "This is the non-Flash implementation; Flash uses flash.text.TextField."
     scenarios: []
 
@@ -727,7 +934,18 @@ entries:
       force a layout update before returning the engine's derived values. New fields begin
       with one logical line, `scrollH = 0`, and `scrollV = 1`; exact metrics include the
       portable engine's gutter and active font-measurement behavior.
-    status: missing
+    source:
+      - text/TextField.hx:bottomScrollV
+      - text/TextField.hx:length
+      - text/TextField.hx:maxScrollH
+      - text/TextField.hx:maxScrollV
+      - text/TextField.hx:numLines
+      - text/TextField.hx:scrollH
+      - text/TextField.hx:scrollV
+      - text/TextField.hx:text
+      - text/TextField.hx:textHeight
+      - text/TextField.hx:textWidth
+      - text/TextField.hx:new
     notes: "Metrics can differ by target/font backend; this entry records the portable public read contract that still needs explicit fixtures."
     scenarios: []
 
@@ -739,7 +957,13 @@ entries:
       Changing the flag after an assignment does not reparse existing content. A new field's
       `passwordChar` is `"*"`; the setter accepts an arbitrary string, rebuilds displayed
       password text when changed, and does not alter the underlying `text` or `length`.
-    status: missing
+    source:
+      - text/TextField.hx:condenseWhite
+      - text/TextField.hx:htmlText
+      - text/TextField.hx:length
+      - text/TextField.hx:text
+      - text/TextField.hx:passwordChar
+      - text/TextField.hx:new
     notes: "These behaviors are part of the non-Flash TextField implementation and are not target-backend rendering guarantees."
     scenarios: []
 
@@ -756,7 +980,18 @@ entries:
       Lime Future and wrap the completed Lime font. Without Lime they return error Futures
       with the exact messages `"Cannot load font from bytes"`, `"Cannot load font from
       file"`, and `"Cannot load font from name"`.
-    status: missing
+    source:
+      - text/Font.hx:fontName
+      - text/Font.hx:fontStyle
+      - text/Font.hx:fontType
+      - text/Font.hx:new
+      - text/Font.hx:fromBytes
+      - text/Font.hx:fromFile
+      - text/Font.hx:loadFromBytes
+      - text/Font.hx:loadFromFile
+      - text/Font.hx:loadFromName
+      - text/TextField.hx:text
+      - text/TextField.hx:new
     notes: "The factory declarations are portable non-Flash API, but their success/null/error behavior is compile-target dependent on lime and lime_cffi."
     scenarios: []
 
@@ -771,7 +1006,23 @@ entries:
       hint fields retain assigned values without validation. `text`, `displayAsPassword`,
       `maxChars`, `restrict`, and `visible` delegate directly to the internal TextField;
       `editable` maps true/false to INPUT/DYNAMIC.
-    status: missing
+    source:
+      - text/StageText.hx:autoCapitalize
+      - text/StageText.hx:autoCorrect
+      - text/StageText.hx:clearButtonMode
+      - text/StageText.hx:displayAsPassword
+      - text/StageText.hx:editable
+      - text/StageText.hx:locale
+      - text/StageText.hx:maxChars
+      - text/StageText.hx:multiline
+      - text/StageText.hx:restrict
+      - text/StageText.hx:returnKeyLabel
+      - text/StageText.hx:softKeyboardType
+      - text/StageText.hx:text
+      - text/StageText.hx:textAlign
+      - text/StageText.hx:viewPort
+      - text/StageText.hx:visible
+      - text/StageText.hx:new
     notes: "StageText exists only for non-Flash sys builds; Flash exposes the AIR typedef, and other portable targets have no StageText type."
     scenarios: []
 
@@ -783,7 +1034,14 @@ entries:
       calls `setTextFormat` across its current text. Posture maps only ITALIC to true and
       weight maps only BOLD to true. `textAlign` retains START/END for readback but applies
       them internally as LEFT/RIGHT; other alignment values pass through.
-    status: missing
+    source:
+      - text/StageText.hx:color
+      - text/StageText.hx:fontFamily
+      - text/StageText.hx:fontPosture
+      - text/StageText.hx:fontSize
+      - text/StageText.hx:fontWeight
+      - text/StageText.hx:text
+      - text/StageText.hx:textAlign
     notes: "Non-Flash sys StageText implementation; device-native StageText formatting is not used."
     scenarios: []
 
@@ -798,7 +1056,11 @@ entries:
       viewport resets completion so the next valid combination dispatches again. CHANGE,
       FOCUS_IN/OUT, and KEY_DOWN/UP from the internal field are redispatched, while
       KEY_FOCUS_CHANGE is prevented and stopped.
-    status: missing
+    source:
+      - text/StageText.hx:stage
+      - text/StageText.hx:text
+      - text/StageText.hx:viewPort
+      - text/StageText.hx:new
     notes: "Only the non-Flash sys fallback has this display-list-backed lifecycle; AIR uses the native typedef."
     scenarios: []
 
@@ -814,7 +1076,17 @@ entries:
       do not exactly equal the viewport throws ArgumentError; otherwise it draws the internal
       field. `dispose()` detaches and nulls the internal field/format, so subsequent dependent
       property or method access is not guarded and may fault.
-    status: missing
+    source:
+      - text/StageText.hx:editable
+      - text/StageText.hx:selectionActiveIndex
+      - text/StageText.hx:selectionAnchorIndex
+      - text/StageText.hx:stage
+      - text/StageText.hx:text
+      - text/StageText.hx:viewPort
+      - text/StageText.hx:assignFocus
+      - text/StageText.hx:dispose
+      - text/StageText.hx:drawViewPortToBitmapData
+      - text/StageText.hx:selectRange
     notes: "Non-Flash sys fallback behavior; platform-native AIR selection/focus rules can differ."
     scenarios: []
 
@@ -825,7 +1097,10 @@ entries:
       Portable `StaticText` has only a read-only-by-convention `text` field and a private
       constructor, so application code cannot instantiate it; its internal constructor leaves
       text null until authoring/import code supplies content.
-    status: missing
+    source:
+      - text/StageTextInitOptions.hx:multiline
+      - text/StageTextInitOptions.hx:new
+      - text/StaticText.hx:text
     notes: "StageTextInitOptions is non-Flash sys/AIR-only. StaticText is portable on non-Flash; Flash typedefs it and additionally exposes the StaticText2 alias."
     scenarios: []
 
@@ -835,7 +1110,14 @@ entries:
       `TextLineMetrics.new(x,width,height,ascent,descent,leading)` assigns all six Float
       arguments verbatim to the corresponding public mutable fields. It performs no ordering,
       finiteness, or non-negative validation, and later field writes are independent.
-    status: missing
+    source:
+      - text/TextLineMetrics.hx:ascent
+      - text/TextLineMetrics.hx:descent
+      - text/TextLineMetrics.hx:height
+      - text/TextLineMetrics.hx:leading
+      - text/TextLineMetrics.hx:width
+      - text/TextLineMetrics.hx:x
+      - text/TextLineMetrics.hx:new
     notes: "Portable non-Flash class; Flash uses flash.text.TextLineMetrics."
     scenarios: []
 
@@ -850,7 +1132,16 @@ entries:
       selector, and `clear()` resets it to be rebuilt as an empty array.
       `transform(formatObject)` always allocates a new TextFormat; null yields an all-null
       format and a non-null object maps only the supported CSS-style fields.
-    status: missing
+    source:
+      - text/StyleSheet.hx:styleNames
+      - text/StyleSheet.hx:new
+      - text/StyleSheet.hx:clear
+      - text/StyleSheet.hx:getStyle
+      - text/StyleSheet.hx:parseCSS
+      - text/StyleSheet.hx:setStyle
+      - text/StyleSheet.hx:transform
+      - text/TextField.hx:text
+      - text/TextField.hx:new
     notes: "These are non-Flash 9.5.2 aliasing/cache quirks; Flash's native StyleSheet behavior may follow its documented copy contract."
     scenarios: []
 
@@ -863,7 +1154,26 @@ entries:
       and `tabStops` remain null until assigned. The public hidden `clone()` copies every
       public field, but assigns the same `tabStops` Array rather than cloning it, so mutations
       through either format are shared.
-    status: missing
+    source:
+      - text/TextFormat.hx:align
+      - text/TextFormat.hx:blockIndent
+      - text/TextFormat.hx:bold
+      - text/TextFormat.hx:bullet
+      - text/TextFormat.hx:color
+      - text/TextFormat.hx:font
+      - text/TextFormat.hx:indent
+      - text/TextFormat.hx:italic
+      - text/TextFormat.hx:kerning
+      - text/TextFormat.hx:leading
+      - text/TextFormat.hx:leftMargin
+      - text/TextFormat.hx:letterSpacing
+      - text/TextFormat.hx:rightMargin
+      - text/TextFormat.hx:size
+      - text/TextFormat.hx:strikethrough
+      - text/TextFormat.hx:tabStops
+      - text/TextFormat.hx:target
+      - text/TextFormat.hx:underline
+      - text/TextFormat.hx:url
     notes: "Portable non-Flash TextFormat behavior; Flash uses flash.text.TextFormat. clone() is public but marked @:noCompletion/@:dox(hide)."
     scenarios: []
 
@@ -880,7 +1190,19 @@ entries:
       `getLineOffset`/`getLineText` throw RangeError only for negative indexes but return -1
       or null above the last line. `getLineMetrics` performs no index guard before reading
       its metric arrays, leaving invalid-index failure/coercion target-dependent.
-    status: missing
+    source:
+      - text/TextField.hx:length
+      - text/TextField.hx:text
+      - text/TextField.hx:getCharBoundaries
+      - text/TextField.hx:getCharIndexAtPoint
+      - text/TextField.hx:getFirstCharInParagraph
+      - text/TextField.hx:getLineIndexAtPoint
+      - text/TextField.hx:getLineIndexOfChar
+      - text/TextField.hx:getLineLength
+      - text/TextField.hx:getLineMetrics
+      - text/TextField.hx:getLineOffset
+      - text/TextField.hx:getLineText
+      - text/TextField.hx:getParagraphLength
     notes: "These are the non-Flash 9.5.2 sentinel/error boundaries; Flash native behavior may follow the documented exception contracts."
     scenarios: []
 
@@ -892,6 +1214,7 @@ entries:
       `getImageReference`, and static `isFontCompatible`: each apparent declaration is
       commented inside `#if false`. They must remain absent from the non-Flash API even though
       the corresponding native Flash typedefs can expose them.
-    status: missing
+    source:
+      - text/TextField.hx:text
     notes: "This is compile-surface behavior: validate absence on non-Flash and native availability only through Flash typedefs."
     scenarios: []
