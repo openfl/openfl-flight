@@ -11,7 +11,6 @@ entries:
     status: covered
     scenarios:
       - display3d/core:stage3D
-    scenarios: []
 
   - id: display3d.S3D.new-instance-context-3-d-null-visible
     section: "Stage3D"
@@ -31,7 +30,6 @@ entries:
     status: covered
     scenarios:
       - display3d/core:stage3D
-    scenarios: []
 
   - id: display3d.S3D.request-context-3-d-marks-one-request
     section: "Stage3D"
@@ -66,7 +64,6 @@ entries:
     status: covered
     scenarios:
       - display3d/core:acquisition
-    scenarios: []
 
   - id: display3d.S3D.resize-updates-optional-dom-canvas-projection-matrix
     section: "Stage3D"
@@ -76,7 +73,6 @@ entries:
     status: covered
     scenarios:
       - display3d/core:stage3D
-    scenarios: []
 
   - id: display3d.S3D.context-loss-disposes-context-remembers-that-recreation
     section: "Stage3D"
@@ -120,7 +116,6 @@ entries:
       Observable dimensions and configuration state match; Flight exposes no Context3D render-target seam for OpenFL's private back/front attachment allocation.
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.C3D.driver-info-starts-open-gl-direct-blitting
     section: "Context3D > Construction and properties"
@@ -133,7 +128,6 @@ entries:
       The initial and disposed suffix contracts match, but Flight does not expose the active GL vendor/version query used by the reference.
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.C3D.max-back-buffer-width-max-back-buffer
     section: "Context3D > Construction and properties"
@@ -145,7 +139,6 @@ entries:
       The zero fallback is covered; Flight exposes no Context3D viewport-limit query, so a live GL maximum cannot replace it.
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.C3D.profile-externally-read-only-defaults-standard
     section: "Context3D > Construction and properties"
@@ -175,7 +168,6 @@ entries:
       The portable zero fallback is covered; Flight exposes no NVX GPU-memory extension query.
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.C3D.create-program-create-index-buffer-create-vertex
     section: "Context3D > Resource factories"
@@ -211,7 +203,6 @@ entries:
     status: covered
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.C3D.clear-applies-exactly-selected-context-3-d
     section: "Context3D > Back buffer, draw, and presentation commands"
@@ -281,7 +272,6 @@ entries:
     status: covered
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.C3D.set-blend-factors-uses-same-factors-rgb
     section: "Context3D > Pipeline state and binding commands"
@@ -436,7 +426,6 @@ entries:
     status: covered
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.P3D.glsl-methods-search-linked-attribute-names-or
     section: "Programs and buffers > Program3D"
@@ -540,7 +529,6 @@ entries:
       Flight 2D, rectangle, and cube resources plus mipmap samplers are created, but Flight's public factories do not accept OpenFL texture format or render-target optimization hints.
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.TEX.base-mip-upload-bitmap-data-maps-bitmap
     section: "Textures > Texture, RectangleTexture, and CubeTexture"
@@ -554,7 +542,6 @@ entries:
       Null, base-level sizing, 2D/rectangle mapping, and cube face validation are implemented; Flight exposes no arbitrary mip-level upload or generateMipmap control.
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.TEX.texture-upload-byte-array-upload-typed-array
     section: "Textures > Texture, RectangleTexture, and CubeTexture"
@@ -593,7 +580,6 @@ entries:
       Zero defaults and HTML video attachment are implemented, but Flight exposes no per-frame readiness callback from which to mirror OpenFL's TEXTURE_READY timing and later dimension changes.
     scenarios:
       - display3d/core:context
-    scenarios: []
 
   - id: display3d.TEX.outside-html-5-retains-stream-but-no
     section: "Textures > VideoTexture"
@@ -661,4 +647,3 @@ entries:
       Runtime constant values and string mappings match; the removed C#-specific nullable operator overloads are a compile-time surface distinction.
     scenarios:
       - display3d/core:constants
-    scenarios: []

@@ -104,7 +104,6 @@ entries:
     status: covered
     scenarios:
       - desktop/native-application:applicationIdentity
-    scenarios: []
 
   - id: desktop.NA.start-login-ordinary-mutable-boolean-field-therefore
     section: "NativeApplication > Singleton, capabilities, and window lists"
@@ -116,7 +115,6 @@ entries:
     status: covered
     scenarios:
       - desktop/native-application:mutated
-    scenarios: []
 
   - id: desktop.NA.application-descriptor-publisher-id-runtime-version-runtime
     section: "NativeApplication > Adapter-only AIR surface"
@@ -140,7 +138,6 @@ entries:
       Intentional adapter extension retained for host idle policy configuration; range validation and mutation are captured.
     scenarios:
       - desktop/native-application:defaults
-    scenarios: []
 
   - id: desktop.NA.menu-only-mutable-dynamic-initialized-null-there
     section: "NativeApplication > Adapter-only AIR surface"
@@ -175,7 +172,6 @@ entries:
       Lime builds now forward the exit code to System.exit exactly; other Flight hosts use their native quit request, whose API has no numeric exit-code parameter.
     scenarios:
       - desktop/native-application:commands
-    scenarios: []
 
   - id: desktop.NA.set-default-application-always-returns-false-set
     section: "NativeApplication > Commands and lifecycle events"
@@ -207,7 +203,6 @@ entries:
       Intentional Flight-host extension: activate focuses the application and optional window where the host exposes that operation.
     scenarios:
       - desktop/native-application:activateThrows
-    scenarios: []
 
   - id: desktop.NA.only-clear-copy-cut-paste-select-all
     section: "NativeApplication > Commands and lifecycle events"
@@ -231,7 +226,6 @@ entries:
       The adapter accepts Flight application lifecycle signals in addition to window-derived lifecycle events so non-Lime hosts remain observable.
     scenarios:
       - desktop/native-application:flightApplicationHandle
-    scenarios: []
 
   - id: desktop.NA.dispatches-non-bubbling-cancelable-exiting-flight-quit
     section: "NativeApplication > Commands and lifecycle events"
@@ -285,7 +279,6 @@ entries:
     status: covered
     scenarios:
       - desktop/native-window:windowStatic
-    scenarios: []
 
   - id: desktop.NW.constructor-dereferences-init-options-so-new-native
     section: "NativeWindow > Availability and construction"
@@ -296,7 +289,6 @@ entries:
     status: covered
     scenarios:
       - desktop/native-window:window
-    scenarios: []
 
   - id: desktop.NW.created-secondary-window-begins-hidden-pixels-current
     section: "NativeWindow > Availability and construction"
@@ -310,7 +302,6 @@ entries:
     status: covered
     scenarios:
       - desktop/native-window:window
-    scenarios: []
 
   - id: desktop.NW.type-remains-private-default-normal-even-another
     section: "NativeWindow > Availability and construction"
@@ -320,7 +311,6 @@ entries:
     status: covered
     scenarios:
       - desktop/native-window:window
-    scenarios: []
 
   - id: desktop.NW.construction-installs-stage-s-native-window-appends
     section: "NativeWindow > Availability and construction"
@@ -430,7 +420,6 @@ entries:
       Flight's fallback host does not emit a focus callback, so activate synchronizes active state after requesting focus; real host callbacks remain idempotent.
     scenarios:
       - desktop/native-window:window
-    scenarios: []
 
   - id: desktop.NW.minimize-maximize-restore-issue-host-state-changes
     section: "NativeWindow > Operations and event order"
@@ -580,7 +569,6 @@ entries:
     status: covered
     scenarios:
       - desktop/clipboard:handlerSet
-    scenarios: []
 
   - id: desktop.CB.only-supports-file-promise-always-false-actual
     section: "Clipboard"
@@ -592,7 +580,6 @@ entries:
       Intentional compatibility extension: the adapter exposes the AIR-style capability query and consistently reports false.
     scenarios:
       - desktop/clipboard:supportsFilePromise
-    scenarios: []
 
   - id: desktop.NP.sys-haxe-implementation-reports-supported-true-launches
     section: "NativeProcess and startup records"

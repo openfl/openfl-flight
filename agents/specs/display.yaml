@@ -40,7 +40,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bounds
-    scenarios: []
 
   - id: display.DO.hit-test-first-rejects-invisible-hit-owner
     section: "DisplayObject > Transforms, bounds, and hit testing"
@@ -53,7 +52,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.mask-single-owner-implementations-but-only-updates
     section: "DisplayObject > Transforms, bounds, and hit testing"
@@ -65,7 +63,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.root-lib-current-any-staged-object-instead
     section: "DisplayObject > Transforms, bounds, and hit testing"
@@ -76,7 +73,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.set-render-dirty-marks-object-propagates-render
     section: "DisplayObject > Dirty and derived render state"
@@ -89,7 +85,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.set-transform-dirty-recursively-invalidates-descendant-world
     section: "DisplayObject > Dirty and derived render state"
@@ -102,7 +97,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.update-derives-renderability-visibility-nonzero-scales-mask
     section: "DisplayObject > Dirty and derived render state"
@@ -115,7 +109,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.alpha-assignment-maps-na-n-zero-before
     section: "DisplayObject > Dirty and derived render state"
@@ -125,7 +118,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.null-normal-blend-modes-inherit-render-parent
     section: "DisplayObject > Dirty and derived render state"
@@ -136,7 +128,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.filters-assignment-clones-each-non-null-filter
     section: "DisplayObject > Cache, filters, and exposed object ownership"
@@ -158,7 +149,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.non-color-matrix-display-filters-cannot-affect
     section: "DisplayObject > Cache, filters, and exposed object ownership"
@@ -189,7 +179,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DO.mask-cache-filter-shader-scale-9-setters
     section: "DisplayObject > Cache, filters, and exposed object ownership"
@@ -201,7 +190,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.DOC.child-storage-bottom-top-flight-child-indices
     section: "DisplayObjectContainer > Child mutation and event ordering"
@@ -257,7 +245,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:lifecycleReuse
-    scenarios: []
 
   - id: display.DOC.removing-exact-object-held-stage-focus-clears
     section: "DisplayObjectContainer > Child mutation and event ordering"
@@ -267,7 +254,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:directFocusRemoval
-    scenarios: []
 
   - id: display.DOC.remove-children-validates-range-repeatedly-removes-begin
     section: "DisplayObjectContainer > Child mutation and event ordering"
@@ -286,7 +272,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:container
-    scenarios: []
 
   - id: display.DOC.null-self-stage-invalid-index-addition-cases
     section: "DisplayObjectContainer > Child mutation and event ordering"
@@ -308,7 +293,6 @@ entries:
       Intentional safety extension: ancestor-cycle insertion raises #2024 instead of permitting a corrupt display-list cycle.
     scenarios:
       - display/advanced:container
-    scenarios: []
 
   - id: display.DOC.logical-container-bounds-include-masks-skip-child
     section: "DisplayObjectContainer > Bounds and interactive selection"
@@ -320,7 +304,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bounds
-    scenarios: []
 
   - id: display.DOC.get-objects-under-point-produced-s-reverse
     section: "DisplayObjectContainer > Bounds and interactive selection"
@@ -333,7 +316,6 @@ entries:
     status: covered
     scenarios:
       - display/hit-test:objects
-    scenarios: []
 
   - id: display.DOC.interactive-hit-testing-builds-root-target-stack
     section: "DisplayObjectContainer > Bounds and interactive selection"
@@ -346,7 +328,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:mouseHitTesting
-    scenarios: []
 
   - id: display.DOC.stage-propagation-per-frame-enter-frame-traversal
     section: "DisplayObjectContainer > Bounds and interactive selection"
@@ -379,7 +360,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:stageInvalidation
-    scenarios: []
 
   - id: display.STG.broadcast-dispatch-reuses-supplied-event-walks-live
     section: "Stage > Frame, invalidation, and broadcast lifecycle"
@@ -391,7 +371,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:broadcast
-    scenarios: []
 
   - id: display.STG.listener-exceptions-not-routed-through-uncaught-error
     section: "Stage > Frame, invalidation, and broadcast lifecycle"
@@ -433,7 +412,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:windowFocus
-    scenarios: []
 
   - id: display.STG.mouse-driven-focus-first-sends-cancellable-change
     section: "Stage > Focus and keyboard"
@@ -444,7 +422,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:focusRoute
-    scenarios: []
 
   - id: display.STG.key-handling-flushes-pending-mouse-motion-publishes
     section: "Stage > Focus and keyboard"
@@ -457,7 +434,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:keyboard
-    scenarios: []
 
   - id: display.STG.pointer-dispatch-derives-one-hit-stack-preserves
     section: "Stage > Pointer, drag, resize, and window state"
@@ -471,7 +447,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:mouseTransitions
-    scenarios: []
 
   - id: display.STG.mouse-event-update-after-event-triggers-render
     section: "Stage > Pointer, drag, resize, and window state"
@@ -482,7 +457,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:mousePendingAndWheel
-    scenarios: []
 
   - id: display.STG.per-object-double-click-enabled-context-menu
     section: "Stage > Pointer, drag, resize, and window state"
@@ -505,7 +479,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:drag
-    scenarios: []
 
   - id: display.STG.resize-derives-stage-display-matrix-window-scale
     section: "Stage > Pointer, drag, resize, and window state"
@@ -517,7 +490,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:mouseRoute
-    scenarios: []
 
   - id: display.STG.full-screen-source-rect-changes-immediately-run
     section: "Stage > Pointer, drag, resize, and window state"
@@ -529,7 +501,6 @@ entries:
     status: covered
     scenarios:
       - display/stage:mutation
-    scenarios: []
 
   - id: display.STG.frame-rate-delegates-host-window-quality-changes
     section: "Stage > Pointer, drag, resize, and window state"
@@ -542,7 +513,6 @@ entries:
       frameRate now delegates to the host Window. Flight owns texture sampling and exposes no stage-wide smoothing-quality switch, so quality remains compatibility state.
     scenarios:
       - display/stage:mutation
-    scenarios: []
 
   - id: display.STG.stage-transform-position-size-setters-remain-immutable
     section: "Stage > Pointer, drag, resize, and window state"
@@ -585,7 +555,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.graphics-tracks-visible-clear-resets-it-bitmap
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -597,7 +566,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.gradient-styles-synthesize-all-one-alphas-evenly
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -609,7 +577,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.null-bitmap-fill-style-still-recorded-command
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -620,7 +587,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.bounds-accumulated-commands-arrive-including-quadratic-cubic
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -633,7 +599,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.precise-shape-hit-testing-requested-only-html
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -657,7 +622,6 @@ entries:
       Flight renders vector geometry directly and owns target sizing; compatibility dirty flags are acknowledged, but OpenFL's private cache raster sizing pipeline has no Flight analogue.
     scenarios:
       - display/rendering-composition:cacheAsBitmap
-    scenarios: []
 
   - id: display.GFX.read-graphics-data-recursively-flattens-owner-s
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -669,7 +633,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.command-storage-retains-object-array-arguments-shallowly
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -681,7 +644,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.begin-shader-fill-records-nothing-blocked-graphics
     section: "Graphics > Recording, dirtiness, bounds, and readback"
@@ -738,7 +700,6 @@ entries:
       Public readGraphicsData parity is provided by a shallow compatibility record stream; OpenFL's private parallel typed-buffer layout is not exposed by Flight.
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.appending-into-empty-buffer-aliases-all-backing
     section: "Graphics > DrawCommandBuffer and DrawCommandReader"
@@ -754,7 +715,6 @@ entries:
       copyFrom preserves the observable shallow command ownership contract, but the private copy-on-write backing-array alias transition is not representable through Flight.
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.copies-shallow-bitmaps-matrices-vectors-nested-gradient
     section: "Graphics > DrawCommandBuffer and DrawCommandReader"
@@ -766,7 +726,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.reader-views-tied-mutable-cursor-positions-rather
     section: "Graphics > DrawCommandBuffer and DrawCommandReader"
@@ -781,7 +740,6 @@ entries:
       The adapter reconstructs public graphics-data values from compatibility records and does not expose OpenFL's private cursor-coupled reader views.
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.GFX.flight-stream-does-not-preserve-all-only
     section: "Graphics > DrawCommandBuffer and DrawCommandReader"
@@ -795,7 +753,6 @@ entries:
       A compatibility record stream preserves OpenFL readback behavior alongside Flight rendering; Flight's own render command stream still cannot round-trip every OpenFL-only record.
     scenarios:
       - display/advanced:graphics
-    scenarios: []
 
   - id: display.BMD.construction-normalizes-dimensions-forces-opaque-alpha-x
     section: "BitmapData > Storage, pixels, and lifetime"
@@ -866,7 +823,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.BMD.copy-pixels-supports-basic-clipping-alpha-masks
     section: "BitmapData > Region operations and drawing"
@@ -878,7 +834,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.BMD.drawing-another-bitmap-data-applies-matrix-resampling
     section: "BitmapData > Region operations and drawing"
@@ -930,7 +885,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.BMD.get-color-bounds-rect-normalizes-alpha-color
     section: "BitmapData > Region operations and drawing"
@@ -943,7 +897,6 @@ entries:
       The focused fixture captures observable OpenFL 9.5.2 behavior: its block-local normalized color does not escape, and comparison uses the full unmasked requested color.
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.BMD.noise-uses-open-fl-s-exact-one
     section: "BitmapData > Procedural pixels and texture invalidation"
@@ -955,7 +908,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.BMD.perlin-noise-delegates-different-implementations-ignore-fractal
     section: "BitmapData > Procedural pixels and texture invalidation"
@@ -967,7 +919,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.BMD.get-texture-caches-current-context-3-d
     section: "BitmapData > Procedural pixels and texture invalidation"
@@ -993,7 +944,6 @@ entries:
       Flight's texture resolver owns upload format conversion and backend flushing; readable-state and texture caching are covered, but OpenFL's private Cairo/POT upload branches are not externally selectable.
     scenarios:
       - display/bitmap-data:textureAlias
-    scenarios: []
 
   - id: display.BMD.synchronous-base-64-bytes-file-decoding-cannot
     section: "BitmapData > Procedural pixels and texture invalidation"
@@ -1088,7 +1038,6 @@ entries:
       OpenFL falls back to the current visual for interactive Stage routing, while direct hitTestPoint remains false; both paths are captured.
     scenarios:
       - display/advanced:simpleButton
-    scenarios: []
 
   - id: display.SB.detached-transformed-hit-test-state-cannot-evaluated
     section: "SimpleButton"
@@ -1110,7 +1059,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:simpleButton
-    scenarios: []
 
   - id: display.SB.direct-mutation-enabled-or-use-hand-cursor
     section: "SimpleButton"
@@ -1152,7 +1100,6 @@ entries:
       Stage routing and button state transitions are covered, but host-specific duplicate suppression remains a Flight signal integration distinction.
     scenarios:
       - events/advanced:mouseTransitions
-    scenarios: []
 
   - id: display.REN.deliberately-no-live-canvas-cairo-dom-context
     section: "Renderer-owned side effects noted, not adopted"
@@ -1175,7 +1122,6 @@ entries:
       Compatibility render dirtiness is cleared recursively at the Stage boundary; Flight independently acknowledges its internal geometry/cache consumption.
     scenarios:
       - display/advanced:stageInvalidation
-    scenarios: []
 
   - id: display.REN.open-fl-cache-bitmap-renderers-short-circuit
     section: "Renderer-owned side effects noted, not adopted"
@@ -1188,7 +1134,6 @@ entries:
       cacheAsBitmap properties and invalidation are preserved, while Flight owns subtree caching and mask clipping without exposing OpenFL's private renderer short-circuit.
     scenarios:
       - display/rendering-composition:cacheAsBitmap
-    scenarios: []
 
   - id: display.REN.bitmap-renderers-remember-observed-image-version-before
     section: "Renderer-owned side effects noted, not adopted"
@@ -1212,7 +1157,6 @@ entries:
       Compatibility world and dirty transforms are synchronized, but Flight computes DOM/world transforms internally and exposes no temporary OpenFL renderer substitution hook.
     scenarios:
       - display/advanced:displayObject
-    scenarios: []
 
   - id: display.FIX.capture-stage-invalidate-versus-ordinary-property-graphics
     section: "Highest-value fixture gaps"
@@ -1223,7 +1167,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:stageInvalidation
-    scenarios: []
 
   - id: display.FIX.capture-removal-focused-child-descendant-stage-cancellation
     section: "Highest-value fixture gaps"
@@ -1234,7 +1177,6 @@ entries:
     status: covered
     scenarios:
       - events/advanced:lifecycleMutation
-    scenarios: []
 
   - id: display.FIX.capture-reversed-alpha-only-compare-overlapping-self
     section: "Highest-value fixture gaps"
@@ -1245,7 +1187,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.FIX.capture-seeded-noise-perlin-noise-pixel-hashes
     section: "Highest-value fixture gaps"
@@ -1255,7 +1196,6 @@ entries:
     status: covered
     scenarios:
       - display/advanced:bitmapData
-    scenarios: []
 
   - id: display.FIX.add-end-end-host-pointer-fixture-covering
     section: "Highest-value fixture gaps"
@@ -1266,4 +1206,3 @@ entries:
     status: covered
     scenarios:
       - events/advanced:mouseTransitions
-    scenarios: []
