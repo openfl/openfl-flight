@@ -23,6 +23,7 @@ import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.geom.Transform;
+import openfl.ui.MouseCursor;
 
 #if !openfl_debug
 @:fileXml('tags="haxe,release"')
@@ -1397,6 +1398,12 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	}
 
 	@:noCompletion private function get_loaderInfo():LoaderInfo return __loaderInfo;
+
+	@:noCompletion private function __getCursor():MouseCursor
+	{
+		return null;
+	}
+
 	@:noCompletion private function get_clippingLayer():DisplayObject return __mask;
 	@:noCompletion private function set_clippingLayer(value:DisplayObject):DisplayObject return mask = value;
 	@:noCompletion private function get_mask():DisplayObject return __mask;

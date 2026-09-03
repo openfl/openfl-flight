@@ -268,10 +268,10 @@ class Window #if lime extends LimeWindow #end
 					backgroundColor: backgroundColor,
 					sceneGraphSyncPolicy: "requiresInvalidation"
 				});
-			registerRenderer(__flightRenderState, SpriteKind, defaultCanvasSpriteRenderer);
-			registerRenderer(__flightRenderState, ShapeKind, defaultCanvasShapeRenderer);
-			registerRenderer(__flightRenderState, TextLabelKind, defaultCanvasTextLabelRenderer);
-			registerRenderer(__flightRenderState, RichTextKind, defaultCanvasRichTextRenderer);
+			registerRenderer(__flightRenderState, SpriteKind, cast defaultCanvasSpriteRenderer);
+			registerRenderer(__flightRenderState, ShapeKind, cast defaultCanvasShapeRenderer);
+			registerRenderer(__flightRenderState, TextLabelKind, cast defaultCanvasTextLabelRenderer);
+			registerRenderer(__flightRenderState, RichTextKind, cast defaultCanvasRichTextRenderer);
 			registerCanvasShapeCommands(__flightRenderState, defaultCanvasShapeCommands);
 			registerCanvasImageTextureResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
 			__registerFlightCanvasBitmapResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
@@ -291,10 +291,10 @@ class Window #if lime extends LimeWindow #end
 			});
 			registerGlStandardMaterial(__flightRenderState);
 			registerStandardGlTextureResolvers(__flightRenderState);
-			registerRenderer(__flightRenderState, SpriteKind, defaultGlSpriteRenderer);
-			registerRenderer(__flightRenderState, ShapeKind, defaultGlShapeRenderer);
-			registerRenderer(__flightRenderState, TextLabelKind, defaultGlTextLabelRenderer);
-			registerRenderer(__flightRenderState, RichTextKind, defaultGlRichTextRenderer);
+			registerRenderer(__flightRenderState, SpriteKind, cast defaultGlSpriteRenderer);
+			registerRenderer(__flightRenderState, ShapeKind, cast defaultGlShapeRenderer);
+			registerRenderer(__flightRenderState, TextLabelKind, cast defaultGlTextLabelRenderer);
+			registerRenderer(__flightRenderState, RichTextKind, cast defaultGlRichTextRenderer);
 			#if lime_cairo
 			var surfaceCreator = flight.Scene2DCairo.createCairoRenderSurfaceCreator();
 			var shapeResolvers = createCanvasTextureResolvers(surfaceCreator);

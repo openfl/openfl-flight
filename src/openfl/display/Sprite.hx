@@ -2,6 +2,7 @@ package openfl.display;
 
 #if !flash
 import openfl.geom.Rectangle;
+import openfl.ui.MouseCursor;
 import openfl.utils.AssetLibrary;
 
 #if !openfl_debug
@@ -177,6 +178,11 @@ class Sprite extends DisplayObjectContainer
 	@:noCompletion private override function get_tabEnabled():Bool
 	{
 		return __tabEnabled == true || (__tabEnabled == null && buttonMode);
+	}
+
+	@:noCompletion private override function __getCursor():MouseCursor
+	{
+		return (__buttonMode && useHandCursor) ? BUTTON : null;
 	}
 
 	@:noCompletion private function get_buttonMode():Bool return __buttonMode;

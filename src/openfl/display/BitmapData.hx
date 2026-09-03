@@ -1221,10 +1221,10 @@ class BitmapData implements IBitmapDrawable
 			renderTransform: cast (matrix == null ? new Matrix() : matrix),
 			sceneGraphSyncPolicy: "always"
 		});
-		registerRenderer(state, SpriteKind, defaultCanvasSpriteRenderer);
-		registerRenderer(state, ShapeKind, defaultCanvasShapeRenderer);
-		registerRenderer(state, TextLabelKind, defaultCanvasTextLabelRenderer);
-		registerRenderer(state, RichTextKind, defaultCanvasRichTextRenderer);
+		registerRenderer(state, SpriteKind, cast defaultCanvasSpriteRenderer);
+		registerRenderer(state, ShapeKind, cast defaultCanvasShapeRenderer);
+		registerRenderer(state, TextLabelKind, cast defaultCanvasTextLabelRenderer);
+		registerRenderer(state, RichTextKind, cast defaultCanvasRichTextRenderer);
 		registerCanvasShapeCommands(state, defaultCanvasShapeCommands);
 		registerCanvasImageTextureResolver(resolvers);
 		Window.__registerFlightCanvasBitmapResolver(resolvers);
@@ -1274,14 +1274,14 @@ class BitmapData implements IBitmapDrawable
 			{
 				var faded = FlightBitmap.createBitmap(width, height, 0);
 				FlightBitmap.applyBitmapColorScaleBias(FlightBitmap.createBitmapRegion(faded), FlightBitmap.createBitmapRegion(transformed), {
-					redScale: 1,
-					greenScale: 1,
-					blueScale: 1,
+					redScale: 1.0,
+					greenScale: 1.0,
+					blueScale: 1.0,
 					alphaScale: alpha,
-					redBias: 0,
-					greenBias: 0,
-					blueBias: 0,
-					alphaBias: 0
+					redBias: 0.0,
+					greenBias: 0.0,
+					blueBias: 0.0,
+					alphaBias: 0.0
 				});
 				transformed = faded;
 			}

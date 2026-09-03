@@ -10,6 +10,7 @@ import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.events.MouseEvent;
 import openfl.media.SoundTransform;
+import openfl.ui.MouseCursor;
 
 /**
 	The SimpleButton class lets you control all instances of button symbols in
@@ -391,6 +392,11 @@ class SimpleButton extends InteractiveObject
 	@:noCompletion private function __syncCursor():Void
 	{
 		FlightInteraction.setNodeCursor(__flightNode, useHandCursor && !__ignoreEvent && enabled ? "pointer" : null);
+	}
+
+	@:noCompletion private override function __getCursor():MouseCursor
+	{
+		return (useHandCursor && !__ignoreEvent && enabled) ? BUTTON : null;
 	}
 
 	@:noCompletion private function __dispatchFlightMouse(type:String, data:FlightPointerEventData):Void
