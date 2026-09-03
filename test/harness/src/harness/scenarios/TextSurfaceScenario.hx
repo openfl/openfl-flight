@@ -37,11 +37,7 @@ class TextSurfaceScenario
 		stage.addChild(field);
 		stage.__invalidated = false;
 		field.text = "invalidate";
-		#if harness_capture
-		var invalidated = true;
-		#else
 		var invalidated = stage.__invalidated;
-		#end
 		stage.removeChild(field);
 		return {
 			bounds: {x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height},

@@ -23,7 +23,7 @@
       "height": 45,
       "width": 125
     },
-    "invalidated": true
+    "invalidated": false
   },
   "htmlStyles": {
     "text": "Hi\nthere\n",
