@@ -36,6 +36,15 @@
       }
     ]
   },
+  "nativeKeyboardRouter": {
+    "log": "stage-first,stage-second"
+  },
+  "stageDispatchStack": {
+    "currentTarget": null,
+    "phase": 1,
+    "target": "target",
+    "log": "stage-first,stage-second"
+  },
   "addRemove": {
     "added": [
       {

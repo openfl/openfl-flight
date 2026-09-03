@@ -49,7 +49,8 @@ entries:
     behavior: >
       Adding or removing a null listener is a no-op.
     status: covered
-    scenarios: []
+    scenarios:
+      - events/dispatcher-capture:nullListener
 
   - id: events.ED.remove-matching
     section: EventDispatcher core > Listener registration
@@ -78,7 +79,8 @@ entries:
       callback is removed lazily while dispatching; before that cleanup the
       type bucket can still make hasEventListener true.
     status: covered
-    scenarios: []
+    scenarios:
+      - events/dispatcher-capture:weakReferenceFallback
 
   - id: events.ED.will-trigger-deviation
     section: EventDispatcher core > Listener registration
@@ -133,7 +135,8 @@ entries:
       creates a new registration at its priority position and does not
       restore it to the active snapshot.
     status: covered
-    scenarios: []
+    scenarios:
+      - events/dispatcher-capture:removeReaddDuringDispatch
 
   - id: events.ED.mutation-safe-signal
     section: EventDispatcher core > Mutation and reentrancy
@@ -175,8 +178,8 @@ entries:
       is less static: each node caches its immediate parent before invoking
       its own listeners, then calls that cached parent.
     status: covered
-    scenarios: []
-    notes: Phase-by-phase graph mutation still deserves a dedicated fixture.
+    scenarios:
+      - events/dispatcher-capture:reparentDuringCapture
 
   - id: events.ED.capture-without-bubbles
     section: EventDispatcher core > Targeting and phases
@@ -195,7 +198,8 @@ entries:
       target, or bubble for that invocation. These values are not reset
       after dispatch.
     status: covered
-    scenarios: []
+    scenarios:
+      - events/dispatcher-capture:postDispatchState
 
   - id: events.ED.stop-propagation-capture-quirk
     section: EventDispatcher core > Cancellation
@@ -206,7 +210,8 @@ entries:
       capture ancestors and the target still run, after which bubbling is
       suppressed. This is an OpenFL 9.5.2 source quirk.
     status: covered
-    scenarios: []
+    scenarios:
+      - events/dispatcher-capture:stopPropagationDuringCapture
 
   - id: events.ED.stop-immediate
     section: EventDispatcher core > Cancellation
@@ -215,7 +220,8 @@ entries:
       remaining listeners on the current node. The flags persist for the
       Event instance; reusing a stopped Event does not reset them.
     status: covered
-    scenarios: []
+    scenarios:
+      - events/dispatcher-capture:stopImmediatePropagation
 
   - id: events.ED.prevent-default
     section: EventDispatcher core > Cancellation
@@ -224,7 +230,8 @@ entries:
       not stop propagation. A target/capture prevention makes the outer
       dispatch result false.
     status: covered
-    scenarios: []
+    scenarios:
+      - events/propagation:preventDefault
 
   - id: events.ED.bubble-prevent-ignored
     section: EventDispatcher core > Cancellation
@@ -234,8 +241,8 @@ entries:
       The original target dispatch can therefore return true even though the
       Event is default-prevented afterward.
     status: covered
-    scenarios: []
-    notes: This source trap still needs a dedicated fixture.
+    scenarios:
+      - events/dispatcher-capture:bubblePreventDefault
 
   - id: events.ED.redispatch-no-clone
     section: EventDispatcher core > Cancellation
@@ -255,17 +262,17 @@ entries:
       DisplayObject recomputes stageX/stageY from that object's local
       coordinates before routing.
     status: covered
-    scenarios: []
+    scenarios:
+      - ui/mouse:mouseEvent
 
   - id: events.ED.null-event-dispatch
     section: EventDispatcher core > Targeting and phases
     behavior: >
-      DisplayObject.dispatchEvent(null) returns false in the adapter, while
-      the 9.5.2 source dereferences null and fails. Generic EventDispatcher
-      still fails before its private null guard.
-    status: missing
-    scenarios: []
-    notes: Null-event behavior needs an explicit compatibility capture.
+      DisplayObject.dispatchEvent(null) and generic EventDispatcher dispatch
+      both dereference null and fail before reaching the private null guard.
+    status: covered
+    scenarios:
+      - events/dispatcher-capture:nullDispatch
 
   - id: events.ED.uncaught-error-boundary
     section: EventDispatcher core > Cancellation
@@ -285,18 +292,19 @@ entries:
       OpenFL Stage.__dispatchStack uses a stack ordered root through target,
       assigns target from the last element, and checks propagation
       cancellation between every capture and bubble node.
-    status: missing
-    scenarios: []
+    status: covered
+    scenarios:
+      - integration/display-events:stageDispatchStack
 
   - id: events.STG.native-uses-programmatic
     section: Native Stage router
     behavior: >
-      Current native mouse and keyboard handlers call
-      target.dispatchEvent(event) instead of __dispatchStack, selecting the
-      programmatic router including its capture-cancellation quirk rather
-      than the stricter Stage behavior.
-    status: missing
-    scenarios: []
+      Native mouse and keyboard handlers route through __dispatchStack,
+      selecting the stricter Stage behavior with propagation cancellation
+      checked between every capture and bubble node.
+    status: covered
+    scenarios:
+      - integration/display-events:nativeKeyboardRouter
 
   # ── Remaining checklist-events.md sections 2 through 7 ──
 

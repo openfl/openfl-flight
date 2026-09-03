@@ -6,6 +6,7 @@ import flight.types.Scene2D as FlightScene;
 import openfl.display3D.Context3D;
 import openfl.errors.IllegalOperationError;
 import openfl.events.Event;
+import openfl.events.EventPhase;
 import openfl.events.FocusEvent;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
@@ -838,6 +839,39 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		}
 	}
 
+	@:noCompletion private function __dispatchStack(event:Event, stack:Array<DisplayObject>):Void
+	{
+		var length = stack.length;
+		if (length == 0)
+		{
+			event.eventPhase = EventPhase.AT_TARGET;
+			var target:DisplayObject = cast event.target;
+			target.__dispatch(event);
+			return;
+		}
+
+		event.target = stack[length - 1];
+		event.eventPhase = EventPhase.CAPTURING_PHASE;
+		for (i in 0...length - 1)
+		{
+			stack[i].__dispatch(event);
+			if (event.__isCanceled) return;
+		}
+
+		event.eventPhase = EventPhase.AT_TARGET;
+		stack[length - 1].__dispatch(event);
+		if (event.__isCanceled || !event.bubbles) return;
+
+		event.eventPhase = EventPhase.BUBBLING_PHASE;
+		var i = length - 2;
+		while (i >= 0)
+		{
+			stack[i].__dispatch(event);
+			if (event.__isCanceled) return;
+			i--;
+		}
+	}
+
 	#if lime
 	@:noCompletion private function __registerLimeModule(application:Application):Void
 	{
@@ -877,7 +911,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		var event = new KeyboardEvent(type, true, true, Keyboard.__getCharCode(keyCode, modifier.shiftKey, modifier.capsLock), keyCode,
 			Keyboard.__getKeyLocation(key), modifier.ctrlKey, modifier.altKey, modifier.shiftKey, modifier.ctrlKey, modifier.metaKey);
 		var target:InteractiveObject = __focus == null ? this : __focus;
-		target.dispatchEvent(event);
+		__dispatchStack(event, __getEventStack(target));
 	}
 
 	@:noCompletion private function __onLimeKeyDown(key:KeyCode, modifier:KeyModifier):Void
@@ -916,13 +950,26 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		return this;
 	}
 
+	@:noCompletion private function __getEventStack(target:DisplayObject):Array<DisplayObject>
+	{
+		var stack:Array<DisplayObject> = [];
+		var current = target;
+		while (current != null)
+		{
+			stack.unshift(current);
+			current = current.parent;
+		}
+		return stack;
+	}
+
 	@:noCompletion private function __dispatchMouseEvent(type:String, x:Float, y:Float, buttonDown:Bool):Void
 	{
 		__mouseX = x * window.scale;
 		__mouseY = y * window.scale;
 		var target = __getMouseTarget(__mouseX, __mouseY);
 		var local = target.globalToLocal(new Point(__mouseX, __mouseY));
-		target.dispatchEvent(new MouseEvent(type, true, false, local.x, local.y, null, false, false, false, buttonDown));
+		var event = new MouseEvent(type, true, false, local.x, local.y, null, false, false, false, buttonDown);
+		__dispatchStack(event, __getEventStack(target));
 	}
 
 	@:noCompletion private function __onLimeMouseDown(x:Float, y:Float, button:Int):Void

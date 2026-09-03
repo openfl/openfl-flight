@@ -18,7 +18,13 @@ class EventDispatcherCaptureScenario {
 			hasEventListenerCapture: testHasEventListenerCapture(),
 			stopImmediatePropagation: testStopImmediate(),
 			willTrigger: testWillTrigger(),
-			nullListener: testNullListener()
+			nullListener: testNullListener(),
+			nullDispatch: testNullDispatch(),
+			weakReferenceFallback: testWeakReferenceFallback(),
+			removeReaddDuringDispatch: testRemoveReaddDuringDispatch(),
+			reparentDuringCapture: testReparentDuringCapture(),
+			postDispatchState: testPostDispatchState(),
+			bubblePreventDefault: testBubblePreventDefault()
 		};
 	}
 
@@ -280,9 +286,114 @@ class EventDispatcherCaptureScenario {
 	private static function testNullListener():Dynamic {
 		var dispatcher = new EventDispatcher();
 		dispatcher.addEventListener("test", null);
+		dispatcher.removeEventListener("test", null);
 
 		return {
 			hasListener: dispatcher.hasEventListener("test")
 		};
+	}
+
+	private static function testNullDispatch():Dynamic {
+		return {
+			genericError: captureError(function() new EventDispatcher().dispatchEvent(null)),
+			displayError: captureError(function() new Sprite().dispatchEvent(null))
+		};
+	}
+
+	private static function testWeakReferenceFallback():Dynamic {
+		var dispatcher = new EventDispatcher();
+		var calls = 0;
+		var listener = function(_:Event):Void calls++;
+		dispatcher.addEventListener("weak", listener, false, 0, true);
+		dispatcher.dispatchEvent(new Event("weak"));
+		return {
+			calls: calls,
+			hasListener: dispatcher.hasEventListener("weak")
+		};
+	}
+
+	private static function testRemoveReaddDuringDispatch():Dynamic {
+		var dispatcher = new EventDispatcher();
+		var log:Array<String> = [];
+		var firstDispatch = true;
+		var second:Event->Void = function(_:Event):Void log.push("second");
+		dispatcher.addEventListener("mutate", function(_:Event):Void {
+			log.push("first");
+			if (firstDispatch) {
+				firstDispatch = false;
+				dispatcher.removeEventListener("mutate", second);
+				dispatcher.addEventListener("mutate", second);
+			}
+		}, false, 10);
+		dispatcher.addEventListener("mutate", second);
+		dispatcher.dispatchEvent(new Event("mutate"));
+		var first = log.join(",");
+		log.resize(0);
+		dispatcher.dispatchEvent(new Event("mutate"));
+		return {
+			first: first,
+			second: log.join(",")
+		};
+	}
+
+	private static function testReparentDuringCapture():Dynamic {
+		var firstRoot = namedSprite("firstRoot");
+		var secondRoot = namedSprite("secondRoot");
+		var parent = namedSprite("parent");
+		var target = namedSprite("target");
+		firstRoot.addChild(parent);
+		parent.addChild(target);
+		var log:Array<String> = [];
+		firstRoot.addEventListener("reparent", function(_:Event):Void {
+			log.push("firstRoot-capture");
+			secondRoot.addChild(parent);
+		}, true);
+		parent.addEventListener("reparent", function(_:Event):Void log.push("parent-capture"), true);
+		target.addEventListener("reparent", function(_:Event):Void log.push("target"));
+		parent.addEventListener("reparent", function(_:Event):Void log.push("parent-bubble"));
+		firstRoot.addEventListener("reparent", function(_:Event):Void log.push("firstRoot-bubble"));
+		secondRoot.addEventListener("reparent", function(_:Event):Void log.push("secondRoot-bubble"));
+		target.dispatchEvent(new Event("reparent", true));
+		return {
+			log: log.join(","),
+			parentIsSecondRoot: parent.parent == secondRoot
+		};
+	}
+
+	private static function testPostDispatchState():Dynamic {
+		var root = namedSprite("root");
+		var target = namedSprite("target");
+		root.addChild(target);
+		root.addEventListener("state", function(_:Event):Void {});
+		var event = new Event("state", true);
+		target.dispatchEvent(event);
+		return {
+			target: cast(event.target, Sprite).name,
+			currentTarget: cast(event.currentTarget, Sprite).name,
+			phase: cast event.eventPhase
+		};
+	}
+
+	private static function testBubblePreventDefault():Dynamic {
+		var parent = new Sprite();
+		var target = new Sprite();
+		parent.addChild(target);
+		parent.addEventListener("bubblePrevent", function(event:Event):Void event.preventDefault());
+		var event = new Event("bubblePrevent", true, true);
+		var dispatchResult = target.dispatchEvent(event);
+		return {
+			dispatchResult: dispatchResult,
+			defaultPrevented: event.isDefaultPrevented()
+		};
+	}
+
+	private static function captureError(operation:Void->Void):Null<String> {
+		try {
+			operation();
+			return null;
+		} catch (error:Dynamic) {
+			var errorClass = Type.getClass(error);
+			return errorClass == null ? Std.string(error) : Type.getClassName(errorClass);
+		}
 	}
 }

@@ -1,4 +1,12 @@
 {
+  "bubblePreventDefault": {
+    "defaultPrevented": true,
+    "dispatchResult": true
+  },
+  "nullDispatch": {
+    "genericError": "String",
+    "displayError": "String"
+  },
   "hasEventListenerCapture": {
     "hasTest": true
   },
@@ -10,8 +18,16 @@
     "count": 1,
     "log": "normal"
   },
+  "weakReferenceFallback": {
+    "hasListener": true,
+    "calls": 1
+  },
   "nullListener": {
     "hasListener": false
+  },
+  "removeReaddDuringDispatch": {
+    "second": "first,second",
+    "first": "first"
   },
   "multipleCaptures": {
     "count": 3,
@@ -25,15 +41,20 @@
     "afterMatchingRemove": 1,
     "afterMismatchedRemove": 1
   },
+  "postDispatchState": {
+    "currentTarget": "root",
+    "phase": 3,
+    "target": "target"
+  },
   "willTrigger": {
-    "genericBefore": false,
-    "genericAfter": true,
-    "targetHasAncestor": false,
-    "targetWillTriggerAncestor": true,
-    "aggregateWillTriggerAncestor": true,
     "afterAncestorRemove": false,
     "targetHasLocal": true,
-    "targetWillTriggerLocal": true
+    "genericBefore": false,
+    "targetWillTriggerAncestor": true,
+    "targetHasAncestor": false,
+    "targetWillTriggerLocal": true,
+    "aggregateWillTriggerAncestor": true,
+    "genericAfter": true
   },
   "captureSameListener": {
     "callCount": 1,
@@ -78,5 +99,9 @@
   "stopPropagationDuringCapture": {
     "count": 4,
     "log": "root-first,root-second,parent-capture,target"
+  },
+  "reparentDuringCapture": {
+    "parentIsSecondRoot": true,
+    "log": "firstRoot-capture,parent-capture,target,parent-bubble,secondRoot-bubble"
   }
 }

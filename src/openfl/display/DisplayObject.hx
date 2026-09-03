@@ -771,7 +771,6 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	public override function dispatchEvent(event:Event):Bool
 	{
-		if (event == null) return false;
 		if ((event is MouseEvent))
 		{
 			var mouseEvent:MouseEvent = cast event;

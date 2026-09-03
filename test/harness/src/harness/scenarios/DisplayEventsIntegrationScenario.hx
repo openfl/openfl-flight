@@ -7,8 +7,12 @@ import openfl.display.Stage;
 import openfl.display.StageScaleMode;
 import openfl.display.Window;
 import openfl.events.Event;
+import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.geom.Point;
+#if lime
+import lime.ui.KeyModifier;
+#end
 
 class DisplayEventsIntegrationScenario
 {
@@ -19,7 +23,9 @@ class DisplayEventsIntegrationScenario
 			descendantStageEvents: testDescendantStageEvents(),
 			reparent: testReparent(),
 			mouseTargeting: testMouseTargeting(),
-			stageResize: testStageResize()
+			stageResize: testStageResize(),
+			stageDispatchStack: testStageDispatchStack(),
+			nativeKeyboardRouter: testNativeKeyboardRouter()
 		};
 	}
 
@@ -151,6 +157,57 @@ class DisplayEventsIntegrationScenario
 			events: events,
 			width: stage.stageWidth,
 			height: stage.stageHeight
+		};
+	}
+
+	private static function testStageDispatchStack():Dynamic
+	{
+		var stage = createStage(320, 240);
+		var parent = namedSprite("parent");
+		var target = namedSprite("target");
+		stage.addChild(parent);
+		parent.addChild(target);
+		var log:Array<String> = [];
+		stage.addEventListener("strict", function(event:Event):Void {
+			log.push("stage-first");
+			event.stopPropagation();
+		}, true);
+		stage.addEventListener("strict", function(_:Event):Void log.push("stage-second"), true);
+		parent.addEventListener("strict", function(_:Event):Void log.push("parent"), true);
+		target.addEventListener("strict", function(_:Event):Void log.push("target"));
+		var event = new Event("strict", true);
+		@:privateAccess stage.__dispatchStack(event, [stage, parent, target]);
+		return {
+			log: log.join(","),
+			target: objectName(event.target),
+			currentTarget: objectName(event.currentTarget),
+			phase: cast event.eventPhase
+		};
+	}
+
+	private static function testNativeKeyboardRouter():Dynamic
+	{
+		var stage = createStage(320, 240);
+		var parent = namedSprite("parent");
+		var target = namedSprite("target");
+		stage.addChild(parent);
+		parent.addChild(target);
+		stage.focus = target;
+		var log:Array<String> = [];
+		stage.addEventListener(KeyboardEvent.KEY_DOWN, function(event:Event):Void {
+			log.push("stage-first");
+			event.stopPropagation();
+		}, true);
+		stage.addEventListener(KeyboardEvent.KEY_DOWN, function(_:Event):Void log.push("stage-second"), true);
+		parent.addEventListener(KeyboardEvent.KEY_DOWN, function(_:Event):Void log.push("parent"), true);
+		target.addEventListener(KeyboardEvent.KEY_DOWN, function(_:Event):Void log.push("target"));
+		#if (harness_compare && lime)
+		@:privateAccess stage.__dispatchKeyboardEvent(KeyboardEvent.KEY_DOWN, cast 65, KeyModifier.NONE);
+		#else
+		@:privateAccess stage.__dispatchStack(new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, true), [stage, parent, target]);
+		#end
+		return {
+			log: log.join(",")
 		};
 	}
 
