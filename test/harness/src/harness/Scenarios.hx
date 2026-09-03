@@ -57,6 +57,7 @@ import harness.scenarios.NativeProcessScenario;
 import harness.scenarios.NetSurfaceScenario;
 import harness.scenarios.ObjectPoolScenario;
 import harness.scenarios.PermissionStatusScenario;
+import harness.scenarios.PerspectiveProjectionScenario;
 import harness.scenarios.PointScenario;
 import harness.scenarios.PrintJobScenario;
 import harness.scenarios.RectangleScenario;
@@ -190,6 +191,10 @@ class Scenarios {
 			{
 				name: "geom/matrix3d",
 				run: Matrix3DScenario.run
+			},
+			{
+				name: "geom/perspective-projection",
+				run: PerspectiveProjectionScenario.run
 			},
 			{
 				name: "geom/utils3d",

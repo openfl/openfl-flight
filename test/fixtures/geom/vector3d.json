@@ -118,6 +118,7 @@
     "z": -5,
     "w": 1
   },
+  "stringFormat": "Vector3D(3, 4, 5)",
   "nearEquals": {
     "outside": false,
     "wOutside": false,

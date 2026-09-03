@@ -191,6 +191,7 @@
     "height": 50,
     "width": 100
   },
+  "stringFormat": "(x=10, y=20, width=100, height=50)",
   "deflatePastZero": {
     "x": 15,
     "y": 30,

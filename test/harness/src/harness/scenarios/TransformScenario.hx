@@ -1,8 +1,12 @@
 package harness.scenarios;
 
+#if harness_compare
+import flight.Node as FlightNode;
+#end
 import openfl.Lib;
 import openfl.display.Application;
 import openfl.display.Sprite;
+import openfl.filters.ColorMatrixFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Matrix3D;
@@ -21,6 +25,8 @@ class TransformScenario {
 			concatenatedMatrix: testConcatenatedMatrix(),
 			concatenatedMatrixReadOnly: testConcatenatedMatrixReadOnly(),
 			concatenatedColorTransform: testConcatenatedColorTransform(),
+			renderColorAdjustments: testRenderColorAdjustments(),
+			renderColorAdjustmentComposition: testRenderColorAdjustmentComposition(),
 			colorTransformAccess: testColorTransformAccess(),
 			perspectiveProjectionDefaults: testPerspectiveProjectionDefaults(),
 			pixelBoundsLifecycle: testPixelBoundsLifecycle()
@@ -185,6 +191,63 @@ class TransformScenario {
 		root.addChild(parent);
 		parent.addChild(child);
 		return colorValues(child.transform.concatenatedColorTransform);
+	}
+
+	private static function testRenderColorAdjustments():Dynamic {
+		var root = new Sprite();
+		var parent = new Sprite();
+		var child = new Sprite();
+		root.transform.colorTransform = new ColorTransform(0.5, 0.6, 0.7, 0.8, 10, 20, 30, 40);
+		parent.transform.colorTransform = new ColorTransform(0.4, 0.5, 0.6, 0.7, 5, 6, 7, 8);
+		child.transform.colorTransform = new ColorTransform(0.25, 0.3, 0.35, 0.4, 1, 2, 3, 4);
+		root.addChild(parent);
+		parent.addChild(child);
+		return {
+			root: flightColorAdjustment(root),
+			parent: flightColorAdjustment(parent),
+			child: flightColorAdjustment(child)
+		};
+	}
+
+	private static function flightColorAdjustment(sprite:Sprite):Dynamic {
+		#if harness_compare
+		var adjustments = FlightNode.getNodeColorAdjustments(@:privateAccess sprite.__flightNode);
+		var adjustment:Dynamic = adjustments[0];
+		var value:Dynamic = adjustment.colorScaleBias;
+		return {
+			redScale: value.redScale,
+			greenScale: value.greenScale,
+			blueScale: value.blueScale,
+			alphaScale: value.alphaScale,
+			redBias: value.redBias,
+			greenBias: value.greenBias,
+			blueBias: value.blueBias,
+			alphaBias: value.alphaBias
+		};
+		#else
+		var value = sprite.transform.colorTransform;
+		return {
+			redScale: value.redMultiplier,
+			greenScale: value.greenMultiplier,
+			blueScale: value.blueMultiplier,
+			alphaScale: 1,
+			redBias: value.redOffset / 255,
+			greenBias: value.greenOffset / 255,
+			blueBias: value.blueOffset / 255,
+			alphaBias: value.alphaOffset / 255
+		};
+		#end
+	}
+
+	private static function testRenderColorAdjustmentComposition():Bool {
+		var sprite = new Sprite();
+		sprite.filters = [new ColorMatrixFilter()];
+		sprite.transform.colorTransform = new ColorTransform(0.5, 0.6, 0.7, 0.8, 10, 20, 30, 40);
+		#if harness_compare
+		return FlightNode.getNodeColorAdjustments(@:privateAccess sprite.__flightNode).length == 2;
+		#else
+		return true;
+		#end
 	}
 
 	private static function testColorTransformAccess():Dynamic {

@@ -24,6 +24,7 @@ class ColorTransformScenario {
 			colorSet: describe(colorSet),
 			concat: describe(concatA),
 			identity: describe(identity),
+			stringFormat: custom.toString(),
 			edgeCases: {
 				zeroMultipliers: describe(new ColorTransform(0, 0, 0, 0, 128, 128, 128, 128)),
 				maxOffsets: describe(new ColorTransform(1, 1, 1, 1, 255, 255, 255, 255)),

@@ -112,6 +112,7 @@ class RectangleScenario {
 			setEmpty: rect(setEmptyR),
 			setTo: rect(setToR),
 			copyFrom: rect(copyR),
+			stringFormat: r.toString(),
 			union: {
 				overlapping: rect(r.union(r2)),
 				noOverlap: rect(r.union(noOverlap)),

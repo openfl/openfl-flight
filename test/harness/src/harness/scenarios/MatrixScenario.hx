@@ -2,6 +2,7 @@ package harness.scenarios;
 
 import openfl.geom.Matrix;
 import openfl.geom.Point;
+import openfl.geom.Vector3D;
 
 class MatrixScenario {
 	public static function run():Dynamic {
@@ -50,6 +51,16 @@ class MatrixScenario {
 		scaleRotate.rotate(Math.PI / 4);
 		scaleRotate.translate(100, 200);
 
+		var columns = new Matrix(1, 2, 3, 4, 5, 6);
+		var column = new Vector3D();
+		columns.copyColumnTo(1, column);
+		columns.copyColumnFrom(0, new Vector3D(7, 8, 9));
+
+		var rows = new Matrix(1, 2, 3, 4, 5, 6);
+		var row = new Vector3D();
+		rows.copyRowTo(1, row);
+		rows.copyRowFrom(0, new Vector3D(7, 8, 9));
+
 		return {
 			identity: mat(m),
 			custom: mat(custom),
@@ -70,6 +81,9 @@ class MatrixScenario {
 				transformHasTranslation: tp.x != dtp.x || tp.y != dtp.y
 			},
 			composeScaleRotateTranslate: roundMat(scaleRotate),
+			copyColumns: {read: vector(column), written: mat(columns)},
+			copyRows: {read: vector(row), written: mat(rows)},
+			stringFormat: custom.toString(),
 			clone: {
 				values: mat(custom.clone()),
 				notSame: custom.clone() != custom
@@ -79,6 +93,10 @@ class MatrixScenario {
 				different: custom.equals(m)
 			}
 		};
+	}
+
+	private static function vector(v:Vector3D):Dynamic {
+		return {x: v.x, y: v.y, z: v.z, w: v.w};
 	}
 
 	private static function mat(m:Matrix):Dynamic {

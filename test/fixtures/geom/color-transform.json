@@ -72,6 +72,7 @@
     "greenOffset": 26
   },
   "colorGet": 16744512,
+  "stringFormat": "(redMultiplier=0.5, greenMultiplier=0.6, blueMultiplier=0.7, alphaMultiplier=0.8, redOffset=10, greenOffset=20, blueOffset=30, alphaOffset=40)",
   "custom": {
     "blueMultiplier": 0.7,
     "redOffset": 10,

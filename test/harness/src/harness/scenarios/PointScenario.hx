@@ -35,6 +35,7 @@ class PointScenario {
 			offset: coordinates(offset),
 			setTo: coordinates(set),
 			copyFrom: coordinates(copied),
+			stringFormat: point.toString(),
 			equals: {
 				same: point.equals(new Point(3, 4)),
 				different: point.equals(new Point(4, 3))

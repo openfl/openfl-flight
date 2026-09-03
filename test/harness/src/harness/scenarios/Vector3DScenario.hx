@@ -66,6 +66,7 @@ class Vector3DScenario {
 			project: vec(projected),
 			copyFrom: vec(copyTarget),
 			setTo: vec(setTarget),
+			stringFormat: v.toString(),
 			clone: {
 				values: vec(v.clone()),
 				notSame: v.clone() != v

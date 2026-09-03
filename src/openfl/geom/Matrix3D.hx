@@ -276,9 +276,7 @@ class Matrix3D
 	**/
 	public function clone():Matrix3D
 	{
-		var result = new Matrix3D();
-		result.__copyFromFlightMatrix4(Geometry.cloneMatrix4(__toFlightMatrix4()));
-		return result;
+		return new Matrix3D(rawData.copy());
 	}
 
 	/**
@@ -319,9 +317,7 @@ class Matrix3D
 	**/
 	public function copyFrom(other:Matrix3D):Void
 	{
-		var matrix = __toFlightMatrix4();
-		Geometry.copyMatrix4(matrix, other.__toFlightMatrix4());
-		__copyFromFlightMatrix4(matrix);
+		rawData = other.rawData.copy();
 	}
 
 	/**
@@ -415,7 +411,7 @@ class Matrix3D
 	**/
 	public function copyToMatrix3D(other:Matrix3D):Void
 	{
-		other.__copyFromFlightMatrix4(Geometry.cloneMatrix4(__toFlightMatrix4()));
+		other.rawData = rawData.copy();
 	}
 
 	@SuppressWarnings("checkstyle:FieldDocComment")
@@ -718,9 +714,7 @@ class Matrix3D
 	**/
 	public function identity():Void
 	{
-		var matrix = __toFlightMatrix4();
-		Geometry.setMatrix4Identity(matrix);
-		__copyFromFlightMatrix4(matrix);
+		rawData = new Vector<Float>([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]);
 	}
 
 	/**
@@ -1289,6 +1283,8 @@ class Matrix3D
 		{
 			return false;
 		}
+
+		identity();
 
 		var rotation = components[1];
 		var quaternion = Geometry.createQuaternion();

@@ -124,7 +124,8 @@ entries:
       `copyColumnTo` also sets output `z` to `0`, `0`, or `1` and preserves output `w`. An index
       greater than 2 throws a string; a negative index is treated as column 2.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix:copyColumns
 
   - id: geom.MTX.copy-rows
     section: "Matrix"
@@ -134,7 +135,8 @@ entries:
       the inverse mapping and any other row at or below 2 returns `(0,0,1)`; it preserves output
       `w`, and only values greater than 2 throw.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix:copyRows
 
   - id: geom.MTX.equals-exact
     section: "Matrix"
@@ -152,7 +154,8 @@ entries:
       string helpers emit CSS `matrix3d(...)`/Mozilla forms; the rounded `matrix3d` form
       truncates `tx` and `ty` with `Std.int`.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix:stringFormat
 
   # -- Point --
 
@@ -243,7 +246,8 @@ entries:
     behavior: >-
       `toString()` is exactly `(x=value, y=value)`.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/point:stringFormat
 
   # -- Rectangle --
 
@@ -388,7 +392,8 @@ entries:
     behavior: >-
       `toString()` is exactly `(x=value, y=value, width=value, height=value)`.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/rectangle:stringFormat
 
   # -- Vector3D --
 
@@ -509,7 +514,8 @@ entries:
     behavior: >-
       `toString()` is `Vector3D(x, y, z)` and omits `w`.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/vector3d:stringFormat
 
   # -- Matrix3D > Storage, copying, and addressing --
 
@@ -539,16 +545,14 @@ entries:
   - id: geom.M3D.clone-copy-rawdata-reference
     section: "Matrix3D > Storage, copying, and addressing"
     behavior: >-
-      With a normal 16-element receiver, `clone`, `copyFrom`, and `copyToMatrix3D` copy values
-      without sharing the source Vector. The exact edge contracts differ: upstream `copyFrom`
-      and `copyToMatrix3D` replace the destination's `rawData` reference with a copy of the
-      source of any length, while the adapter writes the first 16 values through Flight into the
-      existing destination Vector. Upstream `clone()` feeds a copy back through the constructor,
-      so malformed-length rawData yields identity; the adapter instead materializes Flight's
-      16-value view.
-    status: missing
+      `clone`, `copyFrom`, and `copyToMatrix3D` copy values without sharing the source Vector.
+      `copyFrom` and `copyToMatrix3D` replace the destination's `rawData` reference with a copy of
+      the source of any length. `clone()` feeds a copy back through the constructor, so malformed-
+      length rawData yields identity.
+    status: covered
     scenarios:
       - geom/matrix3d:clone
+      - geom/matrix3d:copyRawDataReferences
 
   - id: geom.M3D.copy-columns-rows
     section: "Matrix3D > Storage, copying, and addressing"
@@ -557,7 +561,8 @@ entries:
       contiguous column. Invalid signed columns silently do nothing. `copyRowFrom/To(0..3)` use
       indices `row,row+4,row+8,row+12`; invalid rows silently do nothing.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:copyColumnsRows
 
   - id: geom.M3D.copy-raw-data-from
     section: "Matrix3D > Storage, copying, and addressing"
@@ -567,7 +572,8 @@ entries:
       intact. With transpose true it transposes the receiver before the partial copy and
       transposes it back afterward.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:copyRawData.from
 
   - id: geom.M3D.copy-raw-data-to
     section: "Matrix3D > Storage, copying, and addressing"
@@ -576,16 +582,17 @@ entries:
       `rawData.length` starting at the destination index, extending the destination as needed.
       With transpose true it temporarily transposes the receiver, writes, then restores it.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:copyRawData.to
 
   - id: geom.M3D.identity-rawdata-reference
     section: "Matrix3D > Storage, copying, and addressing"
     behavior: >-
-      `identity()` replaces `rawData` with a new 16-element identity Vector, so external
-      references to the old Vector no longer observe the upstream matrix. The adapter writes
-      identity into the existing Vector and therefore preserves its reference.
-    status: missing
-    scenarios: []
+      `identity()` replaces `rawData` with a new 16-element identity Vector, so external references
+      to the old Vector no longer observe subsequent matrix mutations.
+    status: covered
+    scenarios:
+      - geom/matrix3d:identityRawDataReference
 
   - id: geom.M3D.transpose
     section: "Matrix3D > Storage, copying, and addressing"
@@ -649,7 +656,9 @@ entries:
       `createABCD(a,b,c,d,tx,ty)` embeds those six values as
       `[a,b,0,0,c,d,0,0,0,0,1,0,tx,ty,0,1]`.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:createHelpers.create2D
+      - geom/matrix3d:createHelpers.createABCD
 
   - id: geom.M3D.create-ortho
     section: "Matrix3D > Multiplication and incremental transforms"
@@ -658,7 +667,8 @@ entries:
       `sz=1/(zFar-zNear)`, diagonal `(2*sx,2*sy,-2*sz,1)`, and translation `(-(x0+x1)*sx,
       -(y0+y1)*sy, -(zNear+zFar)*sz)`. Zero extents divide by zero rather than throwing.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:createHelpers.createOrtho
 
   # -- Matrix3D > Transformation and interpolation --
 
@@ -682,7 +692,8 @@ entries:
       `w=1`, and writes results at the same numeric indices in `vout`; one or two trailing input
       values are ignored.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:transformVectorTriples
 
   - id: geom.M3D.interpolate-elements
     section: "Matrix3D > Transformation and interpolation"
@@ -691,7 +702,8 @@ entries:
       `interpolateTo` linearly interpolate each of the 16 raw elements. They do not decompose or
       use quaternions despite API prose, and percentages outside `[0,1]` extrapolate.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:interpolateElements
 
   - id: geom.M3D.invert-threshold
     section: "Matrix3D > Transformation and interpolation"
@@ -748,7 +760,8 @@ entries:
       Consequently caller-supplied rotation/scale objects exchange slots and roles; the adapter
       preserves this source quirk.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:decomposeOutputAliasing
 
   - id: geom.M3D.recompose-contract
     section: "Matrix3D > Decomposition and orientation"
@@ -765,12 +778,12 @@ entries:
   - id: geom.M3D.recompose-rawdata-reference
     section: "Matrix3D > Decomposition and orientation"
     behavior: >-
-      A successful upstream `recompose` first calls `identity()`, replacing the `rawData` Vector
-      before filling it. The adapter produces the same 16 values but writes through the existing
-      Vector, so a previously retained rawData reference observes the adapter mutation but not
-      the upstream one.
-    status: missing
-    scenarios: []
+      A successful `recompose` first calls `identity()`, replacing the `rawData` Vector before
+      filling it. A previously retained rawData reference therefore does not observe the newly
+      recomposed values.
+    status: covered
+    scenarios:
+      - geom/matrix3d:recomposeRawDataReference
 
   - id: geom.M3D.reflection-negative-z
     section: "Matrix3D > Decomposition and orientation"
@@ -779,7 +792,8 @@ entries:
       OpenFL's negative-Z convention. This is local compatibility logic, not a remaining
       blocker.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:reflectionNegativeZ
 
   - id: geom.M3D.point-at-source-quirk
     section: "Matrix3D > Decomposition and orientation"
@@ -790,7 +804,8 @@ entries:
       `pos` into indices `3,7,11` rather than normal translation slots. Degenerate `pos==at`
       produces a largely zero basis rather than throwing.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/matrix3d:pointAtSourceQuirk
 
   # -- Transform --
 
@@ -864,15 +879,14 @@ entries:
   - id: geom.TFM.concatenated-color-rendering
     section: "Transform"
     behavior: >-
-      Color transforms propagate through OpenFL's private render-world ColorTransform: the child
-      local transform is copied, then ancestor transforms are combined for rendering. The public
-      `concatenatedColorTransform` field itself is never refreshed by 9.5.2 and remains the
-      mutable identity object created by the constructor. The adapter matches that public quirk
-      but currently has no live Flight-node path applying the local/ancestor RGB transform, so
-      rendered propagation is missing (alpha still propagates through DisplayObject alpha).
-    status: missing
+      Color transforms propagate through the render tree: each local RGB scale/bias is attached to
+      its Flight node and inherited with ancestor adjustments, while alpha multiplier continues
+      through DisplayObject alpha. The public `concatenatedColorTransform` field retains OpenFL
+      9.5.2's quirk of remaining the mutable identity object created by the constructor.
+    status: covered
     scenarios:
       - geom/transform:concatenatedColorTransform
+      - geom/transform:renderColorAdjustments
 
   - id: geom.TFM.pixel-bounds
     section: "Transform"
@@ -939,7 +953,8 @@ entries:
       `toString()` lists all eight names and values in red/green/blue/alpha multiplier order
       followed by offsets.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/color-transform:stringFormat
 
   - id: geom.CT.internal-value-operations
     section: "ColorTransform"
@@ -983,7 +998,8 @@ entries:
       tan(storedRadians/2)` without range checks. Setting `focalLength` directly does not update
       `fieldOfView`.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/perspective-projection:fieldOfView
 
   - id: geom.PP.projection-center-reference
     section: "PerspectiveProjection"
@@ -991,7 +1007,8 @@ entries:
       `projectionCenter` is a freely replaceable Point reference. Its coordinates are not used
       in matrix construction; only nullness matters.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/perspective-projection:projectionCenterOwned
 
   - id: geom.PP.matrix-owned-reuse
     section: "PerspectiveProjection"
@@ -1001,7 +1018,8 @@ entries:
       Matrix3D every call, setting only raw entries `0=focalLength`, `5=focalLength`, `11=1`,
       and `15=0`; untouched entries retain their prior values.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/perspective-projection:matrixOwnedReuse
 
   - id: geom.PP.matrix-output-partial-write
     section: "PerspectiveProjection"
@@ -1009,7 +1027,8 @@ entries:
       `toMatrix3DToOutput(output)` has the same null guard and four writes, allocates on null,
       and deliberately leaves every other pre-existing output entry untouched.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/perspective-projection:matrixPartialWrite
 
   - id: geom.PP.focal-projection-local-adapter
     section: "PerspectiveProjection"
@@ -1018,7 +1037,8 @@ entries:
       direct OpenFL raw-data implementation, so **Focal projection builder** is an upstream
       Flight gap rather than a current parity blocker.
     status: covered
-    scenarios: []
+    scenarios:
+      - geom/perspective-projection:focalLength250
 
   # -- Remaining public package types > Orientation3D --
 

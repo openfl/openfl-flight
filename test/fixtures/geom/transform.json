@@ -10,6 +10,62 @@
     "matrixC": -0.707106781186547462,
     "matrixD": 0.707106781186547573
   },
+  "renderColorAdjustmentComposition": true,
+  "renderColorAdjustments": {
+    "root": {
+      "redScale": 0.5,
+      "greenScale": 0.6,
+      "blueScale": 0.7,
+      "alphaScale": 1,
+      "greenBias": 0.0784313725490196,
+      "blueBias": 0.11764705882352941,
+      "redBias": 0.0392156862745098,
+      "alphaBias": 0.156862745098039214
+    },
+    "child": {
+      "redScale": 0.25,
+      "greenScale": 0.3,
+      "blueScale": 0.35,
+      "alphaScale": 1,
+      "greenBias": 0.00784313725490196,
+      "blueBias": 0.011764705882352941,
+      "redBias": 0.00392156862745098,
+      "alphaBias": 0.0156862745098039214
+    },
+    "parent": {
+      "redScale": 0.4,
+      "greenScale": 0.5,
+      "blueScale": 0.6,
+      "alphaScale": 1,
+      "greenBias": 0.023529411764705882,
+      "blueBias": 0.0274509803921568624,
+      "redBias": 0.0196078431372549,
+      "alphaBias": 0.0313725490196078427
+    }
+  },
+  "pixelBoundsLifecycle": {
+    "onStage": {
+      "isEmpty": true,
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    },
+    "detached": {
+      "isEmpty": true,
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    },
+    "detachedAgain": {
+      "isEmpty": true,
+      "x": 0,
+      "y": 0,
+      "height": 0,
+      "width": 0
+    }
+  },
   "concatenatedColorTransform": {
     "blueMultiplier": 1,
     "redOffset": 0,
@@ -50,29 +106,6 @@
     "redMultiplier": 0.5,
     "blueOffset": 30,
     "greenOffset": 20
-  },
-  "pixelBoundsLifecycle": {
-    "onStage": {
-      "isEmpty": true,
-      "x": 0,
-      "y": 0,
-      "height": 0,
-      "width": 0
-    },
-    "detached": {
-      "isEmpty": true,
-      "x": 0,
-      "y": 0,
-      "height": 0,
-      "width": 0
-    },
-    "detachedAgain": {
-      "isEmpty": true,
-      "x": 0,
-      "y": 0,
-      "height": 0,
-      "width": 0
-    }
   },
   "matrixSetterProperties": {
     "scaleX": 2,

@@ -71,6 +71,59 @@ class Matrix3DScenario {
 		var posSet = custom.clone();
 		posSet.position = new Vector3D(99, 88, 77);
 
+		var copyColumns = custom.clone();
+		var copiedColumn = new Vector3D();
+		copyColumns.copyColumnTo(3, copiedColumn);
+		copyColumns.copyColumnFrom(1, new Vector3D(5, 6, 7, 8));
+		var copyRows = custom.clone();
+		var copiedRow = new Vector3D();
+		copyRows.copyRowTo(2, copiedRow);
+		copyRows.copyRowFrom(1, new Vector3D(9, 8, 7, 6));
+
+		var rawSource = Vector.ofArray([99.0, 98, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 97]);
+		var rawFrom = new Matrix3D();
+		rawFrom.copyRawDataFrom(rawSource, 2, true);
+		var rawTo = Vector.ofArray([50.0, 51, 52]);
+		custom.copyRawDataTo(rawTo, 2, true);
+
+		var tripleOut = Vector.ofArray([99.0]);
+		transformSrc.transformVectors(Vector.ofArray([1.0, 2, 3, -1, -2, -3, 42]), tripleOut);
+
+		var outputParts = Vector.ofArray([new Vector3D(101, 102, 103), new Vector3D(201, 202, 203), new Vector3D(301, 302, 303)]);
+		var output0 = outputParts[0];
+		var output1 = outputParts[1];
+		var output2 = outputParts[2];
+		var decomposedOutput = decomposeM.decomposeToOutput(EULER_ANGLES, outputParts);
+
+		var reflected = new Matrix3D(Vector.ofArray([
+			1.0, 0, 0, 0,
+			0, 2, 0, 0,
+			0, 0, -3, 0,
+			4, 5, 6, 1
+		]));
+		var reflectedParts = reflected.decompose();
+
+		var pointed = new Matrix3D();
+		pointed.pointAt(new Vector3D(2, 3, 4), new Vector3D(0, 1, 0), new Vector3D(0, 0, 1));
+
+		var copiedFrom = new Matrix3D();
+		var copiedFromOld = copiedFrom.rawData;
+		var malformedSource = new Matrix3D();
+		malformedSource.rawData = Vector.ofArray([2.0, 3, 4]);
+		copiedFrom.copyFrom(malformedSource);
+		var copiedTo = new Matrix3D();
+		var copiedToOld = copiedTo.rawData;
+		malformedSource.copyToMatrix3D(copiedTo);
+		var malformedClone = malformedSource.clone();
+
+		var identityReference = custom.clone();
+		var oldIdentityData = identityReference.rawData;
+		identityReference.identity();
+
+		var recomposeReference = new Matrix3D();
+		var oldRecomposeData = recomposeReference.rawData;
+		var recomposeReferenceResult = recomposeReference.recompose(euler);
+
 		return {
 			identity: rawData(identity),
 			custom: rawData(custom),
@@ -106,11 +159,62 @@ class Matrix3DScenario {
 				get: vec(posGet),
 				set: rawData(posSet)
 			},
+			copyColumnsRows: {
+				columnRead: vec(copiedColumn),
+				columnWritten: rawData(copyColumns),
+				rowRead: vec(copiedRow),
+				rowWritten: rawData(copyRows)
+			},
+			copyRawData: {
+				from: rawData(rawFrom),
+				to: vectorData(rawTo)
+			},
+			createHelpers: {
+				create2D: roundRawData(Matrix3D.create2D(10, 20, 2, 30)),
+				createABCD: rawData(Matrix3D.createABCD(1, 2, 3, 4, 5, 6)),
+				createOrtho: roundRawData(Matrix3D.createOrtho(-2, 6, -4, 8, 1, 101))
+			},
+			transformVectorTriples: vectorData(tripleOut),
+			interpolateElements: roundRawData(Matrix3D.interpolate(identity, custom, 0.25)),
+			decomposeOutputAliasing: {
+				returnedInput: decomposedOutput == outputParts,
+				reused: [decomposedOutput[0] == output0, decomposedOutput[1] == output1, decomposedOutput[2] == output2],
+				values: roundVecArray(decomposedOutput)
+			},
+			reflectionNegativeZ: roundVecArray(reflectedParts),
+			pointAtSourceQuirk: roundRawData(pointed),
+			copyRawDataReferences: {
+				copyFromLength: copiedFrom.rawData.length,
+				copyFromReplaced: copiedFrom.rawData != copiedFromOld,
+				copyFromShares: copiedFrom.rawData == malformedSource.rawData,
+				copyToLength: copiedTo.rawData.length,
+				copyToReplaced: copiedTo.rawData != copiedToOld,
+				copyToShares: copiedTo.rawData == malformedSource.rawData,
+				malformedClone: rawData(malformedClone)
+			},
+			identityRawDataReference: {
+				replaced: identityReference.rawData != oldIdentityData,
+				oldFirst: oldIdentityData[0],
+				matrix: rawData(identityReference)
+			},
+			recomposeRawDataReference: {
+				result: recomposeReferenceResult,
+				replaced: recomposeReference.rawData != oldRecomposeData,
+				oldFirst: oldRecomposeData[0],
+				matrix: roundRawData(recomposeReference)
+			},
 			clone: {
 				values: rawData(custom.clone()),
-				notSame: custom.clone() != custom
+				notSame: custom.clone() != custom,
+				rawDataNotShared: custom.clone().rawData != custom.rawData
 			}
 		};
+	}
+
+	private static function vectorData(values:Vector<Float>):Array<Float> {
+		var result:Array<Float> = [];
+		for (value in values) result.push(round(value));
+		return result;
 	}
 
 	private static function rawData(m:Matrix3D):Array<Float> {
