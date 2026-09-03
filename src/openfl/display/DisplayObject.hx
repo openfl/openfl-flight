@@ -1094,28 +1094,6 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		rect.y -= __transform.ty;
 	}
 
-	@:noCompletion private function __getFilterBounds(rect:Rectangle, matrix:Matrix):Void
-	{
-		__getBounds(rect, matrix);
-		if (__filters == null) return;
-
-		var left = 0;
-		var top = 0;
-		var right = 0;
-		var bottom = 0;
-		for (filter in __filters)
-		{
-			left = Std.int(Math.max(left, filter.__leftExtension));
-			top = Std.int(Math.max(top, filter.__topExtension));
-			right = Std.int(Math.max(right, filter.__rightExtension));
-			bottom = Std.int(Math.max(bottom, filter.__bottomExtension));
-		}
-		rect.x -= left;
-		rect.y -= top;
-		rect.width += left + right;
-		rect.height += top + bottom;
-	}
-
 	@:noCompletion private function __hasBoundsContent():Bool
 	{
 		return __graphics != null || !__localBounds.isEmpty();
