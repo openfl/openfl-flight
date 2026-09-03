@@ -17,6 +17,7 @@ import openfl.display3D.IndexBuffer3D;
 import openfl.display3D.VertexBuffer3D;
 import openfl.display3D.textures.RectangleTexture;
 import openfl.display3D.textures.TextureBase;
+import openfl.display._internal.PerlinNoise;
 import openfl.errors.Error;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BevelFilter;
@@ -414,7 +415,7 @@ class BitmapData implements IBitmapDrawable
 				var blue = Std.int(Math.abs((sourcePixel & 0xFF) - (otherPixel & 0xFF)));
 				if (red == 0 && green == 0 && blue == 0)
 				{
-					var alpha = Std.int(Math.abs(((sourcePixel >>> 24) & 0xFF) - ((otherPixel >>> 24) & 0xFF)));
+					var alpha = ((sourcePixel >>> 24) & 0xFF) - ((otherPixel >>> 24) & 0xFF);
 					result.setPixel32(x, y, (alpha << 24) | 0xFFFFFF);
 				}
 				else
@@ -456,7 +457,8 @@ class BitmapData implements IBitmapDrawable
 		var destinationY = Std.int(destPoint.y);
 		if (!mergeAlpha && alphaBitmapData == null)
 		{
-			var source = FlightBitmap.createBitmapRegion(sourceBitmapData.__bitmap, sourceX, sourceY, regionWidth, regionHeight);
+			var sourceHandle = sourceBitmapData == this ? FlightBitmap.cloneBitmap(sourceBitmapData.__bitmap) : sourceBitmapData.__bitmap;
+			var source = FlightBitmap.createBitmapRegion(sourceHandle, sourceX, sourceY, regionWidth, regionHeight);
 			var destination = FlightBitmap.createBitmapRegion(__bitmap, destinationX, destinationY, regionWidth, regionHeight);
 			FlightBitmap.copyBitmapPixels(destination, source, false);
 			return;
@@ -465,22 +467,33 @@ class BitmapData implements IBitmapDrawable
 		var sourceBitmap = __toStraightBitmap(sourceBitmapData);
 		if (alphaBitmapData != null && alphaBitmapData.readable && alphaBitmapData.__bitmap != null)
 		{
-			var alphaX = alphaPoint == null ? 0 : Std.int(alphaPoint.x);
-			var alphaY = alphaPoint == null ? 0 : Std.int(alphaPoint.y);
+			var alphaX = alphaPoint == null ? 0 : Std.int(Math.max(0, alphaPoint.x));
+			var alphaY = alphaPoint == null ? 0 : Std.int(Math.max(0, alphaPoint.y));
+			var destinationBitmap = __toStraightBitmap(this);
 			for (y in 0...regionHeight)
 			{
 				for (x in 0...regionWidth)
 				{
 					var bitmapX = sourceX + x;
 					var bitmapY = sourceY + y;
-					if (bitmapX < 0 || bitmapY < 0 || bitmapX >= sourceBitmapData.width || bitmapY >= sourceBitmapData.height) continue;
+					var writeX = destinationX + x;
+					var writeY = destinationY + y;
+					var maskX = alphaX + x;
+					var maskY = alphaY + y;
+					if (bitmapX < 0 || bitmapY < 0 || bitmapX >= sourceBitmapData.width || bitmapY >= sourceBitmapData.height || writeX < 0 || writeY < 0
+						|| writeX >= width || writeY >= height || maskX >= alphaBitmapData.width || maskY >= alphaBitmapData.height) continue;
 					var sourcePixel = sourceBitmapData.getPixel32(bitmapX, bitmapY);
-					var maskAlpha = (alphaBitmapData.getPixel32(alphaX + x, alphaY + y) >>> 24) & 0xFF;
+					var maskAlpha = (alphaBitmapData.getPixel32(maskX, maskY) >>> 24) & 0xFF;
 					var sourceAlpha = (sourcePixel >>> 24) & 0xFF;
 					var combinedAlpha = Std.int(Math.round(sourceAlpha * maskAlpha / 255));
 					FlightBitmap.setBitmapPixel(sourceBitmap, bitmapX, bitmapY, __argbToFlight((combinedAlpha << 24) | (sourcePixel & 0xFFFFFF), false));
+					var sourceRegion = FlightBitmap.createBitmapRegion(sourceBitmap, bitmapX, bitmapY, 1, 1);
+					var destinationRegion = FlightBitmap.createBitmapRegion(destinationBitmap, writeX, writeY, 1, 1);
+					FlightBitmap.copyBitmapPixels(destinationRegion, sourceRegion, mergeAlpha);
 				}
 			}
+			__writeStraightRegion(destinationBitmap, 0, 0, width, height);
+			return;
 		}
 
 		var destinationBitmap = __toStraightBitmap(this);
@@ -688,6 +701,14 @@ class BitmapData implements IBitmapDrawable
 	public function getColorBoundsRect(mask:Int, color:Int, findColor:Bool = true):Rectangle
 	{
 		if (!readable || __bitmap == null) return new Rectangle(0, 0, width, height);
+		if (!transparent)
+		{
+			mask |= 0xFF000000;
+			color |= 0xFF000000;
+		}
+		// Lime compares the masked pixel with the complete requested color. Flight
+		// masks both operands, so handle impossible matches before delegating.
+		if ((color & ~mask) != 0) return findColor ? new Rectangle() : new Rectangle(0, 0, width, height);
 		var bitmap = __toStraightBitmap(this);
 		var bounds = FlightBitmap.getBitmapColorBoundsRectangle(FlightBitmap.createBitmapRegion(bitmap), __argbToFlight(mask, false),
 			__argbToFlight(color, false), findColor);
@@ -896,24 +917,34 @@ class BitmapData implements IBitmapDrawable
 	public function noise(randomSeed:Int, low:Int = 0, high:Int = 255, channelOptions:Int = 7, grayScale:Bool = false):Void
 	{
 		if (!readable || __bitmap == null || width == 0 || height == 0) return;
-		var output = FlightBitmap.createBitmap(width, height, 0);
-		FlightBitmap.fillBitmapNoise(FlightBitmap.createBitmapRegion(output), randomSeed, low, high, grayScale);
-		if (!grayScale)
+		var rand = function():Int
 		{
-			var alphaNoise = FlightBitmap.createBitmap(width, height, 0);
-			if ((channelOptions & 8) != 0) FlightBitmap.fillBitmapNoise(FlightBitmap.createBitmapRegion(alphaNoise), randomSeed ^ 0x6D2B79F5, low, high, true);
-			for (y in 0...height)
-				for (x in 0...width)
-				{
-					var color = Std.int(FlightBitmap.getBitmapPixel(output, x, y));
-					var red = (channelOptions & 1) == 0 ? 0 : (color >>> 24) & 0xFF;
-					var green = (channelOptions & 2) == 0 ? 0 : (color >>> 16) & 0xFF;
-					var blue = (channelOptions & 4) == 0 ? 0 : (color >>> 8) & 0xFF;
-					var alpha = (channelOptions & 8) == 0 ? 0xFF : (Std.int(FlightBitmap.getBitmapPixel(alphaNoise, x, y)) >>> 24) & 0xFF;
-					FlightBitmap.setBitmapPixel(output, x, y, (red << 24) | (green << 16) | (blue << 8) | alpha);
-				}
+			randomSeed = randomSeed * 1103515245 + 12345;
+			return Std.int(Math.abs(randomSeed / 65536)) % 32768;
+		};
+		rand();
+		var range = high - low;
+		for (y in 0...height) for (x in 0...width)
+		{
+			var red = 0;
+			var green = 0;
+			var blue = 0;
+			var alpha = 255;
+			if (grayScale)
+			{
+				red = low + (rand() % range);
+				green = red;
+				blue = red;
+			}
+			else
+			{
+				if ((channelOptions & 1) != 0) red = low + (rand() % range);
+				if ((channelOptions & 2) != 0) green = low + (rand() % range);
+				if ((channelOptions & 4) != 0) blue = low + (rand() % range);
+				if ((channelOptions & 8) != 0) alpha = low + (rand() % range);
+			}
+			setPixel32(x, y, (alpha << 24) | (red << 16) | (green << 8) | blue);
 		}
-		__writeStraightRegion(output, 0, 0, width, height);
 	}
 
 	public function paletteMap(sourceBitmapData:BitmapData, sourceRect:Rectangle, destPoint:Point, redArray:Array<Int> = null, greenArray:Array<Int> = null,
@@ -942,12 +973,8 @@ class BitmapData implements IBitmapDrawable
 			grayScale:Bool = false, offsets:Array<Point> = null):Void
 	{
 		if (!readable || __bitmap == null || width == 0 || height == 0) return;
-		var output = FlightBitmap.createBitmap(width, height, 0);
-		var flightChannels:UInt = grayScale ? 7 : channelOptions & 7;
-		FlightBitmap.fillBitmapPerlinNoise(FlightBitmap.createBitmapRegion(output), baseX, baseY, numOctaves, randomSeed, grayScale, stitch, flightChannels);
-		__writeStraightRegion(output, 0, 0, width, height);
-		// OpenFL 9.5.2 ignores `fractalNoise`, alpha channel selection, and
-		// octave offsets in its Perlin implementation; the adapter does likewise.
+		var noise = new PerlinNoise(randomSeed, numOctaves, channelOptions, grayScale, 0.5, stitch, 0.15);
+		noise.fill(this, baseX, baseY, 0);
 	}
 
 	public function scroll(x:Int, y:Int):Void

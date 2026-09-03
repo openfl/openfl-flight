@@ -8,6 +8,7 @@ import flight.Interaction as FlightInteraction;
 import flight.Node as FlightNode;
 import flight.Scene2D as FlightScene2D;
 import flight.types.Node2D as FlightNode2D;
+import openfl.Lib;
 import openfl.errors.TypeError;
 import openfl.events.Event;
 import openfl.events.EventDispatcher;
@@ -692,12 +693,16 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private var __flightNode:FlightNode2D;
 	@:noCompletion private var __graphics:Graphics;
 	@:noCompletion private var __loaderInfo:LoaderInfo;
+	@:noCompletion private var __isMask:Bool;
 	@:noCompletion private var __localBounds:Rectangle;
 	@:noCompletion private var __mask:DisplayObject;
 	@:noCompletion private var __maskTarget:DisplayObject;
 	@:noCompletion private var __metaData:Dynamic;
 	@:noCompletion private var __name:String;
 	@:noCompletion private var __objectTransform:Transform;
+	@:noCompletion private var __renderable:Bool;
+	@:noCompletion private var __renderDirty:Bool;
+	@:noCompletion private var __renderParent:DisplayObject;
 	@:noCompletion private var __rotation:Float;
 	@:noCompletion private var __rotationCosine:Float;
 	@:noCompletion private var __rotationSine:Float;
@@ -707,7 +712,15 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private var __scrollRect:Rectangle;
 	@:noCompletion private var __shader:Shader;
 	@:noCompletion private var __transform:Matrix;
+	@:noCompletion private var __transformDirty:Bool;
 	@:noCompletion private var __visible:Bool;
+	@:noCompletion private var __worldAlpha:Float;
+	@:noCompletion private var __worldBlendMode:BlendMode;
+	@:noCompletion private var __worldColorTransform:ColorTransform;
+	@:noCompletion private var __worldScale9Grid:Rectangle;
+	@:noCompletion private var __worldShader:Shader;
+	@:noCompletion private var __worldTransform:Matrix;
+	@:noCompletion private var __worldTransformInvalid:Bool;
 
 	@:noCompletion private function new()
 	{
@@ -716,14 +729,23 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		__alpha = 1;
 		__blendMode = BlendMode.NORMAL;
 		__cacheAsBitmap = false;
+		__isMask = false;
 		__localBounds = new Rectangle();
+		__renderable = true;
+		__renderDirty = true;
 		__rotation = 0;
 		__rotationCosine = 1;
 		__rotationSine = 0;
 		__scaleX = 1;
 		__scaleY = 1;
 		__transform = new Matrix();
+		__transformDirty = true;
 		__visible = true;
+		__worldAlpha = 1;
+		__worldBlendMode = BlendMode.NORMAL;
+		__worldColorTransform = new ColorTransform();
+		__worldTransform = new Matrix();
+		__worldTransformInvalid = true;
 		__flightNode = FlightScene2D.createSprite();
 		name = "instance" + (++__instanceCount);
 		__syncFlightNode();
@@ -992,6 +1014,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function __dispatchChildren(event:Event):Void {}
 	@:noCompletion private function __enterFrame(deltaTime:Int):Void {}
+	@:noCompletion private function __clearRenderDirty():Void __renderDirty = false;
 
 	@:noCompletion private override function __dispatchEvent(event:Event):Bool
 	{
@@ -1043,6 +1066,27 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		}
 	}
 
+	@:noCompletion private function __getFilterBounds(rect:Rectangle, matrix:Matrix):Void
+	{
+		__getRenderBounds(rect, matrix);
+		if (__filters == null || rect.isEmpty()) return;
+		var left = 0;
+		var top = 0;
+		var right = 0;
+		var bottom = 0;
+		for (filter in __filters)
+		{
+			left += filter.__leftExtension;
+			top += filter.__topExtension;
+			right += filter.__rightExtension;
+			bottom += filter.__bottomExtension;
+		}
+		rect.x -= left;
+		rect.y -= top;
+		rect.width += left + right;
+		rect.height += top + bottom;
+	}
+
 	@:noCompletion private function __getLocalBounds(rect:Rectangle):Void
 	{
 		__getBounds(rect, __transform);
@@ -1084,14 +1128,32 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function __getWorldTransform():Matrix
 	{
-		var matrix = __transform.clone();
-		var current = parent;
-		while (current != null)
+		if (__transformDirty || __worldTransformInvalid)
 		{
-			matrix.concat(current.__transform);
-			current = current.parent;
+			var list:Array<DisplayObject> = [];
+			var current:DisplayObject = this;
+			while (current != null)
+			{
+				list.push(current);
+				current = current.parent;
+			}
+			var i = list.length;
+			while (--i >= 0) list[i].__update(true, false);
 		}
-		return matrix;
+		return __worldTransform.clone();
+	}
+
+	@:noCompletion private function __getRenderBounds(rect:Rectangle, matrix:Matrix):Void
+	{
+		if (__scrollRect == null)
+		{
+			__getBounds(rect, matrix);
+		}
+		else
+		{
+			var transformed = __transformRectangle(__scrollRect, matrix);
+			if (rect.isEmpty()) rect.copyFrom(transformed); else rect.copyFrom(rect.union(transformed));
+		}
 	}
 
 	@:noCompletion private function __getRenderTransform():Matrix
@@ -1108,10 +1170,27 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
+		if (!__visible || __isMask) return false;
+		if (__mask != null && !__mask.__hitTestMask(x, y)) return false;
 		if (!__isPointInScrollRect(x, y)) return false;
 		if (__graphics != null && __graphics.__hitTest(x, y, shapeFlag)) return true;
 		if (!__localBounds.isEmpty()) return __transformRectangle(__localBounds, __getRenderTransform()).contains(x, y);
 		return false;
+	}
+
+	@:noCompletion private function __hitTestMask(x:Float, y:Float):Bool
+	{
+		if (!__isPointInScrollRect(x, y)) return false;
+		if (__graphics != null && __graphics.__hitTest(x, y, true)) return true;
+		if (!__localBounds.isEmpty()) return __transformRectangle(__localBounds, __getRenderTransform()).contains(x, y);
+		return false;
+	}
+
+	@:noCompletion private function __readGraphicsData(graphicsData:openfl.Vector<IGraphicsData>, recurse:Bool):Void
+	{
+		if (__graphics == null) return;
+		var data = __graphics.readGraphicsData(false);
+		for (item in data) graphicsData.push(item);
 	}
 
 	@:noCompletion private function __isPointInScrollRect(x:Float, y:Float):Bool
@@ -1131,7 +1210,12 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function __setRenderDirty():Void
 	{
-		if (stage != null) stage.__invalidated = true;
+		if (!__renderDirty)
+		{
+			__renderDirty = true;
+			var renderParent = __renderParent != null ? __renderParent : parent;
+			if (renderParent != null) renderParent.__setRenderDirty();
+		}
 	}
 
 	@:noCompletion private function __setStageReference(value:Stage):Void
@@ -1142,6 +1226,55 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private function __setTransformDirty():Void
 	{
 		__syncFlightNode();
+		if (!__transformDirty)
+		{
+			__transformDirty = true;
+			__setWorldTransformInvalid();
+			var renderParent = __renderParent != null ? __renderParent : parent;
+			if (renderParent != null) renderParent.__setRenderDirty();
+		}
+	}
+
+	@:noCompletion private function __setWorldTransformInvalid():Void
+	{
+		__worldTransformInvalid = true;
+	}
+
+	@:noCompletion private function __update(transformOnly:Bool, updateChildren:Bool):Void
+	{
+		var renderParent = __renderParent != null ? __renderParent : parent;
+		if (__isMask && renderParent == null) renderParent = __maskTarget;
+		__renderable = __visible && __scaleX != 0 && __scaleY != 0 && !__isMask && (renderParent == null || !renderParent.__isMask);
+		__worldTransform.copyFrom(__transform);
+		if (renderParent != null) __worldTransform.concat(renderParent.__worldTransform);
+		__transformDirty = false;
+		__worldTransformInvalid = false;
+		if (!transformOnly)
+		{
+			if (renderParent == null)
+			{
+				__worldAlpha = __alpha;
+				if (__objectTransform == null) __worldColorTransform.__identity();
+				else __worldColorTransform.__copyFrom(__objectTransform.__colorTransform);
+				__worldBlendMode = __blendMode;
+				__worldShader = __shader;
+				__worldScale9Grid = __scale9Grid;
+			}
+			else
+			{
+				__worldAlpha = __alpha * renderParent.__worldAlpha;
+				if (__objectTransform == null) __worldColorTransform.__copyFrom(renderParent.__worldColorTransform);
+				else
+				{
+					__worldColorTransform.__copyFrom(__objectTransform.__colorTransform);
+					__worldColorTransform.__combine(renderParent.__worldColorTransform);
+				}
+				__worldBlendMode = __blendMode == null || __blendMode == BlendMode.NORMAL ? renderParent.__worldBlendMode : __blendMode;
+				__worldShader = __shader == null ? renderParent.__shader : __shader;
+				__worldScale9Grid = __scale9Grid == null ? renderParent.__scale9Grid : __scale9Grid;
+			}
+		}
+		if (updateChildren && __mask != null) __mask.__update(transformOnly, true);
 	}
 
 	@:noCompletion private function __setTransform(a:Float, b:Float, c:Float, d:Float, tx:Float, ty:Float):Void
@@ -1153,7 +1286,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		var radians = __rotation * Math.PI / 180;
 		__rotationSine = Math.sin(radians);
 		__rotationCosine = Math.cos(radians);
-		__syncFlightNode();
+		__setTransformDirty();
 	}
 
 	@:noCompletion private function __stopAllMovieClips():Void {}
@@ -1191,8 +1324,10 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:keep @:noCompletion private function get_alpha():Float return __alpha;
 	@:keep @:noCompletion private function set_alpha(value:Float):Float
 	{
-		if (value < 0) value = 0;
-		if (value > 1) value = 1;
+		if (value != value) value = 0;
+		else if (value < 0) value = 0;
+		else if (value > 1) value = 1;
+		if (value != __alpha && !cacheAsBitmap) __setRenderDirty();
 		__alpha = value;
 		__syncFlightNode();
 		return value;
@@ -1202,16 +1337,22 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private function set_blendMode(value:BlendMode):BlendMode
 	{
 		__blendMode = value == null ? BlendMode.NORMAL : value;
+		__setRenderDirty();
 		__syncFlightNode();
 		return value;
 	}
 
 	@:noCompletion private function get_cacheAsBitmap():Bool return __filters == null ? __cacheAsBitmap : true;
-	@:noCompletion private function set_cacheAsBitmap(value:Bool):Bool return __cacheAsBitmap = value;
-	@:noCompletion private function get_cacheAsBitmapMatrix():Matrix return __cacheAsBitmapMatrix == null ? null : __cacheAsBitmapMatrix.clone();
+	@:noCompletion private function set_cacheAsBitmap(value:Bool):Bool
+	{
+		if (value != __cacheAsBitmap) __setRenderDirty();
+		return __cacheAsBitmap = value;
+	}
+	@:noCompletion private function get_cacheAsBitmapMatrix():Matrix return __cacheAsBitmapMatrix;
 	@:noCompletion private function set_cacheAsBitmapMatrix(value:Matrix):Matrix
 	{
 		__cacheAsBitmapMatrix = value == null ? null : value.clone();
+		__setRenderDirty();
 		return value;
 	}
 
@@ -1232,6 +1373,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 			}
 		}
 		__syncFlightColorAdjustments();
+		__setRenderDirty();
 		return value;
 	}
 
@@ -1282,10 +1424,24 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private function get_mask():DisplayObject return __mask;
 	@:noCompletion private function set_mask(value:DisplayObject):DisplayObject
 	{
-		if (__mask != null) __mask.__maskTarget = null;
+		if (value == __mask) return value;
+		if (__mask != null)
+		{
+			__mask.__isMask = false;
+			__mask.__maskTarget = null;
+			__mask.__setTransformDirty();
+			__mask.__setRenderDirty();
+		}
 		if (value != null && value.__maskTarget != null) value.__maskTarget.mask = null;
 		__mask = value;
-		if (value != null) value.__maskTarget = this;
+		if (value != null)
+		{
+			value.__isMask = true;
+			value.__maskTarget = this;
+			value.__setTransformDirty();
+			value.__setRenderDirty();
+		}
+		__setRenderDirty();
 		return value;
 	}
 
@@ -1303,10 +1459,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 
 	@:noCompletion private function get_root():DisplayObject
 	{
-		if (stage == null) return null;
-		var current:DisplayObject = this;
-		while (current.parent != null && current.parent != stage) current = current.parent;
-		return current == stage ? null : current;
+		return stage == null ? null : Lib.current;
 	}
 
 	@:keep @:noCompletion private function get_rotation():Float return __rotation;
@@ -1331,6 +1484,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private function set_scale9Grid(value:Rectangle):Rectangle
 	{
 		__scale9Grid = value == null ? null : value.clone();
+		__setRenderDirty();
 		return value;
 	}
 
@@ -1340,7 +1494,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		__scaleX = value;
 		__transform.a = __rotationCosine * value;
 		__transform.b = __rotationSine * value;
-		__syncFlightNode();
+		__setTransformDirty();
 		return value;
 	}
 
@@ -1350,7 +1504,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		__scaleY = value;
 		__transform.c = -__rotationSine * value;
 		__transform.d = __rotationCosine * value;
-		__syncFlightNode();
+		__setTransformDirty();
 		return value;
 	}
 
@@ -1366,12 +1520,17 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		var previousClip = __flightNode.clip;
 		__flightNode.clip = __scrollRect == null ? null : FlightClip.createClipRegionFromRectangle(cast __scrollRect);
 		if (previousClip != null) FlightClip.releaseClipRegion(previousClip);
-		__syncFlightNode();
+		__setTransformDirty();
 		return value;
 	}
 
 	@:noCompletion private function get_shader():Shader return __shader;
-	@:noCompletion private function set_shader(value:Shader):Shader return __shader = value;
+	@:noCompletion private function set_shader(value:Shader):Shader
+	{
+		__shader = value;
+		__setRenderDirty();
+		return value;
+	}
 	@:keep @:noCompletion private function get_transform():Transform
 	{
 		if (__objectTransform == null) __objectTransform = new Transform(this);
@@ -1420,7 +1579,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:keep @:noCompletion private function set_x(value:Float):Float
 	{
 		__transform.tx = value;
-		__syncFlightNode();
+		__setTransformDirty();
 		return value;
 	}
 
@@ -1428,7 +1587,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:keep @:noCompletion private function set_y(value:Float):Float
 	{
 		__transform.ty = value;
-		__syncFlightNode();
+		__setTransformDirty();
 		return value;
 	}
 }

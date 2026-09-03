@@ -1,0 +1,196 @@
+{
+  "bounds": {
+    "filter": {
+      "x": -12,
+      "y": -17,
+      "height": 45,
+      "width": 32
+    },
+    "containerLogical": {
+      "x": 0,
+      "y": 0,
+      "height": 30,
+      "width": 110
+    },
+    "render": {
+      "x": 2,
+      "y": 3,
+      "height": 5,
+      "width": 4
+    },
+    "logical": {
+      "x": 0,
+      "y": 0,
+      "height": 10,
+      "width": 20
+    },
+    "containerRender": {
+      "x": 0,
+      "y": 0,
+      "height": 10,
+      "width": 30
+    }
+  },
+  "container": {
+    "cycleSafetyDeviation": {
+      "errorID": 2024,
+      "error": true
+    },
+    "endpointOrder": [
+      0,
+      1
+    ]
+  },
+  "stageInvalidation": {
+    "invalidateDirty": true,
+    "propertyDirty": false,
+    "invalidatedAfter": false,
+    "renders": 2,
+    "propertyInvalidated": false
+  },
+  "simpleButton": {
+    "invisibleRejected": true,
+    "nullHitStateFallsBack": false
+  },
+  "bitmapData": {
+    "perlinPixels": [
+      -8650633,
+      -8847242,
+      -9109386,
+      -9371531,
+      -8847240,
+      -8978314,
+      -9240460,
+      -9502606,
+      -8912776,
+      -9043851,
+      -9240461,
+      -9502607
+    ],
+    "reverseAlpha": -16646142,
+    "noiseAlphaPixels": [
+      1996488704,
+      838860800,
+      1644167168,
+      335544320
+    ],
+    "noisePixels": [
+      -8965534,
+      -15454890,
+      -7235910,
+      -12025798,
+      -13657176,
+      -11898071,
+      -13405139,
+      -10793938
+    ],
+    "normalizedColorBounds": {
+      "x": 0,
+      "y": 0,
+      "height": 1,
+      "width": 2
+    },
+    "selfOverlap": [
+      -16711680,
+      -16711680,
+      -16646144,
+      -16580608
+    ],
+    "alphaIntersection": [
+      -2144180585,
+      -15654349,
+      -15654349
+    ]
+  },
+  "graphics": {
+    "copyOwnership": {
+      "mutationVisible": 77,
+      "inputMatrixCloned": 4,
+      "initiallyShared": true
+    },
+    "omittedReadbackTypes": [
+      "GraphicsSolidFill"
+    ],
+    "gradientDefaults": {
+      "rejectedCount": 0,
+      "ratios": [
+        0,
+        128,
+        255
+      ],
+      "alphas": [
+        1,
+        1,
+        1
+      ]
+    },
+    "recurse": {
+      "ownCount": 2,
+      "flatCount": 4
+    },
+    "dirtyAndVisible": {
+      "geometryDirty": true,
+      "moveDirty": false,
+      "transparentVisible": null,
+      "fillDirty": false,
+      "opaqueVisible": true
+    },
+    "nullBitmap": {
+      "isBitmapFill": true,
+      "count": 1
+    },
+    "curveBounds": {
+      "x": -2,
+      "y": -30.8675134594812874,
+      "height": 82.8675134594812874,
+      "width": 254
+    }
+  },
+  "displayObject": {
+    "transformDirty": {
+      "globalX": 30,
+      "beforeWorldRead": true,
+      "afterWorldRead": false
+    },
+    "cacheMatrix": {
+      "sameGetterReference": true,
+      "storedX": 4,
+      "storedY": 77
+    },
+    "firstMaskState": {
+      "target": true,
+      "isMask": true
+    },
+    "dirty": {
+      "stageInvalidated": false,
+      "child": true,
+      "parent": true
+    },
+    "clearedMask": {
+      "targetNull": true,
+      "isMask": false
+    },
+    "nullFilterError": true,
+    "rootIsLibCurrent": true,
+    "alphaNaN": 0,
+    "transferredMask": {
+      "secondSet": true,
+      "firstCleared": true,
+      "isMask": true
+    },
+    "derived": {
+      "worldBlendMode": 0,
+      "renderable": true,
+      "worldScale9Inherited": true,
+      "worldAlpha": 0.25
+    }
+  },
+  "drag": {
+    "stoppedGlobally": true,
+    "moved": {
+      "dropTargetIsDrop": true,
+      "x": 20,
+      "y": 30
+    }
+  }
+}

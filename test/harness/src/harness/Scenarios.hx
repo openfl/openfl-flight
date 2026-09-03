@@ -11,6 +11,7 @@ import harness.scenarios.DatagramSocketScenario;
 import harness.scenarios.DictionaryScenario;
 import harness.scenarios.DesktopScenario;
 import harness.scenarios.Display3DScenario;
+import harness.scenarios.DisplayAdvancedScenario;
 import harness.scenarios.DisplayBoundsScenario;
 import harness.scenarios.DisplayContainerScenario;
 import harness.scenarios.DisplayCompositionScenario;
@@ -233,6 +234,10 @@ class Scenarios {
 			{
 				name: "display/stage",
 				run: StageScenario.run
+			},
+			{
+				name: "display/advanced",
+				run: DisplayAdvancedScenario.run
 			},
 			{
 				name: "display3d/core",

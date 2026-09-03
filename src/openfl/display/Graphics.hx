@@ -23,6 +23,12 @@ private typedef GraphicsBitmapPaint =
 	var smooth:Bool;
 }
 
+private typedef GraphicsCommandRecord =
+{
+	var name:String;
+	var values:Array<Dynamic>;
+}
+
 /**
 	Records the OpenFL vector drawing API. Command tessellation and rendering
 	are Flight integration points.
@@ -37,6 +43,7 @@ private typedef GraphicsBitmapPaint =
 @:final class Graphics
 {
 	@:noCompletion private var __bitmapPaints:ObjectMap<{}, GraphicsBitmapPaint>;
+	@:noCompletion private var __dirty:Bool;
 	@:noCompletion private var __owner:DisplayObject;
 	@:noCompletion private var __positionX:Float;
 	@:noCompletion private var __positionY:Float;
@@ -44,7 +51,10 @@ private typedef GraphicsBitmapPaint =
 	@:noCompletion private var __flightPath:FlightPathData;
 	@:noCompletion private var __flightShape:FlightShapeData;
 	@:noCompletion private var __lineBounds:Rectangle;
+	@:noCompletion private var __records:Array<GraphicsCommandRecord>;
 	@:noCompletion private var __strokePadding:Float;
+	@:noCompletion private var __transformDirty:Bool;
+	@:noCompletion private var __visible:Bool;
 
 	@:noCompletion private function new(owner:DisplayObject)
 	{
@@ -52,7 +62,10 @@ private typedef GraphicsBitmapPaint =
 		__positionX = 0;
 		__positionY = 0;
 		__fillActive = false;
+		__dirty = true;
+		__transformDirty = true;
 		__strokePadding = 0;
+		__records = [];
 		__bitmapPaints = new ObjectMap();
 		FlightShape.registerDefaultShapeBoundsCommands();
 		FlightInteraction.registerDefaultHitTests();
@@ -64,36 +77,53 @@ private typedef GraphicsBitmapPaint =
 
 	public function beginBitmapFill(bitmap:BitmapData, matrix:Matrix = null, repeat:Bool = true, smooth:Bool = false):Void
 	{
+		var storedMatrix = matrix == null ? null : matrix.clone();
+		__record("beginBitmapFill", [bitmap, storedMatrix, repeat, smooth]);
+		__visible = true;
 		var texture = __createBitmapTexture(bitmap, matrix, repeat, smooth);
 		if (texture == null) return;
 		if (__fillActive) FlightPath.appendPathClose(__flightPath);
 		__fillActive = true;
 		var paint = __bitmapPaints.get(cast texture);
 		FlightShape.appendShapeBeginTextureFill(__flightShape, texture, cast paint.matrix);
-		__invalidate();
 	}
 
 	public function beginFill(color:Int = 0, alpha:Float = 1):Void
 	{
+		__record("beginFill", [color & 0xFFFFFF, alpha]);
+		if (alpha > 0) __visible = true;
 		if (__fillActive) FlightPath.appendPathClose(__flightPath);
 		__fillActive = true;
 		FlightShape.appendShapeBeginFill(__flightShape, __colorToFlight(color), alpha);
-		__invalidate();
 	}
 
 	public function beginGradientFill(type:GradientType, colors:Array<Int>, alphas:Array<Float>, ratios:Array<Int>, matrix:Matrix = null,
 			spreadMethod:SpreadMethod = SpreadMethod.PAD, interpolationMethod:InterpolationMethod = InterpolationMethod.RGB,
 			focalPointRatio:Float = 0):Void
 	{
+		if (colors == null || colors.length == 0) return;
+		if (alphas == null) alphas = [for (_ in colors) 1.0];
+		if (ratios == null)
+		{
+			ratios = [];
+			for (i in 0...colors.length) ratios.push(colors.length == 1 ? 0 : Math.ceil(i / (colors.length - 1) * 255));
+		}
+		if (alphas.length < colors.length || ratios.length < colors.length) return;
+		__record("beginGradientFill", [type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio]);
+		for (alpha in alphas) if (alpha > 0)
+		{
+			__visible = true;
+			break;
+		}
 		if (__fillActive) FlightPath.appendPathClose(__flightPath);
 		__fillActive = true;
 		FlightShape.appendShapeBeginGradientFill(__flightShape, cast type, __colorsToFlight(colors), alphas, __colorsToFloat(ratios), cast matrix,
 			cast spreadMethod, cast interpolationMethod, focalPointRatio);
-		__invalidate();
 	}
 
 	public function beginShaderFill(shader:Shader, matrix:Matrix = null):Void
 	{
+		if (shader != null) __record("beginShaderFill", [shader, matrix]);
 		// Flight custom shaders are render effects, not Shape paint commands.
 	}
 
@@ -102,11 +132,15 @@ private typedef GraphicsBitmapPaint =
 		__positionX = 0;
 		__positionY = 0;
 		__fillActive = false;
+		__records = [];
+		__visible = false;
 		__flightPath = FlightPath.createPath();
 		__lineBounds = null;
 		__strokePadding = 0;
 		__bitmapPaints = new ObjectMap();
 		FlightShape.clearShapeCommands(__flightShape);
+		__dirty = true;
+		__transformDirty = true;
 		__invalidate();
 	}
 
@@ -129,6 +163,10 @@ private typedef GraphicsBitmapPaint =
 		__positionX = sourceGraphics.__positionX;
 		__positionY = sourceGraphics.__positionY;
 		__fillActive = sourceGraphics.__fillActive;
+		__records = sourceGraphics.__records.copy();
+		__visible = sourceGraphics.__visible;
+		__dirty = true;
+		__transformDirty = true;
 		__lineBounds = sourceGraphics.__lineBounds == null ? null : sourceGraphics.__lineBounds.clone();
 		__strokePadding = sourceGraphics.__strokePadding;
 		__invalidate();
@@ -136,6 +174,7 @@ private typedef GraphicsBitmapPaint =
 
 	public function cubicCurveTo(controlX1:Float, controlY1:Float, controlX2:Float, controlY2:Float, anchorX:Float, anchorY:Float):Void
 	{
+		__record("cubicCurveTo", [controlX1, controlY1, controlX2, controlY2, anchorX, anchorY]);
 		FlightPath.appendPathCubicCurveTo(__flightPath, controlX1, controlY1, controlX2, controlY2, anchorX, anchorY);
 		__positionX = anchorX;
 		__positionY = anchorY;
@@ -145,6 +184,7 @@ private typedef GraphicsBitmapPaint =
 
 	public function curveTo(controlX:Float, controlY:Float, anchorX:Float, anchorY:Float):Void
 	{
+		__record("curveTo", [controlX, controlY, anchorX, anchorY]);
 		FlightPath.appendPathCurveTo(__flightPath, controlX, controlY, anchorX, anchorY);
 		__positionX = anchorX;
 		__positionY = anchorY;
@@ -154,6 +194,7 @@ private typedef GraphicsBitmapPaint =
 
 	public function drawCircle(x:Float, y:Float, radius:Float):Void
 	{
+		__record("drawCircle", [x, y, radius]);
 		FlightPath.appendPathCircle(__flightPath, x, y, radius);
 		FlightShape.appendShapeCircle(__flightShape, x, y, radius);
 		__invalidate();
@@ -161,6 +202,7 @@ private typedef GraphicsBitmapPaint =
 
 	public function drawEllipse(x:Float, y:Float, width:Float, height:Float):Void
 	{
+		__record("drawEllipse", [x, y, width, height]);
 		FlightPath.appendPathEllipse(__flightPath, x + width / 2, y + height / 2, width / 2, height / 2);
 		FlightShape.appendShapeEllipse(__flightShape, x, y, width, height);
 		__invalidate();
@@ -229,25 +271,31 @@ private typedef GraphicsBitmapPaint =
 		var dataIndex = 0;
 		for (command in commands)
 		{
-			switch (command)
-			{
-				case GraphicsPathCommand.MOVE_TO:
-					FlightPath.appendPathMoveTo(__flightPath, data[dataIndex], data[dataIndex + 1]);
+				switch (command)
+				{
+					case GraphicsPathCommand.MOVE_TO:
+						__record("moveTo", [data[dataIndex], data[dataIndex + 1]]);
+						FlightPath.appendPathMoveTo(__flightPath, data[dataIndex], data[dataIndex + 1]);
 					dataIndex += 2;
-				case GraphicsPathCommand.LINE_TO:
+					case GraphicsPathCommand.LINE_TO:
+						__record("lineTo", [data[dataIndex], data[dataIndex + 1]]);
 					FlightPath.appendPathLineTo(__flightPath, data[dataIndex], data[dataIndex + 1]);
 					dataIndex += 2;
-				case GraphicsPathCommand.CURVE_TO:
+					case GraphicsPathCommand.CURVE_TO:
+						__record("curveTo", [data[dataIndex], data[dataIndex + 1], data[dataIndex + 2], data[dataIndex + 3]]);
 					FlightPath.appendPathCurveTo(__flightPath, data[dataIndex], data[dataIndex + 1], data[dataIndex + 2], data[dataIndex + 3]);
 					dataIndex += 4;
-				case GraphicsPathCommand.CUBIC_CURVE_TO:
+					case GraphicsPathCommand.CUBIC_CURVE_TO:
+						__record("cubicCurveTo", [data[dataIndex], data[dataIndex + 1], data[dataIndex + 2], data[dataIndex + 3], data[dataIndex + 4], data[dataIndex + 5]]);
 					FlightPath.appendPathCubicCurveTo(__flightPath, data[dataIndex], data[dataIndex + 1], data[dataIndex + 2], data[dataIndex + 3],
 						data[dataIndex + 4], data[dataIndex + 5]);
 					dataIndex += 6;
-				case GraphicsPathCommand.WIDE_MOVE_TO:
+					case GraphicsPathCommand.WIDE_MOVE_TO:
+						__record("moveTo", [data[dataIndex + 2], data[dataIndex + 3]]);
 					FlightPath.appendPathMoveTo(__flightPath, data[dataIndex + 2], data[dataIndex + 3]);
 					dataIndex += 4;
-				case GraphicsPathCommand.WIDE_LINE_TO:
+					case GraphicsPathCommand.WIDE_LINE_TO:
+						__record("lineTo", [data[dataIndex + 2], data[dataIndex + 3]]);
 					FlightPath.appendPathLineTo(__flightPath, data[dataIndex + 2], data[dataIndex + 3]);
 					dataIndex += 4;
 				default:
@@ -260,6 +308,8 @@ private typedef GraphicsBitmapPaint =
 	public function drawQuads(rects:Vector<Float>, indices:Vector<Int> = null, transforms:Vector<Float> = null):Void
 	{
 		if (rects == null) return;
+		__record("drawQuads", [rects, indices, transforms]);
+		__visible = true;
 		var hasIndices = indices != null;
 		var length = hasIndices ? indices.length : Math.floor(rects.length / 4);
 		if (length == 0) return;
@@ -319,6 +369,7 @@ private typedef GraphicsBitmapPaint =
 	public function drawRect(x:Float, y:Float, width:Float, height:Float):Void
 	{
 		if (width == 0 && height == 0) return;
+		__record("drawRect", [x, y, width, height]);
 		FlightPath.appendPathRectangle(__flightPath, x, y, width, height);
 		FlightShape.appendShapeRectangle(__flightShape, x, y, width, height);
 		__invalidate();
@@ -326,6 +377,7 @@ private typedef GraphicsBitmapPaint =
 
 	public function drawRoundRect(x:Float, y:Float, width:Float, height:Float, ellipseWidth:Float, ellipseHeight:Null<Float> = null):Void
 	{
+		__record("drawRoundRect", [x, y, width, height, ellipseWidth, ellipseHeight == null ? ellipseWidth : ellipseHeight]);
 		FlightPath.appendPathRoundRectangle(__flightPath, x, y, width, height, ellipseWidth / 2);
 		FlightShape.appendShapeRoundRectangle(__flightShape, x, y, width, height, ellipseWidth, ellipseHeight == null ? ellipseWidth : ellipseHeight);
 		__invalidate();
@@ -334,6 +386,7 @@ private typedef GraphicsBitmapPaint =
 	public function drawRoundRectComplex(x:Float, y:Float, width:Float, height:Float, topLeftRadius:Float, topRightRadius:Float,
 			bottomLeftRadius:Float, bottomRightRadius:Float):Void
 	{
+		__record("drawRoundRectComplex", [x, y, width, height, topLeftRadius, topRightRadius, bottomLeftRadius, bottomRightRadius]);
 		FlightPath.appendPathRoundRectangle(__flightPath, x, y, width, height,
 			cast [topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius]);
 		FlightShape.appendShapeRoundRectangleVarying(__flightShape, x, y, width, height, topLeftRadius, topRightRadius, bottomLeftRadius,
@@ -345,34 +398,44 @@ private typedef GraphicsBitmapPaint =
 			culling:TriangleCulling = TriangleCulling.NONE):Void
 	{
 		if (vertices == null) return;
+		__record("drawTriangles", [vertices, indices, uvtData, culling]);
+		__visible = true;
 		FlightShape.appendShapeDrawTriangles(__flightShape, __vectorToArray(vertices), __colorsToFloat(indices), __vectorToArray(uvtData), cast culling);
 		__invalidate();
 	}
 
 	public function endFill():Void
 	{
+		__record("endFill", []);
 		if (__fillActive) FlightPath.appendPathClose(__flightPath);
 		__fillActive = false;
 		FlightShape.appendShapeEndFill(__flightShape);
-		__invalidate();
 	}
 
 	public function lineBitmapStyle(bitmap:BitmapData, matrix:Matrix = null, repeat:Bool = true, smooth:Bool = false):Void
 	{
+		__record("lineBitmapStyle", [bitmap, matrix == null ? null : matrix.clone(), repeat, smooth]);
 		var texture = __createBitmapTexture(bitmap, matrix, repeat, smooth);
 		if (texture == null) return;
 		var paint = __bitmapPaints.get(cast texture);
 		FlightShape.appendShapeLineTextureStyle(__flightShape, texture, cast paint.matrix);
-		__invalidate();
 	}
 
 	public function lineGradientStyle(type:GradientType, colors:Array<Int>, alphas:Array<Float>, ratios:Array<Int>, matrix:Matrix = null,
 			spreadMethod:SpreadMethod = SpreadMethod.PAD, interpolationMethod:InterpolationMethod = InterpolationMethod.RGB,
 			focalPointRatio:Float = 0):Void
 	{
+		if (colors == null || colors.length == 0) return;
+		if (alphas == null) alphas = [for (_ in colors) 1.0];
+		if (ratios == null)
+		{
+			ratios = [];
+			for (i in 0...colors.length) ratios.push(colors.length == 1 ? 0 : Math.ceil(i / (colors.length - 1) * 255));
+		}
+		if (alphas.length < colors.length || ratios.length < colors.length) return;
+		__record("lineGradientStyle", [type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio]);
 		FlightShape.appendShapeLineGradientStyle(__flightShape, cast type, __colorsToFlight(colors), alphas, __colorsToFloat(ratios), cast matrix,
 			cast spreadMethod, cast interpolationMethod, focalPointRatio);
-		__invalidate();
 	}
 
 	public function lineStyle(thickness:Null<Float> = null, color:Int = 0, alpha:Float = 1, pixelHinting:Bool = false,
@@ -385,9 +448,10 @@ private typedef GraphicsBitmapPaint =
 			var padding = joints == JointStyle.MITER ? Math.ceil(thickness) : Math.ceil(thickness / 2);
 			if (padding > __strokePadding) __strokePadding = padding;
 		}
+		__record("lineStyle", [thickness, color, alpha, pixelHinting, scaleMode, caps, joints, miterLimit]);
+		if (thickness != null) __visible = true;
 		FlightShape.appendShapeLineStyle(__flightShape, thickness, __colorToFlight(color), alpha, pixelHinting, cast scaleMode, cast caps, cast joints,
 			miterLimit);
-		__invalidate();
 	}
 
 	public function lineTo(x:Float, y:Float):Void
@@ -399,6 +463,7 @@ private typedef GraphicsBitmapPaint =
 			__inflateLineBounds(x - __strokePadding, y - __strokePadding);
 			__inflateLineBounds(x + __strokePadding * 2, y + __strokePadding);
 		}
+		__record("lineTo", [x, y]);
 		FlightPath.appendPathLineTo(__flightPath, x, y);
 		__positionX = x;
 		__positionY = y;
@@ -408,17 +473,18 @@ private typedef GraphicsBitmapPaint =
 
 	public function moveTo(x:Float, y:Float):Void
 	{
+		__record("moveTo", [x, y]);
 		FlightPath.appendPathMoveTo(__flightPath, x, y);
 		__positionX = x;
 		__positionY = y;
 		FlightShape.appendShapeMoveTo(__flightShape, x, y);
-		__invalidate();
 	}
 
 	@SuppressWarnings("checkstyle:FieldDocComment")
 	@:dox(hide) @:noCompletion public function overrideBlendMode(blendMode:BlendMode):Void
 	{
 		if (blendMode == null) blendMode = BlendMode.NORMAL;
+		__record("overrideBlendMode", [blendMode]);
 		__flightShape.blendMode = switch (blendMode)
 		{
 			case BlendMode.ADD: "Add";
@@ -438,8 +504,6 @@ private typedef GraphicsBitmapPaint =
 	{
 		var result = new Vector<IGraphicsData>();
 		var path:GraphicsPath = null;
-		var commands:Array<Dynamic> = cast __flightShape.data.commands;
-		var index = 0;
 		var flushPath = function():Void
 		{
 			if (path != null)
@@ -449,14 +513,12 @@ private typedef GraphicsBitmapPaint =
 			}
 		};
 
-		while (index < commands.length)
+		for (record in __records)
 		{
-			var name:String = cast commands[index++];
-			var count = Std.int(commands[index++]);
-			var values = commands.slice(index, index + count);
-			index += count;
+			var name = record.name;
+			var values = record.values;
 			var geometry = name == "moveTo" || name == "lineTo" || name == "curveTo" || name == "cubicCurveTo" || name == "drawCircle"
-				|| name == "drawEllipse" || name == "drawRectangle" || name == "drawRoundRectangle";
+				|| name == "drawEllipse" || name == "drawRect" || name == "drawRoundRect";
 			if (geometry)
 			{
 				if (path == null) path = new GraphicsPath();
@@ -469,21 +531,15 @@ private typedef GraphicsBitmapPaint =
 			switch (name)
 			{
 				case "beginFill":
-					result.push(new GraphicsSolidFill(__colorFromFlight(values[0]), values[1]));
+					result.push(new GraphicsSolidFill(values[0], values[1]));
 				case "beginGradientFill":
-					var colors:Array<Float> = cast values[1];
-					var ratios:Array<Float> = cast values[3];
-					result.push(new GraphicsGradientFill(cast values[0], [for (value in colors) __colorFromFlight(value)], cast values[2],
-						[for (value in ratios) Std.int(value)], __matrix(values[4]), cast values[5], cast values[6], values[7]));
-				case "beginTextureFill":
-					var paint = __bitmapPaints.get(cast values[0]);
-					if (paint != null)
-					{
-						result.push(new GraphicsBitmapFill(paint.bitmapData, paint.matrix == null ? null : paint.matrix.clone(), paint.repeat, paint.smooth));
-					}
+					result.push(new GraphicsGradientFill(cast values[0], cast values[1], cast values[2], cast values[3], cast values[4], cast values[5], cast values[6],
+						values[7]));
+				case "beginBitmapFill":
+					result.push(new GraphicsBitmapFill(cast values[0], cast values[1], values[2], values[3]));
 				case "lineStyle":
 					var stroke = new GraphicsStroke(values[0], values[3], cast values[4], cast values[5], cast values[6], values[7]);
-					stroke.fill = new GraphicsSolidFill(__colorFromFlight(values[1]), values[2]);
+					stroke.fill = new GraphicsSolidFill(values[1], values[2]);
 					result.push(stroke);
 				case "endFill":
 					result.push(new GraphicsEndFill());
@@ -499,15 +555,24 @@ private typedef GraphicsBitmapPaint =
 					path.__drawCircle(values[0], values[1], values[2]);
 				case "drawEllipse":
 					path.__drawEllipse(values[0], values[1], values[2], values[3]);
-				case "drawRectangle":
+				case "drawRect":
 					path.__drawRect(values[0], values[1], values[2], values[3]);
-				case "drawRoundRectangle":
+				case "drawRoundRect":
 					path.__drawRoundRect(values[0], values[1], values[2], values[3], values[4], values[5]);
 				default:
 			}
 		}
 		flushPath();
+		if (recurse && (__owner is DisplayObjectContainer))
+		{
+			for (child in cast(__owner, DisplayObjectContainer).__children) child.__readGraphicsData(result, true);
+		}
 		return result;
+	}
+
+	@:noCompletion private function __record(name:String, values:Array<Dynamic>):Void
+	{
+		__records.push({name: name, values: values});
 	}
 
 	@:noCompletion private static function __matrix(value:Dynamic):Matrix
@@ -564,6 +629,8 @@ private typedef GraphicsBitmapPaint =
 
 	@:noCompletion private function __invalidate():Void
 	{
+		__dirty = true;
+		__transformDirty = true;
 		__owner.__setRenderDirty();
 	}
 

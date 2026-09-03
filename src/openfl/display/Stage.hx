@@ -660,6 +660,8 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private var __deltaTime:Int;
 	@:noCompletion private var __dragBounds:Rectangle;
 	@:noCompletion private var __dragObject:Sprite;
+	@:noCompletion private var __dragOffsetX:Float;
+	@:noCompletion private var __dragOffsetY:Float;
 	@:noCompletion private var __focus:InteractiveObject;
 	@:noCompletion private var __cacheFocus:InteractiveObject;
 	@:noCompletion private var __cancelKeySignal:Bool;
@@ -779,6 +781,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	public override function invalidate():Void
 	{
 		__invalidated = true;
+		__renderDirty = true;
 	}
 
 	public override function localToGlobal(pos:Point):Point return pos.clone();
@@ -841,7 +844,10 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		}
 	}
 
-	@:noCompletion private function __renderAfterEvent():Void {}
+	@:noCompletion private function __renderAfterEvent():Void
+	{
+		__renderDirty = true;
+	}
 
 	@:noCompletion private function __windowFocusIn():Void
 	{
@@ -870,9 +876,11 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 	@:noCompletion private function __renderBeforeDraw():Void
 	{
-		if (__invalidated)
+		if (__invalidated && __renderDirty)
 		{
 			__invalidated = false;
+			__update(false, true);
+			__clearRenderDirty();
 			__broadcastEvent(new Event(Event.RENDER));
 		}
 	}
@@ -886,16 +894,61 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	@:noCompletion private function __startDrag(sprite:Sprite, lockCenter:Bool, bounds:Rectangle):Void
 	{
 		__dragObject = sprite;
-		__dragBounds = bounds == null ? null : bounds.clone();
+		if (bounds == null)
+		{
+			__dragBounds = null;
+		}
+		else
+		{
+			var right = bounds.right;
+			var bottom = bounds.bottom;
+			__dragBounds = new Rectangle(Math.min(bounds.x, right), Math.min(bounds.y, bottom), Math.abs(bounds.width), Math.abs(bounds.height));
+		}
+		if (sprite != null)
+		{
+			if (lockCenter)
+			{
+				__dragOffsetX = 0;
+				__dragOffsetY = 0;
+			}
+			else
+			{
+				var mouse = new Point(__mouseX, __mouseY);
+				if (sprite.parent != null) mouse = sprite.parent.globalToLocal(mouse);
+				__dragOffsetX = sprite.x - mouse.x;
+				__dragOffsetY = sprite.y - mouse.y;
+			}
+		}
 	}
 
 	@:noCompletion private function __stopDrag(sprite:Sprite):Void
 	{
-		if (__dragObject == sprite)
+		__dragObject = null;
+		__dragBounds = null;
+	}
+
+	@:noCompletion private function __updateDrag():Void
+	{
+		if (__dragObject == null) return;
+		var mouse = new Point(__mouseX, __mouseY);
+		if (__dragObject.parent != null) mouse = __dragObject.parent.globalToLocal(mouse);
+		var x = mouse.x + __dragOffsetX;
+		var y = mouse.y + __dragOffsetY;
+		if (__dragBounds != null)
 		{
-			__dragObject = null;
-			__dragBounds = null;
+			x = Math.max(__dragBounds.x, Math.min(__dragBounds.right, x));
+			y = Math.max(__dragBounds.y, Math.min(__dragBounds.bottom, y));
 		}
+		__dragObject.x = x;
+		__dragObject.y = y;
+		var mouseEnabled = __dragObject.mouseEnabled;
+		var mouseChildren = __dragObject.mouseChildren;
+		__dragObject.mouseEnabled = false;
+		__dragObject.mouseChildren = false;
+		var target = __resolveMouseTarget(__mouseX, __mouseY);
+		__dragObject.mouseEnabled = mouseEnabled;
+		__dragObject.mouseChildren = mouseChildren;
+		__dragObject.dropTarget = target == this ? null : target;
 	}
 
 	@:noCompletion private function __dispatchStack(event:Event, stack:Array<DisplayObject>):Void
@@ -1092,7 +1145,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		{
 			return {hit: false, target: null};
 		}
-		if (object.mask != null && !object.mask.__hitTest(stageX, stageY, true)) return {hit: false, target: null};
+		if (object.mask != null && !object.mask.__hitTestMask(stageX, stageY)) return {hit: false, target: null};
 
 		var container:DisplayObjectContainer = (object is DisplayObjectContainer) ? cast object : null;
 		var sprite:Sprite = (object is Sprite) ? cast object : null;
@@ -1303,6 +1356,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		{
 			__dispatchStack(__createMouseEvent(MouseEvent.MOUSE_OVER, newMouseOverTarget, newMouseOverTarget, true, false, button, 0), stack);
 		}
+		__updateDrag();
 		return rawEvent;
 	}
 
@@ -1519,13 +1573,21 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 	}
 
 	@:noCompletion private function get_frameRate():Float return __frameRate;
-	@:noCompletion private function set_frameRate(value:Float):Float return __frameRate = value;
+	@:noCompletion private function set_frameRate(value:Float):Float
+	{
+		__frameRate = value;
+		#if lime
+		if (window != null) window.frameRate = value;
+		#end
+		return value;
+	}
 	@:noCompletion private function get_fullScreenHeight():UInt return stageHeight;
 	@:noCompletion private function get_fullScreenSourceRect():Rectangle return __fullScreenSourceRect == null ? null : __fullScreenSourceRect.clone();
 
 	@:noCompletion private function set_fullScreenSourceRect(value:Rectangle):Rectangle
 	{
 		__fullScreenSourceRect = value == null ? null : value.clone();
+		__resize();
 		return value;
 	}
 

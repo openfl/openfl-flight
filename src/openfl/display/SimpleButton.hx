@@ -224,6 +224,8 @@ class SimpleButton extends InteractiveObject
 
 	@:noCompletion private override function __hitTest(x:Float, y:Float, shapeFlag:Bool):Bool
 	{
+		if (!visible || __isMask || !mouseEnabled) return false;
+		if (mask != null && !mask.__hitTestMask(x, y)) return false;
 		if (__hitTestState == null) return false;
 		var local = globalToLocal(new Point(x, y));
 		return __hitTestState.__hitTest(local.x, local.y, shapeFlag);

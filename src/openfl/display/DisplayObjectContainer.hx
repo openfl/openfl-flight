@@ -451,10 +451,10 @@ class DisplayObjectContainer extends InteractiveObject
 	**/
 	public function setChildIndex(child:DisplayObject, index:Int):Void
 	{
-		if (child == null || child.parent != this || index < 0 || index >= __children.length) return;
+		if (child == null || child.parent != this || index < 0 || index > __children.length) return;
 		__children.remove(child);
 		__children.insert(index, child);
-		FlightNode.setNodeChildIndex(__flightNode, child.__flightNode, index + __flightChildOffset());
+		FlightNode.setNodeChildIndex(__flightNode, child.__flightNode, Math.min(index, __children.length - 1) + __flightChildOffset());
 	}
 
 	/**
@@ -538,6 +538,12 @@ class DisplayObjectContainer extends InteractiveObject
 		}
 	}
 
+	@:noCompletion private override function __clearRenderDirty():Void
+	{
+		super.__clearRenderDirty();
+		for (child in __children) child.__clearRenderDirty();
+	}
+
 	@:noCompletion private override function __tabTest(stack:Array<InteractiveObject>):Void
 	{
 		super.__tabTest(stack);
@@ -558,11 +564,64 @@ class DisplayObjectContainer extends InteractiveObject
 		var hasBounds = !rect.isEmpty();
 		for (child in __children)
 		{
+			if (child.__scaleX == 0 && child.__scaleY == 0) continue;
 			var childMatrix = child.__transform.clone();
 			childMatrix.concat(matrix);
 			var childRect = new Rectangle();
 			child.__getBounds(childRect, childMatrix);
 			if (child.__hasBoundsContent())
+			{
+				if (hasBounds)
+				{
+					var minX = Math.min(rect.x, childRect.x);
+					var minY = Math.min(rect.y, childRect.y);
+					var maxX = Math.max(rect.right, childRect.right);
+					var maxY = Math.max(rect.bottom, childRect.bottom);
+					rect.setTo(minX, minY, maxX - minX, maxY - minY);
+				}
+				else rect.copyFrom(childRect);
+				hasBounds = true;
+			}
+		}
+	}
+
+	@:noCompletion private override function __getFilterBounds(rect:Rectangle, matrix:Matrix):Void
+	{
+		super.__getFilterBounds(rect, matrix);
+		if (__scrollRect != null) return;
+		var hasBounds = !rect.isEmpty();
+		for (child in __children)
+		{
+			if (child.__scaleX == 0 || child.__scaleY == 0 || child.__isMask) continue;
+			var childMatrix = child.__transform.clone();
+			childMatrix.concat(matrix);
+			var childRect = new Rectangle();
+			child.__getFilterBounds(childRect, childMatrix);
+			if (!childRect.isEmpty())
+			{
+				if (hasBounds) rect.copyFrom(rect.union(childRect)); else rect.copyFrom(childRect);
+				hasBounds = true;
+			}
+		}
+	}
+
+	@:noCompletion private override function __getRenderBounds(rect:Rectangle, matrix:Matrix):Void
+	{
+		if (__scrollRect != null)
+		{
+			super.__getRenderBounds(rect, matrix);
+			return;
+		}
+		super.__getBounds(rect, matrix);
+		var hasBounds = !rect.isEmpty();
+		for (child in __children)
+		{
+			if (child.__scaleX == 0 || child.__scaleY == 0 || child.__isMask) continue;
+			var childMatrix = child.__transform.clone();
+			childMatrix.concat(matrix);
+			var childRect = new Rectangle();
+			child.__getRenderBounds(childRect, childMatrix);
+			if (!childRect.isEmpty())
 			{
 				if (hasBounds) rect.copyFrom(rect.union(childRect)); else rect.copyFrom(childRect);
 				hasBounds = true;
@@ -593,6 +652,20 @@ class DisplayObjectContainer extends InteractiveObject
 		return false;
 	}
 
+	@:noCompletion private override function __hitTestMask(x:Float, y:Float):Bool
+	{
+		if (super.__hitTestMask(x, y)) return true;
+		var i = __children.length;
+		while (--i >= 0) if (__children[i].__hitTestMask(x, y)) return true;
+		return false;
+	}
+
+	@:noCompletion private override function __readGraphicsData(graphicsData:openfl.Vector<IGraphicsData>, recurse:Bool):Void
+	{
+		super.__readGraphicsData(graphicsData, recurse);
+		if (recurse) for (child in __children) child.__readGraphicsData(graphicsData, true);
+	}
+
 	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
 	{
 		for (child in __children) child.__enterFrame(deltaTime);
@@ -602,6 +675,21 @@ class DisplayObjectContainer extends InteractiveObject
 	{
 		super.__setStageReference(value);
 		for (child in __children) child.__setStageReference(value);
+	}
+
+	@:noCompletion private override function __setWorldTransformInvalid():Void
+	{
+		if (!__worldTransformInvalid)
+		{
+			super.__setWorldTransformInvalid();
+			for (child in __children) child.__setWorldTransformInvalid();
+		}
+	}
+
+	@:noCompletion private override function __update(transformOnly:Bool, updateChildren:Bool):Void
+	{
+		super.__update(transformOnly, updateChildren);
+		if (updateChildren) for (child in __children) child.__update(transformOnly, true);
 	}
 
 	@:noCompletion private override function __stopAllMovieClips():Void
