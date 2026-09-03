@@ -56,6 +56,7 @@ class MultitouchScenario
 		#end
 
 		return {
+			mapTouchToMouseAbsent: Type.getClassFields(Multitouch).indexOf("mapTouchToMouse") == -1,
 			initial: {
 				inputMode: initialMode,
 				maxTouchPoints: Multitouch.maxTouchPoints,

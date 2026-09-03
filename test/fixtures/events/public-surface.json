@@ -1,0 +1,670 @@
+{
+  "constants": {
+    "base": [
+      "activate",
+      "added",
+      "addedToStage",
+      "cancel",
+      "change",
+      "clear",
+      "closing",
+      "close",
+      "complete",
+      "connect",
+      "context3DCreate",
+      "copy",
+      "cut",
+      "deactivate",
+      "enterFrame",
+      "exitFrame",
+      "exiting",
+      "frameConstructed",
+      "frameLabel",
+      "fullScreen",
+      "id3",
+      "init",
+      "mouseLeave",
+      "open",
+      "paste",
+      "removed",
+      "removedFromStage",
+      "render",
+      "resize",
+      "scroll",
+      "select",
+      "selectAll",
+      "soundComplete",
+      "tabChildrenChange",
+      "tabEnabledChange",
+      "tabIndexChange",
+      "textureReady",
+      "unload"
+    ],
+    "phase": [
+      1,
+      2,
+      3
+    ],
+    "subclasses": {
+      "stageOrientation": [
+        "orientationChange",
+        "orientationChanging"
+      ],
+      "text": [
+        "link",
+        "textInput"
+      ],
+      "mouse": [
+        "click",
+        "doubleClick",
+        "middleClick",
+        "middleMouseDown",
+        "middleMouseUp",
+        "mouseDown",
+        "mouseMove",
+        "mouseOut",
+        "mouseOver",
+        "mouseUp",
+        "mouseWheel",
+        "releaseOutside",
+        "rightClick",
+        "rightMouseDown",
+        "rightMouseUp",
+        "rollOut",
+        "rollOver"
+      ],
+      "accelerometer": [
+        "update"
+      ],
+      "sampleData": [
+        "sampleData"
+      ],
+      "nativeWindowDisplayState": [
+        "displayStateChanging",
+        "displayStateChange"
+      ],
+      "ioError": [
+        "ioError",
+        "standardOutputIoError",
+        "standardErrorIoError"
+      ],
+      "permission": [
+        "permissionStatus"
+      ],
+      "geolocation": [
+        "update"
+      ],
+      "invoke": [
+        "invoke"
+      ],
+      "datagram": [
+        "data"
+      ],
+      "nativeWindowBounds": [
+        "moving",
+        "move",
+        "resizing",
+        "resize"
+      ],
+      "timer": [
+        "timer",
+        "timerComplete"
+      ],
+      "render": [
+        "clearDOM",
+        "renderCairo",
+        "renderCanvas",
+        "renderDOM",
+        "renderOpenGL"
+      ],
+      "fileList": [
+        "directoryListing",
+        "selectMultiple"
+      ],
+      "fullScreen": [
+        "fullScreen",
+        "fullScreenInteractiveAccepted"
+      ],
+      "gameInput": [
+        "deviceAdded",
+        "deviceRemoved",
+        "deviceUnusable"
+      ],
+      "httpStatus": [
+        "httpResponseStatus",
+        "httpStatus"
+      ],
+      "screenMouse": [
+        "click",
+        "mouseDown",
+        "mouseUp",
+        "rightClick",
+        "rightMouseDown",
+        "rightMouseUp"
+      ],
+      "contextMenu": [
+        "menuItemSelect",
+        "menuSelect"
+      ],
+      "nativeProcessExit": [
+        "exit"
+      ],
+      "dnsResolver": [
+        "lookup"
+      ],
+      "activity": [
+        "activity"
+      ],
+      "touch": [
+        "touchBegin",
+        "touchEnd",
+        "touchMove",
+        "touchOut",
+        "touchOver",
+        "touchRollOut",
+        "touchRollOver",
+        "touchTap"
+      ],
+      "keyboard": [
+        "keyDown",
+        "keyUp"
+      ],
+      "data": [
+        "data",
+        "uploadCompleteData"
+      ],
+      "securityError": [
+        "securityError"
+      ],
+      "netStatus": [
+        "netStatus"
+      ],
+      "outputProgress": [
+        "outputProgress"
+      ],
+      "videoTexture": [
+        "renderState"
+      ],
+      "error": [
+        "error"
+      ],
+      "progress": [
+        "progress",
+        "socketData",
+        "standardOutputData",
+        "standardErrorData"
+      ],
+      "uncaughtError": [
+        "uncaughtError"
+      ],
+      "serverSocket": [
+        "connect"
+      ],
+      "focus": [
+        "focusIn",
+        "focusOut",
+        "keyFocusChange",
+        "mouseFocusChange"
+      ],
+      "deviceRotation": [
+        "update"
+      ],
+      "asyncError": [
+        "asyncError"
+      ]
+    },
+    "eventType": {
+      "equality": true,
+      "unusualGeolocationType": "update",
+      "toString": "change",
+      "inequality": true,
+      "fromStringEquals": true
+    }
+  },
+  "updateAfterEvent": {
+    "after": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "cancellationPreserved": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "cloneFlagsReset": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "before": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "strings": {
+    "stageOrientation": "[StageOrientationEvent type=\"default\" bubbles=false cancelable=false beforeOrientation=3 afterOrientation=3]",
+    "text": "[TextEvent type=\"default\" bubbles=false cancelable=false text=\"\"]",
+    "mouse": "[MouseEvent type=\"default\" bubbles=true cancelable=false localX=0 localY=0 relatedObject=null ctrlKey=false altKey=false shiftKey=false buttonDown=false delta=0]",
+    "accelerometer": "[AccelerometerEvent type=\"default\" bubbles=false cancelable=false timestamp=0 accelerationX=0 accelerationY=0 accelerationZ=0]",
+    "sampleData": "[SampleDataEvent type=\"default\" bubbles=false cancelable=false]",
+    "nativeWindowDisplayState": "[NativeWindowDisplayStateEvent type=\"default\" bubbles=false cancelable=false beforeDisplayState=null afterDisplayState=null]",
+    "ioError": "[IOErrorEvent type=\"default\" bubbles=true cancelable=false text=\"\" errorID=0]",
+    "permission": "[PermissionEvent type=\"default\" bubbles=false cancelable=false status=0]",
+    "geolocation": "[Event type=\"default\" bubbles=false cancelable=false]",
+    "invoke": "[Event type=\"default\" bubbles=false cancelable=false]",
+    "datagram": "[DatagramSocketDataEvent type=default bubbles=false cancelable=false srcAddress= srcPort=0 dstAddress= dstPort=0 data=null]",
+    "nativeWindowBounds": "[NativeWindowBoundsEvent type=\"default\" bubbles=false cancelable=false beforeBounds=null afterBounds=null]",
+    "timer": "[TimerEvent type=\"default\" bubbles=false cancelable=false]",
+    "render": "[RenderEvent type=\"default\" bubbles=false cancelable=false]",
+    "fileList": "[Event type=\"default\" bubbles=false cancelable=false]",
+    "fullScreen": "[FullscreenEvent type=\"default\" bubbles=false cancelable=false fullscreen=null interactive=false]",
+    "formatToString": "[CustomEvent type=\"quoted\" bubbles=true cancelable=true data=\"some text\"]",
+    "gameInput": "[GameInputEvent type=\"default\" bubbles=true cancelable=false device=null]",
+    "httpStatus": "[HTTPStatusEvent type=\"default\" bubbles=false cancelable=false status=0 redirected=false]",
+    "screenMouse": "[MouseEvent type=\"default\" bubbles=false cancelable=false localX=0 localY=0 relatedObject=null ctrlKey=false altKey=false shiftKey=false buttonDown=false delta=0]",
+    "contextMenu": "[ContextMenuEvent type=\"default\" bubbles=false cancelable=false mouseTarget=null contextMenuOwner=null]",
+    "nativeProcessExit": "[NativeProcessExitEvent type=\"default\" bubbles=false cancelable=false exitCode=nan]",
+    "dnsResolver": "[Event type=\"default\" bubbles=false cancelable=false]",
+    "activity": "[ActivityEvent type=\"default\" bubbles=false cancelable=false activating=false]",
+    "event": "[Event type=\"default\" bubbles=false cancelable=false]",
+    "touch": "[TouchEvent type=\"default\" bubbles=true cancelable=false touchPointID=0 isPrimaryTouchPoint=false localX=0 localY=0 sizeX=0 sizeY=0 pressure=0 relatedObject=null ctrlKey=false altKey=false shiftKey=false commandKey=false controlKey=false]",
+    "keyboard": "[KeyboardEvent type=\"default\" bubbles=false cancelable=false charCode=0 keyCode=0 keyLocation=0 ctrlKey=false altKey=false shiftKey=false]",
+    "data": "[DataEvent type=\"default\" bubbles=false cancelable=false data=\"\"]",
+    "securityError": "[SecurityErrorEvent type=\"default\" bubbles=false cancelable=false text=\"\" errorID=0]",
+    "netStatus": "[NetStatusEvent type=\"default\" bubbles=false cancelable=false info=null]",
+    "outputProgress": "[OutputProgressEvent type=\"default\" bubbles=false cancelable=false bytesPending=0 bytesTotal=0]",
+    "videoTexture": "[VideoTextureEvent type=\"default\" bubbles=false cancelable=false status=null colorSpace=null]",
+    "error": "[ErrorEvent type=\"default\" bubbles=false cancelable=false text=\"\" errorID=0]",
+    "progress": "[ProgressEvent type=\"default\" bubbles=false cancelable=false bytesLoaded=0 bytesTotal=0]",
+    "uncaughtError": "[UncaughtErrorEvent type=\"default\" bubbles=true cancelable=true error=null]",
+    "serverSocket": "[ServerSocketConnectEvent type=default bubbles=default cancelable=false socket=null]",
+    "focus": "[FocusEvent type=\"default\" bubbles=false cancelable=false relatedObject=null shiftKey=false keyCode=0]",
+    "deviceRotation": "[Event type=\"default\" bubbles=false cancelable=false]",
+    "asyncError": "[AsyncErrorEvent type=\"default\" bubbles=false cancelable=false text=\"\" error=null]"
+  },
+  "uncaughtErrorEvents": {
+    "afterOtherAdd": true,
+    "lastRemoveThrows": true,
+    "afterOtherRemove": true,
+    "afterUncaughtAdd": true,
+    "initial": true,
+    "afterUncaughtRemove": true
+  },
+  "constructors": {
+    "stageOrientation": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "afterOrientation": 3,
+        "beforeOrientation": 3
+      }
+    },
+    "text": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "text": ""
+      }
+    },
+    "mouse": {
+      "cancelable": false,
+      "bubbles": true,
+      "fields": {
+        "shiftKey": false,
+        "buttonDown": false,
+        "relatedObject": null,
+        "delta": 0,
+        "ctrlKey": false,
+        "localX": 0,
+        "clickCount": 0,
+        "commandKey": false,
+        "localY": 0,
+        "isRelatedObjectInaccessible": false,
+        "controlKey": false,
+        "altKey": false
+      }
+    },
+    "accelerometer": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "accelerationZ": 0,
+        "accelerationY": 0,
+        "accelerationX": 0,
+        "timestamp": 0
+      }
+    },
+    "sampleData": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "position": 0,
+        "data": {
+          "kind": "openfl.utils.ByteArrayData"
+        }
+      }
+    },
+    "nativeWindowDisplayState": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "beforeDisplayState": null,
+        "afterDisplayState": null
+      }
+    },
+    "ioError": {
+      "cancelable": false,
+      "bubbles": true,
+      "fields": {
+        "text": "",
+        "errorID": 0
+      }
+    },
+    "permission": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "status": 0
+      }
+    },
+    "geolocation": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "latitude": 0,
+        "verticalAccuracy": 0,
+        "horizontalAccuracy": 0,
+        "heading": 0,
+        "longitude": 0,
+        "timestamp": 0,
+        "altitude": 0,
+        "speed": 0
+      }
+    },
+    "invoke": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "reason": 3,
+        "currentDirectory": null,
+        "arguments": {
+          "length": 0,
+          "kind": "Array"
+        }
+      }
+    },
+    "datagram": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "dstPort": 0,
+        "srcPort": 0,
+        "srcAddress": "",
+        "data": null,
+        "dstAddress": ""
+      }
+    },
+    "nativeWindowBounds": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "afterBounds": null,
+        "beforeBounds": null
+      }
+    },
+    "timer": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {}
+    },
+    "render": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "objectMatrix": null,
+        "renderer": null,
+        "objectColorTransform": null
+      }
+    },
+    "fileList": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "files": {
+          "length": 0,
+          "kind": "Array"
+        }
+      }
+    },
+    "ownership": {
+      "sampleDataEndian": "littleEndian",
+      "fileListRetained": true,
+      "sampleDataDistinct": true,
+      "httpHeadersDistinct": true,
+      "netInfoRetained": true,
+      "httpHeadersInitiallyEmpty": true,
+      "mutableData": "changed",
+      "datagramDataRetained": true
+    },
+    "fullScreen": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "interactive": false,
+        "fullScreen": false,
+        "activating": false
+      }
+    },
+    "gameInput": {
+      "cancelable": false,
+      "bubbles": true,
+      "fields": {
+        "device": null
+      }
+    },
+    "httpStatus": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "redirected": false,
+        "responseHeaders": {
+          "length": 0,
+          "kind": "Array"
+        },
+        "status": 0,
+        "responseURL": null
+      }
+    },
+    "screenMouse": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "shiftKey": false,
+        "screenX": 0,
+        "screenY": 0,
+        "buttonDown": false,
+        "ctrlKey": false,
+        "commandKey": false,
+        "controlKey": false,
+        "altKey": false
+      }
+    },
+    "contextMenu": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "contextMenuOwner": null,
+        "mouseTarget": null,
+        "isMouseTargetInaccessible": null
+      }
+    },
+    "nativeProcessExit": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "exitCode": "NaN"
+      }
+    },
+    "dnsResolver": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "resourceRecords": null,
+        "host": ""
+      }
+    },
+    "activity": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "activating": false
+      }
+    },
+    "event": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {}
+    },
+    "touch": {
+      "cancelable": false,
+      "bubbles": true,
+      "fields": {
+        "shiftKey": false,
+        "isTouchPointCanceled": null,
+        "pressure": 0,
+        "relatedObject": null,
+        "samples": null,
+        "ctrlKey": false,
+        "touchPointID": 0,
+        "localX": 0,
+        "touchIntent": null,
+        "sizeX": 0,
+        "commandKey": false,
+        "timestamp": null,
+        "localY": 0,
+        "sizeY": 0,
+        "isPrimaryTouchPoint": false,
+        "controlKey": false,
+        "altKey": false
+      }
+    },
+    "keyboard": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "shiftKey": false,
+        "keyCode": 0,
+        "ctrlKey": false,
+        "charCode": 0,
+        "keyLocation": 0,
+        "commandKey": false,
+        "controlKey": false,
+        "altKey": false
+      }
+    },
+    "data": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "data": ""
+      }
+    },
+    "securityError": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "text": "",
+        "errorID": 0
+      }
+    },
+    "netStatus": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "info": null
+      }
+    },
+    "outputProgress": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "bytesTotal": 0,
+        "bytesPending": 0
+      }
+    },
+    "videoTexture": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "status": null,
+        "colorSpace": null
+      }
+    },
+    "error": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "text": "",
+        "errorID": 0
+      }
+    },
+    "progress": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "bytesTotal": 0,
+        "bytesLoaded": 0
+      }
+    },
+    "uncaughtError": {
+      "cancelable": true,
+      "bubbles": true,
+      "fields": {
+        "error": null
+      }
+    },
+    "serverSocket": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "socket": null
+      }
+    },
+    "focus": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "shiftKey": false,
+        "keyCode": 0,
+        "relatedObject": null,
+        "isRelatedObjectInaccessible": null
+      }
+    },
+    "deviceRotation": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "pitch": 0,
+        "yaw": 0,
+        "timestamp": 0,
+        "quaternion": null,
+        "roll": 0
+      }
+    },
+    "asyncError": {
+      "cancelable": false,
+      "bubbles": false,
+      "fields": {
+        "text": "",
+        "errorID": 0,
+        "error": null
+      }
+    }
+  }
+}

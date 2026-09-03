@@ -1,0 +1,204 @@
+{
+  "constants": {
+    "stageScaleMode": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "stageOrientation": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "capsStyle": [
+      "0",
+      "1",
+      "2"
+    ],
+    "spreadMethod": [
+      "0",
+      "1",
+      "2"
+    ],
+    "nativeWindowDisplayState": [
+      "0",
+      "1",
+      "2"
+    ],
+    "bitmapDataChannel": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "jointStyle": [
+      "0",
+      "1",
+      "2"
+    ],
+    "nativeWindowSystemChrome": [
+      "0",
+      "1",
+      "2"
+    ],
+    "pixelSnapping": [
+      "0",
+      "1",
+      "2"
+    ],
+    "graphicsPathWinding": [
+      "0",
+      "1"
+    ],
+    "stageAlign": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "graphicsPathCommand": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "shaderPrecision": [
+      "0",
+      "1"
+    ],
+    "blendMode": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14"
+    ],
+    "triangleCulling": [
+      "0",
+      "1",
+      "2"
+    ],
+    "shaderParameterType": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20"
+    ],
+    "stageQuality": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "lineScaleMode": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "nativeWindowType": [
+      "0",
+      "1",
+      "2"
+    ],
+    "gradientType": [
+      "0",
+      "1"
+    ],
+    "focusDirection": [
+      "0",
+      "1",
+      "2"
+    ],
+    "stageDisplayState": [
+      "0",
+      "1",
+      "2"
+    ],
+    "interpolationMethod": [
+      "0",
+      "1"
+    ]
+  },
+  "encoders": {
+    "defaults": {
+      "jpegQuality": 80,
+      "pngFastCompression": false
+    },
+    "mutated": {
+      "jpegQuality": -17,
+      "pngFastCompression": true
+    },
+    "constructorValues": {
+      "jpegQuality": 101,
+      "pngFastCompression": true
+    }
+  },
+  "conversions": {
+    "caseSensitive": {
+      "blend": null,
+      "caps": null
+    },
+    "stageAlignNormalizesCharacters": "TR",
+    "unknownStringsBecomeNull": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  }
+}

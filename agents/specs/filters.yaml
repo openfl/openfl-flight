@@ -95,7 +95,8 @@ entries:
     notes: >-
       Unlike the other filter package types, BitmapFilterShader is not guarded by `#if !flash`
       and is compiled on Flash as well as non-Flash targets.
-    scenarios: []
+    scenarios:
+      - filters/properties:bitmapFilterShader
 
   # -- BitmapFilter > Common BitmapData.applyFilter pipeline --
 
@@ -971,8 +972,9 @@ entries:
       - filters/DropShadowFilter.hx:__init__
       - filters/GlowFilter.hx:__init__
     notes: >-
-      Applies only to code executing in the Haxe macro compilation context and concerns internal
-      rendering state rather than public filter property storage.
+      Not scenario-mapped because it executes only in the Haxe macro compilation context and
+      concerns compiler-generated internal rendering state, which a runtime JSON fixture cannot
+      observe.
     scenarios: []
 
   # -- Package target selection --
@@ -986,5 +988,7 @@ entries:
       BitmapFilterShader is the exception: its OpenFL class is compiled on every target.
     source:
       - filters/BitmapFilter.hx:new
-    notes: "Applies only when the `flash` compilation target is selected."
+    notes: >-
+      Not scenario-mapped because this is a Flash-target typedef surface and the capture/compare
+      harness runs non-Flash eval builds.
     scenarios: []

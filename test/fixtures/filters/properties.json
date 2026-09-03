@@ -384,6 +384,13 @@
     "readsShareFilter": true
   },
   "gradientClassesAbsent": true,
+  "bitmapFilterShader": {
+    "suppliedByteCodeRetained": true,
+    "emptyByteCodeIsNull": true,
+    "suppliedByteCodeLength": 2,
+    "fragmentSource": "varying vec2 openfl_TextureCoordv;\n\n\t\tuniform sampler2D openfl_Texture;\n\t\tuniform vec2 openfl_TextureSize;\n\n\t\tvoid main(void) {\n\n\t\t\tgl_FragColor = texture2D (openfl_Texture, openfl_TextureCoordv);\n\n\t\t}",
+    "vertexSource": "attribute vec4 openfl_Position;\n\t\tattribute vec2 openfl_TextureCoord;\n\n\t\tvarying vec2 openfl_TextureCoordv;\n\n\t\tuniform mat4 openfl_Matrix;\n\t\tuniform vec2 openfl_TextureSize;\n\n\t\tvoid main(void) {\n\n\t\t\topenfl_TextureCoordv = openfl_TextureCoord;\n\n\t\tgl_Position = openfl_Matrix * openfl_Position;\n\n\t\t}"
+  },
   "values": {
     "bevel": {
       "strength": 2.5,

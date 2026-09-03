@@ -1106,7 +1106,8 @@ entries:
       - geom/Transform.hx:getRelativeMatrix3DToOutput
     notes: >-
       Applies to the non-Flash OpenFL implementation; Flash uses its native Transform type.
-    scenarios: []
+    scenarios:
+      - geom/transform:unavailablePerspectiveAPI
 
   # -- ColorTransform --
 
@@ -1352,5 +1353,7 @@ entries:
       implementations; Flash behavior is supplied by the platform classes instead.
     source:
       - geom/Matrix.hx:new
-    notes: "Applies only when the `flash` compilation target is selected."
+    notes: >-
+      Not scenario-mapped because this is a Flash-target typedef surface and the capture/compare
+      harness runs non-Flash eval builds.
     scenarios: []

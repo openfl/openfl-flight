@@ -22,6 +22,7 @@ import harness.scenarios.DisplayObjectScenario;
 import harness.scenarios.DisplayObjectPropertyEdgesScenario;
 import harness.scenarios.DisplayRenderingCompositionScenario;
 import harness.scenarios.DisplayTransformScenario;
+import harness.scenarios.DisplayValueScenario;
 import harness.scenarios.ErrorScenario;
 import harness.scenarios.ErrorSubclassesScenario;
 import harness.scenarios.EventConstructionScenario;
@@ -32,6 +33,7 @@ import harness.scenarios.EventDispatcherScenario;
 import harness.scenarios.EventSubclassesScenario;
 import harness.scenarios.EventScenario;
 import harness.scenarios.EventPropagationScenario;
+import harness.scenarios.EventPublicSurfaceScenario;
 import harness.scenarios.EventRedispatchScenario;
 import harness.scenarios.ExternalInterfaceScenario;
 import harness.scenarios.FileReferenceScenario;
@@ -169,6 +171,10 @@ class Scenarios {
 				run: GraphicsScenario.run
 			},
 			{
+				name: "display/value-types",
+				run: DisplayValueScenario.run
+			},
+			{
 				name: "display/composition",
 				run: DisplayCompositionScenario.run
 			},
@@ -303,6 +309,10 @@ class Scenarios {
 			{
 				name: "events/event-subclass-construction",
 				run: EventSubclassesScenario.run
+			},
+			{
+				name: "events/public-surface",
+				run: EventPublicSurfaceScenario.run
 			},
 			{
 				name: "globalization/date-time-formatter",

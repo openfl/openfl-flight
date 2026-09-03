@@ -193,7 +193,9 @@ entries:
       Host key-code and location conversion, and their Stage call path, are compiled only with
       `lime`; the character-code helper itself is present on every non-Flash build. NUMPAD_ENTER
       becomes Keyboard.ENTER by default and becomes Keyboard.NUMPAD_ENTER only when
-      `openfl_numpad_enter` is defined.
+      `openfl_numpad_enter` is defined. Not scenario-mapped because the key-code/location helpers
+      consume Lime host KeyCode values and the full behavior also requires two
+      `openfl_numpad_enter` compile configurations plus a Stage input route.
     scenarios: []
 
   # -- KeyLocation --
@@ -635,7 +637,8 @@ entries:
       - ui/Multitouch.hx:mapTouchToMouse
     notes: >-
       Applies to the non-Flash implementation; Flash uses its native Multitouch type.
-    scenarios: []
+    scenarios:
+      - ui/multitouch:mapTouchToMouseAbsent
 
   # -- MultitouchInputMode --
 
@@ -669,5 +672,7 @@ entries:
       Flash behavior is supplied by the platform classes instead.
     source:
       - ui/GameInput.hx:new
-    notes: "Applies only when the `flash` compilation target is selected."
+    notes: >-
+      Not scenario-mapped because this is a Flash-target typedef surface and the capture/compare
+      harness runs non-Flash eval builds.
     scenarios: []

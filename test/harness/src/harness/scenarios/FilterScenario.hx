@@ -5,6 +5,7 @@ import openfl.display.BitmapDataChannel;
 import openfl.display.Sprite;
 import openfl.filters.BevelFilter;
 import openfl.filters.BitmapFilter;
+import openfl.filters.BitmapFilterShader;
 import openfl.filters.BitmapFilterType;
 import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
@@ -18,6 +19,7 @@ import openfl.display.Shader;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
+import openfl.utils.ByteArray;
 
 @:access(openfl.display.DisplayObject)
 @:access(openfl.filters.BitmapFilter)
@@ -58,12 +60,30 @@ class FilterScenario {
 			clones: testClones(map),
 			displayObject: testDisplayObjectFilters(),
 			baseInternals: testBaseInternals(),
+			bitmapFilterShader: testBitmapFilterShader(),
 			derivedInternals: testDerivedInternals(),
 			descriptorSynchronization: testDescriptorSynchronization(),
 			gradientClassesAbsent: Type.resolveClass("openfl.filters.GradientBevelFilter") == null
 				&& Type.resolveClass("openfl.filters.GradientGlowFilter") == null,
 			bitmapApplications: testBitmapApplications(),
 			nullArguments: testNullArguments()
+		};
+	}
+
+	private static function testBitmapFilterShader():Dynamic {
+		var empty = new BitmapFilterShader();
+		var code = new ByteArray();
+		code.writeByte(0x12);
+		code.writeByte(0x34);
+		var supplied = new BitmapFilterShader(code);
+		var emptyCode:ByteArray = Reflect.field(empty, "byteCode");
+		var suppliedCode:ByteArray = Reflect.field(supplied, "byteCode");
+		return {
+			emptyByteCodeIsNull: emptyCode == null,
+			suppliedByteCodeRetained: suppliedCode == code,
+			suppliedByteCodeLength: suppliedCode.length,
+			vertexSource: empty.glVertexSource,
+			fragmentSource: empty.glFragmentSource
 		};
 	}
 

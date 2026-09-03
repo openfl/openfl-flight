@@ -147,7 +147,10 @@ entries:
       frame.
     source:
       - events/EventDispatcher.hx:dispatchEvent
-    scenarios: []
+    scenarios:
+      - events/dispatcher:listenerDuringDispatch
+      - events/dispatcher:nestedDispatchMutation
+      - events/dispatcher-capture:removeReaddDuringDispatch
     notes: "Blocked on Flight gap \"Signals: mutation-safe iteration during emit\"."
   - id: events.ED.aggregate-target
     section: EventDispatcher core > Targeting and phases
@@ -1572,8 +1575,7 @@ entries:
       subtype; EventPhase is CAPTURING_PHASE = 1, AT_TARGET = 2, and BUBBLING_PHASE = 3. EventType
       is a String abstract with implicit String conversions and String equality/inequality
       operators. In particular, GeolocationEvent.UPDATE has the source's unusual
-      EventType<DeviceRotationEvent> declaration. The complete constant and compile-time typing
-      surface is not captured.
+      EventType<DeviceRotationEvent> declaration.
     source:
       - events/AccelerometerEvent.hx:UPDATE
       - events/DeviceRotationEvent.hx:UPDATE
@@ -1610,7 +1612,8 @@ entries:
       - events/GeolocationEvent.hx:UPDATE
       - events/GeolocationEvent.hx:horizontalAccuracy
       - events/GeolocationEvent.hx:verticalAccuracy
-    scenarios: []
+    scenarios:
+      - events/public-surface:constants
   - id: events.EV.subclass-constructor-defaults-mutability-and-ownership
     section: Event public surface > Construction and payloads
     behavior: >-
@@ -1618,8 +1621,7 @@ entries:
       null, empty-string, array, ByteArray, Rectangle, device, socket, and dynamic payload defaults.
       Public payload mutability versus default/null read-only access, direct reference retention,
       SampleDataEvent's fresh little-endian ByteArray, and HTTPStatusEvent's fresh responseHeaders
-      array must also match. The clone inventory covers supplied values but does not exhaust
-      constructor defaults and post-construction writes.
+      array must also match.
     source:
       - events/ActivityEvent.hx:new
       - events/AsyncErrorEvent.hx:new
@@ -1654,22 +1656,23 @@ entries:
       - events/ServerSocketConnectEvent.hx:new
       - events/StageOrientationEvent.hx:new
       - events/VideoTextureEvent.hx:new
-    scenarios: []
+    scenarios:
+      - events/public-surface:constructors
   - id: events.EV.format-to-string-and-subclass-string-output
     section: Event public surface > String formatting
     behavior: >-
       Event.formatToString uses a Rest<String> signature on Haxe 4.2+ and five nullable parameters
       earlier, reflects each named field, quotes strings, and emits bracketed class/name pairs in
       argument order. Event and every subclass toString override choose a source-specific class name
-      and payload list; classes without an override inherit Event formatting. Only base Event output
-      is currently captured.
+      and payload list; classes without an override inherit Event formatting.
     source:
       - events/DatagramSocketDataEvent.hx:toString
       - events/Event.hx:formatToString
       - events/Event.hx:toString
       - events/EventDispatcher.hx:toString
       - events/ServerSocketConnectEvent.hx:toString
-    scenarios: []
+    scenarios:
+      - events/public-surface:strings
   - id: events.EV.update-after-event-render-request-flags
     section: Event public surface > Post-dispatch rendering
     behavior: >-
@@ -1714,15 +1717,17 @@ entries:
       - events/TouchEvent.hx:shiftKey
       - events/TouchEvent.hx:touchPointID
       - events/TouchEvent.hx:updateAfterEvent
-    scenarios: []
+    scenarios:
+      - events/public-surface:updateAfterEvent
+    notes: Stage consumption still requires a live routed-input/render-lifecycle fixture.
   - id: events.UEE.listener-enabled-state-and-build-flags
     section: UncaughtErrorEvents
     behavior: >-
       UncaughtErrorEvents starts enabled unless openfl_disable_handle_error is set without
       openfl_enable_handle_error. Adding an UNCAUGHT_ERROR listener enables it in handling-enabled
-      builds; removing the last such listener disables it, while listeners of other types do not
-      control the flag. Constructor and listener behavior under both compile configurations are
-      unverified.
+      builds. Removing a non-final listener updates enabled state as intended, but removing the
+      final UNCAUGHT_ERROR listener first clears EventDispatcher's map and then dereferences that
+      null map, throwing before it can disable the flag. Listeners of other types do not control it.
     source:
       - events/ErrorEvent.hx:ERROR
       - events/ErrorEvent.hx:new
@@ -1730,7 +1735,11 @@ entries:
       - events/UncaughtErrorEvent.hx:error
       - events/UncaughtErrorEvent.hx:new
       - events/UncaughtErrorEvents.hx:new
-    scenarios: []
+    scenarios:
+      - events/public-surface:uncaughtErrorEvents
+    notes: >-
+      The fixture covers the default handling-enabled build. The opposite initial state requires a
+      second harness compilation with openfl_disable_handle_error and without openfl_enable_handle_error.
   - id: events.PKG.sys-air-and-backend-conditional-surface
     section: Package target availability
     behavior: >-
@@ -1797,7 +1806,10 @@ entries:
       - events/ScreenMouseEvent.hx:RIGHT_MOUSE_DOWN
       - events/ScreenMouseEvent.hx:RIGHT_MOUSE_UP
     scenarios: []
-    notes: "Target conditions: #if html5, #if !flash, #if sys."
+    notes: >-
+      Not scenario-mapped because type availability and audio-buffer validation require separate
+      Flash, sys, HTML5, and lime_openal compilations plus an active audio backend; one eval fixture
+      cannot represent that matrix. Target conditions: #if html5, #if !flash, #if sys.
   - id: events.API.event-dispatcher-interface-and-event-type-surface
     section: Compile-only public surface
     behavior: >-

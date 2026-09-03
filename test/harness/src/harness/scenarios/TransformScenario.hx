@@ -29,7 +29,17 @@ class TransformScenario {
 			renderColorAdjustmentComposition: testRenderColorAdjustmentComposition(),
 			colorTransformAccess: testColorTransformAccess(),
 			perspectiveProjectionDefaults: testPerspectiveProjectionDefaults(),
-			pixelBoundsLifecycle: testPixelBoundsLifecycle()
+			pixelBoundsLifecycle: testPixelBoundsLifecycle(),
+			unavailablePerspectiveAPI: testUnavailablePerspectiveAPI()
+		};
+	}
+
+	private static function testUnavailablePerspectiveAPI():Dynamic {
+		var fields = Type.getInstanceFields(Type.getClass(new Sprite().transform));
+		return {
+			perspectiveProjectionAbsent: fields.indexOf("perspectiveProjection") == -1,
+			getRelativeMatrix3DAbsent: fields.indexOf("getRelativeMatrix3D") == -1,
+			getRelativeMatrix3DToOutputAbsent: fields.indexOf("getRelativeMatrix3DToOutput") == -1
 		};
 	}
 

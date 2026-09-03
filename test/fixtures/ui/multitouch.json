@@ -15,6 +15,7 @@
     "capabilitiesReadable": true,
     "supportsTouchEvents": true
   },
+  "mapTouchToMouseAbsent": true,
   "touchEvent": {
     "shiftKey": true,
     "cancelable": true,

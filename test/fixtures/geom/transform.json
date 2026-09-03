@@ -43,6 +43,11 @@
       "alphaBias": 0.0313725490196078427
     }
   },
+  "unavailablePerspectiveAPI": {
+    "getRelativeMatrix3DAbsent": true,
+    "perspectiveProjectionAbsent": true,
+    "getRelativeMatrix3DToOutputAbsent": true
+  },
   "pixelBoundsLifecycle": {
     "onStage": {
       "isEmpty": true,

@@ -187,7 +187,10 @@ entries:
       - display/DisplayObject.hx:cacheAsBitmap
       - display/DisplayObject.hx:cacheAsBitmapMatrix
       - display/DisplayObject.hx:filters
-    scenarios: []
+    scenarios:
+      - display/display-object:cacheAsBitmap
+      - display/advanced:displayObject
+      - display/rendering-composition:cacheAsBitmap
     notes: Blocked on Flight gap "Portable display-object rasterization".
   - id: display.DO.clones-matrix-cache-bitmap-matrix-assignment-but
     section: DisplayObject > Cache, filters, and exposed object ownership
@@ -918,7 +921,8 @@ entries:
     source:
       - display/BitmapData.hx:scroll
       - display/DisplayObject.hx:alpha
-    scenarios: []
+    scenarios:
+      - display/rendering-composition:bitmapDraw
     notes: "Blocked on Flight gap \"Portable display-object rasterization\". Target conditions: #if lime."
   - id: display.BMD.threshold-masks-packed-argb-before-applying-all
     section: BitmapData > Region operations and drawing
@@ -1158,14 +1162,16 @@ entries:
     behavior: trackAsMenu is retained but has no menu-style release interaction.
     source:
       - display/SimpleButton.hx:trackAsMenu
-    scenarios: []
+    scenarios:
+      - display/simple-button:values
     notes: Blocked on Flight gap "SimpleButton menu tracking".
   - id: display.SB.sound-transform-defensively-copied-set-get-but
     section: SimpleButton
     behavior: soundTransform is defensively copied on set/get, but state transition sounds are not bound.
     source:
       - display/SimpleButton.hx:soundTransform
-    scenarios: []
+    scenarios:
+      - display/simple-button:soundTransform
     notes: Blocked on Flight gap "SimpleButton sounds".
   - id: display.SB.simple-button-installs-flight-pointer-signals-while
     section: SimpleButton
@@ -1472,7 +1478,10 @@ entries:
       - display/Window.hx:application
       - display/Window.hx:close
     scenarios: []
-    notes: "Target conditions: #if commonjs, #if sys, #if lime."
+    notes: >-
+      Not scenario-mapped because this requires real Application/Window lifecycle signals and a
+      commonjs/sys/lime build matrix; the eval harness cannot drive host process or window exit.
+      Target conditions: #if commonjs, #if sys, #if lime.
   - id: display.LDR.loader-and-loader-info-complete-public-surface
     section: Loader and LoaderInfo > Public surface inventory
     behavior: >-
@@ -1777,7 +1786,10 @@ entries:
       - display/Window.hx:height
       - display/Window.hx:width
     scenarios: []
-    notes: "Target conditions: #if commonjs, #if sys, #if lime, #if mobile."
+    notes: >-
+      Not scenario-mapped because fullscreen dimensions, orientation, nativeWindow, and DOM element
+      state require real mobile/window/browser hosts plus a cross-target define matrix. Target
+      conditions: #if commonjs, #if sys, #if lime, #if mobile.
   - id: display.BMD.pixel-region-vector-and-filter-public-surface
     section: BitmapData > Public surface inventory
     behavior: >-
@@ -1833,7 +1845,10 @@ entries:
       - display/BitmapData.hx:loadFromBytes
       - display/BitmapData.hx:loadFromFile
     scenarios: []
-    notes: "Target conditions: #if html5, #if lime."
+    notes: >-
+      Not scenario-mapped because the grouped constructors and bridges require asynchronous file
+      and image decoding, HTML canvas/WebGL objects, Lime image/Cairo state, and multiple target
+      builds. Target conditions: #if html5, #if lime.
   - id: display.RUNTIME.avm1-preloader-default-preloader-and-fps-surface
     section: Runtime helpers > Public surface inventory
     behavior: >-
@@ -1855,6 +1870,10 @@ entries:
       - display/Preloader.hx:onLoaded
       - display/Preloader.hx:onUpdate
     scenarios: []
+    notes: >-
+      Not scenario-mapped because this grouped entry requires a live Lib.current Stage/Window and
+      loader lifecycle for Preloader/DefaultPreloader plus wall-clock frame progression for FPS;
+      those host and timing inputs are not deterministic in the eval harness.
   - id: display.REN.public-renderer-and-dom-element-method-surface
     section: Renderer facades > Public surface inventory
     behavior: >-
@@ -1891,6 +1910,9 @@ entries:
       - display/OpenGLRenderer.hx:useAlphaArray
       - display/OpenGLRenderer.hx:useColorTransformArray
     scenarios: []
+    notes: >-
+      Not scenario-mapped because these facades require real Cairo, Canvas, DOM, and OpenGL contexts
+      selected by target-specific compilation; the eval harness has no portable renderer context.
   - id: display.VAL.constants-and-encoder-option-records
     section: Value types > Public surface inventory
     behavior: >-
@@ -1899,8 +1921,7 @@ entries:
       ShaderParameterType/Precision, SpreadMethod, StageAlign,
       StageDisplayState/Orientation/Quality/ScaleMode, and TriangleCulling must preserve every 9.5.2
       integer/string mapping and unknown conversion. JPEG and PNG option records default to quality
-      80 and fastCompression false and accept later values without validation; complete
-      constant/default coverage is absent.
+      80 and fastCompression false and accept later values without validation.
     source:
       - display/BitmapData.hx:new
       - display/BitmapDataChannel.hx:ALPHA
@@ -2025,7 +2046,10 @@ entries:
       - display/TriangleCulling.hx:NEGATIVE
       - display/TriangleCulling.hx:NONE
       - display/TriangleCulling.hx:POSITIVE
-    scenarios: []
+    scenarios:
+      - display/value-types:constants
+      - display/value-types:conversions
+      - display/value-types:encoders
   - id: display.API.child-access-and-interface-compile-contracts
     section: Compile-only public surface
     behavior: >-
@@ -2262,3 +2286,7 @@ entries:
       - display/TileContainer.hx:swapTiles
       - display/TileContainer.hx:swapTilesAt
     scenarios: []
+    notes: >-
+      Not scenario-mapped because member forwarding, interface signatures, generics, metadata, and
+      conditional availability are compile-time contracts that are erased from runtime fixtures;
+      they require a separate compile-contract matrix.

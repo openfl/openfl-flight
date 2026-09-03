@@ -41,5 +41,42 @@ class BitmapFilterShader extends Shader
 	public function new(code:ByteArray = null)
 	{
 		super(code);
+
+		// The adapter's Shader base does not run OpenFL's ShaderMacro, so preserve the
+		// generated 9.5.2 pass-through program explicitly for this public shader.
+		if (glVertexSource == null)
+		{
+			glVertexSource = "attribute vec4 openfl_Position;
+		attribute vec2 openfl_TextureCoord;
+
+		varying vec2 openfl_TextureCoordv;
+
+		uniform mat4 openfl_Matrix;
+		uniform vec2 openfl_TextureSize;
+
+		void main(void) {
+
+			openfl_TextureCoordv = openfl_TextureCoord;
+
+		gl_Position = openfl_Matrix * openfl_Position;
+
+		}";
+		}
+
+		if (glFragmentSource == null)
+		{
+			glFragmentSource = "varying vec2 openfl_TextureCoordv;
+
+		uniform sampler2D openfl_Texture;
+		uniform vec2 openfl_TextureSize;
+
+		void main(void) {
+
+			gl_FragColor = texture2D (openfl_Texture, openfl_TextureCoordv);
+
+		}";
+		}
+
+		var shaderData = data;
 	}
 }
