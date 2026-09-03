@@ -38,6 +38,18 @@ import openfl.utils.ByteArray;
 
 	public function uploadFromBitmapData(source:BitmapData, miplevel:UInt = 0, generateMipmap:Bool = false):Void
 	{
+		if (source == null) return;
+		var width = __width >> miplevel;
+		var height = __height >> miplevel;
+		if (width == 0 && height == 0) return;
+		if (width == 0) width = 1;
+		if (height == 0) height = 1;
+		if (source.width != width || source.height != height)
+		{
+			var resized = new BitmapData(width, height, true, 0);
+			resized.draw(source);
+			source = resized;
+		}
 		if (miplevel == 0) FlightTexture.setTextureSource(__flightTexture, source.__flightBitmap);
 	}
 

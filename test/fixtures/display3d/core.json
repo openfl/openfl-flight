@@ -1,17 +1,57 @@
 {
   "stage3D": {
     "defaults": {
+      "renderTransform": [
+        0.00625,
+        0,
+        0,
+        0,
+        0,
+        -0.00833333333333333322,
+        0,
+        0,
+        0,
+        0,
+        -0.001,
+        0,
+        -1,
+        1,
+        0,
+        1
+      ],
       "visible": true,
       "x": 0,
       "y": 0,
-      "contextIsNull": true
+      "height": 240,
+      "contextIsNull": true,
+      "width": 320
     },
     "count": 4,
     "values": {
+      "renderTransform": [
+        0.00625,
+        0,
+        0,
+        0,
+        0,
+        -0.00833333333333333322,
+        0,
+        0,
+        0,
+        0,
+        -0.001,
+        0,
+        -0.921875,
+        1.02708333333333335,
+        0,
+        1
+      ],
       "visible": false,
       "x": 12.5,
       "y": -3.25,
-      "contextIsNull": true
+      "height": 240,
+      "contextIsNull": true,
+      "width": 320
     },
     "distinct": true
   },
@@ -128,7 +168,9 @@
       "textures": {
         "videoIsVideoTexture": true,
         "textureIsTexture": true,
+        "videoCreationError": "Video textures are not supported on this platform",
         "videoHeight": 0,
+        "nullUploadsSucceed": true,
         "videoWidth": 0,
         "rectangleIsRectangleTexture": true,
         "cubeIsCubeTexture": true
@@ -136,8 +178,10 @@
       "program": {
         "isProgram3D": true,
         "agalAttribute": 3,
+        "agalInvalidAttribute": null,
         "glslMissingAttribute": -1,
         "agalFragmentConstant": 7,
+        "agalInvalidConstant": null,
         "agalVertexConstant": 2,
         "glslMissingConstant": -1
       }
@@ -149,6 +193,8 @@
       "totalGPUMemory": 0,
       "profile": "standard",
       "enableErrorChecking": false,
+      "maxBackBufferHeight": 0,
+      "maxBackBufferWidth": 0,
       "backBufferHeight": 0
     },
     "configured": {
@@ -157,7 +203,14 @@
       "totalGPUMemory": 0,
       "profile": "standard",
       "enableErrorChecking": true,
+      "maxBackBufferHeight": 0,
+      "maxBackBufferWidth": 0,
       "backBufferHeight": 48
+    },
+    "disposed": {
+      "stageReleased": true,
+      "stage3DReleased": true,
+      "driverInfoDisposed": true
     }
   },
   "acquisition": {

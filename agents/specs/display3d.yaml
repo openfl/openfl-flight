@@ -8,7 +8,9 @@ entries:
       Stage creates its stage3Ds eagerly: the reference creates two on a mobile
       build and four otherwise, while the adapter always creates four.
       Stage3D.new(stage) itself is private/package-controlled.
-    status: missing
+    status: covered
+    scenarios:
+      - display3d/core:stage3D
     scenarios: []
 
   - id: display3d.S3D.new-instance-context-3-d-null-visible
@@ -26,7 +28,9 @@ entries:
       Reference x/y changes rebuild the Stage3D render transform from the
       device-scaled translation and projection matrix. The adapter retains only
       the numeric values, so they never affect rendering.
-    status: missing
+    status: covered
+    scenarios:
+      - display3d/core:stage3D
     scenarios: []
 
   - id: display3d.S3D.request-context-3-d-marks-one-request
@@ -59,7 +63,9 @@ entries:
       requestContext3DMatchingProfiles(profiles) ignores the vector and calls
       requestContext3D() in both sources; neither validates entries or chooses the
       highest supplied profile as the API prose promises.
-    status: missing
+    status: covered
+    scenarios:
+      - display3d/core:acquisition
     scenarios: []
 
   - id: display3d.S3D.resize-updates-optional-dom-canvas-projection-matrix
@@ -67,7 +73,9 @@ entries:
     behavior: >
       Reference resize updates an optional DOM canvas, projection matrix, and
       device-scaled render translation. The adapter records only width and height.
-    status: missing
+    status: covered
+    scenarios:
+      - display3d/core:stage3D
     scenarios: []
 
   - id: display3d.S3D.context-loss-disposes-context-remembers-that-recreation
@@ -107,7 +115,11 @@ entries:
       backBufferWidth and backBufferHeight begin at zero in both. Reference
       configureBackBuffer may DPI-scale its arguments and builds real back/front
       targets; the adapter only assigns the two requested integers.
-    status: missing
+    status: deviation
+    notes: >-
+      Observable dimensions and configuration state match; Flight exposes no Context3D render-target seam for OpenFL's private back/front attachment allocation.
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.C3D.driver-info-starts-open-gl-direct-blitting
@@ -116,7 +128,11 @@ entries:
       driverInfo starts as "OpenGL (Direct blitting)", but the reference replaces
       it with queried vendor/version/renderer/GLSL details and appends "
       (Disposed)" on internal disposal. The adapter never changes the default.
-    status: missing
+    status: deviation
+    notes: >-
+      The initial and disposed suffix contracts match, but Flight does not expose the active GL vendor/version query used by the reference.
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.C3D.max-back-buffer-width-max-back-buffer
@@ -124,7 +140,11 @@ entries:
     behavior: >
       maxBackBufferWidth and maxBackBufferHeight are the queried maximum GL
       viewport dimension in the reference; they are zero in the adapter.
-    status: missing
+    status: deviation
+    notes: >-
+      The zero fallback is covered; Flight exposes no Context3D viewport-limit query, so a live GL maximum cannot replace it.
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.C3D.profile-externally-read-only-defaults-standard
@@ -150,7 +170,11 @@ entries:
       totalGPUMemory returns the difference between total/current NVX memory in
       bytes when that extension exists, otherwise zero. The adapter always returns
       zero.
-    status: missing
+    status: deviation
+    notes: >-
+      The portable zero fallback is covered; Flight exposes no NVX GPU-memory extension query.
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.C3D.create-program-create-index-buffer-create-vertex
@@ -184,7 +208,9 @@ entries:
       throws Error("Video textures are not supported on this platform"). The
       adapter constructs one on every target even though supportsVideoTexture
       remains false outside HTML5.
-    status: missing
+    status: covered
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.C3D.clear-applies-exactly-selected-context-3-d
@@ -252,7 +278,9 @@ entries:
       Context3D/Stage3D-owned state; recreate is not inspected. The adapter only
       nulls its already-null dynamic GL slot and leaves created resource shells
       intact.
-    status: missing
+    status: covered
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.C3D.set-blend-factors-uses-same-factors-rgb
@@ -405,7 +433,9 @@ entries:
       Std.parseInt(N); other prefixes return -1. The adapter matches numeric names
       but changes a matching, non-numeric suffix from the reference's null parse
       result to -1.
-    status: missing
+    status: covered
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.P3D.glsl-methods-search-linked-attribute-names-or
@@ -505,7 +535,11 @@ entries:
       Adapter construction does create Flight 2D, rectangle, and cube texture
       resources and applies a mipmap sampler when streamingLevels > 0, but ignores
       the requested Context3D texture format and render-target optimization.
-    status: missing
+    status: deviation
+    notes: >-
+      Flight 2D, rectangle, and cube resources plus mipmap samplers are created, but Flight's public factories do not accept OpenFL texture format or render-target optimization hints.
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.TEX.base-mip-upload-bitmap-data-maps-bitmap
@@ -515,7 +549,11 @@ entries:
       rectangle texture; cube upload maps the requested numeric face. Unlike the
       reference, the adapter dereferences a null source, performs no size/face
       validation, ignores generateMipmap, and ignores every nonzero mip level.
-    status: missing
+    status: deviation
+    notes: >-
+      Null, base-level sizing, 2D/rectangle mapping, and cube face validation are implemented; Flight exposes no arbitrary mip-level upload or generateMipmap control.
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.TEX.texture-upload-byte-array-upload-typed-array
@@ -550,7 +588,11 @@ entries:
       dispatches TEXTURE_READY. The adapter attaches the NetStream HTML video to a
       Flight video resource and snapshots dimensions immediately, but emits no
       ready/dimension event and does not refresh those dimensions later.
-    status: missing
+    status: deviation
+    notes: >-
+      Zero defaults and HTML video attachment are implemented, but Flight exposes no per-frame readiness callback from which to mirror OpenFL's TEXTURE_READY timing and later dimension changes.
+    scenarios:
+      - display3d/core:context
     scenarios: []
 
   - id: display3d.TEX.outside-html-5-retains-stream-but-no
@@ -614,5 +656,9 @@ entries:
       The adapter preserves all constants and string mappings, but removes the
       reference's explicit nullable-value equality/inequality overloads for the C#
       target. Other targets have equivalent value behavior.
-    status: missing
+    status: deviation
+    notes: >-
+      Runtime constant values and string mappings match; the removed C#-specific nullable operator overloads are a compile-time surface distinction.
+    scenarios:
+      - display3d/core:constants
     scenarios: []

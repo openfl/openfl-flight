@@ -3,12 +3,15 @@ package openfl.display3D;
 #if !flash
 import openfl.Vector;
 import openfl.display.BitmapData;
+import openfl.display.Stage;
+import openfl.display.Stage3D;
 import openfl.display3D.textures.CubeTexture;
 import openfl.display3D.textures.RectangleTexture;
 import openfl.display3D.textures.Texture;
 import openfl.display3D.textures.TextureBase;
 import openfl.display3D.textures.VideoTexture;
 import openfl.events.EventDispatcher;
+import openfl.errors.Error;
 import openfl.geom.Matrix3D;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
@@ -27,6 +30,7 @@ import openfl.utils.ByteArray;
 @:access(openfl.display3D.textures.TextureBase)
 @:access(openfl.display3D.textures.Texture)
 @:access(openfl.display3D.textures.VideoTexture)
+@:access(openfl.display.Stage3D)
 @:access(openfl.display3D.IndexBuffer3D)
 @:access(openfl.display3D.Program3D)
 @:access(openfl.display3D.VertexBuffer3D)
@@ -44,11 +48,15 @@ import openfl.utils.ByteArray;
 	public var totalGPUMemory(get, never):Int;
 
 	@:noCompletion private var __enableErrorChecking:Bool;
+	@:noCompletion private var __stage:Stage;
+	@:noCompletion private var __stage3D:Stage3D;
 	@SuppressWarnings("checkstyle:Dynamic") @:noCompletion private var gl:Dynamic;
 
 	@:noCompletion private function new(stage:Dynamic, contextState:Dynamic = null, stage3D:Dynamic = null)
 	{
 		super();
+		__stage = stage;
+		__stage3D = stage3D;
 		__enableErrorChecking = false;
 		maxBackBufferHeight = 0;
 		maxBackBufferWidth = 0;
@@ -102,14 +110,25 @@ import openfl.utils.ByteArray;
 
 	public function createVideoTexture():VideoTexture
 	{
+		#if !(js && html5)
+		throw new Error("Video textures are not supported on this platform");
+		#else
 		return new VideoTexture(this);
+		#end
 	}
 
 	public function dispose(recreate:Bool = true):Void
 	{
-		// Flight audit — adapter stub: no public Flight render-state handle or
-		// per-context resource ownership exists yet, so only local bridge state clears.
 		gl = null;
+		if (!StringTools.endsWith(driverInfo, " (Disposed)")) driverInfo += " (Disposed)";
+		if (__stage3D != null)
+		{
+			__stage3D.__indexBuffer = null;
+			__stage3D.__vertexBuffer = null;
+			__stage3D.context3D = null;
+			__stage3D = null;
+		}
+		__stage = null;
 	}
 
 	public function drawToBitmapData(destination:BitmapData, srcRect:Rectangle = null, destPoint:Point = null):Void

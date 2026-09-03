@@ -48,6 +48,7 @@ class Stage3D extends EventDispatcher
 		__x = 0;
 		__y = 0;
 		visible = true;
+		if (stage.stageWidth > 0 && stage.stageHeight > 0) __resize(stage.stageWidth, stage.stageHeight);
 	}
 
 	public function requestContext3D(context3DRenderMode:Context3DRenderMode = AUTO, profile:Context3DProfile = BASELINE):Void
@@ -105,8 +106,16 @@ class Stage3D extends EventDispatcher
 
 	@:noCompletion private function __resize(width:Int, height:Int):Void
 	{
+		if (width == __width && height == __height) return;
+		__projectionTransform.copyRawDataFrom(new Vector<Float>([
+			2.0 / (width > 0 ? width : 1), 0.0, 0.0, 0.0,
+			0.0, -2.0 / (height > 0 ? height : 1), 0.0, 0.0,
+			0.0, 0.0, -2.0 / 2000, 0.0,
+			-1.0, 1.0, 0.0, 1.0
+		]));
 		__width = width;
 		__height = height;
+		__updateRenderTransform();
 	}
 
 	@:noCompletion private function __restoreContext():Void
@@ -118,14 +127,26 @@ class Stage3D extends EventDispatcher
 	@:noCompletion private function get_x():Float return __x;
 	@:noCompletion private function set_x(value:Float):Float
 	{
+		if (__x == value) return value;
 		__x = value;
+		__updateRenderTransform();
 		return value;
 	}
 	@:noCompletion private function get_y():Float return __y;
 	@:noCompletion private function set_y(value:Float):Float
 	{
+		if (__y == value) return value;
 		__y = value;
+		__updateRenderTransform();
 		return value;
+	}
+
+	@:noCompletion private function __updateRenderTransform():Void
+	{
+		var pixelRatio = __stage.window == null ? 1.0 : __stage.window.scale;
+		__renderTransform.identity();
+		__renderTransform.appendTranslation(__x * pixelRatio, __y * pixelRatio, 0);
+		__renderTransform.append(__projectionTransform);
 	}
 }
 #else

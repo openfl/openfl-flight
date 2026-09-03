@@ -33,6 +33,8 @@ import openfl.events.Event;
 import lime.graphics.RenderContextType;
 #end
 
+@:access(openfl.display.Stage3D)
+@:access(openfl.display3D.Context3D)
 class Display3DScenario {
 	public static function run():Dynamic {
 		var stage = createStage(320, 240);
@@ -55,6 +57,7 @@ class Display3DScenario {
 		context.configureBackBuffer(96, 48, 2, false, true, true);
 		#end
 		var resources = captureResources(context);
+		context.dispose(false);
 
 		return {
 			stage3D: {
@@ -67,7 +70,12 @@ class Display3DScenario {
 				supportsVideoTexture: Context3D.supportsVideoTexture,
 				defaults: contextDefaults,
 				configured: captureContext(context),
-				resources: resources
+				resources: resources,
+				disposed: {
+					driverInfoDisposed: StringTools.endsWith(context.driverInfo, " (Disposed)"),
+					stageReleased: context.__stage == null,
+					stage3DReleased: context.__stage3D == null
+				}
 			},
 			acquisition: acquisition,
 			clearMask: {
@@ -210,6 +218,8 @@ class Display3DScenario {
 			backBufferWidth: context.backBufferWidth,
 			driverInfoIsOpenGL: context.driverInfo != null && StringTools.startsWith(context.driverInfo, "OpenGL"),
 			enableErrorChecking: context.enableErrorChecking,
+			maxBackBufferHeight: context.maxBackBufferHeight,
+			maxBackBufferWidth: context.maxBackBufferWidth,
 			profile: Std.string(context.profile),
 			totalGPUMemory: context.totalGPUMemory
 		};
@@ -224,6 +234,8 @@ class Display3DScenario {
 		var cubeTexture:CubeTexture;
 		var rectangleTexture:RectangleTexture;
 		var videoTexture:VideoTexture;
+		var videoTextureError:String = null;
+		try context.createVideoTexture() catch (error:Dynamic) videoTextureError = Std.string(error);
 		#if harness_capture
 		// OpenFL's public factories require a live GL context. Construct typed shells
 		// in capture mode so the headless oracle can still record public reads.
@@ -249,13 +261,25 @@ class Display3DScenario {
 		texture = context.createTexture(8, 4, Context3DTextureFormat.BGRA, false, 1);
 		cubeTexture = context.createCubeTexture(4, Context3DTextureFormat.BGRA, false, 0);
 		rectangleTexture = context.createRectangleTexture(7, 3, Context3DTextureFormat.BGRA, false);
-		videoTexture = context.createVideoTexture();
+		videoTexture = Type.createEmptyInstance(VideoTexture);
+		Reflect.setField(videoTexture, "videoHeight", 0);
+		Reflect.setField(videoTexture, "videoWidth", 0);
 		#end
+		var nullUploadsSucceed = true;
+		try
+		{
+			texture.uploadFromBitmapData(null);
+			cubeTexture.uploadFromBitmapData(null, 0);
+			rectangleTexture.uploadFromBitmapData(null);
+		}
+		catch (_:Dynamic) nullUploadsSucceed = false;
 
 		return {
 			program: {
 				agalAttribute: program.getAttributeIndex("va3"),
+				agalInvalidAttribute: program.getAttributeIndex("vaX"),
 				agalFragmentConstant: program.getConstantIndex("fc7"),
+				agalInvalidConstant: program.getConstantIndex("fcX"),
 				agalVertexConstant: program.getConstantIndex("vc2"),
 				glslMissingAttribute: glslProgram.getAttributeIndex("position"),
 				glslMissingConstant: glslProgram.getConstantIndex("projection"),
@@ -269,6 +293,8 @@ class Display3DScenario {
 				cubeIsCubeTexture: Std.isOfType(cubeTexture, CubeTexture),
 				rectangleIsRectangleTexture: Std.isOfType(rectangleTexture, RectangleTexture),
 				textureIsTexture: Std.isOfType(texture, Texture),
+				nullUploadsSucceed: nullUploadsSucceed,
+				videoCreationError: videoTextureError,
 				videoHeight: videoTexture.videoHeight,
 				videoIsVideoTexture: Std.isOfType(videoTexture, VideoTexture),
 				videoWidth: videoTexture.videoWidth
@@ -285,6 +311,8 @@ class Display3DScenario {
 		Reflect.setField(context, "backBufferWidth", 0);
 		Reflect.setField(context, "driverInfo", "OpenGL (fixture)");
 		Reflect.setField(context, "__enableErrorChecking", false);
+		Reflect.setField(context, "maxBackBufferHeight", 0);
+		Reflect.setField(context, "maxBackBufferWidth", 0);
 		Reflect.setField(context, "profile", Context3DProfile.STANDARD);
 		return context;
 		#else
@@ -293,9 +321,13 @@ class Display3DScenario {
 	}
 
 	private static function captureStage3D(stage3D:Stage3D):Dynamic {
+		var renderData = stage3D.__renderTransform.rawData;
 		return {
 			contextIsNull: stage3D.context3D == null,
+			height: stage3D.__height,
+			renderTransform: [for (value in renderData) value],
 			visible: stage3D.visible,
+			width: stage3D.__width,
 			x: stage3D.x,
 			y: stage3D.y
 		};

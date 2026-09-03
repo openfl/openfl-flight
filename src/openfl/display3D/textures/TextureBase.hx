@@ -29,6 +29,7 @@ class TextureBase extends EventDispatcher
 	public function dispose():Void
 	{
 		__flightTexture = null;
+		__context = null;
 	}
 }
 #else

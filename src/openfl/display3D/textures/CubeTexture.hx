@@ -45,6 +45,8 @@ import openfl.utils.ByteArray;
 
 	public function uploadFromBitmapData(source:BitmapData, side:UInt, miplevel:UInt = 0, generateMipmap:Bool = false):Void
 	{
+		if (source == null || (__size >> miplevel) == 0) return;
+		if (side > 5) throw new openfl.errors.IllegalOperationError();
 		if (miplevel == 0) FlightTexture.setCubeTextureFace(cast __flightTexture, side, source.__flightBitmap);
 	}
 

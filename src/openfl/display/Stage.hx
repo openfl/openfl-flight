@@ -727,7 +727,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		softKeyboardRect = new Rectangle();
 		stageFocusRect = true;
 		stage3Ds = new Vector<Stage3D>();
-		for (i in 0...4) stage3Ds.push(new Stage3D(this));
+		for (i in 0...#if mobile 2 #else 4 #end) stage3Ds.push(new Stage3D(this));
 
 		#if commonjs
 		stageWidth = Std.int(width);
@@ -751,6 +751,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		__scene = FlightScene2D.createScene2D();
 		__flightNode = __scene.root;
 		FlightScene2D.setScene2DSize(__scene, stageWidth, stageHeight);
+		for (stage3D in stage3Ds) stage3D.__resize(stageWidth, stageHeight);
 		this.color = color;
 
 		if (openfl.Lib.current.stage == null)
@@ -1757,6 +1758,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			}
 		}
 		FlightScene2D.setScene2DSize(__scene, stageWidth, stageHeight);
+		for (stage3D in stage3Ds) stage3D.__resize(stageWidth, stageHeight);
 		if (oldWidth != stageWidth || oldHeight != stageHeight)
 		{
 			__setTransformDirty();

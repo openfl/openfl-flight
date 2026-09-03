@@ -31,8 +31,7 @@ import openfl.utils.ByteArray;
 	{
 		if (__format == AGAL && StringTools.startsWith(name, "va"))
 		{
-			var index = Std.parseInt(name.substring(2));
-			return index == null ? -1 : index;
+			return Std.parseInt(name.substring(2));
 		}
 		return -1;
 	}
@@ -41,8 +40,7 @@ import openfl.utils.ByteArray;
 	{
 		if (__format == AGAL && (StringTools.startsWith(name, "vc") || StringTools.startsWith(name, "fc")))
 		{
-			var index = Std.parseInt(name.substring(2));
-			return index == null ? -1 : index;
+			return Std.parseInt(name.substring(2));
 		}
 		return -1;
 	}

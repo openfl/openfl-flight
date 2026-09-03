@@ -27,6 +27,7 @@ import openfl.utils.ByteArray;
 
 	public function uploadFromBitmapData(source:BitmapData):Void
 	{
+		if (source == null) return;
 		FlightTexture.setTextureSource(__flightTexture, source.__flightBitmap);
 	}
 
