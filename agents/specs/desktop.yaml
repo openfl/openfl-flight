@@ -109,8 +109,9 @@ entries:
   - id: desktop.NA.application-id-reads-lib-application-meta-package
     section: "NativeApplication > Singleton, capabilities, and window lists"
     behavior: >
-      applicationID reads Lib.application.meta["packageName"] in the 9.5.2 source.
-      The adapter always returns null.
+      applicationID reads Lib.application.meta["packageName"], supporting both a
+      map-style get method and a direct dynamic packageName field, and returns
+      null when the application or metadata is absent.
     status: covered
     scenarios:
       - desktop/native-application:applicationIdentity
@@ -118,10 +119,8 @@ entries:
   - id: desktop.NA.start-login-ordinary-mutable-boolean-field-therefore
     section: "NativeApplication > Singleton, capabilities, and window lists"
     behavior: >
-      Reference startAtLogin is an ordinary mutable Boolean field (therefore
-      default false, but a write is observable even though the support flag is
-      false). The adapter getter always returns false and ignores writes while
-      supportsStartAtLogin is false.
+      startAtLogin is an ordinary mutable Boolean field: it defaults to false and
+      a write is observable even though supportsStartAtLogin remains false.
     status: covered
     scenarios:
       - desktop/native-application:mutated
@@ -285,9 +284,8 @@ entries:
   - id: desktop.NW.supported-true-only-sys-desktop-build-reports
     section: "NativeWindow > Availability and construction"
     behavior: >
-      Reference isSupported is true only for a sys && desktop build. The adapter
-      reports true for every configuration in which this sys-gated class compiles.
-      supportsMenu and supportsTransparency are false in both.
+      isSupported is true only when desktop is defined within the sys-gated class;
+      supportsMenu and supportsTransparency are false on every non-Flash target.
     status: covered
     scenarios:
       - desktop/native-window:windowStatic
@@ -295,9 +293,8 @@ entries:
   - id: desktop.NW.constructor-dereferences-init-options-so-new-native
     section: "NativeWindow > Availability and construction"
     behavior: >
-      The reference constructor dereferences initOptions, so new
-      NativeWindow(null) fails. The adapter substitutes a new default options
-      object.
+      The constructor dereferences initOptions immediately, so new
+      NativeWindow(null) fails rather than substituting default options.
     status: covered
     scenarios:
       - desktop/native-window:window
@@ -318,8 +315,9 @@ entries:
   - id: desktop.NW.type-remains-private-default-normal-even-another
     section: "NativeWindow > Availability and construction"
     behavior: >
-      Reference type remains its private default NORMAL even when another option
-      value was supplied. The adapter returns the supplied option type.
+      type remains the private default NORMAL even when a different option value
+      was supplied; construction does not copy NativeWindowInitOptions.type into
+      that slot.
     status: covered
     scenarios:
       - desktop/native-window:window
@@ -418,9 +416,8 @@ entries:
       minSize and maxSize return new Point values and setters truncate and forward
       both components. In the reference these members exist only with Lime 8.1 or
       newer; the adapter exposes them unconditionally within the class gate.
-    status: covered
-    scenarios:
-      - "desktop/native-window:window"
+    status: missing
+    scenarios: []
 
   - id: desktop.NW.activate-makes-window-visible-asks-host-focus
     section: "NativeWindow > Operations and event order"

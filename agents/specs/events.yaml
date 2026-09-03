@@ -1310,3 +1310,91 @@ entries:
     status: covered
     scenarios:
       - "events/clone-inventory:videoTexture"
+
+  - id: events.EV.constants-event-phase-and-event-type-contract
+    section: "Event public surface > Constants and type contracts"
+    behavior: >
+      Every Event and event-subclass constant must retain its exact 9.5.2 string
+      and EventType subtype; EventPhase is CAPTURING_PHASE = 1, AT_TARGET = 2,
+      and BUBBLING_PHASE = 3. EventType is a String abstract with implicit
+      String conversions and String equality/inequality operators. In particular,
+      GeolocationEvent.UPDATE has the source's unusual
+      EventType<DeviceRotationEvent> declaration. The complete constant and
+      compile-time typing surface is not captured.
+    status: missing
+    scenarios: []
+
+  - id: events.EV.subclass-constructor-defaults-mutability-and-ownership
+    section: "Event public surface > Construction and payloads"
+    behavior: >
+      Each concrete event subclass constructor must preserve its exact bubbles,
+      cancelable, scalar, null, empty-string, array, ByteArray, Rectangle, device,
+      socket, and dynamic payload defaults. Public payload mutability versus
+      default/null read-only access, direct reference retention, SampleDataEvent's
+      fresh little-endian ByteArray, and HTTPStatusEvent's fresh responseHeaders
+      array must also match. The clone inventory covers supplied values but does
+      not exhaust constructor defaults and post-construction writes.
+    status: missing
+    scenarios: []
+
+  - id: events.EV.format-to-string-and-subclass-string-output
+    section: "Event public surface > String formatting"
+    behavior: >
+      Event.formatToString uses a Rest<String> signature on Haxe 4.2+ and five
+      nullable parameters earlier, reflects each named field, quotes strings, and
+      emits bracketed class/name pairs in argument order. Event and every subclass
+      toString override choose a source-specific class name and payload list;
+      classes without an override inherit Event formatting. Only base Event output
+      is currently captured.
+    status: missing
+    scenarios: []
+
+  - id: events.EV.update-after-event-render-request-flags
+    section: "Event public surface > Post-dispatch rendering"
+    behavior: >
+      KeyboardEvent, MouseEvent, TimerEvent, and TouchEvent updateAfterEvent set a
+      per-instance render-request flag without changing cancellation state. Stage
+      consumes keyboard/mouse flags after routed dispatch; constructor reuse and
+      clone reset the flag. Timer/touch consumption and repeated/direct-dispatch
+      boundaries are not independently captured.
+    status: missing
+    scenarios: []
+
+  - id: events.UEE.listener-enabled-state-and-build-flags
+    section: "UncaughtErrorEvents"
+    behavior: >
+      UncaughtErrorEvents starts enabled unless openfl_disable_handle_error is set
+      without openfl_enable_handle_error. Adding an UNCAUGHT_ERROR listener enables
+      it in handling-enabled builds; removing the last such listener disables it,
+      while listeners of other types do not control the flag. Constructor and
+      listener behavior under both compile configurations are unverified.
+    status: missing
+    scenarios: []
+
+  - id: events.PKG.sys-air-and-backend-conditional-surface
+    section: "Package target availability"
+    behavior: >
+      DNSResolverEvent, DeviceRotationEvent, FileListEvent, GeolocationEvent,
+      InvokeEvent, NativeWindowBoundsEvent, NativeWindowDisplayStateEvent,
+      OutputProgressEvent, and ScreenMouseEvent exist on the non-Flash sys/AIR-doc
+      branch; NativeProcessExitEvent and the standard-stream IOError/Progress
+      constants additionally require Haxe 4 sys. SampleDataEvent's audio-buffer
+      checks differ between HTML5 and lime_openal. No compile/behavior matrix
+      verifies these target gates and backend-specific sample-count errors.
+    status: missing
+    scenarios: []
+
+  - id: events.API.event-dispatcher-interface-and-event-type-surface
+    section: "Compile-only public surface"
+    behavior: >
+      IEventDispatcher exposes the same generic EventType listener signatures and
+      defaults as EventDispatcher for add/remove, dispatch, hasEventListener, and
+      willTrigger. EventDispatcher construction, registration, removal, routing,
+      cancellation, and ancestor lookup exercise that interface contract without
+      adding a second runtime implementation.
+    status: covered
+    scenarios:
+      - events/dispatcher:initialState
+      - events/dispatcher:afterAdd
+      - events/dispatcher:afterRemove
+      - events/propagation:order

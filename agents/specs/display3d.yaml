@@ -5,8 +5,8 @@ entries:
   - id: display3d.S3D.stage-creates-stage-3-ds-eagerly-creates
     section: "Stage3D"
     behavior: >
-      Stage creates its stage3Ds eagerly: the reference creates two on a mobile
-      build and four otherwise, while the adapter always creates four.
+      Stage creates its stage3Ds eagerly: two on a mobile build and four
+      otherwise.
       Stage3D.new(stage) itself is private/package-controlled.
     status: covered
     scenarios:
@@ -24,9 +24,9 @@ entries:
   - id: display3d.S3D.x-y-changes-rebuild-stage-3-d
     section: "Stage3D"
     behavior: >
-      Reference x/y changes rebuild the Stage3D render transform from the
-      device-scaled translation and projection matrix. The adapter retains only
-      the numeric values, so they never affect rendering.
+      x/y changes rebuild the Stage3D render transform from the device-scaled
+      translation and projection matrix without replacing the public numeric
+      values.
     status: covered
     scenarios:
       - display3d/core:stage3D
@@ -68,8 +68,9 @@ entries:
   - id: display3d.S3D.resize-updates-optional-dom-canvas-projection-matrix
     section: "Stage3D"
     behavior: >
-      Reference resize updates an optional DOM canvas, projection matrix, and
-      device-scaled render translation. The adapter records only width and height.
+      Resize updates width/height, the projection matrix, and the device-scaled
+      render translation; the reference additionally resizes an optional DOM
+      canvas when that backend exists.
     status: covered
     scenarios:
       - display3d/core:stage3D
@@ -196,10 +197,9 @@ entries:
   - id: display3d.C3D.create-video-texture-returns-texture-only-html
     section: "Context3D > Resource factories"
     behavior: >
-      Reference createVideoTexture() returns a texture only on HTML5 and otherwise
-      throws Error("Video textures are not supported on this platform"). The
-      adapter constructs one on every target even though supportsVideoTexture
-      remains false outside HTML5.
+      createVideoTexture() returns a texture only on js && html5 and otherwise
+      throws Error("Video textures are not supported on this platform"), matching
+      supportsVideoTexture.
     status: covered
     scenarios:
       - display3d/core:context
@@ -265,10 +265,9 @@ entries:
   - id: display3d.C3D.dispose-nulls-gl-handle-releases-context-3
     section: "Context3D > Back buffer, draw, and presentation commands"
     behavior: >
-      dispose(recreate = true) nulls the reference GL handle and releases its
-      Context3D/Stage3D-owned state; recreate is not inspected. The adapter only
-      nulls its already-null dynamic GL slot and leaves created resource shells
-      intact.
+      dispose(recreate = true) nulls the GL handle, appends the disposed driver
+      marker once, clears Stage3D buffer/context ownership, and releases Stage and
+      Stage3D references; recreate is not otherwise inspected.
     status: covered
     scenarios:
       - display3d/core:context
@@ -421,9 +420,8 @@ entries:
     section: "Programs and buffers > Program3D"
     behavior: >
       For AGAL, getAttributeIndex("vaN") and getConstantIndex("vcN"|"fcN") return
-      Std.parseInt(N); other prefixes return -1. The adapter matches numeric names
-      but changes a matching, non-numeric suffix from the reference's null parse
-      result to -1.
+      Std.parseInt(N), including a null runtime value for a matching non-numeric
+      suffix despite the declared Int return; other prefixes return -1.
     status: covered
     scenarios:
       - display3d/core:context
@@ -535,9 +533,10 @@ entries:
     section: "Textures > Texture, RectangleTexture, and CubeTexture"
     behavior: >
       Base-mip uploadFromBitmapData maps a BitmapData Flight bitmap into a 2D or
-      rectangle texture; cube upload maps the requested numeric face. Unlike the
-      reference, the adapter dereferences a null source, performs no size/face
-      validation, ignores generateMipmap, and ignores every nonzero mip level.
+      rectangle texture; cube upload maps the requested numeric face. Null sources
+      are no-ops, 2D mip dimensions are normalized, and cube faces above five
+      throw, but Flight still cannot attach nonzero mip levels or honor
+      generateMipmap.
     status: deviation
     notes: >-
       Null, base-level sizing, 2D/rectangle mapping, and cube face validation are implemented; Flight exposes no arbitrary mip-level upload or generateMipmap control.
