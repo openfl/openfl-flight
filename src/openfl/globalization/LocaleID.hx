@@ -189,7 +189,7 @@ package openfl.globalization;
 				rtl = RTL_LANGUAGES.indexOf(language) != -1;
 				this.lastOperationStatus = NO_ERROR;
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				this.lastOperationStatus = ERROR_CODE_UNKNOWN;
 			}

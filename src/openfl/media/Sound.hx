@@ -3,6 +3,7 @@ package openfl.media;
 #if !flash
 import flight.Audio as FlightAudio;
 import flight.Media as FlightMedia;
+import flight.types.AudioChannel as FlightAudioChannel;
 import flight.types.AudioResource as FlightAudioResource;
 import flight.types.AudioResourceReference as FlightAudioResourceReference;
 import flight.types.HasNetHttp as FlightNetHost;
@@ -48,11 +49,10 @@ class Sound extends EventDispatcher
 	public var length(get, never):Float;
 	public var url(default, null):String;
 
-	@:noCompletion private var __buffer:Dynamic;
 	@:noCompletion private var __flightResource:FlightAudioResource;
 	@:noCompletion private var __flightResourceReference:FlightAudioResourceReference;
 	@:noCompletion private var __loadGeneration:Int = 0;
-	@:noCompletion private var __pendingChannels:Array<Dynamic> = [];
+	@:noCompletion private var __pendingChannels:Array<PendingChannel> = [];
 	@:noCompletion private var __urlLoading:Bool = false;
 	@:noCompletion private static var __netHost:FlightNetHost;
 	@:noCompletion private static var __netHostResolved:Bool;
@@ -79,7 +79,6 @@ class Sound extends EventDispatcher
 	public function close():Void
 	{
 		__loadGeneration++;
-		__buffer = null;
 		var channels = SoundMixer.__soundChannels.copy();
 		for (channel in channels)
 		{
@@ -96,7 +95,6 @@ class Sound extends EventDispatcher
 	public static function fromAudioBuffer(buffer:AudioBuffer):Sound
 	{
 		var sound = new Sound();
-		sound.__buffer = buffer;
 		if (buffer != null && buffer.data != null)
 		{
 			var bytes:Bytes = cast buffer.data.buffer;
@@ -131,7 +129,7 @@ class Sound extends EventDispatcher
 		{
 			__defer(function():Void __completeFlightLoad(generation, resource));
 			return resource;
-		}, function(error:Dynamic):FlightAudioResource
+		}, function(error:Any):FlightAudioResource
 		{
 			__defer(function():Void __failFlightLoad(generation, Std.string(error)));
 			return cast null;
@@ -163,7 +161,7 @@ class Sound extends EventDispatcher
 		{
 			__completeFlightLoad(generation, resource);
 			return resource;
-		}, function(error:Dynamic):FlightAudioResource
+		}, function(error:Any):FlightAudioResource
 		{
 			__failFlightLoad(generation, Std.string(error));
 			return cast null;
@@ -222,13 +220,13 @@ class Sound extends EventDispatcher
 			// OpenFL 9.5.2 retains only the most recently requested source while a
 			// URL load is pending. Earlier logical channels remain registered, but
 			// are never bound to that load's eventual resource.
-			__pendingChannels = [{channel: channel, loops: loops, startTime: startTime}];
+			__pendingChannels = [{ channel: channel, loops: loops, startTime: startTime }];
 		}
 		return channel;
 	}
 
 	@:noCompletion private function __playFlightResource(resource:FlightAudioResource, startTime:Float, loops:Int,
-			sndTransform:SoundTransform):Dynamic
+			sndTransform:SoundTransform):FlightAudioChannel
 	{
 		var audioDevice = SoundMixer.__getFlightAudioDevice();
 		if (audioDevice == null) return null;
@@ -349,6 +347,12 @@ class Sound extends EventDispatcher
 		return __flightResource == null ? 0 : FlightAudio.getAudioResourceDuration(__flightResource) * 1000;
 	}
 }
+@:noCompletion private typedef PendingChannel = {
+	channel:SoundChannel,
+	loops:Int,
+	startTime:Float,
+};
+
 #else
 typedef Sound = flash.media.Sound;
 #end

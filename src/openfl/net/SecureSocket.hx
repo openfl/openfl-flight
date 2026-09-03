@@ -286,7 +286,7 @@ class SecureSocket extends Socket
 		{
 			h = new Host(host);
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Invalid host"));
 			return;
@@ -309,7 +309,7 @@ class SecureSocket extends Socket
 		{
 			__socket = new SysSecureSocket();
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
 			return;
@@ -320,7 +320,7 @@ class SecureSocket extends Socket
 			__socket.connect(h, port);
 			__socket.setFastSend(true);
 		}
-		catch (e:Dynamic) {}
+		catch (e) {}
 		#end
 
 		Lib.current.addEventListener(Event.ENTER_FRAME, this_onEnterFrame);
@@ -351,7 +351,7 @@ class SecureSocket extends Socket
 					return;
 				}
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				doClose = true;
 			}
@@ -387,7 +387,7 @@ class SecureSocket extends Socket
 						return;
 				}
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				__serverCertificateStatus = INVALID;
 				__cleanSocket();

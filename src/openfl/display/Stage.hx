@@ -1768,7 +1768,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 	@:noCompletion private var __uncaughtErrorEvents:openfl.events.UncaughtErrorEvents;
 
-	@:noCompletion private function __handleError(e:Dynamic):Void {}
+	@:noCompletion private function __handleError(e:Any):Void {}
 
 	@:noCompletion private function __setLogicalSize(width:Int, height:Int):Void
 	{

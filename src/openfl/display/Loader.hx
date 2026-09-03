@@ -155,8 +155,7 @@ class Loader extends DisplayObjectContainer
 		unload();
 	}
 
-	@SuppressWarnings("checkstyle:Dynamic")
-	@:noCompletion private function __dispatchError(error:Dynamic):Void
+	@:noCompletion private function __dispatchError(error:Any):Void
 	{
 		var event = new IOErrorEvent(IOErrorEvent.IO_ERROR);
 		event.text = Std.string(error);
@@ -180,8 +179,7 @@ class Loader extends DisplayObjectContainer
 		}
 	}
 
-	@SuppressWarnings("checkstyle:Dynamic")
-	@:noCompletion private function Loader_onError(error:Dynamic):Void
+	@:noCompletion private function Loader_onError(error:Any):Void
 	{
 		__dispatchError(error);
 	}

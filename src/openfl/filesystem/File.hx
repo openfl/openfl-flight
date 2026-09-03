@@ -928,7 +928,7 @@ class File extends FileReference
 			{
 				Reflect.setProperty(fileClone, field, Reflect.getProperty(this, field));
 			}
-			catch (e:Dynamic) {}
+			catch (e) {}
 		}
 		return fileClone;
 	}
@@ -1282,7 +1282,7 @@ class File extends FileReference
 			{
 				fileNames = SysFileSystem.readDirectory(__path);
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				var ioErrorEvent = __createIoErrorEvent(e);
 				if (ioErrorEvent != null) __fileWorker.sendComplete(ioErrorEvent);
@@ -1791,16 +1791,16 @@ class File extends FileReference
 	{
 		var backend:Dynamic = {};
 		backend.readTextFile = function(path:String):FlightPromise<Dynamic>
-			return __flightDone(try SysFile.getContent(path) catch (_:Dynamic) null);
+			return __flightDone(try SysFile.getContent(path) catch (_) null);
 		backend.writeTextFile = function(path:String, data:String):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
 				SysFile.saveContent(path, data);
 				true;
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.readBinaryFile = function(path:String):FlightPromise<Dynamic>
-			return __flightDone(try (new FlightUInt8Array(SysFile.getBytes(path)) : Dynamic) catch (_:Dynamic) null);
+			return __flightDone(try (new FlightUInt8Array(SysFile.getBytes(path)) : Dynamic) catch (_) null);
 		backend.readBinaryFileRange = function(path:String, offset:Float, length:Float):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
@@ -1809,41 +1809,41 @@ class File extends FileReference
 				var count = start >= bytes.length ? 0 : Std.int(Math.min(length, bytes.length - start));
 				(new FlightUInt8Array(bytes.sub(start, count)) : Dynamic);
 			}
-			catch (_:Dynamic) null);
+			catch (_) null);
 		backend.writeBinaryFile = function(path:String, data:FlightUInt8Array):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
 				SysFile.saveBytes(path, __flightBytes(data));
 				true;
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.fileExists = function(path:String):FlightPromise<Dynamic>
-			return __flightDone(try SysFileSystem.exists(path) && !SysFileSystem.isDirectory(path) catch (_:Dynamic) false);
+			return __flightDone(try SysFileSystem.exists(path) && !SysFileSystem.isDirectory(path) catch (_) false);
 		backend.directoryExists = function(path:String):FlightPromise<Dynamic>
-			return __flightDone(try SysFileSystem.exists(path) && SysFileSystem.isDirectory(path) catch (_:Dynamic) false);
+			return __flightDone(try SysFileSystem.exists(path) && SysFileSystem.isDirectory(path) catch (_) false);
 		backend.removeFile = function(path:String):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
 				SysFileSystem.deleteFile(path);
 				true;
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.removeDirectory = function(path:String, recursive:Null<Bool>):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
 				if (recursive == true) __removeSystemTree(path); else SysFileSystem.deleteDirectory(path);
 				true;
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.makeDirectory = function(path:String):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
 				if (!SysFileSystem.exists(path)) SysFileSystem.createDirectory(path);
 				SysFileSystem.isDirectory(path);
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.readDirectory = function(path:String):FlightPromise<Dynamic>
-			return __flightDone(try __systemDirectoryEntries(path) catch (_:Dynamic) ([] : Array<Dynamic>));
+			return __flightDone(try __systemDirectoryEntries(path) catch (_) ([] : Array<Dynamic>));
 		backend.statFile = function(path:String):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
@@ -1856,21 +1856,21 @@ class File extends FileReference
 					isSymlink: false
 				} : Dynamic);
 			}
-			catch (_:Dynamic) null);
+			catch (_) null);
 		backend.rename = function(from:String, to:String):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
 				SysFileSystem.rename(from, to);
 				true;
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.copy = function(from:String, to:String):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
 				SysFile.copy(from, to);
 				true;
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.appendTextFile = function(path:String, data:String):FlightPromise<Dynamic>
 			return __flightDone(try
 			{
@@ -1879,7 +1879,7 @@ class File extends FileReference
 				output.close();
 				true;
 			}
-			catch (_:Dynamic) false);
+			catch (_) false);
 		backend.canAccessFile = function(path:String, mode:String):FlightPromise<Dynamic>
 			return __flightDone(__canAccessSystemFile(path, mode));
 		backend.getFileSystemUsage = function():FlightPromise<Dynamic> return __flightDone(null);
@@ -1905,7 +1905,7 @@ class File extends FileReference
 			}
 			else false;
 		}
-		catch (_:Dynamic) false;
+		catch (_) false;
 	}
 
 	@:noCompletion private static inline function __flightBytes(data:FlightUInt8Array):Bytes
@@ -1999,7 +1999,7 @@ class File extends FileReference
 			{
 				operation();
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				var ioErrorEvent = __createIoErrorEvent(e);
 				if (ioErrorEvent != null) __fileWorker.sendComplete(ioErrorEvent);
@@ -2016,7 +2016,7 @@ class File extends FileReference
 			operation();
 			if (generation == __fileOperationGeneration) dispatchEvent(new Event(Event.COMPLETE));
 		}
-		catch (error:Dynamic)
+		catch (error)
 		{
 			if (generation == __fileOperationGeneration) __dispatchFileIOError(error);
 		}
@@ -2068,7 +2068,7 @@ class File extends FileReference
 			var entries = __resolveFlight(FlightFileSystem.readDirectory(__getFlightFileSystemHost(), Path.directory(cpath)), []);
 			items = [for (entry in entries) entry.name];
 		}
-		catch (e:Dynamic) {}
+		catch (e) {}
 		if (items == null)
 		{
 			// if the directory doesn't exist, or if something goes wrong, like
@@ -2132,18 +2132,18 @@ class File extends FileReference
 		this.dispatchEvent(new FileListEvent(FileListEvent.SELECT_MULTIPLE, files));
 	}
 
-	@:noCompletion private function __dispatchDialogError(error:Dynamic):Void
+	@:noCompletion private function __dispatchDialogError(error:Any):Void
 	{
 		__dialogPending = false;
 		__dispatchFileIOError(error);
 	}
 
-	@:noCompletion private function __dispatchFileIOError(error:Dynamic):Void
+	@:noCompletion private function __dispatchFileIOError(error:Any):Void
 	{
 		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, Std.string(error)));
 	}
 
-	@:noCompletion private function __createIoErrorEvent(e:Dynamic):IOErrorEvent
+	@:noCompletion private function __createIoErrorEvent(e:Any):IOErrorEvent
 	{
 		if (hasEventListener(IOErrorEvent.IO_ERROR))
 		{

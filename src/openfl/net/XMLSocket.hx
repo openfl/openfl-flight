@@ -215,7 +215,7 @@ class XMLSocket extends EventDispatcher
 			{
 				__socket.close();
 			}
-			catch (_:Dynamic) {}
+			catch (_) {}
 		}
 
 		__socket = new Socket();

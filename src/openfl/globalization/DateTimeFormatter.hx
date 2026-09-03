@@ -406,7 +406,7 @@ import js.lib.intl.DateTimeFormat;
 				}
 			}
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			// something went terribly wrong!
 			trace("Date time tokenization error: " + e);
@@ -490,7 +490,7 @@ import js.lib.intl.DateTimeFormat;
 				this.lastOperationStatus = NO_ERROR;
 				return result;
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				this.lastOperationStatus = ERROR_CODE_UNKNOWN;
 				return null;
@@ -515,7 +515,7 @@ import js.lib.intl.DateTimeFormat;
 				this.lastOperationStatus = NO_ERROR;
 				return result;
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				this.lastOperationStatus = ERROR_CODE_UNKNOWN;
 				return null;
@@ -698,7 +698,7 @@ import js.lib.intl.DateTimeFormat;
 			this.lastOperationStatus = NO_ERROR;
 			return new Vector(monthNames.length, true, monthNames);
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			this.lastOperationStatus = ERROR_CODE_UNKNOWN;
 			return null;
@@ -726,7 +726,7 @@ import js.lib.intl.DateTimeFormat;
 			this.lastOperationStatus = NO_ERROR;
 			return new Vector(weekdayNames.length, true, weekdayNames);
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			this.lastOperationStatus = ERROR_CODE_UNKNOWN;
 			return null;
@@ -770,7 +770,7 @@ import js.lib.intl.DateTimeFormat;
 			this.resolveDateTimePattern();
 			this.lastOperationStatus = NO_ERROR;
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			this.lastOperationStatus = ERROR_CODE_UNKNOWN;
 		}
@@ -824,7 +824,7 @@ import js.lib.intl.DateTimeFormat;
 				}
 			}
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			// something went terribly wrong!
 			trace("Date time tokenization error: " + e);

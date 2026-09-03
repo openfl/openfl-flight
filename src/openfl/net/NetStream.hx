@@ -2113,7 +2113,7 @@ class NetStream extends EventDispatcher
 					start: untyped __video.startTime
 				});
 			}
-			catch (e:Dynamic) {}
+			catch (e) {}
 		}
 		#end
 	}
@@ -2163,7 +2163,7 @@ class NetStream extends EventDispatcher
 					duration: __video.duration
 				});
 			}
-			catch (e:Dynamic) {}
+			catch (e) {}
 		}
 		#end
 	}

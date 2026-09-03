@@ -190,7 +190,7 @@ class DatagramSocket extends EventDispatcher
 		{
 			__udpSocket.close();
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			// do nothing
 		}
@@ -328,7 +328,7 @@ class DatagramSocket extends EventDispatcher
 				__udpSocket.sendTo(cast bytes, offset, length, sAddress);
 			}
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			throw new IOError("Operation attempted on invalid socket.");
 		}
@@ -387,7 +387,7 @@ class DatagramSocket extends EventDispatcher
 			var h = sock.host();
 			if (h != null) result = h.host.toString();
 		}
-		catch (e:Dynamic) {}
+		catch (e) {}
 		sock.close();
 		return result;
 	}
@@ -411,7 +411,7 @@ class DatagramSocket extends EventDispatcher
 			{
 				break;
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				// do nothing
 			}
@@ -426,7 +426,7 @@ class DatagramSocket extends EventDispatcher
 			__udpSocket.peer();
 			return true;
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			return false;
 		}
@@ -442,7 +442,7 @@ class DatagramSocket extends EventDispatcher
 		{
 			return __udpSocket.peer().host.host;
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			return null;
 		}

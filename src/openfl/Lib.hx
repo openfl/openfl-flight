@@ -600,7 +600,7 @@ class Lib
 				{
 					Reflect.callMethod(closure, closure, args == null ? [] : args);
 				}
-				catch (e:Dynamic)
+				catch (e)
 				{
 					Lib.current.stage.__handleError(e);
 				}
@@ -651,7 +651,7 @@ class Lib
 				{
 					Reflect.callMethod(closure, closure, args == null ? [] : args);
 				}
-				catch (e:Dynamic)
+				catch (e)
 				{
 					Lib.current.stage.__handleError(e);
 				}

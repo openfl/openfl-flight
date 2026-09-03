@@ -224,7 +224,7 @@ class Window #if lime extends LimeWindow #end
 			{
 				stage.loaderInfo.parameters = Reflect.field(normalizedAttributes, "parameters");
 			}
-			catch (e:Dynamic) {}
+			catch (e) {}
 		}
 
 		stage.__setLogicalSize(Std.int(__flightWindow.width), Std.int(__flightWindow.height));

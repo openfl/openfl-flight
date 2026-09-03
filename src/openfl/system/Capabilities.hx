@@ -679,7 +679,7 @@ import sys.io.Process;
 			kernelVersion = StringTools.trim(process.stdout.readLine().toString());
 			process.close();
 		}
-		catch (e:Dynamic) {}
+		catch (e) {}
 		if (kernelVersion != "") return "Linux " + kernelVersion;
 		else
 			return "Linux";

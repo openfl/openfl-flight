@@ -317,7 +317,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		__openPending = true;
 		if (fileMode != FileMode.READ)
 		{
-			try file.__ensureWritable() catch (error:Dynamic)
+			try file.__ensureWritable() catch (error)
 			{
 				__dispatchAsyncError(error, generation);
 				return;
@@ -1010,7 +1010,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 				__flushSync();
 			}
 		}
-		catch (error:Dynamic)
+		catch (error)
 		{
 			__isOpen = false;
 			__buffer = null;
@@ -1018,7 +1018,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		}
 	}
 
-	@:noCompletion private function __dispatchAsyncError(error:Dynamic, generation:Int):Void
+	@:noCompletion private function __dispatchAsyncError(error:Any, generation:Int):Void
 	{
 		if (generation != __openGeneration) return;
 		__openPending = false;
@@ -1232,7 +1232,7 @@ class FileStream extends EventDispatcher implements IDataInput implements IDataO
 		});
 	}
 
-	@:noCompletion private function __dispatchAsyncWriteError(error:Dynamic, generation:Int):Void
+	@:noCompletion private function __dispatchAsyncWriteError(error:Any, generation:Int):Void
 	{
 		if (generation != __openGeneration) return;
 		__writeInFlight = false;

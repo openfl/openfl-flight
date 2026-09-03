@@ -202,7 +202,7 @@ class FileReference extends EventDispatcher
 		__dispatchIOError("FileReference upload is not available through Flight");
 	}
 
-	@:noCompletion private function __dispatchIOError(error:Dynamic):Void
+	@:noCompletion private function __dispatchIOError(error:Any):Void
 	{
 		dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, Std.string(error)));
 	}

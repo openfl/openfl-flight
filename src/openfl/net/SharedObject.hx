@@ -65,7 +65,7 @@ class SharedObject extends EventDispatcher
 			{
 				FlightStorage.removeStorageItem(host, key);
 			}
-			catch (_:Dynamic) {}
+			catch (_) {}
 		}
 		__memoryValues.remove(key);
 	}
@@ -95,14 +95,14 @@ class SharedObject extends EventDispatcher
 
 		try
 		{
-			var result:Dynamic = FlightStorage.setStorageItem(host, key, encodedData);
+			var result:Any = FlightStorage.setStorageItem(host, key, encodedData);
 			if (result != null && Reflect.field(result, "reason") == "ok")
 			{
 				__memoryValues.remove(key);
 				return SharedObjectFlushStatus.FLUSHED;
 			}
 		}
-		catch (_:Dynamic) {}
+		catch (_) {}
 
 		__memoryValues.set(key, encodedData);
 		return SharedObjectFlushStatus.PENDING;
@@ -177,7 +177,7 @@ class SharedObject extends EventDispatcher
 			var host = __getStorageHost();
 			if (host != null)
 			{
-				var result:Dynamic = FlightStorage.getStorageItem(host, key);
+				var result:Any = FlightStorage.getStorageItem(host, key);
 				if (result != null && Reflect.field(result, "reason") == "ok") encodedData = Reflect.field(result, "value");
 			}
 			if (encodedData == null) encodedData = __memoryValues.get(key);
@@ -188,7 +188,7 @@ class SharedObject extends EventDispatcher
 			var decoded = unserializer.unserialize();
 			if (decoded != null) data = decoded;
 		}
-		catch (_:Dynamic) {}
+		catch (_) {}
 	}
 
 	@:noCompletion private static function __getStorageHost():FlightStorageHost
@@ -231,7 +231,7 @@ class SharedObject extends EventDispatcher
 		{
 			return Bytes.ofString(Serializer.run(data)).length;
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			return 0;
 		}

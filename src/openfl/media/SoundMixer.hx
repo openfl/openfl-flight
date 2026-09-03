@@ -63,7 +63,7 @@ import lime.app.Application as LimeApplication;
 
 	@:noCompletion private static var __soundChannels:Array<SoundChannel> = new Array();
 	@:noCompletion private static var __soundTransform:SoundTransform = #if (mute || mute_sound) new SoundTransform(0) #else new SoundTransform() #end;
-	@:noCompletion private static var __flightAudioContext:Dynamic;
+	@:noCompletion private static var __flightAudioContext:Any;
 	@:noCompletion private static var __flightAudioContextInitialized:Bool = false;
 	@:noCompletion private static var __flightAudioDevice:FlightAudioDevice;
 	@:noCompletion private static var __flightAudioDeviceInitialized:Bool = false;
@@ -204,7 +204,7 @@ import lime.app.Application as LimeApplication;
 		__soundChannels.remove(soundChannel);
 	}
 
-	@:noCompletion private static function __getFlightAudioContext():Dynamic
+	@:noCompletion private static function __getFlightAudioContext():Any
 	{
 		if (!__flightAudioContextInitialized)
 		{
@@ -215,13 +215,13 @@ import lime.app.Application as LimeApplication;
 			{
 				__flightAudioContext = LimeAudio.createLimeAudioContext();
 			}
-			catch (_:Dynamic) {}
+			catch (_) {}
 			#elseif (js && html5)
 			try
 			{
 				__flightAudioContext = new js.html.audio.AudioContext();
 			}
-			catch (_:Dynamic) {}
+			catch (_) {}
 			#end
 		}
 		return __flightAudioContext;
@@ -237,7 +237,7 @@ import lime.app.Application as LimeApplication;
 			{
 				__flightAudioDevice = FlightMedia.getAudioDeviceBackend().createDevice(44100);
 			}
-			catch (_:Dynamic) {}
+			catch (_) {}
 		}
 		return __flightAudioDevice;
 	}

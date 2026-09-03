@@ -398,7 +398,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		{
 			h = new Host(host);
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Invalid host"));
 			return;
@@ -427,7 +427,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		{
 			__socket = new SysSocket();
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
 			return;
@@ -439,7 +439,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 			__socket.connect(h, port);
 			__socket.setFastSend(true);
 		}
-		catch (e:Dynamic) {}
+		catch (e) {}
 
 		__pollTimer = new Timer(10);
 		__pollTimer.run = function():Void this_onEnterFrame(null);
@@ -1134,7 +1134,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 				nativeSocket.close();
 			}
 		}
-		catch (e:Dynamic) {}
+		catch (e) {}
 	}
 
 	// Event Handlers
@@ -1239,7 +1239,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 					return;
 				}
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				doClose = true;
 			}
@@ -1266,7 +1266,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 					}
 				}
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				// not connected yet (neko)
 				if (Sys.time() - __timestamp > timeout / 1000)
@@ -1316,7 +1316,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 						doClose = true;
 				}
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				doClose = true;
 			}

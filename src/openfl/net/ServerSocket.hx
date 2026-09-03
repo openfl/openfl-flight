@@ -180,7 +180,7 @@ class ServerSocket extends EventDispatcher
 			{
 				__serverSocket.close();
 			}
-			catch (e:Dynamic)
+			catch (e)
 			{
 				throw new OFLError("Operation attempted on invalid socket.");
 			}
@@ -277,7 +277,7 @@ class ServerSocket extends EventDispatcher
 			close();
 			dispatchEvent(new Event(Event.CLOSE));
 		}
-		catch (e:Dynamic)
+		catch (e)
 		{
 			// Do nothing.
 		}
