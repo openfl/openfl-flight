@@ -259,24 +259,54 @@ class Shader
 
 		__flightShaderKey = "openfl.shader." + Md5.encode((__glVertexSource == null ? "" : __glVertexSource) + "\u0000" + __glFragmentSource);
 		var uniforms:Dynamic = {};
-		for (parameter in __paramBool) __setFlightUniform(uniforms, parameter.name, cast parameter.value);
-		for (parameter in __paramFloat) __setFlightUniform(uniforms, parameter.name, cast parameter.value);
-		for (parameter in __paramInt) __setFlightUniform(uniforms, parameter.name, cast parameter.value);
+		var hasUniforms = false;
+		for (parameter in __paramBool)
+		{
+			if (__setFlightUniformBool(uniforms, parameter.name, parameter.value)) hasUniforms = true;
+		}
+		for (parameter in __paramFloat)
+		{
+			if (__setFlightUniformFloat(uniforms, parameter.name, parameter.value)) hasUniforms = true;
+		}
+		for (parameter in __paramInt)
+		{
+			if (__setFlightUniformInt(uniforms, parameter.name, parameter.value)) hasUniforms = true;
+		}
 
-		var options:Dynamic = {shaderKey: __flightShaderKey};
-		if (Reflect.fields(uniforms).length > 0) Reflect.setField(options, "uniforms", uniforms);
+		var options:Dynamic = hasUniforms ? {shaderKey: __flightShaderKey, uniforms: uniforms} : {shaderKey: __flightShaderKey};
 		__flightEffect = cast FlightEffects.createCustomShaderEffect(cast options);
 	}
 
-	@:noCompletion private function __setFlightUniform(uniforms:Dynamic, name:String, value:Array<Dynamic>):Void
+	@:noCompletion private function __setFlightUniformBool(uniforms:Dynamic, name:String, value:Array<Bool>):Bool
 	{
-		if (name == null || value == null || value.length == 0) return;
+		if (name == null || value == null || value.length == 0) return false;
 		var converted:Array<Float> = [];
-		for (item in value)
-		{
-			converted.push(Std.isOfType(item, Bool) ? (item ? 1 : 0) : cast item);
-		}
+		for (item in value) converted.push(item ? 1 : 0);
 		Reflect.setField(uniforms, name, converted.length == 1 ? converted[0] : converted);
+		return true;
+	}
+
+	@:noCompletion private function __setFlightUniformFloat(uniforms:Dynamic, name:String, value:Array<Float>):Bool
+	{
+		if (name == null || value == null || value.length == 0) return false;
+		if (value.length == 1)
+		{
+			Reflect.setField(uniforms, name, value[0]);
+		}
+		else
+		{
+			Reflect.setField(uniforms, name, value);
+		}
+		return true;
+	}
+
+	@:noCompletion private function __setFlightUniformInt(uniforms:Dynamic, name:String, value:Array<Int>):Bool
+	{
+		if (name == null || value == null || value.length == 0) return false;
+		var converted:Array<Float> = [];
+		for (item in value) converted.push(item);
+		Reflect.setField(uniforms, name, converted.length == 1 ? converted[0] : converted);
+		return true;
 	}
 
 	@:noCompletion private function __update():Void {}
