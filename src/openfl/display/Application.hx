@@ -84,7 +84,7 @@ class Application #if lime extends LimeApplication #end
 		#if (js && html5)
 		__flightHost = cast FlightHostWeb.webHost;
 		#elseif (clay && sys)
-		var host:Dynamic = FlightHostClay.createClayHost();
+		var host = FlightHostClay.createClayHost();
 		host.window = __createFallbackWindowBackend();
 		__flightHost = cast host;
 		#elseif (lime && sys)
