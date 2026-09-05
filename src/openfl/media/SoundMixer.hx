@@ -233,10 +233,10 @@ import lime.app.Application as LimeApplication;
 			__flightAudioDeviceInitialized = true;
 			try
 			{
-				var host:Dynamic = openfl.display.Application.__flightHost;
+				var host = openfl.display.Application.__flightHost;
 				if (host != null && host.media != null && host.media.audioDevice != null)
 				{
-					__flightAudioDeviceBackend = cast host.media.audioDevice;
+					__flightAudioDeviceBackend = host.media.audioDevice;
 					__flightAudioDevice = __flightAudioDeviceBackend.createDevice(44100);
 				}
 			}
