@@ -243,7 +243,7 @@ class Shader
 		parameter.type = type;
 		parameter.__arrayLength = arrayLength;
 		parameter.__isUniform = isUniform;
-		parameter.__length = length;
+		Reflect.setField(parameter, "__length", length);
 	}
 
 	@:noCompletion private function __syncFlightEffect():Void
