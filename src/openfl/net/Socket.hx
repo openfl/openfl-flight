@@ -4,6 +4,10 @@ package openfl.net;
 import flight.Signals as FlightSignals;
 import flight.Socket as FlightSocket;
 import flight.types.HasNetSocket as FlightSocketHost;
+import flight.types.Socket as FlightSocketHandle;
+import flight.types.SocketMessage as FlightSocketMessage;
+import flight.types.SocketOptions as FlightSocketOptions;
+import flight.types.SocketSignals as FlightSocketSignals;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 import haxe.io.Eof;
@@ -223,7 +227,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 	@:noCompletion private var __buffer:Bytes;
 	@:noCompletion private var __connected:Bool = false;
 	@:noCompletion private var __endian:Endian;
-	@:noCompletion private var __flightSocket:Dynamic;
+	@:noCompletion private var __flightSocket:FlightSocketHandle;
 	@:noCompletion private var __host:String;
 	@:noCompletion private var __input:ByteArray;
 	@:noCompletion private var __output:ByteArray;
@@ -458,7 +462,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 
 		var webHost = urlReg.matched(2);
 		var webPath = urlReg.matched(3);
-		var options:Dynamic = {url: schema + "://" + webHost + ":" + port + "/" + webPath, binaryType: "arraybuffer"};
+		var options:FlightSocketOptions = {url: schema + "://" + webHost + ":" + port + "/" + webPath, binaryType: "arraybuffer"};
 		var socketHost = __getSocketHost();
 		if (socketHost == null)
 		{
@@ -474,11 +478,11 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		}
 
 		__socket = cast __flightSocket;
-		var signals:Dynamic = FlightSocket.enableSocketSignals(__flightSocket);
-		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketOpen"), function():Void socket_onOpen(null));
-		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketMessage"), function(message:Dynamic):Void socket_onMessage(message));
-		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketClose"), function(info:Dynamic):Void socket_onClose(info));
-		FlightSignals.connectSignal(cast Reflect.field(signals, "onSocketError"), function():Void socket_onError(null));
+		var signals:FlightSocketSignals = FlightSocket.enableSocketSignals(__flightSocket);
+		FlightSignals.connectSignal(cast signals.onSocketOpen, function():Void socket_onOpen(null));
+		FlightSignals.connectSignal(cast signals.onSocketMessage, function(message:FlightSocketMessage):Void socket_onMessage(message));
+		FlightSignals.connectSignal(cast signals.onSocketClose, function(info:{var code:Float; var reason:String; var wasClean:Bool;}):Void socket_onClose(info));
+		FlightSignals.connectSignal(cast signals.onSocketError, function():Void socket_onError(null));
 		FlightSocket.attachSocket(__flightSocket);
 
 		if (FlightSocket.getSocketReadyState(__flightSocket) == "open")
@@ -487,8 +491,8 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		}
 		else
 		{
-			var failure:Dynamic = FlightSocket.explainSocketSendFailure(__flightSocket);
-			if (failure != null && Reflect.field(failure, "reason") == "no-connection")
+			var failure = FlightSocket.explainSocketSendFailure(__flightSocket);
+			if (failure != null && (cast failure:{var reason:String;}).reason == "no-connection")
 			{
 				__cleanSocket();
 				dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, true, false, "Connection failed"));
@@ -1150,7 +1154,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 		dispatchEvent(new Event(IOErrorEvent.IO_ERROR));
 	}
 
-	@:noCompletion private function socket_onMessage(msg:Dynamic):Void
+	@:noCompletion private function socket_onMessage(msg:FlightSocketMessage):Void
 	{
 		if (__input.position == __input.length)
 		{
@@ -1159,7 +1163,7 @@ class Socket extends EventDispatcher implements IDataInput implements IDataOutpu
 
 		var cachePosition = __input.position;
 		__input.position = __input.length;
-		var data:Dynamic = Reflect.field(msg, "data");
+		var data:Any = msg.data;
 		if (Std.isOfType(data, String))
 		{
 			__input.writeUTFBytes(cast data);
