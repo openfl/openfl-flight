@@ -141,7 +141,6 @@ class Application #if lime extends LimeApplication #end
 			__window = window;
 
 			#if (sys && !flash)
-			FlightHostLime.enableHostLime(this);
 			window.__attachFlightWindow();
 			#end
 

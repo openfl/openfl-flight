@@ -231,7 +231,9 @@ class Sound extends EventDispatcher
 		var audioDevice = SoundMixer.__getFlightAudioDevice();
 		if (audioDevice == null) return null;
 		var transform = sndTransform == null ? new SoundTransform() : sndTransform;
-		return FlightMedia.playAudioResource(audioDevice, resource, {
+		var backend = SoundMixer.__getFlightAudioDeviceBackend();
+		if (backend == null) return null;
+		return FlightMedia.playAudioResource(backend, audioDevice, resource, {
 			currentTime: startTime,
 			gain: SoundMixer.__soundTransform.volume * transform.volume,
 			loops: loops > 1 ? loops - 1 : 0

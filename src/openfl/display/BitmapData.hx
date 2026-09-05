@@ -55,6 +55,7 @@ private typedef CanvasElement = Dynamic;
 @:noDebug
 #end
 @:access(openfl.display3D.textures.TextureBase)
+@:access(openfl.display.Application)
 @:access(openfl.display.Bitmap)
 @:access(openfl.display.DisplayObject)
 @:access(openfl.display.Window)
@@ -600,7 +601,7 @@ class BitmapData implements IBitmapDrawable
 			source = cropped;
 		}
 
-		var encoded:FlightUInt8Array = FlightBitmap.encodeBitmap(source, format, quality);
+		var encoded:FlightUInt8Array = FlightBitmap.encodeBitmap(cast Application.__flightHost, source, format, quality);
 		if (encoded == null) return null;
 		if (byteArray == null) byteArray = new ByteArray();
 		for (index in 0...encoded.length)

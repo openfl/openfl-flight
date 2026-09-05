@@ -2,7 +2,7 @@ package openfl.text;
 
 #if !flash
 import flight.Font as FlightFont;
-import flight.types.Font as FlightFontData;
+import flight.types.FontResource as FlightFontData;
 import openfl.utils.ByteArray;
 import openfl.utils.Future;
 #if lime
@@ -64,7 +64,7 @@ class Font #if lime extends LimeFont #end
 		#if lime
 		super(name);
 		#end
-		__flightFont = FlightFont.createFont(name);
+		__flightFont = FlightFont.createFontResource(name);
 	}
 
 	/**
@@ -286,7 +286,7 @@ class Font #if lime extends LimeFont #end
 	@:noCompletion private function __fromLimeFont(font:LimeFont):Void
 	{
 		__copyFrom(font);
-		__flightFont.name = font.name;
+		__flightFont.family = font.name;
 	}
 	#end
 
@@ -322,13 +322,13 @@ class Font #if lime extends LimeFont #end
 		#if lime
 		return name;
 		#else
-		return __flightFont.name;
+		return __flightFont.family;
 		#end
 	}
 
 	@:noCompletion private inline function set_fontName(value:String):String
 	{
-		__flightFont.name = value;
+		__flightFont.family = value;
 		#if lime
 		return name = value;
 		#else

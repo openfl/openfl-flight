@@ -2,16 +2,12 @@ package openfl.media;
 
 #if !flash
 import flight.Media as FlightMedia;
+import flight.types.AudioDeviceBackend as FlightAudioDeviceBackend;
 import flight.types.AudioDeviceHandle as FlightAudioDevice;
 #if lime
 import flight.hostLime.LimeAudio;
 #end
-#if (js && html5)
-import flight.HostWeb as FlightHostWeb;
-#elseif clay
-import flight.hostClay.HostClay as FlightHostClay;
-#elseif lime
-import flight.hostLime.HostLime as FlightHostLime;
+#if lime
 import lime.app.Application as LimeApplication;
 #end
 /**
@@ -25,6 +21,7 @@ import lime.app.Application as LimeApplication;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(openfl.display.Application)
 @:access(openfl.media.SoundChannel)
 @:final class SoundMixer
 {
@@ -66,6 +63,7 @@ import lime.app.Application as LimeApplication;
 	@:noCompletion private static var __flightAudioContext:Any;
 	@:noCompletion private static var __flightAudioContextInitialized:Bool = false;
 	@:noCompletion private static var __flightAudioDevice:FlightAudioDevice;
+	@:noCompletion private static var __flightAudioDeviceBackend:FlightAudioDeviceBackend;
 	@:noCompletion private static var __flightAudioDeviceInitialized:Bool = false;
 	@:noCompletion private static var __flightAudioHostInitialized:Bool = false;
 
@@ -235,33 +233,28 @@ import lime.app.Application as LimeApplication;
 			__flightAudioDeviceInitialized = true;
 			try
 			{
-				__flightAudioDevice = FlightMedia.getAudioDeviceBackend().createDevice(44100);
+				var host:Dynamic = openfl.display.Application.__flightHost;
+				if (host != null && host.media != null && host.media.audioDevice != null)
+				{
+					__flightAudioDeviceBackend = cast host.media.audioDevice;
+					__flightAudioDevice = __flightAudioDeviceBackend.createDevice(44100);
+				}
 			}
 			catch (_) {}
 		}
 		return __flightAudioDevice;
 	}
 
+	@:noCompletion private static function __getFlightAudioDeviceBackend():FlightAudioDeviceBackend
+	{
+		__getFlightAudioDevice();
+		return __flightAudioDeviceBackend;
+	}
+
 	@:noCompletion private static function __initializeFlightAudioHost():Void
 	{
 		if (__flightAudioHostInitialized) return;
-
-		#if (js && html5)
-		FlightHostWeb.enableHostWebAudio();
-		FlightHostWeb.enableHostWebAudioDevice();
-		__flightAudioHostInitialized = true;
-		#elseif clay
-		FlightHostClay.enableHostClay();
-		__flightAudioHostInitialized = true;
-		#elseif lime
-		if (LimeApplication.current != null)
-		{
-			FlightHostLime.enableHostLime(LimeApplication.current);
-			__flightAudioHostInitialized = true;
-		}
-		#else
-		__flightAudioHostInitialized = true;
-		#end
+		__flightAudioHostInitialized = openfl.display.Application.__flightHost != null;
 	}
 
 	// Get & Set Methods
