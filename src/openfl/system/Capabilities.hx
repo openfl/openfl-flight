@@ -847,7 +847,7 @@ import sys.io.Process;
 		#if (js && html5)
 		__flightLocaleHost = cast FlightHostWeb.webAppHost;
 		#elseif (clay && sys)
-		var host:Dynamic = FlightHostClay.createClayHost();
+		var host = FlightHostClay.createClayHost();
 		host.app.locale = __createFallbackLocaleHost().app.locale;
 		__flightLocaleHost = cast host;
 		#elseif (lime && sys && !clay)
@@ -867,12 +867,12 @@ import sys.io.Process;
 		#if (js && html5)
 		__flightSystemDeviceHost = cast FlightHostWeb.webSystemHost;
 		#elseif (clay && sys)
-		var host:Dynamic = FlightHostClay.createClayHost();
+		var host = FlightHostClay.createClayHost();
 		host.system.device = __createFallbackSystemDeviceHost().system.device;
 		__flightSystemDeviceHost = cast host;
 		#elseif (lime && sys)
 		if (LimeApplication.current == null) return __createFallbackSystemDeviceHost();
-		var host:Dynamic = FlightHostLime.createLimeHost(LimeApplication.current);
+		var host = FlightHostLime.createLimeHost(LimeApplication.current);
 		host.system.device = __createFallbackSystemDeviceHost().system.device;
 		__flightSystemDeviceHost = cast host;
 		#else
