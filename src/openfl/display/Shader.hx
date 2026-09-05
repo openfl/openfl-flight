@@ -195,7 +195,11 @@ class Shader
 				{
 					case BOOL, BOOL2, BOOL3, BOOL4:
 						var parameter = new ShaderParameter<Bool>();
-						__configureParameter(parameter, name, parameterType, length, arrayLength, isUniform);
+						parameter.name = name;
+						parameter.type = parameterType;
+						parameter.__arrayLength = arrayLength;
+						parameter.__isUniform = isUniform;
+						parameter.__length = length;
 						parameter.__isBool = true;
 						__paramBool.push(parameter);
 						if (name == "openfl_HasColorTransform") __hasColorTransform = parameter;
@@ -204,7 +208,11 @@ class Shader
 
 					case INT, INT2, INT3, INT4:
 						var parameter = new ShaderParameter<Int>();
-						__configureParameter(parameter, name, parameterType, length, arrayLength, isUniform);
+						parameter.name = name;
+						parameter.type = parameterType;
+						parameter.__arrayLength = arrayLength;
+						parameter.__isUniform = isUniform;
+						parameter.__length = length;
 						parameter.__isInt = true;
 						__paramInt.push(parameter);
 						Reflect.setField(__data, name, parameter);
@@ -212,7 +220,11 @@ class Shader
 
 					default:
 						var parameter = new ShaderParameter<Float>();
-						__configureParameter(parameter, name, parameterType, length, arrayLength, isUniform);
+						parameter.name = name;
+						parameter.type = parameterType;
+						parameter.__arrayLength = arrayLength;
+						parameter.__isUniform = isUniform;
+						parameter.__length = length;
 						parameter.__isFloat = true;
 						__paramFloat.push(parameter);
 						if (StringTools.startsWith(name, "openfl_"))
@@ -234,16 +246,6 @@ class Shader
 				}
 			}
 		}
-	}
-
-	@:noCompletion private function __configureParameter(parameter:Dynamic, name:String, type:ShaderParameterType, length:Int,
-		arrayLength:Int, isUniform:Bool):Void
-	{
-		parameter.name = name;
-		parameter.type = type;
-		parameter.__arrayLength = arrayLength;
-		parameter.__isUniform = isUniform;
-		Reflect.setField(parameter, "__length", length);
 	}
 
 	@:noCompletion private function __syncFlightEffect():Void
