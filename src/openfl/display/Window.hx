@@ -156,7 +156,13 @@ class Window #if lime extends LimeWindow #end
 		__flightWindow.y = y;
 		__flightWindow.width = width;
 		__flightWindow.height = height;
+		#if js
+		__flightWindow.devicePixelRatio =
+			(Reflect.hasField(normalizedAttributes, "allowHighDPI") && Reflect.field(normalizedAttributes, "allowHighDPI"))
+			? js.Browser.window.devicePixelRatio : 1.0;
+		#else
 		__flightWindow.devicePixelRatio = __scale > 0 ? __scale : 1.0;
+		#end
 		__flightWindow.fullscreen = fullscreen;
 		__flightWindow.minimized = minimized;
 		__flightWindow.maximized = maximized;
