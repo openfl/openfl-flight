@@ -1,0 +1,26 @@
+name: Conformance
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Haxe
+        uses: keenanwoodall/setup-haxe@v2
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install dependencies
+        run: |
+          haxelib install hxcpp 4.3.2 --quiet
+          haxelib git flight https://github.com/flighthq/flight-hx.git --quiet
+          sudo apt-get install -y -qq g++
+
+      - name: Run conformance suite
+        run: bash test/conformance.sh
