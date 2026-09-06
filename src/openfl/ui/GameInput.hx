@@ -98,24 +98,25 @@ import lime.app.Application as LimeApplication;
 	@:noCompletion private static var __flightInputSource:FlightInputSource;
 	@:noCompletion private static var __flightInputSourceResolved:Bool;
 
-	@:noCompletion private static function __init__():Void
-	{
-		#if (lime || harness_compare)
-		__initializeFlightInput();
-		#end
-	}
+	@:noCompletion private static function __init__():Void {}
 
 	public function new()
 	{
 		super();
 
 		__instances.push(this);
+		#if (lime || harness_compare)
+		__initializeFlightInput();
+		#end
 	}
 
 	@SuppressWarnings("checkstyle:Dynamic")
 	public override function addEventListener<T>(type:EventType<T>, listener:T->Void, useCapture:Bool = false, priority:Int = 0,
 			useWeakReference:Bool = false):Void
 	{
+		#if (lime || harness_compare)
+		__initializeFlightInput();
+		#end
 		super.addEventListener(type, listener, useCapture, priority, useWeakReference);
 
 		if (type == GameInputEvent.DEVICE_ADDED)
@@ -142,6 +143,9 @@ import lime.app.Application as LimeApplication;
 	**/
 	public static function getDeviceAt(index:Int):GameInputDevice
 	{
+		#if (lime || harness_compare)
+		__initializeFlightInput();
+		#end
 		if (index >= 0 && index < __deviceList.length)
 		{
 			return __deviceList[index];
