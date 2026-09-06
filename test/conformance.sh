@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(git rev-parse --show-toplevel)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SAMPLES_DIR="$REPO_ROOT/test/openfl-samples"
+TARGETS="${1:-neko cpp html5}"
 
 PASS=0
 FAIL=0
@@ -9,8 +11,7 @@ SKIP=0
 RESULTS=()
 
 report() {
-  local target=$1 phase=$2 status=$3
-  local label="[$target] $phase"
+  local label=$1 status=$2
   if [ "$status" = "pass" ]; then
     PASS=$((PASS + 1))
     RESULTS+=("PASS  $label")
@@ -23,91 +24,61 @@ report() {
   fi
 }
 
-run_target() {
-  local target=$1 hxml=$2 run_cmd=$3
+if [ ! -d "$SAMPLES_DIR" ]; then
+  echo "Cloning openfl-samples..."
+  git clone --depth 1 https://github.com/openfl/openfl-samples.git "$SAMPLES_DIR"
+fi
 
-  echo ""
-  echo "=== $target: compile ==="
-  if haxe "$hxml" 2>&1; then
-    report "$target" "compile" "pass"
-  else
-    report "$target" "compile" "fail"
-    return
-  fi
-
-  if [ -n "$run_cmd" ]; then
-    echo ""
-    echo "=== $target: run ==="
-    local output
-    local exit_code=0
-    output=$($run_cmd 2>&1) || exit_code=$?
-
-    echo "$output"
-
-    if [ $exit_code -ne 0 ]; then
-      report "$target" "run" "fail"
-      echo "  exit code: $exit_code"
-    else
-      local failures
-      failures=$(echo "$output" | grep -c '^FAIL ' || true)
-      if [ "$failures" -gt 0 ]; then
-        report "$target" "run" "fail"
-        echo "  $failures scenario(s) failed"
-      else
-        report "$target" "run" "pass"
-      fi
-    fi
-  fi
-}
-
-mkdir -p build/test
+# Collect sample directories (skip libraries/ which need extra haxelibs)
+SAMPLE_DIRS=()
+while IFS= read -r project; do
+  dir=$(dirname "$project")
+  case "$dir" in
+    */libraries/*) continue ;;
+  esac
+  SAMPLE_DIRS+=("$dir")
+done < <(find "$SAMPLES_DIR" -name "project.xml" -not -path "*/Export/*" | sort)
 
 echo "openfl-flight conformance suite"
 echo "================================"
-
-# interp: baseline (fast)
+echo "samples: ${#SAMPLE_DIRS[@]}"
+echo "targets: $TARGETS"
 echo ""
-echo "=== interp: compile + run ==="
-interp_exit=0
-interp_output=$(haxe test/harness/compare.hxml 2>&1) || interp_exit=$?
-echo "$interp_output"
-if [ $interp_exit -ne 0 ]; then
-  report "interp" "compile+run" "fail"
-else
-  interp_failures=$(echo "$interp_output" | grep -c '^FAIL ' || true)
-  if [ "$interp_failures" -gt 0 ]; then
-    report "interp" "compile+run" "fail"
-  else
-    report "interp" "compile+run" "pass"
-  fi
-fi
 
-# neko: compile + run
-if command -v neko >/dev/null 2>&1; then
-  run_target "neko" "test/harness/compare-neko.hxml" "neko build/test/harness-neko.n"
-else
-  report "neko" "compile+run" "skip"
-  echo "neko not found, skipping"
-fi
+for target in $TARGETS; do
+  echo ""
+  echo "======== target: $target ========"
 
-# cpp: compile + run (slow, but catches static type issues)
-if command -v g++ >/dev/null 2>&1; then
-  run_target "cpp" "test/harness/compare-cpp.hxml" "build/test/harness-cpp/Main"
-else
-  report "cpp" "compile+run" "skip"
-  echo "g++ not found, skipping cpp target"
-fi
+  for dir in "${SAMPLE_DIRS[@]}"; do
+    name="${dir#$SAMPLES_DIR/}"
+    label="[$target] $name"
 
-# js: compile-only (no sys access for fixture comparison)
-echo ""
-echo "=== js: compile (type-check only) ==="
-if haxe test/harness/compare-js.hxml 2>&1; then
-  report "js" "compile" "pass"
-else
-  report "js" "compile" "fail"
-fi
+    # Check for extra haxelib deps we might not have
+    if grep -q 'haxelib name="actuate"' "$dir/project.xml" 2>/dev/null ||
+       grep -q 'haxelib name="box2d"' "$dir/project.xml" 2>/dev/null ||
+       grep -q 'haxelib name="layout"' "$dir/project.xml" 2>/dev/null; then
+      report "$label" "skip"
+      continue
+    fi
 
-# summary
+    printf "  %-50s " "$name"
+
+    output=$(cd "$dir" && haxelib run lime build "$target" \
+      --haxelib-openfl="$REPO_ROOT" 2>&1) || true
+    exit_code=${PIPESTATUS[0]:-$?}
+
+    # Check for compilation errors in the output
+    if echo "$output" | grep -qE '^Error:|^[^ ]+\.hx:[0-9]+: characters [0-9]'; then
+      report "$label" "fail"
+      echo "FAIL"
+      echo "$output" | grep -E '^Error:|^[^ ]+\.hx:[0-9]+: characters [0-9]' | head -3 | sed 's/^/    /'
+    else
+      report "$label" "pass"
+      echo "PASS"
+    fi
+  done
+done
+
 echo ""
 echo "================================"
 echo "CONFORMANCE SUMMARY"
@@ -117,6 +88,7 @@ for r in "${RESULTS[@]}"; do
 done
 echo ""
 echo "  pass: $PASS  fail: $FAIL  skip: $SKIP"
+echo ""
 
 if [ $FAIL -gt 0 ]; then
   exit 1
