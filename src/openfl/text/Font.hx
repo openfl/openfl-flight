@@ -64,7 +64,8 @@ class Font #if lime extends LimeFont #end
 		#if lime
 		super(name);
 		#end
-		__flightFont = FlightFont.createFontResource(name);
+		if (__flightFont == null)
+			__flightFont = FlightFont.createFontResource(name);
 	}
 
 	/**
@@ -286,7 +287,10 @@ class Font #if lime extends LimeFont #end
 	@:noCompletion private function __fromLimeFont(font:LimeFont):Void
 	{
 		__copyFrom(font);
-		__flightFont.family = font.name;
+		if (__flightFont == null)
+			__flightFont = FlightFont.createFontResource(font.name);
+		else
+			__flightFont.family = font.name;
 	}
 	#end
 
