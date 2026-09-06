@@ -156,7 +156,7 @@ class Window #if lime extends LimeWindow #end
 		__flightWindow.y = y;
 		__flightWindow.width = width;
 		__flightWindow.height = height;
-		__flightWindow.devicePixelRatio = scale;
+		__flightWindow.devicePixelRatio = __scale > 0 ? __scale : 1.0;
 		__flightWindow.fullscreen = fullscreen;
 		__flightWindow.minimized = minimized;
 		__flightWindow.maximized = maximized;
