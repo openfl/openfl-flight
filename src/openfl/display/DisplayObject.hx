@@ -695,6 +695,10 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private var __flightCSSFilterBound:Bool;
 	@:noCompletion private var __flightNode:FlightNode2D;
 	@:noCompletion private var __flightRenderCache:Dynamic;
+	@:noCompletion private var __flightRenderCacheBound:Bool;
+	@:noCompletion private var __flightEffectsScratchA:Dynamic;
+	@:noCompletion private var __flightEffectsScratchB:Dynamic;
+	@:noCompletion private var __flightOriginalCacheTarget:Dynamic;
 	@:noCompletion private var __graphics:Graphics;
 	@:noCompletion private var __loaderInfo:LoaderInfo;
 	@:noCompletion private var __isMask:Bool;

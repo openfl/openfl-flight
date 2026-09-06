@@ -33,6 +33,10 @@ import lime.ui.WindowAttributes;
 @:noDebug
 #end
 @:access(flight._Scene2DCanvas)
+@:access(flight._Scene2DGl)
+@:access(flight._RenderGl)
+@:access(flight._EffectsGl)
+@:access(flight._Render)
 @:access(openfl.display.LoaderInfo)
 @:access(openfl.display.Application)
 @:access(openfl.display.DisplayObject)
@@ -105,6 +109,8 @@ class Window #if lime extends LimeWindow #end
 	#if !flash
 	@:noCompletion private var __flightHost:FlightHost;
 	@:noCompletion private var __flightRenderState:Dynamic;
+	@:noCompletion private var __flightGlCacheState:Dynamic;
+	@:noCompletion private var __flightGlTexturePool:Dynamic;
 	@:noCompletion private var __flightWindow:FlightApplicationWindow;
 	@:noCompletion private var __usingCairo:Bool;
 	#if (lime_cairo && !js)
@@ -309,6 +315,16 @@ class Window #if lime extends LimeWindow #end
 			registerGlShapeCommands(__flightRenderState, defaultGlShapeCommands);
 			registerGlShapeCommands(__flightRenderState, defaultGlTextureShapeCommands);
 			enableGlBlendModeSupport(__flightRenderState);
+			enableGlRenderCache(__flightRenderState);
+			registerGlBlurEffect(__flightRenderState);
+			registerGlDropShadowEffect(__flightRenderState);
+			registerGlOuterGlowEffect(__flightRenderState);
+			registerGlInnerGlowEffect(__flightRenderState);
+			registerGlInnerShadowEffect(__flightRenderState);
+			__flightGlCacheState = createGlCacheState(__flightRenderState,
+				(cast __flightRenderState : flight.types.GlRenderState).contextState,
+				(cast __flightRenderState : flight.types.GlRenderState).pipeline);
+			__flightGlTexturePool = createGlRenderTexturePool();
 		}
 	}
 
@@ -357,7 +373,9 @@ class Window #if lime extends LimeWindow #end
 		if (stage == null) return;
 		stage.__advanceFrame();
 		__createFlightRenderState();
-		if (__flightRenderState == null || !prepareScene2DRender(__flightRenderState, stage.__scene.root))
+		if (__flightRenderState == null) { onRender.cancel(); return; }
+		if (!__usingCairo) __syncFlightGlRenderCaches(stage);
+		if (!prepareScene2DRender(__flightRenderState, stage.__scene.root))
 		{
 			onRender.cancel();
 			return;
@@ -372,8 +390,11 @@ class Window #if lime extends LimeWindow #end
 		}
 		else
 		{
+			__refreshFlightGlCaches(stage);
+			__applyFlightGlEffects(stage);
 			renderGlBackground(__flightRenderState);
 			renderGlScene2D(__flightRenderState, stage.__scene.root);
+			__restoreFlightGlCacheTargets(stage);
 		}
 	}
 
@@ -396,6 +417,145 @@ class Window #if lime extends LimeWindow #end
 		{
 			for (child in obj.__children)
 				__syncFlightCSSFilters(child);
+		}
+	}
+
+	@:noCompletion private function __syncFlightGlRenderCaches(obj:DisplayObject):Void
+	{
+		if (obj.__flightNode != null)
+		{
+			var needsCache = obj.cacheAsBitmap;
+			if (needsCache && !obj.__flightRenderCacheBound)
+			{
+				if (obj.__flightRenderCache == null)
+					obj.__flightRenderCache = createRenderCache();
+				useRenderCache(__flightRenderState, obj.__flightNode, obj.__flightRenderCache);
+				obj.__flightRenderCacheBound = true;
+			}
+			else if (!needsCache && obj.__flightRenderCacheBound)
+			{
+				flight._Render.setRenderProxyAdapter(__flightRenderState, obj.__flightNode, null);
+				flight._Scene2DGl.releaseGlRenderCache(__flightRenderState, obj.__flightRenderCache);
+				obj.__flightRenderCacheBound = false;
+				if (obj.__flightEffectsScratchA != null)
+				{
+					destroyGlRenderTarget(__flightRenderState, obj.__flightEffectsScratchA);
+					obj.__flightEffectsScratchA = null;
+				}
+				if (obj.__flightEffectsScratchB != null)
+				{
+					destroyGlRenderTarget(__flightRenderState, obj.__flightEffectsScratchB);
+					obj.__flightEffectsScratchB = null;
+				}
+				obj.__flightEffectsTarget = null;
+			}
+		}
+		if (obj.__children != null)
+		{
+			for (child in obj.__children)
+				__syncFlightGlRenderCaches(child);
+		}
+	}
+
+	@:noCompletion private function __refreshFlightGlCaches(obj:DisplayObject):Void
+	{
+		if (obj.__flightRenderCacheBound)
+		{
+			refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode);
+		}
+		if (obj.__children != null)
+		{
+			for (child in obj.__children)
+				__refreshFlightGlCaches(child);
+		}
+	}
+
+	@:noCompletion private function __applyFlightGlEffects(obj:DisplayObject):Void
+	{
+		if (obj.__flightRenderCacheBound && obj.__filters != null)
+		{
+			var rawTarget = flight._Scene2DGl.getGlRenderCacheTarget(__flightRenderState, obj.__flightRenderCache);
+			if (rawTarget != null)
+			{
+				var effects:Array<Dynamic> = [];
+				for (filter in obj.__filters)
+				{
+					if (filter.__flightEffect != null)
+						effects.push(filter.__flightEffect);
+				}
+				if (effects.length > 0)
+				{
+					var w:Float = rawTarget.width;
+					var h:Float = rawTarget.height;
+					var desc:Dynamic = {width: w, height: h};
+
+					if (obj.__flightEffectsScratchA == null)
+						obj.__flightEffectsScratchA = createGlRenderTarget(__flightRenderState, desc);
+					else
+						flight._RenderGl.resizeGlRenderTarget(__flightRenderState, obj.__flightEffectsScratchA, w, h);
+
+					if (effects.length > 1)
+					{
+						if (obj.__flightEffectsScratchB == null)
+							obj.__flightEffectsScratchB = createGlRenderTarget(__flightRenderState, desc);
+						else
+							flight._RenderGl.resizeGlRenderTarget(__flightRenderState, obj.__flightEffectsScratchB, w, h);
+					}
+
+					var pool = (cast __flightGlTexturePool : flight.types.GlRenderTexturePool).effectTargets;
+					var current:Dynamic = rawTarget;
+
+					withGlRenderState(__flightRenderState, function():Void {
+						var i = 0;
+						for (effect in effects)
+						{
+							var remaining = effects.length - i;
+							var dest:Dynamic = (remaining % 2 == 1) ? obj.__flightEffectsScratchA : obj.__flightEffectsScratchB;
+							var runner = flight._EffectsGl.getGlRenderEffectRunner(__flightRenderState, cast Reflect.field(effect, "kind"));
+							if (runner != null)
+							{
+								runner({
+									state: __flightRenderState,
+									source: current,
+									dest: dest,
+									pool: pool,
+									sceneDepthTexture: null,
+									sceneVelocityTexture: null
+								}, effect);
+								current = dest;
+							}
+							i++;
+						}
+					});
+
+					if (current != rawTarget)
+					{
+						obj.__flightOriginalCacheTarget = rawTarget;
+						var targets = flight._Scene2DGl.ensureTargets__glCache(__flightRenderState);
+						targets.set(cast obj.__flightRenderCache, cast current);
+					}
+				}
+			}
+		}
+		if (obj.__children != null)
+		{
+			for (child in obj.__children)
+				__applyFlightGlEffects(child);
+		}
+	}
+
+	@:noCompletion private function __restoreFlightGlCacheTargets(obj:DisplayObject):Void
+	{
+		if (obj.__flightOriginalCacheTarget != null)
+		{
+			var targets = flight._Scene2DGl.ensureTargets__glCache(__flightRenderState);
+			targets.set(cast obj.__flightRenderCache, cast obj.__flightOriginalCacheTarget);
+			obj.__flightOriginalCacheTarget = null;
+		}
+		if (obj.__children != null)
+		{
+			for (child in obj.__children)
+				__restoreFlightGlCacheTargets(child);
 		}
 	}
 	#end
