@@ -64,6 +64,7 @@ class BitmapFilter
 
 	@:noCompletion private function __syncFlightEffect():Void {}
 	@:noCompletion private function __getFlightColorAdjustment():Adjustment return null;
+	@:noCompletion private function __getCSSFilter():String return null;
 
 	@:noCompletion public static inline function __flightColor(color:Int):Float
 	{

@@ -42,6 +42,12 @@ import flight.Effects as FlightEffects;
 		__flightEffect = FlightEffects.createBlurEffect({blurX: __blurX, blurY: __blurY});
 	}
 
+	@:noCompletion private override function __getCSSFilter():String
+	{
+		var radius = Math.max(0, (__blurX + __blurY) / 2);
+		return radius > 0 ? 'blur(' + radius + 'px)' : null;
+	}
+
 	@:noCompletion private inline function __padFor(value:Float):Int
 	{
 		if (value <= 0) return 0;

@@ -71,6 +71,16 @@ import flight.Effects as FlightEffects;
 			__flightEffect = cast FlightEffects.createOuterGlowEffect(options);
 	}
 
+	@:noCompletion private override function __getCSSFilter():String
+	{
+		if (__inner) return null;
+		var blur = (__blurX + __blurY) / 2;
+		var r = (__color >> 16) & 0xFF;
+		var g = (__color >> 8) & 0xFF;
+		var b = __color & 0xFF;
+		return 'drop-shadow(0px 0px ' + blur + 'px rgba(' + r + ',' + g + ',' + b + ',' + __alpha + '))';
+	}
+
 	@:noCompletion private inline function get_alpha():Float return __alpha;
 	@:noCompletion private function set_alpha(value:Float):Float { __alpha = value; __syncFlightEffect(); return value; }
 	@:noCompletion private inline function get_blurX():Float return __blurX;

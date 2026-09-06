@@ -85,6 +85,19 @@ import flight.Effects as FlightEffects;
 			__flightEffect = cast FlightEffects.createDropShadowEffect(options);
 	}
 
+	@:noCompletion private override function __getCSSFilter():String
+	{
+		if (__inner) return null;
+		var rad = __angle * Math.PI / 180;
+		var ox = __distance * Math.cos(rad);
+		var oy = __distance * Math.sin(rad);
+		var blur = (__blurX + __blurY) / 2;
+		var r = (__color >> 16) & 0xFF;
+		var g = (__color >> 8) & 0xFF;
+		var b = __color & 0xFF;
+		return 'drop-shadow(' + ox + 'px ' + oy + 'px ' + blur + 'px rgba(' + r + ',' + g + ',' + b + ',' + __alpha + '))';
+	}
+
 	@:noCompletion private inline function get_alpha():Float return __alpha;
 	@:noCompletion private function set_alpha(value:Float):Float { __alpha = value; __syncFlightEffect(); return value; }
 	@:noCompletion private inline function get_angle():Float return __angle;
