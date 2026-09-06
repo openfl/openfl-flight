@@ -1228,7 +1228,7 @@ class BitmapData implements IBitmapDrawable
 		registerRenderer(state, RichTextKind, cast defaultCanvasRichTextRenderer);
 		registerCanvasShapeCommands(state, defaultCanvasShapeCommands);
 		registerCanvasImageTextureResolver(resolvers);
-		Window.__registerFlightCanvasBitmapResolver(resolvers);
+		Window.__registerFlightCanvasBitmapResolver(Application.__flightHost, resolvers);
 		enableCanvasBlendMode(state);
 		prepareScene2DRender(state, source.__flightNode);
 		renderCanvasScene2D(state, source.__flightNode);
