@@ -376,12 +376,13 @@ class Window #if lime extends LimeWindow #end
 		__createFlightRenderState();
 		if (__flightRenderState == null) { onRender.cancel(); return; }
 		if (!__usingCairo) __syncFlightGlRenderCaches(stage);
+		stage.__renderBeforeDraw();
+		if (!__usingCairo) __refreshFlightGlCaches(stage);
 		if (!prepareScene2DRender(__flightRenderState, stage.__scene.root))
 		{
 			onRender.cancel();
 			return;
 		}
-		stage.__renderBeforeDraw();
 		if (__usingCairo) __syncFlightCSSFilters(stage);
 
 		if (__usingCairo)
@@ -391,7 +392,6 @@ class Window #if lime extends LimeWindow #end
 		}
 		else
 		{
-			__refreshFlightGlCaches(stage);
 			__applyFlightGlEffects(stage);
 			renderGlBackground(__flightRenderState);
 			renderGlScene2D(__flightRenderState, stage.__scene.root);
@@ -479,10 +479,11 @@ class Window #if lime extends LimeWindow #end
 					if (ext > padding) padding = ext;
 				}
 			}
-			if (padding > 0)
-				refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode, {padding: padding});
-			else
-				refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode);
+			var existing = flight._Scene2DGl.getGlRenderCacheTarget(__flightRenderState, obj.__flightRenderCache);
+			var minW:Float = existing != null ? (cast existing : Dynamic).width : 1.0;
+			var minH:Float = existing != null ? (cast existing : Dynamic).height : 1.0;
+			refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode,
+				{padding: padding, minWidth: minW, minHeight: minH});
 		}
 	}
 
