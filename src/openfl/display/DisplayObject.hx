@@ -691,7 +691,10 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 	@:noCompletion private var __children:Array<DisplayObject>;
 	@:noCompletion private var __customRenderEvent:RenderEvent;
 	@:noCompletion private var __filters:Array<BitmapFilter>;
+	@:noCompletion private var __flightCSSFilter:String;
+	@:noCompletion private var __flightCSSFilterBound:Bool;
 	@:noCompletion private var __flightNode:FlightNode2D;
+	@:noCompletion private var __flightRenderCache:Dynamic;
 	@:noCompletion private var __graphics:Graphics;
 	@:noCompletion private var __loaderInfo:LoaderInfo;
 	@:noCompletion private var __isMask:Bool;
@@ -1351,9 +1354,26 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 				filter.__syncFlightEffect();
 			}
 		}
+		__syncFlightCSSFilter();
 		__syncFlightColorAdjustments();
 		__setRenderDirty();
 		return value;
+	}
+
+	@:noCompletion private function __syncFlightCSSFilter():Void
+	{
+		if (__filters == null)
+		{
+			__flightCSSFilter = null;
+			return;
+		}
+		var parts:Array<String> = [];
+		for (filter in __filters)
+		{
+			var css = filter.__getCSSFilter();
+			if (css != null) parts.push(css);
+		}
+		__flightCSSFilter = parts.length > 0 ? parts.join(' ') : null;
 	}
 
 	@:noCompletion private function __syncFlightColorAdjustments():Void

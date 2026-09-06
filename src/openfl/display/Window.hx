@@ -32,6 +32,7 @@ import lime.ui.WindowAttributes;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
+@:access(flight._Scene2DCanvas)
 @:access(openfl.display.LoaderInfo)
 @:access(openfl.display.Application)
 @:access(openfl.display.DisplayObject)
@@ -362,6 +363,7 @@ class Window #if lime extends LimeWindow #end
 			return;
 		}
 		stage.__renderBeforeDraw();
+		__syncFlightCSSFilters(stage);
 
 		if (__usingCairo)
 		{
@@ -372,6 +374,28 @@ class Window #if lime extends LimeWindow #end
 		{
 			renderGlBackground(__flightRenderState);
 			renderGlScene2D(__flightRenderState, stage.__scene.root);
+		}
+	}
+
+	@:noCompletion private function __syncFlightCSSFilters(obj:DisplayObject):Void
+	{
+		if (obj.__flightNode != null)
+		{
+			if (obj.__flightCSSFilter != null)
+			{
+				flight._Scene2DCanvas.setCanvasCssFilter(__flightRenderState, obj.__flightNode, obj.__flightCSSFilter);
+				obj.__flightCSSFilterBound = true;
+			}
+			else if (obj.__flightCSSFilterBound)
+			{
+				flight._Scene2DCanvas.setCanvasCssFilter(__flightRenderState, obj.__flightNode, null);
+				obj.__flightCSSFilterBound = false;
+			}
+		}
+		if (obj.__children != null)
+		{
+			for (child in obj.__children)
+				__syncFlightCSSFilters(child);
 		}
 	}
 	#end
