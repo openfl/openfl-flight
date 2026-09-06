@@ -219,7 +219,7 @@ class XMLSocket extends EventDispatcher
 		}
 
 		__socket = new Socket();
-		if (timeout != null)
+		if (timeout > 0)
 		{
 			__socket.timeout = timeout;
 		}
