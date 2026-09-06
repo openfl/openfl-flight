@@ -1,12 +1,53 @@
-name: Conformance
+name: CI
 
 on:
   push:
-    branches: [main, master]
   pull_request:
 
 jobs:
-  conformance:
+  harness:
+    name: Harness (interp)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Haxe
+        uses: keenanwoodall/setup-haxe@v2
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install dependencies
+        run: |
+          haxelib git flight https://github.com/flighthq/flight-hx.git --quiet
+          haxelib dev openfl .
+
+      - name: Run harness (compare mode)
+        run: haxe test/harness/compare.hxml
+
+  harness-neko:
+    name: Harness (neko)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Haxe
+        uses: keenanwoodall/setup-haxe@v2
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install dependencies
+        run: |
+          haxelib git flight https://github.com/flighthq/flight-hx.git --quiet
+          haxelib dev openfl .
+
+      - name: Build harness (neko)
+        run: haxe test/harness/compare-neko.hxml
+
+      - name: Run harness (neko)
+        run: neko build/test/harness-neko.n
+
+  harness-cpp:
+    name: Harness (cpp)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +61,73 @@ jobs:
         run: |
           haxelib install hxcpp 4.3.2 --quiet
           haxelib git flight https://github.com/flighthq/flight-hx.git --quiet
+          haxelib dev openfl .
           sudo apt-get install -y -qq g++
 
-      - name: Run conformance suite
-        run: bash test/conformance.sh
+      - name: Build harness (cpp)
+        run: haxe test/harness/compare-cpp.hxml
+
+      - name: Run harness (cpp)
+        run: ./build/test/harness-cpp/Main
+
+  conformance-neko:
+    name: Conformance (neko)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Haxe
+        uses: keenanwoodall/setup-haxe@v2
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install dependencies
+        run: |
+          haxelib git flight https://github.com/flighthq/flight-hx.git --quiet
+          haxelib install lime 8.3.2 --quiet
+          haxelib dev openfl .
+
+      - name: Run conformance (neko)
+        run: bash test/conformance.sh neko
+
+  conformance-html5:
+    name: Conformance (html5)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Haxe
+        uses: keenanwoodall/setup-haxe@v2
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install dependencies
+        run: |
+          haxelib git flight https://github.com/flighthq/flight-hx.git --quiet
+          haxelib install lime 8.3.2 --quiet
+          haxelib dev openfl .
+
+      - name: Run conformance (html5)
+        run: bash test/conformance.sh html5
+
+  conformance-cpp:
+    name: Conformance (cpp)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Haxe
+        uses: keenanwoodall/setup-haxe@v2
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install dependencies
+        run: |
+          haxelib install hxcpp 4.3.2 --quiet
+          haxelib git flight https://github.com/flighthq/flight-hx.git --quiet
+          haxelib install lime 8.3.2 --quiet
+          haxelib dev openfl .
+          sudo apt-get install -y -qq g++
+
+      - name: Run conformance (cpp)
+        run: bash test/conformance.sh cpp

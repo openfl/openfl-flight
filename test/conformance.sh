@@ -7,8 +7,24 @@ TARGETS="${1:-neko cpp html5}"
 
 PASS=0
 FAIL=0
+XFAIL=0
 SKIP=0
 RESULTS=()
+
+# Known failures external to openfl-flight (not regressions)
+KNOWN_FAILURES=(
+  "demos/NyanCat"                    # needs swf haxelib
+  "features/display/CustomRendering" # accesses OpenFL internal __textureID
+  "features/ui/JoystickInput"        # lime.ui.Joystick.onTrackballMove missing in lime 8.3.2
+)
+
+is_known_failure() {
+  local name=$1
+  for kf in "${KNOWN_FAILURES[@]}"; do
+    if [ "$name" = "$kf" ]; then return 0; fi
+  done
+  return 1
+}
 
 report() {
   local label=$1 status=$2
@@ -18,6 +34,9 @@ report() {
   elif [ "$status" = "skip" ]; then
     SKIP=$((SKIP + 1))
     RESULTS+=("SKIP  $label")
+  elif [ "$status" = "xfail" ]; then
+    XFAIL=$((XFAIL + 1))
+    RESULTS+=("XFAIL $label")
   else
     FAIL=$((FAIL + 1))
     RESULTS+=("FAIL  $label")
@@ -69,9 +88,14 @@ for target in $TARGETS; do
 
     # Check for compilation errors in the output
     if echo "$output" | grep -qE '^Error:|^[^ ]+\.hx:[0-9]+: characters [0-9]'; then
-      report "$label" "fail"
-      echo "FAIL"
-      echo "$output" | grep -E '^Error:|^[^ ]+\.hx:[0-9]+: characters [0-9]' | head -3 | sed 's/^/    /'
+      if is_known_failure "$name"; then
+        report "$label" "xfail"
+        echo "XFAIL (known)"
+      else
+        report "$label" "fail"
+        echo "FAIL"
+        echo "$output" | grep -E '^Error:|^[^ ]+\.hx:[0-9]+: characters [0-9]' | head -3 | sed 's/^/    /'
+      fi
     else
       report "$label" "pass"
       echo "PASS"
@@ -87,7 +111,7 @@ for r in "${RESULTS[@]}"; do
   echo "  $r"
 done
 echo ""
-echo "  pass: $PASS  fail: $FAIL  skip: $SKIP"
+echo "  pass: $PASS  fail: $FAIL  xfail: $XFAIL  skip: $SKIP"
 echo ""
 
 if [ $FAIL -gt 0 ]; then
