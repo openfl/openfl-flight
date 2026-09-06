@@ -183,7 +183,7 @@ import lime.app.Application as LimeApplication;
 		FlightSignals.connectSignal(__flightInputManager.onGamepadConnect, __onGamepadConnect);
 		FlightSignals.connectSignal(__flightInputManager.onGamepadDisconnect, __onGamepadDisconnect);
 
-		#if lime
+		#if (lime && !(js && html5))
 		__flightInputRelease = FlightLimeInput.attachLimeGamepadInput(__flightInputManager);
 		#else
 		var source = __getFlightInputSource();
