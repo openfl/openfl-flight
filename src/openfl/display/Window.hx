@@ -303,6 +303,8 @@ class Window #if lime extends LimeWindow #end
 				backgroundColor: backgroundColor,
 				sceneGraphSyncPolicy: "requiresInvalidation"
 			});
+			(cast __flightRenderState : flight.types.RenderState).renderTransform2D =
+				computeWindowDeviceTransform(__flightWindow, createMatrix());
 			registerGlStandardMaterial(__flightRenderState);
 			registerStandardGlTextureResolvers(__flightRenderState);
 			registerRenderer(__flightRenderState, SpriteKind, cast defaultGlSpriteRenderer);
