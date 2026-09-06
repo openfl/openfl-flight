@@ -467,7 +467,22 @@ class Window #if lime extends LimeWindow #end
 		}
 		if (obj.__flightRenderCacheBound)
 		{
-			refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode);
+			var padding:Float = 0;
+			if (obj.__filters != null)
+			{
+				for (filter in obj.__filters)
+				{
+					var ext = filter.__leftExtension;
+					if (filter.__rightExtension > ext) ext = filter.__rightExtension;
+					if (filter.__topExtension > ext) ext = filter.__topExtension;
+					if (filter.__bottomExtension > ext) ext = filter.__bottomExtension;
+					if (ext > padding) padding = ext;
+				}
+			}
+			if (padding > 0)
+				refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode, {padding: padding});
+			else
+				refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode);
 		}
 	}
 
@@ -520,6 +535,7 @@ class Window #if lime extends LimeWindow #end
 							var runner = flight._EffectsGl.getGlRenderEffectRunner(__flightRenderState, cast Reflect.field(effect, "kind"));
 							if (runner != null)
 							{
+								flight._RenderGl.clearGlRenderTarget(__flightRenderState, dest);
 								runner({
 									state: __flightRenderState,
 									source: current,
