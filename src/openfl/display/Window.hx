@@ -274,7 +274,7 @@ class Window #if lime extends LimeWindow #end
 			registerRenderer(__flightRenderState, RichTextKind, cast defaultCanvasRichTextRenderer);
 			registerCanvasShapeCommands(__flightRenderState, defaultCanvasShapeCommands);
 			registerCanvasImageTextureResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
-			__registerFlightCanvasBitmapResolver(getCanvasRenderStateTextureResolvers(__flightRenderState));
+			__registerFlightCanvasBitmapResolver(__flightHost, getCanvasRenderStateTextureResolvers(__flightRenderState));
 			enableCanvasBlendMode(__flightRenderState);
 			#else
 			throw "This Lime build does not include Cairo support.";
@@ -299,7 +299,7 @@ class Window #if lime extends LimeWindow #end
 			var surfaceCreator = flight.Scene2DCairo.createCairoRenderSurfaceCreator();
 			var shapeResolvers = createCanvasTextureResolvers(surfaceCreator);
 			connectCanvasTextureResolverMisses(shapeResolvers, __flightRenderState);
-			__registerFlightCanvasBitmapResolver(shapeResolvers);
+			__registerFlightCanvasBitmapResolver(__flightHost, shapeResolvers);
 			registerCanvasImageTextureResolver(shapeResolvers);
 			registerCanvasShapeCommands(__flightRenderState, defaultCanvasShapeCommands);
 			registerCanvasShapeCommands(__flightRenderState, defaultCanvasTextureShapeCommands);
@@ -311,12 +311,12 @@ class Window #if lime extends LimeWindow #end
 		}
 	}
 
-	@:noCompletion private static function __registerFlightCanvasBitmapResolver(resolvers:FlightCanvasTextureResolvers):Void
+	@:noCompletion private static function __registerFlightCanvasBitmapResolver(host:FlightHost, resolvers:FlightCanvasTextureResolvers):Void
 	{
 		#if (lime_cairo && !js)
 		registerCanvasTextureResolver(resolvers, BitmapTextureSourceKind, __resolveFlightCanvasBitmap);
 		#else
-		registerCanvasBitmapTextureResolver(resolvers);
+		registerCanvasBitmapTextureResolver(cast host, resolvers);
 		#end
 	}
 
