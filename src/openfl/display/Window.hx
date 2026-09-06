@@ -381,7 +381,7 @@ class Window #if lime extends LimeWindow #end
 			return;
 		}
 		stage.__renderBeforeDraw();
-		__syncFlightCSSFilters(stage);
+		if (__usingCairo) __syncFlightCSSFilters(stage);
 
 		if (__usingCairo)
 		{
