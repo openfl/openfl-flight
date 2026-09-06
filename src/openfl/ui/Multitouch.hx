@@ -138,14 +138,6 @@ import lime.app.Application as LimeApplication;
 		supportsGestureEvents = false;
 		inputMode = MultitouchInputMode.TOUCH_POINT;
 		__activeTouchPoints = new Map();
-		__flightInputManager = FlightInput.createInputManager();
-		FlightSignals.connectSignal(__flightInputManager.onPointerDown, __onFlightPointerDown);
-		FlightSignals.connectSignal(__flightInputManager.onPointerMove, __onFlightPointerMove);
-		FlightSignals.connectSignal(__flightInputManager.onPointerUp, __onFlightPointerUp);
-		FlightSignals.connectSignal(__flightInputManager.onPointerCancel, __onFlightPointerUp);
-
-		var inputSource = __getFlightInputSource();
-		if (inputSource != null) FlightInput.attachPointerInput(__flightInputManager, inputSource, {preventDefault: false});
 
 		#if openfljs
 		untyped Object.defineProperties(Multitouch, {
@@ -157,6 +149,20 @@ import lime.app.Application as LimeApplication;
 			}
 		});
 		#end
+	}
+
+	@:noCompletion private static function __initializeFlightInput():Void
+	{
+		if (__flightInputManager != null) return;
+
+		__flightInputManager = FlightInput.createInputManager();
+		FlightSignals.connectSignal(__flightInputManager.onPointerDown, __onFlightPointerDown);
+		FlightSignals.connectSignal(__flightInputManager.onPointerMove, __onFlightPointerMove);
+		FlightSignals.connectSignal(__flightInputManager.onPointerUp, __onFlightPointerUp);
+		FlightSignals.connectSignal(__flightInputManager.onPointerCancel, __onFlightPointerUp);
+
+		var inputSource = __getFlightInputSource();
+		if (inputSource != null) FlightInput.attachPointerInput(__flightInputManager, inputSource, {preventDefault: false});
 	}
 
 	@:noCompletion private static function __getFlightPlatformHost():FlightPlatformHost
@@ -213,6 +219,7 @@ import lime.app.Application as LimeApplication;
 	// Getters & Setters
 	@:noCompletion private static function get_supportsTouchEvents():Bool
 	{
+		__initializeFlightInput();
 		#if (js && html5)
 		return Browser.supported && Browser.document != null && Browser.document.documentElement != null
 			&& (Reflect.hasField(Browser.document.documentElement, "ontouchstart")
