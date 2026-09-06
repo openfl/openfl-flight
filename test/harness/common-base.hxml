@@ -1,0 +1,4 @@
+-cp test/harness/src
+-main harness.Main
+-D tools
+-D desktop

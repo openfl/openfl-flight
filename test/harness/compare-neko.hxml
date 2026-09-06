@@ -1,0 +1,6 @@
+test/harness/common-base.hxml
+-cp src
+-lib flight
+-D openfl
+-D harness_compare
+-neko build/test/harness-neko.n

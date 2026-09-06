@@ -1,5 +1,2 @@
--cp test/harness/src
--main harness.Main
+test/harness/common-base.hxml
 --interp
--D tools
--D desktop
