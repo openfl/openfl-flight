@@ -37,6 +37,7 @@ import lime.ui.WindowAttributes;
 @:access(flight._RenderGl)
 @:access(flight._EffectsGl)
 @:access(flight._Render)
+@:access(openfl.filters.BitmapFilter)
 @:access(openfl.display.LoaderInfo)
 @:access(openfl.display.Application)
 @:access(openfl.display.DisplayObject)
