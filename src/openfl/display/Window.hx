@@ -447,7 +447,7 @@ class Window #if lime extends LimeWindow #end
 					destroyGlRenderTarget(__flightRenderState, obj.__flightEffectsScratchB);
 					obj.__flightEffectsScratchB = null;
 				}
-				obj.__flightEffectsTarget = null;
+				obj.__flightOriginalCacheTarget = null;
 			}
 		}
 		if (obj.__children != null)
@@ -459,19 +459,24 @@ class Window #if lime extends LimeWindow #end
 
 	@:noCompletion private function __refreshFlightGlCaches(obj:DisplayObject):Void
 	{
-		if (obj.__flightRenderCacheBound)
-		{
-			refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode);
-		}
 		if (obj.__children != null)
 		{
 			for (child in obj.__children)
 				__refreshFlightGlCaches(child);
 		}
+		if (obj.__flightRenderCacheBound)
+		{
+			refreshGlRenderCache(__flightRenderState, __flightGlCacheState, obj.__flightRenderCache, obj.__flightNode);
+		}
 	}
 
 	@:noCompletion private function __applyFlightGlEffects(obj:DisplayObject):Void
 	{
+		if (obj.__children != null)
+		{
+			for (child in obj.__children)
+				__applyFlightGlEffects(child);
+		}
 		if (obj.__flightRenderCacheBound && obj.__filters != null)
 		{
 			var rawTarget = flight._Scene2DGl.getGlRenderCacheTarget(__flightRenderState, obj.__flightRenderCache);
@@ -536,11 +541,6 @@ class Window #if lime extends LimeWindow #end
 					}
 				}
 			}
-		}
-		if (obj.__children != null)
-		{
-			for (child in obj.__children)
-				__applyFlightGlEffects(child);
 		}
 	}
 
